@@ -63,8 +63,8 @@ export const TEAMS_2026 = [
 
 export const MATCH_DAYS = [
   { id: 1, date: '2026-06-11', label: 'Jornada 1' },
-  { id: 2, date: '2026-06-15', label: 'Jornada 2' },
-  { id: 3, date: '2026-06-19', label: 'Jornada 3' },
+  { id: 2, date: '2026-06-18', label: 'Jornada 2' },
+  { id: 3, date: '2026-06-24', label: 'Jornada 3' },
   { id: 4, date: '2026-06-28', label: 'Dieciséis avos' },
   { id: 5, date: '2026-07-04', label: 'Octavos' },
   { id: 6, date: '2026-07-09', label: 'Cuartos' },
