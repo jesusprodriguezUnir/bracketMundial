@@ -26,59 +26,68 @@ export class BracketView extends LitElement {
   static styles = css`
     :host { display: block; }
 
+    /* Barra de phase tabs — estética retro, botones Bowlby One */
     .phase-tabs {
       display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin: 0 0 24px;
+      background: var(--paper-2);
+      border-bottom: 4px solid var(--ink);
       position: sticky;
-      top: 72px;
+      top: 73px; /* altura topbar retro */
       z-index: 90;
-      background: var(--navy-dark);
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
       overflow-x: auto;
       scrollbar-width: none;
     }
     .phase-tabs::-webkit-scrollbar { display: none; }
 
     .phase-tab {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-color);
-      color: var(--text-dim);
-      padding: 6px 14px;
-      font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 0.72rem;
+      all: unset;
       cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
+      padding: 14px 22px;
+      font-family: var(--font-var);
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      border-left: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
       white-space: nowrap;
       flex-shrink: 0;
+      transition: background 0.1s;
     }
-    .phase-tab:hover {
-      color: var(--neon-lime);
-      border-color: var(--neon-lime);
-    }
+    .phase-tab:first-child { border-left: none; }
+    .phase-tab:hover { background: var(--retro-yellow); }
     .phase-tab.active {
-      background: rgba(212, 255, 0, 0.12);
-      border-color: var(--neon-lime);
-      color: var(--neon-lime);
+      background: var(--retro-orange);
+      color: var(--paper);
     }
 
-    .section-title {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      color: var(--off-white);
-      margin: 48px 0 24px;
-      text-align: center;
+    /* Títulos de sección */
+    .section-heading {
+      padding: 22px 0 18px;
+      border-bottom: 3px dashed var(--ink);
+      margin-bottom: 24px;
     }
-    .section-title:first-of-type { margin-top: 0; }
+    .section-heading.knockout {
+      border-bottom-style: solid;
+    }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-title {
+      font-family: var(--font-var);
+      font-size: 34px;
+      line-height: 1;
+      color: var(--ink);
+    }
 
     .knockout-sections { }
     .knockout-section { }
 
-    /* En móvil solo se muestra la sección activa */
     @media (max-width: 768px) {
       .section-groups,
       .knockout-section {
@@ -87,6 +96,10 @@ export class BracketView extends LitElement {
       .section-groups.visible,
       .knockout-section.visible {
         display: block;
+      }
+      .phase-tab {
+        padding: 12px 16px;
+        font-size: 13px;
       }
     }
   `;
@@ -103,7 +116,6 @@ export class BracketView extends LitElement {
 
   private _selectTab(tab: PhaseTab) {
     this._activeTab = tab;
-    // En desktop hacemos scroll suave a la sección
     this.updateComplete.then(() => {
       const targetId = tab === 'groups'
         ? 'section-groups'
@@ -159,11 +171,14 @@ export class BracketView extends LitElement {
         <div
           id="section-groups"
           class="section-groups ${at === 'groups' ? 'visible' : ''}">
-          <h2 class="section-title">Fase de Grupos</h2>
+          <div class="section-heading">
+            <div class="section-eyebrow">⚽ FASE DE GRUPOS</div>
+            <div class="section-title">12 GRUPOS · 48 EQUIPOS</div>
+          </div>
           <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
         </div>
 
-        <!-- Eliminatorias: todas visibles en desktop, filtradas en móvil -->
+        <!-- Eliminatorias -->
         <div class="knockout-sections">
           ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
             <div
@@ -171,11 +186,13 @@ export class BracketView extends LitElement {
               class="knockout-section ${at === phase ? 'visible' : ''}">
             </div>
           `)}
-          <!-- El bracket knockout renderiza todo internamente, lo envolvemos en un bloque visible -->
           <div
             id="section-knockout-bracket"
             class="knockout-section ${at !== 'groups' ? 'visible' : ''}">
-            <h2 class="section-title">Eliminatorias</h2>
+            <div class="section-heading knockout">
+              <div class="section-eyebrow">★ ELIMINATORIAS ★</div>
+              <div class="section-title">EL CAMINO A LA GLORIA</div>
+            </div>
             <bracket-knockout></bracket-knockout>
           </div>
         </div>

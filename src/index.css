@@ -1,18 +1,41 @@
 :root {
-  --navy-dark: #0a0a1a;
-  --navy-deep: #050510;
-  --navy-surface: #10102a;
-  --neon-lime: #D4FF00;
-  --neon-blue: #00F0FF;
-  --neon-magenta: #FF0055;
-  --off-white: #F4F4F5;
-  --text-dim: rgba(244, 244, 245, 0.6);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'Epilogue', sans-serif;
+  /* Paleta Panini retro 80s/90s */
+  --paper:         #ecdfc0;
+  --paper-2:       #e6d6b1;
+  --paper-3:       #fff9ec;
+  --ink:           #1a1933;
+  --retro-orange:  #e8541f;
+  --retro-red:     #c41e2c;
+  --retro-green:   #1f6b3a;
+  --retro-blue:    #22418c;
+  --retro-yellow:  #f0b021;
+  --dim:           #7a6f54;
+
+  /* Sin redondeos — todo es impresión dura */
+  --radius-lg: 0;
+  --radius-md: 0;
+
+  /* Tipografías */
+  --font-var:  'Bowlby One', 'Anton', Impact, sans-serif;
+  --font-head: 'Archivo Black', 'Anton', Impact, sans-serif;
+  --font-body: 'Archivo', 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+
+  /* Sombras duras offset (estilo sello impreso) */
+  --shadow-hard-sm: 2px 2px 0 0 var(--ink);
+  --shadow-hard-md: 3px 3px 0 0 var(--ink);
+  --shadow-hard-lg: 4px 4px 0 0 var(--ink);
+  --shadow-hard-xl: 6px 6px 0 0 var(--ink);
+
+  /* Halftone patterns */
+  --halftone:      radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+  --halftone-soft: radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
+
+  /* Paper texture para fondos de pantalla */
+  --paper-texture:
+    radial-gradient(circle at 20% 30%, rgba(232,84,31,0.04) 0, transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(34,65,140,0.04) 0, transparent 30%),
+    radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
 }
 
 * {
@@ -23,52 +46,48 @@
 
 body {
   font-family: var(--font-body);
-  background-color: var(--navy-deep);
-  color: var(--off-white);
+  background-color: var(--paper);
+  background-image: var(--paper-texture);
+  color: var(--ink);
   min-height: 100vh;
   overflow-x: hidden;
-  position: relative;
   -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(circle at 10% 10%, rgba(212, 255, 0, 0.03), transparent 25%),
-    radial-gradient(circle at 90% 10%, rgba(0, 240, 255, 0.03), transparent 20%);
 }
 
 h1, h2, h3 {
-  font-family: var(--font-display);
-  text-transform: uppercase;
+  font-family: var(--font-var);
+  letter-spacing: -0.02em;
 }
 
+/* Botón retro: borde sólido grueso + sombra hard offset */
 .btn {
-  background: var(--navy-surface);
-  border: 1px solid var(--border-color);
-  color: var(--off-white);
-  padding: 10px 20px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  background: var(--paper-2);
+  border: 3px solid var(--ink);
+  color: var(--ink);
+  padding: 8px 16px;
+  font-family: var(--font-var);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
+  border-radius: 0;
+  box-shadow: var(--shadow-hard-md);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
-
 .btn:hover {
-  border-color: var(--neon-lime);
-  color: var(--neon-lime);
-  background: rgba(212, 255, 0, 0.05);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--ink);
+}
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--ink);
 }
 
 .btn-primary {
-  background: var(--neon-lime);
-  color: var(--navy-deep);
-  border-color: var(--neon-lime);
+  background: var(--retro-yellow);
+  border-color: var(--ink);
 }
-
 .btn-primary:hover {
-  background: #e6ff33;
-  box-shadow: 0 0 20px rgba(212, 255, 0, 0.3);
+  background: var(--retro-yellow);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -77,10 +96,9 @@ h1, h2, h3 {
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes pulse-glow {
-    0%   { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0.5); }
-    50%  { box-shadow: 0 0 16px 4px rgba(212, 255, 0, 0.3); }
-    100% { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0); }
+  @keyframes pulse-stamp {
+    0%   { box-shadow: var(--shadow-hard-md); }
+    50%  { box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-md); }
+    100% { box-shadow: var(--shadow-hard-md); }
   }
 }
-

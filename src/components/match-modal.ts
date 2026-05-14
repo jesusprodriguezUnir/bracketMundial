@@ -1,7 +1,15 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
+
+// Stats placeholder — solo flavor visual, igual que el diseño dir2-retro.jsx
+const STATS_STRIP = [
+  { label: 'POSESIÓN', value: '58 — 42', accent: 'var(--retro-blue)' },
+  { label: 'REMATES',  value: '14 — 9',  accent: 'var(--retro-orange)' },
+  { label: 'CÓRNERS',  value: '6 — 4',   accent: 'var(--retro-green)' },
+  { label: 'ASIST.',   value: '78 215',  accent: 'var(--retro-red)' },
+];
 
 @customElement('match-modal')
 export class MatchModal extends LitElement {
@@ -12,8 +20,8 @@ export class MatchModal extends LitElement {
   @property({ attribute: 'initial-score-b', type: Number }) initialScoreB = 0;
   @property() phase: 'group' | 'knockout' = 'group';
 
-  private _scoreA = 0;
-  private _scoreB = 0;
+  @state() private _scoreA = 0;
+  @state() private _scoreB = 0;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -24,9 +32,8 @@ export class MatchModal extends LitElement {
   }
 
   override firstUpdated() {
-    const inputA = this.shadowRoot?.querySelector<HTMLInputElement>('input');
-    inputA?.focus();
-    inputA?.select();
+    const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
+    addBtn?.focus();
   }
 
   private _handleKeydown = (e: KeyboardEvent) => {
@@ -36,7 +43,7 @@ export class MatchModal extends LitElement {
 
   private _trapFocus(e: KeyboardEvent) {
     const focusable = Array.from(
-      this.shadowRoot?.querySelectorAll<HTMLElement>('input, button') ?? []
+      this.shadowRoot?.querySelectorAll<HTMLElement>('button') ?? []
     );
     if (focusable.length === 0) return;
     const first = focusable[0];
@@ -76,17 +83,8 @@ export class MatchModal extends LitElement {
     }));
   }
 
-  private onInputA(e: Event) {
-    this._scoreA = parseInt((e.target as HTMLInputElement).value) || 0;
-    this.requestUpdate();
-  }
-
-  private onInputB(e: Event) {
-    this._scoreB = parseInt((e.target as HTMLInputElement).value) || 0;
-    this.requestUpdate();
-  }
-
   static styles = css`
+    /* Backdrop ink semitransparente */
     :host {
       position: fixed;
       inset: 0;
@@ -94,84 +92,291 @@ export class MatchModal extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(26, 25, 51, 0.75);
       padding: 20px;
     }
+
+    /* Panel modal — grande, Panini retro */
     .modal {
-      background: var(--navy-dark);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 32px;
-      max-width: 400px;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-xl);
+      max-width: 860px;
       width: 100%;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .modal-header {
-      text-align: center;
-      margin-bottom: 24px;
+
+    /* ─── Ticket header ─── */
+    .ticket-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 16px;
+      background: var(--ink);
+      color: var(--paper);
+      border-bottom: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 0 var(--retro-orange);
     }
-    .modal-header h2 {
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      color: var(--text-dim);
-      margin: 0;
+    .ticket-label {
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      color: var(--retro-yellow);
+      flex-shrink: 0;
     }
-    .teams-grid {
+    .ticket-info {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--paper);
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .ticket-group {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--retro-yellow);
+      letter-spacing: 0.15em;
+      flex-shrink: 0;
+    }
+    .ticket-close {
+      all: unset;
+      cursor: pointer;
+      color: var(--paper);
+      font-family: var(--font-var);
+      font-size: 18px;
+      opacity: 0.7;
+      margin-left: 10px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .ticket-close:hover { opacity: 1; }
+
+    /* ─── Showdown grande con stickers ─── */
+    .showdown {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
+      gap: 24px;
       align-items: center;
-      gap: 20px;
-      margin-bottom: 32px;
+      padding: 24px;
+      background: var(--paper-2);
+      border: 4px solid var(--ink);
+      margin: 16px;
+      box-shadow: var(--shadow-hard-xl);
+      position: relative;
     }
-    .team-box { text-align: center; }
-    .team-flag { font-size: 2.5rem; margin-bottom: 8px; display: block; }
-    .team-name { font-weight: 800; font-size: 0.9rem; text-transform: uppercase; }
-    .vs-label { font-family: var(--font-display); color: var(--text-dim); opacity: 0.5; }
 
-    .score-inputs {
+    .sticker-side-left {
       display: flex;
-      justify-content: center;
+      justify-content: flex-end;
+    }
+    .sticker-side-right {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    /* Sticker Panini — tarjeta rotada con sombra dura */
+    .sticker {
+      display: inline-flex;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
+      background: var(--paper-3);
+      border: 4px solid var(--ink);
+      padding: 12px 14px;
+      box-shadow: 4px 4px 0 0 var(--ink);
+      min-width: 110px;
     }
-    input {
-      width: 60px;
-      height: 60px;
-      background: var(--navy-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      color: var(--neon-lime);
-      font-size: 1.5rem;
-      font-weight: 800;
-      text-align: center;
-      outline: none;
-    }
-    input:focus { border-color: var(--neon-lime); }
+    .sticker.left  { transform: rotate(-3deg); }
+    .sticker.right { transform: rotate(4deg); }
 
-    .warn {
+    .sticker-flag { font-size: 48px; line-height: 1; }
+    .sticker-name {
+      font-family: var(--font-head);
+      font-size: 13px;
+      margin-top: 6px;
+      letter-spacing: 0.04em;
       text-align: center;
-      font-size: 0.72rem;
-      color: var(--neon-magenta);
-      margin-bottom: 16px;
-      min-height: 1.2em;
     }
 
-    .modal-footer {
+    /* Marcador central */
+    .score-center {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .score-big {
+      font-family: var(--font-var);
+      font-size: 88px;
+      line-height: 0.9;
+      letter-spacing: -0.04em;
       display: flex;
       gap: 12px;
+      align-items: center;
+      color: var(--ink);
     }
-    .btn { flex: 1; }
+    .score-sep {
+      font-family: var(--font-var);
+      font-size: 56px;
+      color: var(--retro-red);
+    }
+    .score-final-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--paper);
+      background: var(--retro-red);
+      padding: 3px 10px;
+      border: 2px solid var(--ink);
+      text-transform: uppercase;
+    }
+    .score-tbd {
+      font-family: var(--font-var);
+      font-size: 36px;
+      color: var(--dim);
+      opacity: 0.5;
+    }
+
+    /* ─── Stats strip (flavor visual) ─── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+    .stat-card {
+      border: 3px solid var(--ink);
+      background: var(--paper-2);
+      padding: 8px 12px;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .stat-value {
+      font-family: var(--font-var);
+      font-size: 22px;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+
+    /* ─── Editor de marcador ─── */
+    .editor-section {
+      padding: 14px 16px 16px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper-3);
+    }
+    .editor-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .editor-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Score input retro — botones ink + display Bowlby */
+    .score-input {
+      display: inline-flex;
+      align-items: stretch;
+      border: 3px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 3px 3px 0 0 var(--retro-orange);
+    }
+    .score-input button {
+      all: unset;
+      cursor: pointer;
+      padding: 5px 12px;
+      font-family: var(--font-var);
+      font-size: 18px;
+      color: var(--paper);
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+    }
+    .score-input button:hover { background: var(--retro-red); }
+    .score-display {
+      font-family: var(--font-var);
+      font-size: 28px;
+      line-height: 1;
+      padding: 4px 16px;
+      min-width: 28px;
+      text-align: center;
+      align-self: center;
+      color: var(--ink);
+    }
+
+    .vs-sep {
+      font-family: var(--font-var);
+      font-size: 22px;
+      color: var(--dim);
+    }
+
+    /* Aviso empate en knockout */
+    .warn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--paper);
+      background: var(--retro-red);
+      border: 2px solid var(--ink);
+      padding: 4px 10px;
+      letter-spacing: 0.08em;
+      margin-top: 10px;
+      min-height: 1.6em;
+      display: inline-block;
+    }
+    .warn:empty { display: none; }
+
+    /* Footer de acciones */
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+    .modal-footer .btn { flex: 1; }
     .btn:disabled {
       opacity: 0.35;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: var(--shadow-hard-sm);
     }
-    .btn-primary:disabled:hover {
-      background: var(--navy-surface);
-      border-color: var(--border-color);
-      color: var(--off-white);
-      box-shadow: none;
+
+    @media (max-width: 768px) {
+      .showdown {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 10px;
+        padding: 16px;
+      }
+      .sticker-side-left,
+      .sticker-side-right {
+        justify-content: center;
+      }
+      .sticker.left,
+      .sticker.right {
+        transform: none;
+      }
+      .score-big { font-size: 60px; }
+      .stats-strip {
+        grid-template-columns: 1fr 1fr;
+        padding: 0 10px 12px;
+      }
+      .editor-section { padding: 12px 10px 12px; }
+      .modal-footer { padding: 0 10px 12px; }
     }
   `;
 
@@ -179,34 +384,110 @@ export class MatchModal extends LitElement {
     const tA = TEAMS_2026.find(t => t.id === this.teamA);
     const tB = TEAMS_2026.find(t => t.id === this.teamB);
     const isDraw = this.phase === 'knockout' && this._scoreA === this._scoreB;
+    const isPlayed = this.initialScoreA !== null || this.initialScoreB !== null;
+    const showStats = this.phase === 'group' && isPlayed;
+    const groupLetter = tA?.group ?? '?';
+    const phaseLabel = this.phase === 'group'
+      ? `GRUPO ${groupLetter}`
+      : 'ELIMINATORIAS';
 
     return html`
       <div class="modal" @click="${(e: MouseEvent) => e.stopPropagation()}">
-        <div class="modal-header">
-          <h2>RESULTADO DEL PARTIDO</h2>
+
+        <!-- Ticket header -->
+        <div class="ticket-header">
+          <span class="ticket-label">★ TICKET</span>
+          <span class="ticket-info">№ ${this.matchId}</span>
+          <span class="ticket-group">${phaseLabel}</span>
+          <button class="ticket-close" @click="${this.close}" aria-label="Cerrar">✕</button>
         </div>
-        <div class="teams-grid">
-          <div class="team-box">
-            <span class="team-flag">${tA?.flag}</span>
-            <span class="team-name">${tA?.name}</span>
+
+        <!-- Showdown grande con stickers -->
+        <div class="showdown">
+          <div class="sticker-side-left">
+            <div class="sticker left">
+              <span class="sticker-flag">${tA?.flag ?? '🏁'}</span>
+              <span class="sticker-name">${tA?.shortName ?? this.teamA}</span>
+            </div>
           </div>
-          <div class="vs-label">VS</div>
-          <div class="team-box">
-            <span class="team-flag">${tB?.flag}</span>
-            <span class="team-name">${tB?.name}</span>
+
+          <div class="score-center">
+            ${this._scoreA !== null && this._scoreB !== null
+              ? html`
+                <div class="score-big">
+                  <span>${this._scoreA}</span>
+                  <span class="score-sep">×</span>
+                  <span>${this._scoreB}</span>
+                </div>
+                <span class="score-final-badge">FINAL · 90+5</span>
+              `
+              : html`<div class="score-tbd">vs</div>`
+            }
+          </div>
+
+          <div class="sticker-side-right">
+            <div class="sticker right">
+              <span class="sticker-flag">${tB?.flag ?? '🏁'}</span>
+              <span class="sticker-name">${tB?.shortName ?? this.teamB}</span>
+            </div>
           </div>
         </div>
-        <div class="score-inputs">
-          <input type="number" min="0" .value="${String(this._scoreA)}"
-            @input="${this.onInputA}" aria-label="Goles ${tA?.name ?? ''}">
-          <span class="vs-label">—</span>
-          <input type="number" min="0" .value="${String(this._scoreB)}"
-            @input="${this.onInputB}" aria-label="Goles ${tB?.name ?? ''}">
+
+        <!-- Stats strip — flavor visual solamente -->
+        ${showStats ? html`
+          <div class="stats-strip">
+            ${STATS_STRIP.map(s => html`
+              <div class="stat-card" style="box-shadow: 3px 3px 0 0 ${s.accent}">
+                <div class="stat-label">${s.label}</div>
+                <div class="stat-value">${s.value}</div>
+              </div>
+            `)}
+          </div>
+        ` : ''}
+
+        <!-- Editor de marcador -->
+        <div class="editor-section">
+          <div class="editor-label">EDITAR MARCADOR ▶</div>
+          <div class="editor-row">
+            <!-- Score A -->
+            <div class="score-input">
+              <button
+                class="score-add-a"
+                @click="${() => { this._scoreA = Math.max(0, this._scoreA - 1); }}"
+                aria-label="Restar gol ${tA?.shortName}">−</button>
+              <span class="score-display" aria-live="polite">${this._scoreA}</span>
+              <button
+                @click="${() => { this._scoreA = this._scoreA + 1; }}"
+                aria-label="Añadir gol ${tA?.shortName}">+</button>
+            </div>
+
+            <span class="vs-sep">×</span>
+
+            <!-- Score B -->
+            <div class="score-input">
+              <button
+                @click="${() => { this._scoreB = Math.max(0, this._scoreB - 1); }}"
+                aria-label="Restar gol ${tB?.shortName}">−</button>
+              <span class="score-display" aria-live="polite">${this._scoreB}</span>
+              <button
+                @click="${() => { this._scoreB = this._scoreB + 1; }}"
+                aria-label="Añadir gol ${tB?.shortName}">+</button>
+            </div>
+          </div>
+
+          ${isDraw
+            ? html`<div class="warn">En eliminatorias debe haber un ganador.</div>`
+            : ''
+          }
         </div>
-        <p class="warn">${isDraw ? 'En eliminatorias debe haber un ganador.' : ''}</p>
+
+        <!-- Footer -->
         <div class="modal-footer">
           <button class="btn" @click="${this.close}">CANCELAR</button>
-          <button class="btn btn-primary" ?disabled="${isDraw}" @click="${this.save}">GUARDAR</button>
+          <button
+            class="btn btn-primary"
+            ?disabled="${isDraw}"
+            @click="${this.save}">GUARDAR</button>
         </div>
       </div>
     `;

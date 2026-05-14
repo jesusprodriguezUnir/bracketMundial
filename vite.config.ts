@@ -9,11 +9,11 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        name: 'Mundial 2026 Bracket',
+        name: 'Bracket Mundial 2026',
         short_name: 'Bracket26',
         description: 'Predicciones y Bracket del Mundial FIFA 2026',
-        theme_color: '#050510',
-        background_color: '#050510',
+        theme_color: '#1a1933',
+        background_color: '#ecdfc0',
         display: 'standalone',
         icons: [
           {

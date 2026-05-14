@@ -5,6 +5,15 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 
+// Colores por ronda — retro Panini
+const ROUND_COLORS: Record<string, string> = {
+  'col-r32':   'var(--retro-blue)',
+  'col-r16':   'var(--retro-orange)',
+  'col-qf':    'var(--retro-green)',
+  'col-sf':    'var(--retro-red)',
+  'col-final': 'var(--ink)',
+};
+
 @customElement('bracket-knockout')
 export class BracketKnockout extends LitElement {
   private unsubscribeStore?: () => void;
@@ -12,88 +21,188 @@ export class BracketKnockout extends LitElement {
 
   static styles = css`
     :host { display: block; width: 100%; overflow: hidden; }
+
+    .bracket-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      border: 3px solid var(--ink);
+      background: var(--paper-3);
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .bracket-actions-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .bracket-actions-btns {
+      display: flex;
+      gap: 10px;
+    }
+
     .bracket-scroll {
       overflow-x: auto;
-      padding: 40px 0;
+      padding: 32px 0 40px;
       cursor: grab;
       user-select: none;
+      background: var(--paper);
+      background-image: var(--paper-texture);
     }
     .bracket-scroll.is-dragging { cursor: grabbing; }
+
     .bracket-container {
       display: flex;
-      gap: 60px;
-      padding: 0 40px;
+      gap: 40px;
+      padding: 0 32px;
       min-width: fit-content;
       align-items: center;
       position: relative;
     }
+
     .round-col {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 12px;
       justify-content: space-around;
-      min-width: 200px;
+      min-width: 190px;
     }
+
+    /* Header coloreado de columna con halftone */
     .round-title {
-      font-family: var(--font-display);
-      font-size: 0.7rem;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      padding: 6px 10px;
       text-align: center;
-      margin-bottom: 20px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      color: var(--paper);
+      background-image: var(--halftone);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    /* Color especial para Final — amarillo */
+    .round-title.is-final {
+      color: var(--retro-yellow);
+    }
+
+    /* Match box retro */
     .match-box {
-      background: var(--navy-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
       overflow: hidden;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: transform 0.1s, box-shadow 0.1s;
     }
     .match-box:hover {
-      border-color: var(--neon-lime);
-      transform: scale(1.02);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+    .match-box:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
     }
     .match-box.pulse {
-      border-color: var(--neon-lime);
-      box-shadow: 0 0 16px rgba(212, 255, 0, 0.4);
+      box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-sm);
     }
+
+    /* Row de equipo dentro del match box */
     .team-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border-color);
-      min-height: 40px;
+      padding: 5px 8px;
+      min-height: 36px;
+      /* cuando es winner, el fondo se pone con --row-bg inline */
     }
-    .team-row:last-child { border-bottom: none; }
-    .team-info { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
-    .team-flag { font-size: 1rem; }
-    .team-name { font-weight: 600; color: var(--text-dim); }
-    .team-name.winner { color: var(--off-white); }
-    .score { font-family: var(--font-display); font-weight: 800; color: var(--neon-blue); }
-    .score.pending { color: var(--text-dim); opacity: 0.3; }
+    .team-row.winner-row {
+      color: var(--paper);
+    }
+    .team-row.loser-row {
+      opacity: 0.5;
+    }
 
-    .bracket-actions {
+    .team-separator {
+      height: 2px;
+      background: var(--ink);
+      margin: 0 8px;
+    }
+
+    .team-info {
       display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 24px;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 700;
+      overflow: hidden;
+    }
+    .team-flag { font-size: 13px; flex-shrink: 0; }
+    .team-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    .score {
+      font-family: var(--font-var);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .score.pending {
+      color: var(--dim);
+      opacity: 0.4;
+      font-size: 12px;
+    }
+
+    /* Champion box amarilla */
     .champion-box {
-      background: linear-gradient(180deg, rgba(212, 255, 0, 0.1), transparent);
-      border: 2px solid var(--neon-lime);
-      padding: 24px;
-      border-radius: 12px;
+      background: var(--retro-yellow);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-xl);
+      padding: 20px 16px;
       text-align: center;
-      min-width: 200px;
+      min-width: 190px;
     }
-    .champion-title { font-family: var(--font-display); font-size: 0.8rem; color: var(--neon-lime); margin-bottom: 12px; }
-    .champion-team { font-size: 1.2rem; font-weight: 800; }
+    .champion-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .champion-team {
+      font-family: var(--font-var);
+      font-size: 22px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .champion-team.tbd {
+      opacity: 0.35;
+      font-size: 18px;
+    }
 
+    /* Tercer puesto */
+    .third-place-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    /* SVG connectors */
     svg.connectors {
       position: absolute;
       top: 0; left: 0;
@@ -105,6 +214,7 @@ export class BracketKnockout extends LitElement {
     @media (max-width: 768px) {
       .bracket-scroll { padding: 20px 0; }
       svg.connectors { display: none; }
+      .round-col { min-width: 150px; }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -187,35 +297,43 @@ export class BracketKnockout extends LitElement {
     document.body.appendChild(modal);
   }
 
-  private renderMatch(matchId: string, idx = 0) {
+  private renderMatch(matchId: string, accentColor: string, idx = 0) {
     const m = useTournamentStore.getState().knockoutMatches[matchId];
     const tA = this.getTeam(m?.teamA ?? null);
     const tB = this.getTeam(m?.teamB ?? null);
     const isPlayed = m?.isPlayed ?? false;
+    const winnerId = m?.winnerId ?? null;
     const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
 
+    const renderRow = (teamId: string | null, score: number | null) => {
+      const team = this.getTeam(teamId);
+      const isWinner = winnerId !== null && winnerId === teamId;
+      const isLoser  = winnerId !== null && winnerId !== teamId;
+      return html`
+        <div
+          class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
+          style="${isWinner ? `background: ${accentColor};` : ''}">
+          <div class="team-info">
+            <span class="team-flag">${team?.flag ?? '🏁'}</span>
+            <span class="team-name">${team?.shortName ?? 'TBD'}</span>
+          </div>
+          <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
+        </div>
+      `;
+    };
+
     return html`
-      <div class="match-box ${this._pulseId === matchId ? 'pulse' : ''}"
+      <div
+        class="match-box ${this._pulseId === matchId ? 'pulse' : ''}"
         style="--i:${idx}"
         role="button"
         tabindex="0"
         aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}` : ', click para editar'}"
         @click="${() => this.openMatch(matchId)}"
         @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
-        <div class="team-row">
-          <div class="team-info">
-            <span class="team-flag">${tA?.flag ?? '🏁'}</span>
-            <span class="team-name ${m?.winnerId === m?.teamA ? 'winner' : ''}">${tA?.shortName ?? 'TBD'}</span>
-          </div>
-          <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? m.scoreA : '-'}</div>
-        </div>
-        <div class="team-row">
-          <div class="team-info">
-            <span class="team-flag">${tB?.flag ?? '🏁'}</span>
-            <span class="team-name ${m?.winnerId === m?.teamB ? 'winner' : ''}">${tB?.shortName ?? 'TBD'}</span>
-          </div>
-          <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? m.scoreB : '-'}</div>
-        </div>
+        ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
+        <div class="team-separator"></div>
+        ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
       </div>
     `;
   }
@@ -242,50 +360,73 @@ export class BracketKnockout extends LitElement {
 
     return html`
       <div class="bracket-actions">
-        ${!hasKnockout
-          ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">Generar Eliminatorias</button>`
-          : html`<button class="btn" @click="${this.handleSimulate}">Simular Resto</button>`
-        }
+        <div class="bracket-actions-label">★ BRACKET · ELIMINATORIAS</div>
+        <div class="bracket-actions-btns">
+          ${!hasKnockout
+            ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">GENERAR ELIMINATORIAS</button>`
+            : html`<button class="btn" @click="${this.handleSimulate}">SIMULAR RESTO</button>`
+          }
+        </div>
       </div>
 
       <div class="bracket-scroll">
         <div class="bracket-container">
           <svg class="connectors" aria-hidden="true"></svg>
 
+          <!-- Dieciséis avos -->
           <div class="round-col" id="col-r32">
-            <div class="round-title">Dieciséis Avos</div>
-            ${r32Ids.map((id, i) => this.renderMatch(id, i))}
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r32']}">
+              <span>1/16 · DIECISÉIS AVOS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[16]</span>
+            </div>
+            ${r32Ids.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r32'], i))}
           </div>
 
+          <!-- Octavos -->
           <div class="round-col" id="col-r16">
-            <div class="round-title">Octavos</div>
-            ${r16Ids.map((id, i) => this.renderMatch(id, i))}
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r16']}">
+              <span>OCTAVOS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
+            </div>
+            ${r16Ids.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r16'], i))}
           </div>
 
+          <!-- Cuartos -->
           <div class="round-col" id="col-qf">
-            <div class="round-title">Cuartos</div>
-            ${qfIds.map((id, i) => this.renderMatch(id, i))}
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-qf']}">
+              <span>CUARTOS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
+            </div>
+            ${qfIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-qf'], i))}
           </div>
 
+          <!-- Semifinales -->
           <div class="round-col" id="col-sf">
-            <div class="round-title">Semifinales</div>
-            ${sfIds.map((id, i) => this.renderMatch(id, i))}
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-sf']}">
+              <span>SEMIFINALES</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
+            </div>
+            ${sfIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-sf'], i))}
           </div>
 
+          <!-- Final + Campeón + 3er puesto -->
           <div class="round-col" id="col-final">
-            <div class="round-title">Final</div>
-            ${this.renderMatch('FIN-01', 0)}
+            <div class="round-title is-final" style="background-color: ${ROUND_COLORS['col-final']}">
+              <span>FINAL</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+            </div>
+            ${this.renderMatch('FIN-01', ROUND_COLORS['col-final'], 0)}
 
             <div class="champion-box">
-              <div class="champion-title">CAMPEÓN</div>
+              <div class="champion-title">🏆 CAMPEÓN</div>
               ${champion
-                ? html`<div class="champion-team">${champion.flag} ${champion.name}</div>`
-                : html`<div class="champion-team" style="opacity: 0.3">🏆 TBD</div>`
+                ? html`<div class="champion-team">${champion.flag} ${champion.name.toUpperCase()}</div>`
+                : html`<div class="champion-team tbd">POR DEFINIR</div>`
               }
             </div>
 
-            <div class="round-title" style="margin-top: 20px">Tercer Puesto</div>
-            ${this.renderMatch('TP-01', 1)}
+            <div class="third-place-title">TERCER PUESTO</div>
+            ${this.renderMatch('TP-01', ROUND_COLORS['col-sf'], 1)}
           </div>
         </div>
       </div>
