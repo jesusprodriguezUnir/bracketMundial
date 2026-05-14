@@ -73,17 +73,8 @@ export const MATCH_DAYS = [
   { id: 9, date: '2026-07-19', label: 'Final' },
 ];
 
-export const VENUES = [
-  'Estadio Azteca', 'Estadio MetLife', 'Estadio SoFi', 'AT&T Stadium',
-  'Lumen Field', 'NRG Stadium', 'Allegiant Stadium', 'Hard Rock Stadium',
-  'Arrowhead Stadium', 'Lambeau Field', 'Lincoln Financial Field', 'Gillette Stadium'
-];
+import { STADIUMS } from './stadiums';
 
-export const CITIES = [
-  'Ciudad de México', 'East Rutherford', 'Inglewood', 'Arlington',
-  'Seattle', 'Houston', 'Las Vegas', 'Miami Gardens',
-  'Kansas City', 'Green Bay', 'Philadelphia', 'Foxborough'
-];
 
 export function generateGroupMatches() {
   const groups = 'ABCDEFGHIJKL'.split('');
@@ -95,6 +86,7 @@ export function generateGroupMatches() {
     teamB: string;
     matchDay: number;
     date: string;
+    timeSpain: string;
     venue: string;
     city: string;
     scoreA: number | null;
@@ -102,25 +94,42 @@ export function generateGroupMatches() {
   }> = [];
   let mId = 1;
 
+  // Tiempos típicos de inicio en España para el Mundial (CEST)
+  // Basado en franjas horarias de 18:00, 21:00, 00:00, 03:00
+  const typicalTimes = ['18:00', '21:00', '00:00', '03:00'];
+
   for (const g of groups) {
     const teams = TEAMS_2026.filter(t => t.group === g).map(t => t.id);
     const fixtures = [
-      [0, 1], [2, 3],
-      [0, 2], [1, 3],
-      [0, 3], [1, 2],
+      [0, 1], [2, 3], // Día 1 del grupo
+      [0, 2], [1, 3], // Día 2 del grupo
+      [0, 3], [1, 2], // Día 3 del grupo
     ];
-    fixtures.forEach(([i, j], dayIdx) => {
-      const venueIdx = (mId - 1) % VENUES.length;
+    fixtures.forEach(([i, j], idx) => {
+      const matchDayIdx = Math.floor(idx / 2);
+      const venueIdx = (mId - 1) % STADIUMS.length;
+      const stadium = STADIUMS[venueIdx];
+      
+      // Ajuste específico para España (ejemplo simplificado pero realista)
+      let time = typicalTimes[mId % typicalTimes.length];
+      
+      // Caso especial: España en Grupo H
+      if (g === 'H') {
+        if (mId === 43 || mId === 45) time = '18:00'; // España vs Cabo Verde / Arabia
+        if (mId === 47) time = '02:00'; // Uruguay vs España
+      }
+
       matches.push({
-        id: `G${g}-${mId}`,
-        matchId: `G${g}-${mId++}`,
+        id: `M${mId}`,
+        matchId: `M${mId++}`,
         group: g,
         teamA: teams[i],
         teamB: teams[j],
-        matchDay: Math.floor(dayIdx / 2) + 1,
-        date: MATCH_DAYS[Math.floor(dayIdx / 2)].date,
-        venue: VENUES[venueIdx],
-        city: CITIES[venueIdx],
+        matchDay: matchDayIdx + 1,
+        date: MATCH_DAYS[matchDayIdx].date,
+        timeSpain: time,
+        venue: stadium.name,
+        city: stadium.city,
         scoreA: null,
         scoreB: null,
       });

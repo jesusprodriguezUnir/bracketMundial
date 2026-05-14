@@ -4,6 +4,7 @@ import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import type { MatchModal } from './match-modal';
 import './match-modal';
+import { STADIUMS } from '../data/stadiums';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -307,6 +308,11 @@ export class BracketKnockout extends LitElement {
     modal.initialScoreA = match.scoreA ?? 0;
     modal.initialScoreB = match.scoreB ?? 0;
     modal.phase = 'knockout';
+    (modal as any).venue = (match as any).venue || '';
+    (modal as any).city = (match as any).city || '';
+    (modal as any).timeSpain = (match as any).timeSpain || '';
+    const s = STADIUMS.find(st => st.name === (match as any).venue);
+    if (s) (modal as any).stadiumImage = s.image;
 
     const handler = (ev: Event) => {
       const { scoreA, scoreB } = (ev as CustomEvent).detail;
@@ -357,6 +363,18 @@ export class BracketKnockout extends LitElement {
         ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
+        
+        ${(m as any).venue ? html`
+          <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
+            ${(() => {
+              const s = STADIUMS.find(st => st.name === (m as any).venue);
+              return s ? html`<img src="${s.image}" style="width: 16px; height: 10px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
+            })()}
+            <span style="font-family: var(--font-mono); font-size: 8px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${(m as any).venue} · ${(m as any).city}
+            </span>
+          </div>
+        ` : ''}
       </div>
     `;
   }

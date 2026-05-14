@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
+import { STADIUMS } from '../data/stadiums';
 
 const fmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
@@ -439,7 +440,17 @@ export class GroupsView extends LitElement {
                       <div class="match-meta">
                         <span class="jornada">J${m.matchDay}</span>
                         ${m.date ? html`<span>${formatDate(m.date)}</span>` : ''}
+                        ${m.timeSpain ? html`<span style="color: var(--retro-yellow); font-weight: bold;">· ${m.timeSpain} ESP</span>` : ''}
                         ${m.city ? html`<span>· ${m.city}</span>` : ''}
+                        ${m.venue ? html`
+                          <div style="display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                            ${(() => {
+                              const s = STADIUMS.find(st => st.name === m.venue);
+                              return s ? html`<img src="${s.image}" style="width: 20px; height: 12px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
+                            })()}
+                            <span style="font-size: 8px; opacity: 0.7;">${m.venue}</span>
+                          </div>
+                        ` : ''}
                         <span class="badge ${isPlayed ? 'badge-played' : 'badge-upcoming'}">${isPlayed ? 'JUGADO' : 'PRÓXIMO'}</span>
                       </div>
                     </div>

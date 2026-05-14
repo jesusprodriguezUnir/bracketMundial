@@ -26,6 +26,7 @@ export interface GroupMatchResult {
   scoreB: number | null;
   matchDay: number;
   date?: string;
+  timeSpain?: string;
   venue?: string;
   city?: string;
 }
@@ -348,9 +349,15 @@ export const useTournamentStore = create<TournamentState>()(
         const p = persisted as Partial<typeof current>;
         if (p.groupMatches) {
           p.groupMatches = p.groupMatches.map(m => {
-            if (!m.date || !m.venue || !m.city) {
+            if (!m.date || !m.venue || !m.city || !m.timeSpain) {
               const fresh = initialGroupMatches.find(f => f.matchId === m.matchId);
-              return fresh ? { ...m, date: fresh.date, venue: fresh.venue, city: fresh.city } : m;
+              return fresh ? { 
+                ...m, 
+                date: fresh.date, 
+                venue: fresh.venue, 
+                city: fresh.city,
+                timeSpain: fresh.timeSpain 
+              } : m;
             }
             return m;
           });
@@ -430,9 +437,17 @@ function syncRoundOf32(
     { key: 'semifinals', name: 'semifinals' }
   ];
 
+  const knockoutVenues: Record<string, { venue: string, city: string, timeSpain: string }> = {
+    'FIN-01': { venue: 'MetLife Stadium', city: 'East Rutherford (NY/NJ)', timeSpain: '21:00' },
+    'TP-01':  { venue: 'Hard Rock Stadium', city: 'Miami Gardens', timeSpain: '23:00' },
+    'SF-01':  { venue: 'AT&T Stadium', city: 'Arlington (Dallas)', timeSpain: '02:00' },
+    'SF-02':  { venue: 'Mercedes-Benz Stadium', city: 'Atlanta', timeSpain: '02:00' },
+  };
+
   for (const r of rounds) {
     for (const m of (KNOCKOUT_BRACKET as any)[r.key]) {
       if (!updated[m.id]) {
+        const kv = knockoutVenues[m.id] || { venue: 'TBD', city: 'TBD', timeSpain: '' };
         updated[m.id] = {
           matchId: m.id,
           round: r.name,
@@ -442,22 +457,27 @@ function syncRoundOf32(
           scoreB: null,
           winnerId: null,
           isPlayed: false,
-        };
+          ...kv
+        } as any;
       }
     }
   }
 
   if (!updated[KNOCKOUT_BRACKET.thirdPlace.id]) {
+    const kv = knockoutVenues[KNOCKOUT_BRACKET.thirdPlace.id];
     updated[KNOCKOUT_BRACKET.thirdPlace.id] = {
       matchId: KNOCKOUT_BRACKET.thirdPlace.id,
-      round: 'thirdPlace', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false
-    };
+      round: 'thirdPlace', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
+      ...kv
+    } as any;
   }
   if (!updated[KNOCKOUT_BRACKET.final.id]) {
+    const kv = knockoutVenues[KNOCKOUT_BRACKET.final.id];
     updated[KNOCKOUT_BRACKET.final.id] = {
       matchId: KNOCKOUT_BRACKET.final.id,
-      round: 'final', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false
-    };
+      round: 'final', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
+      ...kv
+    } as any;
   }
 
   return updated;

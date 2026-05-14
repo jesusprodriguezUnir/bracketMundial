@@ -5,8 +5,10 @@ import './components/groups-view';
 import './components/bracket-knockout';
 import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
+import './components/stadiums-view';
+import { STADIUMS } from './data/stadiums';
 
-type PhaseTab = 'groups' | 'r32' | 'r16' | 'qf' | 'sf' | 'final';
+type PhaseTab = 'groups' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
 
 const PHASE_LABELS: Record<PhaseTab, string> = {
   groups: 'Grupos',
@@ -15,6 +17,7 @@ const PHASE_LABELS: Record<PhaseTab, string> = {
   qf:     'Cuartos',
   sf:     'Semis',
   final:  'Final',
+  stadiums: 'Estadios',
 };
 
 @customElement('bracket-view')
@@ -85,16 +88,26 @@ export class BracketView extends LitElement {
       color: var(--ink);
     }
 
-    .knockout-sections { }
-    .knockout-section { }
+    .section-groups,
+    .knockout-sections,
+    .section-stadiums {
+      display: none;
+    }
+    .section-groups.visible,
+    .knockout-sections.visible,
+    .section-stadiums.visible {
+      display: block;
+    }
 
     @media (max-width: 768px) {
       .section-groups,
-      .knockout-section {
+      .knockout-section,
+      .section-stadiums {
         display: none;
       }
       .section-groups.visible,
-      .knockout-section.visible {
+      .knockout-section.visible,
+      .section-stadiums.visible {
         display: block;
       }
       .phase-tab {
@@ -117,9 +130,10 @@ export class BracketView extends LitElement {
   private _selectTab(tab: PhaseTab) {
     this._activeTab = tab;
     this.updateComplete.then(() => {
-      const targetId = tab === 'groups'
-        ? 'section-groups'
-        : `section-knockout-${tab}`;
+      let targetId = `section-knockout-${tab}`;
+      if (tab === 'groups') targetId = 'section-groups';
+      if (tab === 'stadiums') targetId = 'section-stadiums';
+      
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -138,6 +152,11 @@ export class BracketView extends LitElement {
     modal.initialScoreA = match.scoreA ?? 0;
     modal.initialScoreB = match.scoreB ?? 0;
     modal.phase = 'group';
+    (modal as any).venue = match.venue;
+    (modal as any).city = match.city;
+    (modal as any).timeSpain = match.timeSpain;
+    const s = STADIUMS.find(st => st.name === match.venue);
+    if (s) (modal as any).stadiumImage = s.image;
 
     const handler = (ev: Event) => {
       const { scoreA, scoreB } = (ev as CustomEvent).detail;
@@ -150,7 +169,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['groups', 'r32', 'r16', 'qf', 'sf', 'final'];
+    const tabs: PhaseTab[] = ['groups', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
     const at = this._activeTab;
 
     return html`
@@ -179,7 +198,7 @@ export class BracketView extends LitElement {
         </div>
 
         <!-- Eliminatorias -->
-        <div class="knockout-sections">
+        <div class="knockout-sections ${at !== 'groups' && at !== 'stadiums' ? 'visible' : ''}">
           ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
             <div
               id="section-knockout-${phase}"
@@ -188,13 +207,24 @@ export class BracketView extends LitElement {
           `)}
           <div
             id="section-knockout-bracket"
-            class="knockout-section ${at !== 'groups' ? 'visible' : ''}">
+            class="knockout-section ${at !== 'groups' && at !== 'stadiums' ? 'visible' : ''}">
             <div class="section-heading knockout">
               <div class="section-eyebrow">★ ELIMINATORIAS ★</div>
               <div class="section-title">EL CAMINO A LA GLORIA</div>
             </div>
             <bracket-knockout></bracket-knockout>
           </div>
+        </div>
+
+        <!-- Vista de Estadios -->
+        <div
+          id="section-stadiums"
+          class="section-stadiums ${at === 'stadiums' ? 'visible' : ''}">
+          <div class="section-heading">
+            <div class="section-eyebrow">🏟️ SEDES OFICIALES</div>
+            <div class="section-title">16 ESTADIOS · 3 PAÍSES</div>
+          </div>
+          <stadiums-view></stadiums-view>
         </div>
       </div>
     `;

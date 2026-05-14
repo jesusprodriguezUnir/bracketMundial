@@ -19,6 +19,10 @@ export class MatchModal extends LitElement {
   @property({ attribute: 'initial-score-a', type: Number }) initialScoreA: number | null = null;
   @property({ attribute: 'initial-score-b', type: Number }) initialScoreB: number | null = null;
   @property() phase: 'group' | 'knockout' = 'group';
+  @property() venue = '';
+  @property() city = '';
+  @property() timeSpain = '';
+  @property() stadiumImage = '';
 
   @state() private _scoreA: number | null = null;
   @state() private _scoreB: number | null = null;
@@ -417,7 +421,10 @@ export class MatchModal extends LitElement {
         <!-- Ticket header -->
         <div class="ticket-header">
           <span class="ticket-label">★ TICKET</span>
-          <span class="ticket-info">№ ${this.matchId}</span>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            ${this.stadiumImage ? html`<img src="${this.stadiumImage}" style="width: 40px; height: 25px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 2px 2px 0 0 var(--ink);" alt="Estadio">` : ''}
+            <span class="ticket-info">№ ${this.matchId} · ${this.city} · ${this.venue} · ${this.timeSpain ? html`<span style="color: var(--retro-yellow)">${this.timeSpain} ESP</span>` : ''}</span>
+          </div>
           <span class="ticket-group">${phaseLabel}</span>
           <button class="ticket-close" @click="${this.close}" aria-label="Cerrar">✕</button>
         </div>
