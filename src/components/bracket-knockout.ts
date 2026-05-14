@@ -268,6 +268,8 @@ export class BracketKnockout extends LitElement {
 
     el.addEventListener('pointerdown', (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('.match-box')) return;
       dragging = true;
       startX = e.pageX - el.getBoundingClientRect().left;
       scrollLeft0 = el.scrollLeft;
@@ -305,8 +307,8 @@ export class BracketKnockout extends LitElement {
     modal.matchId = match.matchId;
     modal.teamA = match.teamA;
     modal.teamB = match.teamB;
-    modal.initialScoreA = match.scoreA ?? 0;
-    modal.initialScoreB = match.scoreB ?? 0;
+    modal.initialScoreA = match.scoreA;
+    modal.initialScoreB = match.scoreB;
     modal.phase = 'knockout';
     (modal as any).venue = (match as any).venue || '';
     (modal as any).city = (match as any).city || '';

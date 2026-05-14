@@ -163,8 +163,8 @@ export class BracketView extends LitElement {
     modal.matchId = match.matchId;
     modal.teamA = match.teamA;
     modal.teamB = match.teamB;
-    modal.initialScoreA = match.scoreA ?? 0;
-    modal.initialScoreB = match.scoreB ?? 0;
+    modal.initialScoreA = match.scoreA;
+    modal.initialScoreB = match.scoreB;
     modal.phase = 'group';
     (modal as any).venue = match.venue;
     (modal as any).city = match.city;

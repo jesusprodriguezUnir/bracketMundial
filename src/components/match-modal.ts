@@ -40,7 +40,7 @@ export class MatchModal extends LitElement {
     addBtn?.focus();
   }
 
-  private _handleKeydown = (e: KeyboardEvent) => {
+  private readonly _handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this.close();
     if (e.key === 'Tab') this._trapFocus(e);
   };
@@ -51,7 +51,8 @@ export class MatchModal extends LitElement {
     );
     if (focusable.length === 0) return;
     const first = focusable[0];
-    const last = focusable[focusable.length - 1];
+    const last = focusable.at(-1);
+    if (!last) return;
     if (e.shiftKey && this.shadowRoot?.activeElement === first) {
       e.preventDefault(); last.focus();
     } else if (!e.shiftKey && this.shadowRoot?.activeElement === last) {
@@ -59,7 +60,7 @@ export class MatchModal extends LitElement {
     }
   }
 
-  private _handleHostClick = (e: MouseEvent) => {
+  private readonly _handleHostClick = (e: MouseEvent) => {
     if (e.target === this) this.close();
   };
 
@@ -82,6 +83,23 @@ export class MatchModal extends LitElement {
   private clear() {
     this._scoreA = null;
     this._scoreB = null;
+    this.dispatchEvent(new CustomEvent('save', {
+      detail: { matchId: this.matchId, scoreA: null, scoreB: null },
+      bubbles: true,
+      composed: true,
+    }));
+  }
+
+  private adjustScore(team: 'A' | 'B', delta: number) {
+    const nextScoreA = team === 'A'
+      ? Math.max(0, (this._scoreA ?? 0) + delta)
+      : (this._scoreA ?? 0);
+    const nextScoreB = team === 'B'
+      ? Math.max(0, (this._scoreB ?? 0) + delta)
+      : (this._scoreB ?? 0);
+
+    this._scoreA = nextScoreA;
+    this._scoreB = nextScoreB;
   }
 
   private save() {
@@ -92,7 +110,7 @@ export class MatchModal extends LitElement {
     }));
   }
 
-  static styles = css`
+  static readonly styles = css`
     /* Backdrop ink semitransparente */
     :host {
       position: fixed;
@@ -407,7 +425,11 @@ export class MatchModal extends LitElement {
   render() {
     const tA = TEAMS_2026.find(t => t.id === this.teamA);
     const tB = TEAMS_2026.find(t => t.id === this.teamB);
-    const isDraw = this.phase === 'knockout' && this._scoreA === this._scoreB;
+    const hasCompleteScore = this._scoreA !== null && this._scoreB !== null;
+    const isDraw = this.phase === 'knockout'
+      && hasCompleteScore
+      && this._scoreA === this._scoreB;
+    const canSave = hasCompleteScore && !isDraw;
     const isPlayed = this.initialScoreA !== null || this.initialScoreB !== null;
     const showStats = this.phase === 'group' && isPlayed;
     const groupLetter = tA?.group ?? '?';
@@ -480,11 +502,11 @@ export class MatchModal extends LitElement {
             <div class="score-input">
               <button
                 class="score-add-a"
-                @click="${() => { this._scoreA = Math.max(0, (this._scoreA ?? 0) - 1); }}"
+                @click="${() => this.adjustScore('A', -1)}"
                 aria-label="Restar gol ${tA?.shortName}">−</button>
               <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
               <button
-                @click="${() => { this._scoreA = (this._scoreA ?? 0) + 1; }}"
+                @click="${() => this.adjustScore('A', 1)}"
                 aria-label="Añadir gol ${tA?.shortName}">+</button>
             </div>
 
@@ -493,11 +515,11 @@ export class MatchModal extends LitElement {
             <!-- Score B -->
             <div class="score-input">
               <button
-                @click="${() => { this._scoreB = Math.max(0, (this._scoreB ?? 0) - 1); }}"
+                @click="${() => this.adjustScore('B', -1)}"
                 aria-label="Restar gol ${tB?.shortName}">−</button>
               <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
               <button
-                @click="${() => { this._scoreB = (this._scoreB ?? 0) + 1; }}"
+                @click="${() => this.adjustScore('B', 1)}"
                 aria-label="Añadir gol ${tB?.shortName}">+</button>
             </div>
             
@@ -515,7 +537,7 @@ export class MatchModal extends LitElement {
           <button class="btn" @click="${this.close}">CANCELAR</button>
           <button
             class="btn btn-primary"
-            ?disabled="${isDraw}"
+            ?disabled="${!canSave}"
             @click="${this.save}">GUARDAR</button>
         </div>
       </div>
