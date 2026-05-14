@@ -15,11 +15,19 @@ Este proyecto utiliza un stack moderno y eficiente:
 
 ## ✨ Características
 
-- **Algoritmo de Bracket**: Gestión automática de las fases eliminatorias, incluyendo la lógica del tercer puesto.
+- **Algoritmo de Bracket Oficial**: Implementación exacta de las regulaciones de la FIFA para el Mundial 2026 (48 equipos).
+- **Lógica Dinámica de Terceros**: Cálculo automático de los 8 mejores terceros y su asignación a los cruces de dieciseisavos (1/16) basada en las permutaciones oficiales.
+- **Sincronización en Tiempo Real**: El árbol de eliminatorias se actualiza dinámicamente a medida que se ingresan o limpian los resultados de la fase de grupos.
+- **Gestión de Resultados**: Posibilidad de ingresar marcadores o limpiar la información de un partido para revertir su impacto en las tablas y el bracket.
 - **PWA Ready**: Instalable en dispositivos móviles y funcional sin conexión.
-- **Autenticación**: Integración con Google Authentication a través de Firebase.
 - **UI Premium**: Diseño vibrante con estética "dark mode", tipografías modernas (Syne & Epilogue) y micro-animaciones.
-- **Predicciones**: Interfaz interactiva para realizar y seguir predicciones de partidos.
+
+## 📊 Lógica del Torneo (FIFA 2026)
+
+Esta aplicación sigue fielmente el documento @[public/assets/docs/FWC26-regulations.pdf]:
+- **Fase de Grupos**: 12 grupos de 4 equipos cada uno.
+- **Clasificación**: Pasan los dos primeros de cada grupo y los 8 mejores terceros.
+- **Dieciseisavos (1/16)**: Los cruces `M73` a `M88` se calculan dinámicamente. La aplicación utiliza un algoritmo de resolución de restricciones para asignar a los mejores terceros evitando que se enfrenten a rivales de su mismo grupo original, cumpliendo con los 495 posibles escenarios de clasificación.
 
 ## 🛠️ Configuración Local
 

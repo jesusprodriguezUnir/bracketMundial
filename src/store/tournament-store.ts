@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa-2026';
-import { calculateBestThirds } from '../lib/bracket-logic';
+import { calculateBestThirds, assignBestThirds } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
 
 
@@ -48,8 +48,8 @@ interface TournamentState {
   activePhase: 'groups' | 'round16' | 'quarterfinals' | 'semifinals' | 'thirdplace' | 'final';
   selectedMatch: string | null;
 
-  setGroupMatchResult: (matchId: string, scoreA: number, scoreB: number) => void;
-  setKnockoutMatchResult: (matchId: string, scoreA: number, scoreB: number) => void;
+  setGroupMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
+  setKnockoutMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setActivePhase: (phase: TournamentState['activePhase']) => void;
   setSelectedMatch: (matchId: string | null) => void;
   resetTournament: () => void;
@@ -173,16 +173,21 @@ export const useTournamentStore = create<TournamentState>()(
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
           );
           const standings = recalculateStandings(matches, state.groupStandings);
-          return { groupMatches: matches, groupStandings: standings };
+          const newState = { ...state, groupMatches: matches, groupStandings: standings };
+          
+          // Dynamically sync R32
+          const knockout = syncRoundOf32(newState.groupStandings, newState.knockoutMatches);
+          return { ...newState, knockoutMatches: knockout };
         });
       },
 
       setKnockoutMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
           const match = state.knockoutMatches[matchId];
-          const winnerId = scoreA > scoreB
-            ? match?.teamA ?? null
-            : match?.teamB ?? null;
+          const isPlayed = scoreA !== null && scoreB !== null;
+          const winnerId = isPlayed
+            ? (scoreA! > scoreB! ? match?.teamA ?? null : match?.teamB ?? null)
+            : null;
 
           const updated = {
             ...state.knockoutMatches,
@@ -191,12 +196,13 @@ export const useTournamentStore = create<TournamentState>()(
               scoreA,
               scoreB,
               winnerId,
-              isPlayed: true,
+              isPlayed,
             },
           };
 
+          // Update progression
           const nextMatch = getNextMatchId(matchId);
-          if (nextMatch && winnerId) {
+          if (nextMatch) {
             const next = updated[nextMatch];
             if (next) {
               const isA = isTeamAPosition(matchId);
@@ -205,11 +211,14 @@ export const useTournamentStore = create<TournamentState>()(
                 teamA: isA ? winnerId : next.teamA,
                 teamB: isA ? next.teamB : winnerId,
               };
+              
+              // If match is cleared, recursively clear forward? 
+              // For now, just set the team to null.
             }
           }
 
           const tpMatch = getThirdPlaceMatchId(matchId);
-          if (tpMatch && winnerId) {
+          if (tpMatch) {
             const tp = updated[tpMatch];
             if (tp) {
               const isA = isThirdPlaceTeamAPosition(matchId);
@@ -294,92 +303,7 @@ export const useTournamentStore = create<TournamentState>()(
 
       initializeKnockoutFromGroups: () => {
         const state = _get();
-        const { groupStandings } = state;
-        const bestThirds = calculateBestThirds(mapThirds(groupStandings));
-
-        const winners: Record<string, string> = {};
-        for (const g of 'ABCDEFGHIJKL'.split('')) {
-          if (groupStandings[g]?.[0]) winners[g] = groupStandings[g][0].teamId;
-        }
-
-        const knockout: Record<string, KnockoutMatchResult> = {};
-
-        for (const r32 of KNOCKOUT_BRACKET.roundOf32) {
-          const teamA = getTeamForSlot(r32.prevMatchA, winners, bestThirds, groupStandings);
-          const teamB = getTeamForSlot(r32.prevMatchB, winners, bestThirds, groupStandings);
-          knockout[r32.id] = {
-            matchId: r32.id,
-            round: 'roundOf32',
-            teamA: teamA ?? null,
-            teamB: teamB ?? null,
-            scoreA: null,
-            scoreB: null,
-            winnerId: null,
-            isPlayed: false,
-          };
-        }
-
-        for (const m of KNOCKOUT_BRACKET.roundOf16) {
-          knockout[m.id] = {
-            matchId: m.id,
-            round: 'roundOf16',
-            teamA: null,
-            teamB: null,
-            scoreA: null,
-            scoreB: null,
-            winnerId: null,
-            isPlayed: false,
-          };
-        }
-
-        for (const qf of KNOCKOUT_BRACKET.quarterfinals) {
-          knockout[qf.id] = {
-            matchId: qf.id,
-            round: 'quarterfinals',
-            teamA: null,
-            teamB: null,
-            scoreA: null,
-            scoreB: null,
-            winnerId: null,
-            isPlayed: false,
-          };
-        }
-
-        for (const sf of KNOCKOUT_BRACKET.semifinals) {
-          knockout[sf.id] = {
-            matchId: sf.id,
-            round: 'semifinals',
-            teamA: null,
-            teamB: null,
-            scoreA: null,
-            scoreB: null,
-            winnerId: null,
-            isPlayed: false,
-          };
-        }
-
-        knockout[KNOCKOUT_BRACKET.thirdPlace.id] = {
-          matchId: KNOCKOUT_BRACKET.thirdPlace.id,
-          round: 'thirdPlace',
-          teamA: null,
-          teamB: null,
-          scoreA: null,
-          scoreB: null,
-          winnerId: null,
-          isPlayed: false,
-        };
-
-        knockout[KNOCKOUT_BRACKET.final.id] = {
-          matchId: KNOCKOUT_BRACKET.final.id,
-          round: 'final',
-          teamA: null,
-          teamB: null,
-          scoreA: null,
-          scoreB: null,
-          winnerId: null,
-          isPlayed: false,
-        };
-
+        const knockout = syncRoundOf32(state.groupStandings, state.knockoutMatches);
         set({ knockoutMatches: knockout });
       },
 
@@ -439,14 +363,11 @@ export const useTournamentStore = create<TournamentState>()(
 
 function getTeamForSlot(
   slot: string,
-  _winners: Record<string, string>,
-  thirds: { id: string; group: string }[],
+  thirdsAssignment: Record<string, string>,
   standings: Record<string, GroupStanding[]>
  ): string | null {
-  if (slot.includes('-3')) {
-    const groupLetter = slot.split('-')[1];
-    const thirdTeams = thirds.filter(t => t.group === groupLetter);
-    return thirdTeams[0]?.id ?? null;
+  if (slot.startsWith('G-3-')) {
+    return thirdsAssignment[slot] ?? null;
   }
 
   const match = slot.match(/G-([A-L])-(\d)/);
@@ -454,11 +375,92 @@ function getTeamForSlot(
     const pos = parseInt(match[2]);
     const group = match[1];
     const groupStandings = standings[group];
-    if (groupStandings && groupStandings[pos - 1]) {
-      return groupStandings[pos - 1].teamId;
-    }
+    
+    if (!groupStandings || !groupStandings[pos - 1]) return null;
+    
+    // For now, return the team currently in that position
+    return groupStandings[pos - 1].teamId;
   }
   return null;
+}
+
+function syncRoundOf32(
+  standings: Record<string, GroupStanding[]>, 
+  currentKnockout: Record<string, KnockoutMatchResult>
+): Record<string, KnockoutMatchResult> {
+  const bestThirds = calculateBestThirds(mapThirds(standings));
+  const thirdsAssignment = assignBestThirds(bestThirds);
+  
+  const updated = { ...currentKnockout };
+
+  // Ensure R32 matches exist
+  for (const r32 of KNOCKOUT_BRACKET.roundOf32) {
+    const existing = updated[r32.id];
+    
+    // We only update teamA/teamB if the match hasn't been played yet
+    // OR we always update them and the user just has to be careful?
+    // Usually, if the group changes, the R32 changes.
+    const teamA = getTeamForSlot(r32.prevMatchA, thirdsAssignment, standings);
+    const teamB = getTeamForSlot(r32.prevMatchB, thirdsAssignment, standings);
+
+    updated[r32.id] = {
+      matchId: r32.id,
+      round: 'roundOf32',
+      teamA,
+      teamB,
+      scoreA: existing?.scoreA ?? null,
+      scoreB: existing?.scoreB ?? null,
+      winnerId: existing?.winnerId ?? null,
+      isPlayed: existing?.isPlayed ?? false,
+    };
+
+    // If teams changed, clear winner/played? 
+    if (existing && (existing.teamA !== teamA || existing.teamB !== teamB)) {
+      updated[r32.id].winnerId = null;
+      updated[r32.id].isPlayed = false;
+      updated[r32.id].scoreA = null;
+      updated[r32.id].scoreB = null;
+    }
+  }
+
+  // Initialize other rounds if they don't exist
+  const rounds = [
+    { key: 'roundOf16', name: 'roundOf16' },
+    { key: 'quarterfinals', name: 'quarterfinals' },
+    { key: 'semifinals', name: 'semifinals' }
+  ];
+
+  for (const r of rounds) {
+    for (const m of (KNOCKOUT_BRACKET as any)[r.key]) {
+      if (!updated[m.id]) {
+        updated[m.id] = {
+          matchId: m.id,
+          round: r.name,
+          teamA: null,
+          teamB: null,
+          scoreA: null,
+          scoreB: null,
+          winnerId: null,
+          isPlayed: false,
+        };
+      }
+    }
+  }
+
+  if (!updated[KNOCKOUT_BRACKET.thirdPlace.id]) {
+    updated[KNOCKOUT_BRACKET.thirdPlace.id] = {
+      matchId: KNOCKOUT_BRACKET.thirdPlace.id,
+      round: 'thirdPlace', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false
+    };
+  }
+  if (!updated[KNOCKOUT_BRACKET.final.id]) {
+    updated[KNOCKOUT_BRACKET.final.id] = {
+      matchId: KNOCKOUT_BRACKET.final.id,
+      round: 'final', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false
+    };
+  }
+
+  return updated;
 }
 
 function getNextMatchId(currentId: string): string | null {

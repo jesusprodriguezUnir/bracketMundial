@@ -16,12 +16,12 @@ export class MatchModal extends LitElement {
   @property({ attribute: 'match-id' }) matchId = '';
   @property({ attribute: 'team-a' }) teamA = '';
   @property({ attribute: 'team-b' }) teamB = '';
-  @property({ attribute: 'initial-score-a', type: Number }) initialScoreA = 0;
-  @property({ attribute: 'initial-score-b', type: Number }) initialScoreB = 0;
+  @property({ attribute: 'initial-score-a', type: Number }) initialScoreA: number | null = null;
+  @property({ attribute: 'initial-score-b', type: Number }) initialScoreB: number | null = null;
   @property() phase: 'group' | 'knockout' = 'group';
 
-  @state() private _scoreA = 0;
-  @state() private _scoreB = 0;
+  @state() private _scoreA: number | null = null;
+  @state() private _scoreB: number | null = null;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -75,8 +75,13 @@ export class MatchModal extends LitElement {
     this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
   }
 
+  private clear() {
+    this._scoreA = null;
+    this._scoreB = null;
+  }
+
   private save() {
-    if (this.phase === 'knockout' && this._scoreA === this._scoreB) return;
+    if (this.phase === 'knockout' && this._scoreA !== null && this._scoreA === this._scoreB) return;
     this.dispatchEvent(new CustomEvent('save', {
       detail: { matchId: this.matchId, scoreA: this._scoreA, scoreB: this._scoreB },
       bubbles: true, composed: true,
@@ -468,11 +473,11 @@ export class MatchModal extends LitElement {
             <div class="score-input">
               <button
                 class="score-add-a"
-                @click="${() => { this._scoreA = Math.max(0, this._scoreA - 1); }}"
+                @click="${() => { this._scoreA = Math.max(0, (this._scoreA ?? 0) - 1); }}"
                 aria-label="Restar gol ${tA?.shortName}">−</button>
-              <span class="score-display" aria-live="polite">${this._scoreA}</span>
+              <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
               <button
-                @click="${() => { this._scoreA = this._scoreA + 1; }}"
+                @click="${() => { this._scoreA = (this._scoreA ?? 0) + 1; }}"
                 aria-label="Añadir gol ${tA?.shortName}">+</button>
             </div>
 
@@ -481,13 +486,15 @@ export class MatchModal extends LitElement {
             <!-- Score B -->
             <div class="score-input">
               <button
-                @click="${() => { this._scoreB = Math.max(0, this._scoreB - 1); }}"
+                @click="${() => { this._scoreB = Math.max(0, (this._scoreB ?? 0) - 1); }}"
                 aria-label="Restar gol ${tB?.shortName}">−</button>
-              <span class="score-display" aria-live="polite">${this._scoreB}</span>
+              <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
               <button
-                @click="${() => { this._scoreB = this._scoreB + 1; }}"
+                @click="${() => { this._scoreB = (this._scoreB ?? 0) + 1; }}"
                 aria-label="Añadir gol ${tB?.shortName}">+</button>
             </div>
+            
+            <button class="btn btn-secondary" style="margin-left: auto; flex: 0; min-width: 80px;" @click="${this.clear}">LIMPIAR</button>
           </div>
 
           ${isDraw

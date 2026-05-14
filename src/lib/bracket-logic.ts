@@ -20,6 +20,45 @@ export function calculateBestThirds(thirds: TeamStats[]): TeamStats[] {
   return sorted.slice(0, 8);
 }
 
+
+const THIRD_POOLS: Record<string, string[]> = {
+  'G-3-1': ['A', 'B', 'C', 'D', 'F'],
+  'G-3-2': ['C', 'D', 'F', 'G', 'H'],
+  'G-3-3': ['B', 'E', 'F', 'I', 'J'],
+  'G-3-4': ['A', 'E', 'H', 'I', 'J'],
+  'G-3-5': ['C', 'E', 'F', 'H', 'I'],
+  'G-3-6': ['E', 'H', 'I', 'J', 'K'],
+  'G-3-7': ['E', 'F', 'G', 'I', 'J'],
+  'G-3-8': ['D', 'E', 'I', 'J', 'L'],
+};
+
+export function assignBestThirds(bestThirds: TeamStats[]): Record<string, string> {
+  const result: Record<string, string> = {};
+  const slots = Object.keys(THIRD_POOLS);
+  const usedTeams = new Set<string>();
+
+  function solve(slotIdx: number): boolean {
+    if (slotIdx === slots.length) return true;
+
+    const slot = slots[slotIdx];
+    const allowedGroups = THIRD_POOLS[slot];
+
+    for (const team of bestThirds) {
+      if (!usedTeams.has(team.id) && allowedGroups.includes(team.group)) {
+        result[slot] = team.id;
+        usedTeams.add(team.id);
+        if (solve(slotIdx + 1)) return true;
+        usedTeams.delete(team.id);
+        delete result[slot];
+      }
+    }
+    return false;
+  }
+
+  solve(0);
+  return result;
+}
+
 export function generateKnockoutMatches(groups: Record<string, TeamStats[]>) {
   // Extract 1st, 2nd and 3rd
   const groupWinners: TeamStats[] = [];
@@ -35,13 +74,13 @@ export function generateKnockoutMatches(groups: Record<string, TeamStats[]>) {
   }
 
   const bestThirds = calculateBestThirds(groupThirds);
-  
-  // Here we would use the specific FIFA lookup table for the 12-group format
-  // For the sake of this mock, we just assign them in order.
+  const thirdsAssignment = assignBestThirds(bestThirds);
   
   return {
     groupWinners,
     groupRunnersUp,
-    bestThirds
+    bestThirds,
+    thirdsAssignment
   };
 }
+
