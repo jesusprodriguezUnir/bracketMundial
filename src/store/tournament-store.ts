@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
-import { calculateBestThirds, assignBestThirds } from '../lib/bracket-logic';
+import { calculateBestThirds, syncKnockoutBracket } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
 
 
@@ -201,6 +201,32 @@ function buildTournamentExportData(state: Pick<TournamentState, 'groupMatches' |
   };
 }
 
+function resolveKnockoutMatches(
+  standings: Record<string, GroupStanding[]>,
+  knockoutMatches: Record<string, KnockoutMatchResult>
+): Record<string, KnockoutMatchResult> {
+  return syncKnockoutBracket(standings, knockoutMatches, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+}
+
+function getKnockoutMatchOrder(): string[] {
+  return [
+    ...KNOCKOUT_BRACKET.roundOf32.map(match => match.id),
+    ...KNOCKOUT_BRACKET.roundOf16.map(match => match.id),
+    ...KNOCKOUT_BRACKET.quarterfinals.map(match => match.id),
+    ...KNOCKOUT_BRACKET.semifinals.map(match => match.id),
+    KNOCKOUT_BRACKET.thirdPlace.id,
+    KNOCKOUT_BRACKET.final.id,
+  ];
+}
+
+function getWinnerId(teamA: string | null, teamB: string | null, scoreA: number | null, scoreB: number | null): string | null {
+  if (!teamA || !teamB || scoreA === null || scoreB === null || scoreA === scoreB) {
+    return null;
+  }
+
+  return scoreA > scoreB ? teamA : teamB;
+}
+
 export const useTournamentStore = createStore<TournamentState>()(
   persist(
     (set, _get) => ({
@@ -216,21 +242,24 @@ export const useTournamentStore = createStore<TournamentState>()(
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
           );
           const standings = recalculateStandings(matches, state.groupStandings);
-          const newState = { ...state, groupMatches: matches, groupStandings: standings };
-          
-          // Dynamically sync R32
-          const knockout = syncRoundOf32(newState.groupStandings, newState.knockoutMatches);
-          return { ...newState, knockoutMatches: knockout };
+
+          return {
+            groupMatches: matches,
+            groupStandings: standings,
+            knockoutMatches: resolveKnockoutMatches(standings, state.knockoutMatches),
+          };
         });
       },
 
       setKnockoutMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
           const match = state.knockoutMatches[matchId];
-          const isPlayed = scoreA !== null && scoreB !== null;
-          const winnerId = isPlayed
-            ? (scoreA! > scoreB! ? match?.teamA ?? null : match?.teamB ?? null)
-            : null;
+          if (!match) {
+            return state;
+          }
+
+          const winnerId = getWinnerId(match.teamA, match.teamB, scoreA, scoreB);
+          const isPlayed = winnerId !== null;
 
           const updated = {
             ...state.knockoutMatches,
@@ -243,37 +272,7 @@ export const useTournamentStore = createStore<TournamentState>()(
             },
           };
 
-          // Update progression
-          const nextMatch = getNextMatchId(matchId);
-          if (nextMatch) {
-            const next = updated[nextMatch];
-            if (next) {
-              const isA = isTeamAPosition(matchId);
-              updated[nextMatch] = {
-                ...next,
-                teamA: isA ? winnerId : next.teamA,
-                teamB: isA ? next.teamB : winnerId,
-              };
-              
-              // If match is cleared, recursively clear forward? 
-              // For now, just set the team to null.
-            }
-          }
-
-          const tpMatch = getThirdPlaceMatchId(matchId);
-          if (tpMatch) {
-            const tp = updated[tpMatch];
-            if (tp) {
-              const isA = isThirdPlaceTeamAPosition(matchId);
-              updated[tpMatch] = {
-                ...tp,
-                teamA: isA ? winnerId : tp.teamA,
-                teamB: isA ? tp.teamB : winnerId,
-              };
-            }
-          }
-
-          return { knockoutMatches: updated };
+          return { knockoutMatches: resolveKnockoutMatches(state.groupStandings, updated) };
         });
       },
 
@@ -295,49 +294,41 @@ export const useTournamentStore = createStore<TournamentState>()(
             scoreB: Math.floor(Math.random() * 5),
           }));
           const standings = recalculateStandings(matches, state.groupStandings);
-          return { groupMatches: matches, groupStandings: standings };
+          return {
+            groupMatches: matches,
+            groupStandings: standings,
+            knockoutMatches: resolveKnockoutMatches(standings, state.knockoutMatches),
+          };
         });
       },
 
       autoSimulateKnockout: () => {
         set(state => {
-          const updated = { ...state.knockoutMatches };
-          for (const matchId in updated) {
-            const m = updated[matchId];
-            if (m.teamA && m.teamB && !m.isPlayed) {
-              const scoreA = Math.floor(Math.random() * 4);
-              const scoreB = Math.floor(Math.random() * 4);
-              const winnerId = scoreA > scoreB ? m.teamA : m.teamB;
+          let updated = resolveKnockoutMatches(state.groupStandings, state.knockoutMatches);
 
-              updated[matchId] = { ...m, scoreA, scoreB, winnerId, isPlayed: true };
+          for (const matchId of getKnockoutMatchOrder()) {
+            const match = updated[matchId];
+            if (match?.teamA && match.teamB && !match.isPlayed) {
+              let scoreA = Math.floor(Math.random() * 4);
+              let scoreB = Math.floor(Math.random() * 4);
 
-              const nextMatch = getNextMatchId(matchId);
-              if (nextMatch && winnerId) {
-                const next = updated[nextMatch];
-                if (next) {
-                  const isA = isTeamAPosition(matchId);
-                  updated[nextMatch] = {
-                    ...next,
-                    teamA: isA ? winnerId : next.teamA,
-                    teamB: isA ? next.teamB : winnerId,
-                  };
-                }
+              if (scoreA === scoreB) {
+                scoreB = (scoreB + 1) % 4;
               }
 
-              const tpMatch = getThirdPlaceMatchId(matchId);
-              if (tpMatch && winnerId) {
-                const tp = updated[tpMatch];
-                if (tp) {
-                  const isA = isThirdPlaceTeamAPosition(matchId);
-                  updated[tpMatch] = {
-                    ...tp,
-                    teamA: isA ? winnerId : tp.teamA,
-                    teamB: isA ? tp.teamB : winnerId,
-                  };
-                }
-              }
+              updated = resolveKnockoutMatches(state.groupStandings, {
+                ...updated,
+                [matchId]: {
+                  ...match,
+                  scoreA,
+                  scoreB,
+                  winnerId: getWinnerId(match.teamA, match.teamB, scoreA, scoreB),
+                  isPlayed: true,
+                },
+              });
             }
           }
+
           return { knockoutMatches: updated };
         });
       },
@@ -346,7 +337,7 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       initializeKnockoutFromGroups: () => {
         const state = _get();
-        const knockout = syncRoundOf32(state.groupStandings, state.knockoutMatches);
+        const knockout = resolveKnockoutMatches(state.groupStandings, state.knockoutMatches);
         set({ knockoutMatches: knockout });
       },
 
@@ -368,11 +359,18 @@ export const useTournamentStore = createStore<TournamentState>()(
       importTournament: (jsonData: string) => {
         try {
           const parsed = JSON.parse(jsonData);
-          if (parsed.groupMatches && parsed.groupStandings) {
+          if (parsed.groupMatches) {
+            const groupMatches = parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match));
+            const groupStandings = parsed.groupStandings ?? recalculateStandings(groupMatches, createInitialStandings());
+            const knockoutMatches = resolveKnockoutMatches(
+              groupStandings,
+              hydrateKnockoutMatches(parsed.knockoutMatches || {})
+            );
+
             set({
-              groupMatches: parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match)),
-              groupStandings: parsed.groupStandings,
-              knockoutMatches: hydrateKnockoutMatches(parsed.knockoutMatches || {}),
+              groupMatches,
+              groupStandings,
+              knockoutMatches,
               activePhase: parsed.activePhase || 'groups',
               selectedMatch: null,
             });
@@ -395,159 +393,13 @@ export const useTournamentStore = createStore<TournamentState>()(
         if (p.knockoutMatches) {
           p.knockoutMatches = hydrateKnockoutMatches(p.knockoutMatches);
         }
-        return { ...current, ...p };
+
+        const groupMatches = p.groupMatches ?? current.groupMatches;
+        const groupStandings = p.groupStandings ?? recalculateStandings(groupMatches, current.groupStandings);
+        const knockoutMatches = resolveKnockoutMatches(groupStandings, p.knockoutMatches ?? current.knockoutMatches);
+
+        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches };
       },
     }
   )
 );
-
-function getTeamForSlot(
-  slot: string,
-  thirdsAssignment: Record<string, string>,
-  standings: Record<string, GroupStanding[]>
- ): string | null {
-  if (slot.startsWith('G-3-')) {
-    return thirdsAssignment[slot] ?? null;
-  }
-
-  const match = slot.match(/G-([A-L])-(\d)/);
-  if (match) {
-    const pos = parseInt(match[2]);
-    const group = match[1];
-    const groupStandings = standings[group];
-    
-    if (!groupStandings || !groupStandings[pos - 1]) return null;
-    
-    // For now, return the team currently in that position
-    return groupStandings[pos - 1].teamId;
-  }
-  return null;
-}
-
-function syncRoundOf32(
-  standings: Record<string, GroupStanding[]>, 
-  currentKnockout: Record<string, KnockoutMatchResult>
-): Record<string, KnockoutMatchResult> {
-  const bestThirds = calculateBestThirds(mapThirds(standings));
-  const thirdsAssignment = assignBestThirds(bestThirds);
-  
-  const updated = { ...currentKnockout };
-
-  // Ensure R32 matches exist
-  for (const r32 of KNOCKOUT_BRACKET.roundOf32) {
-    const existing = updated[r32.id];
-    
-    // We only update teamA/teamB if the match hasn't been played yet
-    // OR we always update them and the user just has to be careful?
-    // Usually, if the group changes, the R32 changes.
-    const teamA = getTeamForSlot(r32.prevMatchA, thirdsAssignment, standings);
-    const teamB = getTeamForSlot(r32.prevMatchB, thirdsAssignment, standings);
-
-    updated[r32.id] = {
-      matchId: r32.id,
-      round: 'roundOf32',
-      teamA,
-      teamB,
-      scoreA: existing?.scoreA ?? null,
-      scoreB: existing?.scoreB ?? null,
-      winnerId: existing?.winnerId ?? null,
-      isPlayed: existing?.isPlayed ?? false,
-    };
-
-    // If teams changed, clear winner/played? 
-    if (existing && (existing.teamA !== teamA || existing.teamB !== teamB)) {
-      updated[r32.id].winnerId = null;
-      updated[r32.id].isPlayed = false;
-      updated[r32.id].scoreA = null;
-      updated[r32.id].scoreB = null;
-    }
-  }
-
-  // Initialize other rounds if they don't exist
-  const rounds = [
-    { key: 'roundOf16', name: 'roundOf16' },
-    { key: 'quarterfinals', name: 'quarterfinals' },
-    { key: 'semifinals', name: 'semifinals' }
-  ];
-
-  for (const r of rounds) {
-    for (const m of (KNOCKOUT_BRACKET as any)[r.key]) {
-      if (!updated[m.id]) {
-        const ks = KNOCKOUT_SCHEDULE[m.id];
-        updated[m.id] = {
-          matchId: m.id,
-          round: r.name,
-          teamA: null,
-          teamB: null,
-          scoreA: null,
-          scoreB: null,
-          winnerId: null,
-          isPlayed: false,
-          venue: ks?.venue ?? 'TBD',
-          city: ks?.city ?? 'TBD',
-          timeSpain: ks?.timeSpain ?? '',
-          date: ks?.date,
-        };
-      }
-    }
-  }
-
-  if (!updated[KNOCKOUT_BRACKET.thirdPlace.id]) {
-    const ks = KNOCKOUT_SCHEDULE[KNOCKOUT_BRACKET.thirdPlace.id];
-    updated[KNOCKOUT_BRACKET.thirdPlace.id] = {
-      matchId: KNOCKOUT_BRACKET.thirdPlace.id,
-      round: 'thirdPlace', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
-      venue: ks?.venue ?? 'TBD', city: ks?.city ?? 'TBD', timeSpain: ks?.timeSpain ?? '', date: ks?.date,
-    };
-  }
-  if (!updated[KNOCKOUT_BRACKET.final.id]) {
-    const ks = KNOCKOUT_SCHEDULE[KNOCKOUT_BRACKET.final.id];
-    updated[KNOCKOUT_BRACKET.final.id] = {
-      matchId: KNOCKOUT_BRACKET.final.id,
-      round: 'final', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
-      venue: ks?.venue ?? 'TBD', city: ks?.city ?? 'TBD', timeSpain: ks?.timeSpain ?? '', date: ks?.date,
-    };
-  }
-
-  return updated;
-}
-
-function getNextMatchId(currentId: string): string | null {
-  const mapping: Record<string, string> = {
-    'R32-01': 'R16-01', 'R32-02': 'R16-01',
-    'R32-03': 'R16-02', 'R32-04': 'R16-02',
-    'R32-05': 'R16-03', 'R32-06': 'R16-03',
-    'R32-07': 'R16-04', 'R32-08': 'R16-04',
-    'R32-09': 'R16-05', 'R32-10': 'R16-05',
-    'R32-11': 'R16-06', 'R32-12': 'R16-06',
-    'R32-13': 'R16-07', 'R32-14': 'R16-07',
-    'R32-15': 'R16-08', 'R32-16': 'R16-08',
-    'R16-01': 'QF-01', 'R16-02': 'QF-01',
-    'R16-03': 'QF-02', 'R16-04': 'QF-02',
-    'R16-05': 'QF-03', 'R16-06': 'QF-03',
-    'R16-07': 'QF-04', 'R16-08': 'QF-04',
-    'QF-01': 'SF-01', 'QF-02': 'SF-01',
-    'QF-03': 'SF-02', 'QF-04': 'SF-02',
-    'SF-01': 'FIN-01', 'SF-02': 'FIN-01',
-  };
-
-  return mapping[currentId] || null;
-}
-
-function isTeamAPosition(matchId: string): boolean {
-  const aPositions = [
-    'R32-01', 'R32-03', 'R32-05', 'R32-07', 'R32-09', 'R32-11', 'R32-13', 'R32-15',
-    'R16-01', 'R16-03', 'R16-05', 'R16-07',
-    'QF-01', 'QF-03', 'SF-01'
-  ];
-  return aPositions.includes(matchId);
-}
-
-function getThirdPlaceMatchId(currentId: string): string | null {
-  if (currentId === 'SF-01' || currentId === 'SF-02') return 'TP-01';
-  return null;
-}
-
-function isThirdPlaceTeamAPosition(matchId: string): boolean {
-  return matchId === 'SF-01';
-}
