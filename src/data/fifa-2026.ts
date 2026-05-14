@@ -74,6 +74,7 @@ export const MATCH_DAYS = [
 ];
 
 import { STADIUMS } from './stadiums';
+import { GROUP_SCHEDULE } from './match-schedule';
 
 
 export function generateGroupMatches() {
@@ -94,30 +95,19 @@ export function generateGroupMatches() {
   }> = [];
   let mId = 1;
 
-  // Tiempos típicos de inicio en España para el Mundial (CEST)
-  // Basado en franjas horarias de 18:00, 21:00, 00:00, 03:00
-  const typicalTimes = ['18:00', '21:00', '00:00', '03:00'];
-
   for (const g of groups) {
     const teams = TEAMS_2026.filter(t => t.group === g).map(t => t.id);
     const fixtures = [
-      [0, 1], [2, 3], // Día 1 del grupo
-      [0, 2], [1, 3], // Día 2 del grupo
-      [0, 3], [1, 2], // Día 3 del grupo
+      [0, 1], [2, 3],
+      [0, 2], [1, 3],
+      [0, 3], [1, 2],
     ];
     fixtures.forEach(([i, j], idx) => {
       const matchDayIdx = Math.floor(idx / 2);
-      const venueIdx = (mId - 1) % STADIUMS.length;
-      const stadium = STADIUMS[venueIdx];
-      
-      // Ajuste específico para España (ejemplo simplificado pero realista)
-      let time = typicalTimes[mId % typicalTimes.length];
-      
-      // Caso especial: España en Grupo H
-      if (g === 'H') {
-        if (mId === 43 || mId === 45) time = '18:00'; // España vs Cabo Verde / Arabia
-        if (mId === 47) time = '02:00'; // Uruguay vs España
-      }
+      const scheduled = GROUP_SCHEDULE.find(s => s.matchId === `M${mId}`);
+      const stadium = scheduled
+        ? (STADIUMS.find(st => st.id === scheduled.venueId) ?? STADIUMS[0])
+        : STADIUMS[(mId - 1) % STADIUMS.length];
 
       matches.push({
         id: `M${mId}`,
@@ -126,8 +116,8 @@ export function generateGroupMatches() {
         teamA: teams[i],
         teamB: teams[j],
         matchDay: matchDayIdx + 1,
-        date: MATCH_DAYS[matchDayIdx].date,
-        timeSpain: time,
+        date: scheduled?.date ?? MATCH_DAYS[matchDayIdx].date,
+        timeSpain: scheduled?.timeSpain ?? '18:00',
         venue: stadium.name,
         city: stadium.city,
         scoreA: null,

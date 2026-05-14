@@ -6,12 +6,16 @@ import './components/bracket-knockout';
 import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
 import './components/stadiums-view';
+import './components/squads-view';
+import './components/calendar-view';
 import { STADIUMS } from './data/stadiums';
 
-type PhaseTab = 'groups' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
+type PhaseTab = 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
 
 const PHASE_LABELS: Record<PhaseTab, string> = {
   groups: 'Grupos',
+  squads: 'Equipos',
+  calendar: 'Calendario',
   r32:    '1/16',
   r16:    'Octavos',
   qf:     'Cuartos',
@@ -26,7 +30,7 @@ export class BracketView extends LitElement {
 
   private unsubscribeStore?: () => void;
 
-  static styles = css`
+  static readonly styles = css`
     :host { display: block; }
 
     /* Barra de phase tabs — estética retro, botones Bowlby One */
@@ -90,24 +94,32 @@ export class BracketView extends LitElement {
 
     .section-groups,
     .knockout-sections,
-    .section-stadiums {
+    .section-stadiums,
+    .section-squads,
+    .section-calendar {
       display: none;
     }
     .section-groups.visible,
     .knockout-sections.visible,
-    .section-stadiums.visible {
+    .section-stadiums.visible,
+    .section-squads.visible,
+    .section-calendar.visible {
       display: block;
     }
 
     @media (max-width: 768px) {
       .section-groups,
       .knockout-section,
-      .section-stadiums {
+      .section-stadiums,
+      .section-squads,
+      .section-calendar {
         display: none;
       }
       .section-groups.visible,
       .knockout-section.visible,
-      .section-stadiums.visible {
+      .section-stadiums.visible,
+      .section-squads.visible,
+      .section-calendar.visible {
         display: block;
       }
       .phase-tab {
@@ -133,6 +145,8 @@ export class BracketView extends LitElement {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';
       if (tab === 'stadiums') targetId = 'section-stadiums';
+      if (tab === 'squads') targetId = 'section-squads';
+      if (tab === 'calendar') targetId = 'section-calendar';
       
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -169,7 +183,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['groups', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
+    const tabs: PhaseTab[] = ['groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
     const at = this._activeTab;
 
     return html`
@@ -197,8 +211,24 @@ export class BracketView extends LitElement {
           <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
         </div>
 
+        <div id="section-squads" class="section-squads ${at === 'squads' ? 'visible' : ''}">
+          <div class="section-heading">
+            <div class="section-eyebrow">✦ EQUIPOS Y PLANTILLAS</div>
+            <div class="section-title">48 SELECCIONES · ROSTERS + SEDES</div>
+          </div>
+          <squads-view></squads-view>
+        </div>
+
+        <div id="section-calendar" class="section-calendar ${at === 'calendar' ? 'visible' : ''}">
+          <div class="section-heading">
+            <div class="section-eyebrow">🗓️ CALENDARIO GLOBAL</div>
+            <div class="section-title">104 PARTIDOS · 11 JUN A 19 JUL</div>
+          </div>
+          <calendar-view></calendar-view>
+        </div>
+
         <!-- Eliminatorias -->
-        <div class="knockout-sections ${at !== 'groups' && at !== 'stadiums' ? 'visible' : ''}">
+        <div class="knockout-sections ${at !== 'groups' && at !== 'squads' && at !== 'calendar' && at !== 'stadiums' ? 'visible' : ''}">
           ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
             <div
               id="section-knockout-${phase}"
@@ -207,7 +237,7 @@ export class BracketView extends LitElement {
           `)}
           <div
             id="section-knockout-bracket"
-            class="knockout-section ${at !== 'groups' && at !== 'stadiums' ? 'visible' : ''}">
+            class="knockout-section ${at !== 'groups' && at !== 'squads' && at !== 'calendar' && at !== 'stadiums' ? 'visible' : ''}">
             <div class="section-heading knockout">
               <div class="section-eyebrow">★ ELIMINATORIAS ★</div>
               <div class="section-title">EL CAMINO A LA GLORIA</div>

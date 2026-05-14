@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa-2026';
+import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { calculateBestThirds, assignBestThirds } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
 
@@ -40,6 +41,10 @@ export interface KnockoutMatchResult {
   scoreB: number | null;
   winnerId: string | null;
   isPlayed: boolean;
+  venue?: string;
+  city?: string;
+  timeSpain?: string;
+  date?: string;
 }
 
 interface TournamentState {
@@ -149,6 +154,43 @@ function mapThirds(standings: Record<string, GroupStanding[]>): TeamStats[] {
 }
 
 const initialGroupMatches: GroupMatchResult[] = generateGroupMatches();
+
+function hydrateGroupMatch(match: GroupMatchResult): GroupMatchResult {
+  if (match.date && match.venue && match.city && match.timeSpain) {
+    return match;
+  }
+
+  const fresh = initialGroupMatches.find(item => item.matchId === match.matchId);
+  return fresh
+    ? {
+        ...match,
+        date: match.date ?? fresh.date,
+        venue: match.venue ?? fresh.venue,
+        city: match.city ?? fresh.city,
+        timeSpain: match.timeSpain ?? fresh.timeSpain,
+      }
+    : match;
+}
+
+function hydrateKnockoutMatches(matches: Record<string, KnockoutMatchResult>): Record<string, KnockoutMatchResult> {
+  return Object.fromEntries(
+    Object.entries(matches).map(([matchId, match]) => {
+      const scheduled = KNOCKOUT_SCHEDULE[matchId];
+      return [
+        matchId,
+        scheduled
+          ? {
+              ...match,
+              date: match.date ?? scheduled.date,
+              venue: match.venue ?? scheduled.venue,
+              city: match.city ?? scheduled.city,
+              timeSpain: match.timeSpain ?? scheduled.timeSpain,
+            }
+          : match,
+      ];
+    })
+  );
+}
 
 function buildTournamentExportData(state: Pick<TournamentState, 'groupMatches' | 'groupStandings' | 'knockoutMatches' | 'activePhase'>) {
   return {
@@ -328,9 +370,9 @@ export const useTournamentStore = createStore<TournamentState>()(
           const parsed = JSON.parse(jsonData);
           if (parsed.groupMatches && parsed.groupStandings) {
             set({
-              groupMatches: parsed.groupMatches,
+              groupMatches: parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match)),
               groupStandings: parsed.groupStandings,
-              knockoutMatches: parsed.knockoutMatches || {},
+              knockoutMatches: hydrateKnockoutMatches(parsed.knockoutMatches || {}),
               activePhase: parsed.activePhase || 'groups',
               selectedMatch: null,
             });
@@ -348,19 +390,10 @@ export const useTournamentStore = createStore<TournamentState>()(
       merge: (persisted, current) => {
         const p = persisted as Partial<typeof current>;
         if (p.groupMatches) {
-          p.groupMatches = p.groupMatches.map(m => {
-            if (!m.date || !m.venue || !m.city || !m.timeSpain) {
-              const fresh = initialGroupMatches.find(f => f.matchId === m.matchId);
-              return fresh ? { 
-                ...m, 
-                date: fresh.date, 
-                venue: fresh.venue, 
-                city: fresh.city,
-                timeSpain: fresh.timeSpain 
-              } : m;
-            }
-            return m;
-          });
+          p.groupMatches = p.groupMatches.map(m => hydrateGroupMatch(m));
+        }
+        if (p.knockoutMatches) {
+          p.knockoutMatches = hydrateKnockoutMatches(p.knockoutMatches);
         }
         return { ...current, ...p };
       },
@@ -437,17 +470,10 @@ function syncRoundOf32(
     { key: 'semifinals', name: 'semifinals' }
   ];
 
-  const knockoutVenues: Record<string, { venue: string, city: string, timeSpain: string }> = {
-    'FIN-01': { venue: 'MetLife Stadium', city: 'East Rutherford (NY/NJ)', timeSpain: '21:00' },
-    'TP-01':  { venue: 'Hard Rock Stadium', city: 'Miami Gardens', timeSpain: '23:00' },
-    'SF-01':  { venue: 'AT&T Stadium', city: 'Arlington (Dallas)', timeSpain: '02:00' },
-    'SF-02':  { venue: 'Mercedes-Benz Stadium', city: 'Atlanta', timeSpain: '02:00' },
-  };
-
   for (const r of rounds) {
     for (const m of (KNOCKOUT_BRACKET as any)[r.key]) {
       if (!updated[m.id]) {
-        const kv = knockoutVenues[m.id] || { venue: 'TBD', city: 'TBD', timeSpain: '' };
+        const ks = KNOCKOUT_SCHEDULE[m.id];
         updated[m.id] = {
           matchId: m.id,
           round: r.name,
@@ -457,27 +483,30 @@ function syncRoundOf32(
           scoreB: null,
           winnerId: null,
           isPlayed: false,
-          ...kv
-        } as any;
+          venue: ks?.venue ?? 'TBD',
+          city: ks?.city ?? 'TBD',
+          timeSpain: ks?.timeSpain ?? '',
+          date: ks?.date,
+        };
       }
     }
   }
 
   if (!updated[KNOCKOUT_BRACKET.thirdPlace.id]) {
-    const kv = knockoutVenues[KNOCKOUT_BRACKET.thirdPlace.id];
+    const ks = KNOCKOUT_SCHEDULE[KNOCKOUT_BRACKET.thirdPlace.id];
     updated[KNOCKOUT_BRACKET.thirdPlace.id] = {
       matchId: KNOCKOUT_BRACKET.thirdPlace.id,
       round: 'thirdPlace', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
-      ...kv
-    } as any;
+      venue: ks?.venue ?? 'TBD', city: ks?.city ?? 'TBD', timeSpain: ks?.timeSpain ?? '', date: ks?.date,
+    };
   }
   if (!updated[KNOCKOUT_BRACKET.final.id]) {
-    const kv = knockoutVenues[KNOCKOUT_BRACKET.final.id];
+    const ks = KNOCKOUT_SCHEDULE[KNOCKOUT_BRACKET.final.id];
     updated[KNOCKOUT_BRACKET.final.id] = {
       matchId: KNOCKOUT_BRACKET.final.id,
       round: 'final', teamA: null, teamB: null, scoreA: null, scoreB: null, winnerId: null, isPlayed: false,
-      ...kv
-    } as any;
+      venue: ks?.venue ?? 'TBD', city: ks?.city ?? 'TBD', timeSpain: ks?.timeSpain ?? '', date: ks?.date,
+    };
   }
 
   return updated;

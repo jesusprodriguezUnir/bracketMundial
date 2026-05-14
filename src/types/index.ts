@@ -6,6 +6,7 @@ export interface Team {
   shortName: string;
   group: GroupLetter;
   flag: string;
+  flagUrl?: string;
 }
 
 export interface GroupStanding {
