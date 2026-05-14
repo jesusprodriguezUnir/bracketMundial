@@ -180,6 +180,11 @@ export class AppRoot extends LitElement {
     useTournamentStore.getState().exportTournament();
   }
 
+  private async handleShare() {
+    const { openShareModal } = await import('./components/share-modal');
+    openShareModal();
+  }
+
   private triggerImport() {
     const fileInput = this.shadowRoot?.querySelector('#file-upload') as HTMLInputElement;
     if (fileInput) fileInput.click();
@@ -239,6 +244,7 @@ export class AppRoot extends LitElement {
             <input type="file" id="file-upload" style="display:none" accept=".json" @change="${this.handleFileChange}">
             <button @click="${this.triggerImport}">IMPORTAR</button>
             <button class="primary" @click="${this.handleExport}">EXPORTAR</button>
+            <button @click="${this.handleShare}">COMPARTIR</button>
           </div>
         </header>
 
