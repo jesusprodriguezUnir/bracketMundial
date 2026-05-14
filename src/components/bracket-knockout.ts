@@ -145,6 +145,13 @@ export class BracketKnockout extends LitElement {
       overflow: hidden;
     }
     .team-flag { font-size: 13px; flex-shrink: 0; }
+    .flag-img {
+      width: 18px;
+      height: 12px;
+      object-fit: cover;
+      border: 1px solid var(--ink);
+      flex-shrink: 0;
+    }
     .team-name {
       white-space: nowrap;
       overflow: hidden;
@@ -178,6 +185,14 @@ export class BracketKnockout extends LitElement {
       letter-spacing: 0.25em;
       text-transform: uppercase;
       margin-bottom: 8px;
+    }
+    .flag-img-champion {
+      width: 28px;
+      height: 18px;
+      object-fit: cover;
+      border: 2px solid var(--ink);
+      margin-right: 6px;
+      vertical-align: middle;
     }
     .champion-team {
       font-family: var(--font-var);
@@ -273,6 +288,14 @@ export class BracketKnockout extends LitElement {
     return TEAMS_2026.find(t => t.id === id);
   }
 
+  private renderFlag(team?: any, isChampion = false) {
+    if (!team) return '';
+    if (team.flagUrl) {
+      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${isChampion ? 'flag-img-champion' : 'flag-img'}">`;
+    }
+    return html`<span class="team-flag">${team.flag}</span>`;
+  }
+
   private openMatch(matchId: string) {
     const match = useTournamentStore.getState().knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
@@ -314,7 +337,7 @@ export class BracketKnockout extends LitElement {
           class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
           style="${isWinner ? `background: ${accentColor};` : ''}">
           <div class="team-info">
-            <span class="team-flag">${team?.flag ?? '🏁'}</span>
+            ${this.renderFlag(team)}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
           <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
@@ -420,7 +443,7 @@ export class BracketKnockout extends LitElement {
             <div class="champion-box">
               <div class="champion-title">🏆 CAMPEÓN</div>
               ${champion
-                ? html`<div class="champion-team">${champion.flag} ${champion.name.toUpperCase()}</div>`
+                ? html`<div class="champion-team">${this.renderFlag(champion, true)} ${champion.name.toUpperCase()}</div>`
                 : html`<div class="champion-team tbd">POR DEFINIR</div>`
               }
             </div>

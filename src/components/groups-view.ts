@@ -122,6 +122,13 @@ export class GroupsView extends LitElement {
       overflow: hidden;
     }
     .team-flag { font-size: 15px; flex-shrink: 0; }
+    .flag-img {
+      width: 20px;
+      height: 14px;
+      object-fit: cover;
+      border: 1px solid var(--ink);
+      flex-shrink: 0;
+    }
     .team-short {
       white-space: nowrap;
       overflow: hidden;
@@ -353,6 +360,14 @@ export class GroupsView extends LitElement {
     useTournamentStore.getState().resetTournament();
   }
 
+  private renderFlag(team?: any) {
+    if (!team) return '';
+    if (team.flagUrl) {
+      return html`<img src="${team.flagUrl}" alt="${team.name}" class="flag-img">`;
+    }
+    return html`<span class="team-flag">${team.flag}</span>`;
+  }
+
   render() {
     const store = useTournamentStore.getState();
     const groups = 'ABCDEFGHIJKL'.split('');
@@ -391,7 +406,7 @@ export class GroupsView extends LitElement {
                     <div class="standing-row ${top2 ? '' : 'muted'}">
                       <div class="rank-badge ${top2 ? 'qualify' : ''}">${idx + 1}</div>
                       <div class="team-cell">
-                        <span class="team-flag">${team?.flag ?? ''}</span>
+                        ${this.renderFlag(team)}
                         <span class="team-short">${team?.shortName ?? s.teamId}</span>
                       </div>
                       <span class="wdl">${s.won}-${s.drawn}-${s.lost}</span>
@@ -411,8 +426,10 @@ export class GroupsView extends LitElement {
                     <div class="match-item" @click="${() => this.openMatch(m.matchId)}">
                       <div class="match-top">
                         <div class="match-teams">
+                          ${this.renderFlag(tA)}
                           <strong>${tA?.shortName ?? m.teamA}</strong>
                           <span class="vs">vs</span>
+                          ${this.renderFlag(tB)}
                           <strong>${tB?.shortName ?? m.teamB}</strong>
                         </div>
                         <div class="match-score ${!isPlayed ? 'pending' : ''}">
@@ -456,7 +473,7 @@ export class GroupsView extends LitElement {
                     <td class="col-rank">${idx + 1}</td>
                     <td>
                       <div class="team-cell">
-                        <span class="team-flag">${team?.flag ?? ''}</span>
+                        ${this.renderFlag(team)}
                         <span class="team-short">${team?.shortName ?? t.id}</span>
                       </div>
                     </td>

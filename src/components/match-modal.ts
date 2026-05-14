@@ -194,6 +194,13 @@ export class MatchModal extends LitElement {
     .sticker.right { transform: rotate(4deg); }
 
     .sticker-flag { font-size: 48px; line-height: 1; }
+    .flag-img-big {
+      width: 70px;
+      height: 46px;
+      object-fit: cover;
+      border: 3px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
     .sticker-name {
       font-family: var(--font-head);
       font-size: 13px;
@@ -380,6 +387,14 @@ export class MatchModal extends LitElement {
     }
   `;
 
+  private renderFlag(team?: any, size: 'small' | 'big' = 'small') {
+    if (!team) return '';
+    if (team.flagUrl) {
+      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${size === 'big' ? 'flag-img-big' : 'flag-img'}">`;
+    }
+    return html`<span class="sticker-flag">${team.flag}</span>`;
+  }
+
   render() {
     const tA = TEAMS_2026.find(t => t.id === this.teamA);
     const tB = TEAMS_2026.find(t => t.id === this.teamB);
@@ -406,7 +421,7 @@ export class MatchModal extends LitElement {
         <div class="showdown">
           <div class="sticker-side-left">
             <div class="sticker left">
-              <span class="sticker-flag">${tA?.flag ?? '🏁'}</span>
+              ${this.renderFlag(tA, 'big')}
               <span class="sticker-name">${tA?.shortName ?? this.teamA}</span>
             </div>
           </div>
@@ -427,7 +442,7 @@ export class MatchModal extends LitElement {
 
           <div class="sticker-side-right">
             <div class="sticker right">
-              <span class="sticker-flag">${tB?.flag ?? '🏁'}</span>
+              ${this.renderFlag(tB, 'big')}
               <span class="sticker-name">${tB?.shortName ?? this.teamB}</span>
             </div>
           </div>
