@@ -1,0 +1,86 @@
+:root {
+  --navy-dark: #0a0a1a;
+  --navy-deep: #050510;
+  --navy-surface: #10102a;
+  --neon-lime: #D4FF00;
+  --neon-blue: #00F0FF;
+  --neon-magenta: #FF0055;
+  --off-white: #F4F4F5;
+  --text-dim: rgba(244, 244, 245, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Epilogue', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--navy-deep);
+  color: var(--off-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(212, 255, 0, 0.03), transparent 25%),
+    radial-gradient(circle at 90% 10%, rgba(0, 240, 255, 0.03), transparent 20%);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+}
+
+.btn {
+  background: var(--navy-surface);
+  border: 1px solid var(--border-color);
+  color: var(--off-white);
+  padding: 10px 20px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  border-color: var(--neon-lime);
+  color: var(--neon-lime);
+  background: rgba(212, 255, 0, 0.05);
+}
+
+.btn-primary {
+  background: var(--neon-lime);
+  color: var(--navy-deep);
+  border-color: var(--neon-lime);
+}
+
+.btn-primary:hover {
+  background: #e6ff33;
+  box-shadow: 0 0 20px rgba(212, 255, 0, 0.3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-glow {
+    0%   { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0.5); }
+    50%  { box-shadow: 0 0 16px 4px rgba(212, 255, 0, 0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 255, 0, 0); }
+  }
+}
+

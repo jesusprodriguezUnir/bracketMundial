@@ -1,0 +1,16 @@
+{
+  "project_type": "web",
+  "framework": "lit",
+  "language": "typescript",
+  "backend": "firebase_data_connect",
+  "database": "postgresql",
+  "cloud_provider": "vercel",
+  "features": [
+    "pwa",
+    "offline_support",
+    "google_auth"
+  ],
+  "deployment": {
+    "target": "vercel"
+  }
+}
