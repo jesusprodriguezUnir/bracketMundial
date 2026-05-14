@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { createStore } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { calculateBestThirds, assignBestThirds } from '../lib/bracket-logic';
@@ -159,7 +159,7 @@ function buildTournamentExportData(state: Pick<TournamentState, 'groupMatches' |
   };
 }
 
-export const useTournamentStore = create<TournamentState>()(
+export const useTournamentStore = createStore<TournamentState>()(
   persist(
     (set, _get) => ({
       groupMatches: initialGroupMatches,
