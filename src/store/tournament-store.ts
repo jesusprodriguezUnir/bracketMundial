@@ -39,6 +39,8 @@ export interface KnockoutMatchResult {
   teamB: string | null;
   scoreA: number | null;
   scoreB: number | null;
+  penaltyScoreA?: number | null;
+  penaltyScoreB?: number | null;
   winnerId: string | null;
   isPlayed: boolean;
   venue?: string;
@@ -55,7 +57,13 @@ interface TournamentState {
   selectedMatch: string | null;
 
   setGroupMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
-  setKnockoutMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
+  setKnockoutMatchResult: (
+    matchId: string,
+    scoreA: number | null,
+    scoreB: number | null,
+    penaltyScoreA?: number | null,
+    penaltyScoreB?: number | null
+  ) => void;
   setActivePhase: (phase: TournamentState['activePhase']) => void;
   setSelectedMatch: (matchId: string | null) => void;
   resetTournament: () => void;
@@ -219,9 +227,24 @@ function getKnockoutMatchOrder(): string[] {
   ];
 }
 
-function getWinnerId(teamA: string | null, teamB: string | null, scoreA: number | null, scoreB: number | null): string | null {
-  if (!teamA || !teamB || scoreA === null || scoreB === null || scoreA === scoreB) {
+function getWinnerId(
+  teamA: string | null,
+  teamB: string | null,
+  scoreA: number | null,
+  scoreB: number | null,
+  penaltyScoreA: number | null = null,
+  penaltyScoreB: number | null = null
+): string | null {
+  if (!teamA || !teamB || scoreA === null || scoreB === null) {
     return null;
+  }
+
+  if (scoreA === scoreB) {
+    if (penaltyScoreA === null || penaltyScoreB === null || penaltyScoreA === penaltyScoreB) {
+      return null;
+    }
+
+    return penaltyScoreA > penaltyScoreB ? teamA : teamB;
   }
 
   return scoreA > scoreB ? teamA : teamB;
@@ -251,14 +274,17 @@ export const useTournamentStore = createStore<TournamentState>()(
         });
       },
 
-      setKnockoutMatchResult: (matchId, scoreA, scoreB) => {
+      setKnockoutMatchResult: (matchId, scoreA, scoreB, penaltyScoreA = null, penaltyScoreB = null) => {
         set(state => {
           const match = state.knockoutMatches[matchId];
           if (!match) {
             return state;
           }
 
-          const winnerId = getWinnerId(match.teamA, match.teamB, scoreA, scoreB);
+          const isDrawAfterRegularTime = scoreA !== null && scoreB !== null && scoreA === scoreB;
+          const resolvedPenaltyScoreA = isDrawAfterRegularTime ? penaltyScoreA : null;
+          const resolvedPenaltyScoreB = isDrawAfterRegularTime ? penaltyScoreB : null;
+          const winnerId = getWinnerId(match.teamA, match.teamB, scoreA, scoreB, resolvedPenaltyScoreA, resolvedPenaltyScoreB);
           const isPlayed = winnerId !== null;
 
           const updated = {
@@ -267,6 +293,8 @@ export const useTournamentStore = createStore<TournamentState>()(
               ...match,
               scoreA,
               scoreB,
+              penaltyScoreA: resolvedPenaltyScoreA,
+              penaltyScoreB: resolvedPenaltyScoreB,
               winnerId,
               isPlayed,
             },
@@ -311,9 +339,15 @@ export const useTournamentStore = createStore<TournamentState>()(
             if (match?.teamA && match.teamB && !match.isPlayed) {
               let scoreA = Math.floor(Math.random() * 4);
               let scoreB = Math.floor(Math.random() * 4);
+              let penaltyScoreA: number | null = null;
+              let penaltyScoreB: number | null = null;
 
               if (scoreA === scoreB) {
-                scoreB = (scoreB + 1) % 4;
+                penaltyScoreA = 3 + Math.floor(Math.random() * 3);
+                penaltyScoreB = 3 + Math.floor(Math.random() * 3);
+                if (penaltyScoreA === penaltyScoreB) {
+                  penaltyScoreB += 1;
+                }
               }
 
               updated = resolveKnockoutMatches(state.groupStandings, {
@@ -322,7 +356,9 @@ export const useTournamentStore = createStore<TournamentState>()(
                   ...match,
                   scoreA,
                   scoreB,
-                  winnerId: getWinnerId(match.teamA, match.teamB, scoreA, scoreB),
+                  penaltyScoreA,
+                  penaltyScoreB,
+                  winnerId: getWinnerId(match.teamA, match.teamB, scoreA, scoreB, penaltyScoreA, penaltyScoreB),
                   isPlayed: true,
                 },
               });

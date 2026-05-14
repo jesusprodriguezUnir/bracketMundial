@@ -21,6 +21,8 @@ export interface KnockoutMatchLike {
   teamB: string | null;
   scoreA: number | null;
   scoreB: number | null;
+  penaltyScoreA?: number | null;
+  penaltyScoreB?: number | null;
   winnerId: string | null;
   isPlayed: boolean;
   venue?: string;
@@ -114,6 +116,8 @@ function createMatchState(
     teamB,
     scoreA: teamsChanged ? null : existing?.scoreA ?? null,
     scoreB: teamsChanged ? null : existing?.scoreB ?? null,
+    penaltyScoreA: teamsChanged ? null : existing?.penaltyScoreA ?? null,
+    penaltyScoreB: teamsChanged ? null : existing?.penaltyScoreB ?? null,
     winnerId: teamsChanged ? null : existing?.winnerId ?? null,
     isPlayed: teamsChanged ? false : existing?.isPlayed ?? false,
     venue: existing?.venue ?? scheduled?.venue,

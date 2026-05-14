@@ -22,6 +22,8 @@ interface CalendarRow {
   teamB: string | null;
   scoreA: number | null;
   scoreB: number | null;
+  penaltyScoreA: number | null;
+  penaltyScoreB: number | null;
 }
 
 const KNOCKOUT_LABELS: Array<{ key: string; label: string }> = [
@@ -41,7 +43,7 @@ export class CalendarView extends LitElement {
 
   private unsubscribeStore?: () => void;
 
-  static styles = css`
+  public static readonly styles = css`
     :host {
       display: block;
     }
@@ -275,6 +277,18 @@ export class CalendarView extends LitElement {
     return TEAMS_2026.find(team => team.id === teamId);
   }
 
+  private getScoreLabel(row: CalendarRow) {
+    if (row.scoreA === null || row.scoreB === null) {
+      return 'vs';
+    }
+
+    const penaltiesLabel = row.penaltyScoreA !== null && row.penaltyScoreB !== null
+      ? ` · pen ${row.penaltyScoreA}-${row.penaltyScoreB}`
+      : '';
+
+    return `${row.scoreA} × ${row.scoreB}${penaltiesLabel}`;
+  }
+
   private getRows(): CalendarRow[] {
     const store = useTournamentStore.getState();
 
@@ -294,6 +308,8 @@ export class CalendarView extends LitElement {
         teamB: match.teamB,
         scoreA: match.scoreA,
         scoreB: match.scoreB,
+        penaltyScoreA: null,
+        penaltyScoreB: null,
       };
     });
 
@@ -314,6 +330,8 @@ export class CalendarView extends LitElement {
         teamB: match?.teamB ?? null,
         scoreA: match?.scoreA ?? null,
         scoreB: match?.scoreB ?? null,
+        penaltyScoreA: match?.penaltyScoreA ?? null,
+        penaltyScoreB: match?.penaltyScoreB ?? null,
       };
     });
 
@@ -372,6 +390,8 @@ export class CalendarView extends LitElement {
     modal.teamB = teamB;
     modal.initialScoreA = row.scoreA;
     modal.initialScoreB = row.scoreB;
+    modal.initialPenaltyScoreA = row.penaltyScoreA;
+    modal.initialPenaltyScoreB = row.penaltyScoreB;
     modal.phase = row.kind === 'group' ? 'group' : 'knockout';
     modal.venue = row.venue;
     modal.city = row.city;
@@ -382,12 +402,12 @@ export class CalendarView extends LitElement {
     }
 
     const handleSave = (event: Event) => {
-      const { scoreA, scoreB } = (event as CustomEvent).detail;
+      const { scoreA, scoreB, penaltyScoreA, penaltyScoreB } = (event as CustomEvent).detail;
       const store = useTournamentStore.getState();
       if (row.kind === 'group') {
         store.setGroupMatchResult(row.id, scoreA, scoreB);
       } else {
-        store.setKnockoutMatchResult(row.id, scoreA, scoreB);
+        store.setKnockoutMatchResult(row.id, scoreA, scoreB, penaltyScoreA, penaltyScoreB);
       }
       modal.remove();
     };
@@ -481,7 +501,7 @@ export class CalendarView extends LitElement {
                   </div>
 
                   <div class="score">
-                    ${row.scoreA !== null && row.scoreB !== null ? `${row.scoreA} × ${row.scoreB}` : 'vs'}
+                    ${this.getScoreLabel(row)}
                   </div>
 
                   <div class="venue-block">

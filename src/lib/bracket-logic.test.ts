@@ -98,6 +98,29 @@ describe('Bracket Logic', () => {
     expect(knockout['R32-16'].teamB).toBe('D3');
   });
 
+  it('should propagate winners decided on penalties', () => {
+    const standings = buildStandings();
+    const knockout = syncBracket(standings);
+
+    const updated = syncBracket(standings, {
+      ...knockout,
+      'R32-01': {
+        ...knockout['R32-01'],
+        scoreA: 1,
+        scoreB: 1,
+        penaltyScoreA: 5,
+        penaltyScoreB: 4,
+        winnerId: knockout['R32-01'].teamA,
+        isPlayed: true,
+      },
+    });
+
+    expect(updated['R32-01'].winnerId).toBe(updated['R32-01'].teamA);
+    expect(updated['R32-01'].penaltyScoreA).toBe(5);
+    expect(updated['R32-01'].penaltyScoreB).toBe(4);
+    expect(updated['R16-01'].teamA).toBe(updated['R32-01'].teamA);
+  });
+
   it('should clear only the affected downstream branch when an earlier qualifier changes', () => {
     const standings = buildStandings();
     const initial = syncBracket(standings);

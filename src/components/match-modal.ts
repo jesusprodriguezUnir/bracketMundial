@@ -18,6 +18,8 @@ export class MatchModal extends LitElement {
   @property({ attribute: 'team-b' }) teamB = '';
   @property({ attribute: 'initial-score-a', type: Number }) initialScoreA: number | null = null;
   @property({ attribute: 'initial-score-b', type: Number }) initialScoreB: number | null = null;
+  @property({ attribute: 'initial-penalty-score-a', type: Number }) initialPenaltyScoreA: number | null = null;
+  @property({ attribute: 'initial-penalty-score-b', type: Number }) initialPenaltyScoreB: number | null = null;
   @property() phase: 'group' | 'knockout' = 'group';
   @property() venue = '';
   @property() city = '';
@@ -26,6 +28,8 @@ export class MatchModal extends LitElement {
 
   @state() private _scoreA: number | null = null;
   @state() private _scoreB: number | null = null;
+  @state() private _penaltyScoreA: number | null = null;
+  @state() private _penaltyScoreB: number | null = null;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -33,6 +37,8 @@ export class MatchModal extends LitElement {
   protected override updated(changedProps: PropertyValues) {
     if (changedProps.has('initialScoreA')) this._scoreA = this.initialScoreA;
     if (changedProps.has('initialScoreB')) this._scoreB = this.initialScoreB;
+    if (changedProps.has('initialPenaltyScoreA')) this._penaltyScoreA = this.initialPenaltyScoreA;
+    if (changedProps.has('initialPenaltyScoreB')) this._penaltyScoreB = this.initialPenaltyScoreB;
   }
 
   override firstUpdated() {
@@ -83,8 +89,16 @@ export class MatchModal extends LitElement {
   private clear() {
     this._scoreA = null;
     this._scoreB = null;
+    this._penaltyScoreA = null;
+    this._penaltyScoreB = null;
     this.dispatchEvent(new CustomEvent('save', {
-      detail: { matchId: this.matchId, scoreA: null, scoreB: null },
+      detail: {
+        matchId: this.matchId,
+        scoreA: null,
+        scoreB: null,
+        penaltyScoreA: null,
+        penaltyScoreB: null,
+      },
       bubbles: true,
       composed: true,
     }));
@@ -100,12 +114,40 @@ export class MatchModal extends LitElement {
 
     this._scoreA = nextScoreA;
     this._scoreB = nextScoreB;
+
+    if (this.phase === 'knockout' && nextScoreA !== nextScoreB) {
+      this._penaltyScoreA = null;
+      this._penaltyScoreB = null;
+    }
+  }
+
+  private adjustPenalty(team: 'A' | 'B', delta: number) {
+    const nextPenaltyA = team === 'A'
+      ? Math.max(0, (this._penaltyScoreA ?? 0) + delta)
+      : (this._penaltyScoreA ?? 0);
+    const nextPenaltyB = team === 'B'
+      ? Math.max(0, (this._penaltyScoreB ?? 0) + delta)
+      : (this._penaltyScoreB ?? 0);
+
+    this._penaltyScoreA = nextPenaltyA;
+    this._penaltyScoreB = nextPenaltyB;
   }
 
   private save() {
-    if (this.phase === 'knockout' && this._scoreA !== null && this._scoreA === this._scoreB) return;
+    if (this.phase === 'knockout' && this._scoreA !== null && this._scoreA === this._scoreB) {
+      if (this._penaltyScoreA === null || this._penaltyScoreB === null || this._penaltyScoreA === this._penaltyScoreB) {
+        return;
+      }
+    }
+
     this.dispatchEvent(new CustomEvent('save', {
-      detail: { matchId: this.matchId, scoreA: this._scoreA, scoreB: this._scoreB },
+      detail: {
+        matchId: this.matchId,
+        scoreA: this._scoreA,
+        scoreB: this._scoreB,
+        penaltyScoreA: this._penaltyScoreA,
+        penaltyScoreB: this._penaltyScoreB,
+      },
       bubbles: true, composed: true,
     }));
   }
@@ -121,6 +163,7 @@ export class MatchModal extends LitElement {
       justify-content: center;
       background: rgba(26, 25, 51, 0.75);
       padding: 20px;
+      overflow: auto;
     }
 
     /* Panel modal — grande, Panini retro */
@@ -133,6 +176,7 @@ export class MatchModal extends LitElement {
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      max-height: calc(100dvh - 40px);
     }
 
     /* ─── Ticket header ─── */
@@ -321,6 +365,46 @@ export class MatchModal extends LitElement {
       display: flex;
       align-items: center;
       gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .editor-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .penalties-block {
+      display: grid;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 2px dashed var(--ink);
+      margin-top: 12px;
+    }
+
+    .penalties-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .penalties-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .penalties-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--paper);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      padding: 3px 8px;
+      text-transform: uppercase;
     }
 
     /* Score input retro — botones ink + display Bowlby */
@@ -380,6 +464,7 @@ export class MatchModal extends LitElement {
       display: flex;
       gap: 10px;
       padding: 0 16px 16px;
+      background: var(--paper);
     }
     .modal-footer .btn { flex: 1; }
     .btn:disabled {
@@ -390,6 +475,20 @@ export class MatchModal extends LitElement {
     }
 
     @media (max-width: 768px) {
+      :host {
+        align-items: flex-start;
+        padding: 10px;
+      }
+      .modal {
+        max-height: calc(100dvh - 20px);
+      }
+      .ticket-header {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .ticket-info {
+        white-space: normal;
+      }
       .showdown {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -410,7 +509,30 @@ export class MatchModal extends LitElement {
         padding: 0 10px 12px;
       }
       .editor-section { padding: 12px 10px 12px; }
-      .modal-footer { padding: 0 10px 12px; }
+      .editor-row,
+      .penalties-row {
+        gap: 10px;
+      }
+      .score-input {
+        flex: 1 1 120px;
+        justify-content: space-between;
+      }
+      .score-input button {
+        padding: 8px 14px;
+      }
+      .score-display {
+        padding: 8px 12px;
+      }
+      .modal-footer {
+        padding: 0 10px 12px;
+        flex-direction: column-reverse;
+        position: sticky;
+        bottom: 0;
+      }
+      .modal-footer .btn,
+      .editor-row .btn-secondary {
+        width: 100%;
+      }
     }
   `;
 
@@ -422,20 +544,34 @@ export class MatchModal extends LitElement {
     return html`<span class="sticker-flag">${team.flag}</span>`;
   }
 
+  private getPenaltyBadgeText() {
+    if (this._penaltyScoreA === null || this._penaltyScoreB === null) {
+      return 'FINAL · 90+5';
+    }
+
+    return `PEN ${this._penaltyScoreA}-${this._penaltyScoreB}`;
+  }
+
   render() {
     const tA = TEAMS_2026.find(t => t.id === this.teamA);
     const tB = TEAMS_2026.find(t => t.id === this.teamB);
     const hasCompleteScore = this._scoreA !== null && this._scoreB !== null;
+    const penaltiesVisible = this.phase === 'knockout'
+      && hasCompleteScore
+      && (this._scoreA === this._scoreB || this._penaltyScoreA !== null || this._penaltyScoreB !== null);
+    const hasCompletePenalties = this._penaltyScoreA !== null && this._penaltyScoreB !== null;
     const isDraw = this.phase === 'knockout'
       && hasCompleteScore
       && this._scoreA === this._scoreB;
-    const canSave = hasCompleteScore && !isDraw;
+    const penaltiesAreValid = !isDraw || (hasCompletePenalties && this._penaltyScoreA !== this._penaltyScoreB);
+    const canSave = hasCompleteScore && penaltiesAreValid;
     const isPlayed = this.initialScoreA !== null || this.initialScoreB !== null;
     const showStats = this.phase === 'group' && isPlayed;
     const groupLetter = tA?.group ?? '?';
     const phaseLabel = this.phase === 'group'
       ? `GRUPO ${groupLetter}`
       : 'ELIMINATORIAS';
+    const scoreBadgeText = this.getPenaltyBadgeText();
 
     return html`
       <div class="modal" @click="${(e: MouseEvent) => e.stopPropagation()}">
@@ -468,7 +604,7 @@ export class MatchModal extends LitElement {
                   <span class="score-sep">×</span>
                   <span>${this._scoreB}</span>
                 </div>
-                <span class="score-final-badge">FINAL · 90+5</span>
+                <span class="score-final-badge">${scoreBadgeText}</span>
               `
               : html`<div class="score-tbd">vs</div>`
             }
@@ -497,37 +633,66 @@ export class MatchModal extends LitElement {
         <!-- Editor de marcador -->
         <div class="editor-section">
           <div class="editor-label">EDITAR MARCADOR ▶</div>
-          <div class="editor-row">
-            <!-- Score A -->
-            <div class="score-input">
-              <button
-                class="score-add-a"
-                @click="${() => this.adjustScore('A', -1)}"
-                aria-label="Restar gol ${tA?.shortName}">−</button>
-              <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
-              <button
-                @click="${() => this.adjustScore('A', 1)}"
-                aria-label="Añadir gol ${tA?.shortName}">+</button>
+          <div class="editor-stack">
+            <div class="editor-row">
+              <div class="score-input">
+                <button
+                  class="score-add-a"
+                  @click="${() => this.adjustScore('A', -1)}"
+                  aria-label="Restar gol ${tA?.shortName}">−</button>
+                <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
+                <button
+                  @click="${() => this.adjustScore('A', 1)}"
+                  aria-label="Añadir gol ${tA?.shortName}">+</button>
+              </div>
+
+              <span class="vs-sep">×</span>
+
+              <div class="score-input">
+                <button
+                  @click="${() => this.adjustScore('B', -1)}"
+                  aria-label="Restar gol ${tB?.shortName}">−</button>
+                <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
+                <button
+                  @click="${() => this.adjustScore('B', 1)}"
+                  aria-label="Añadir gol ${tB?.shortName}">+</button>
+              </div>
+
+              <button class="btn btn-secondary" style="margin-left: auto; flex: 0; min-width: 80px;" @click="${this.clear}">LIMPIAR</button>
             </div>
 
-            <span class="vs-sep">×</span>
+            ${penaltiesVisible ? html`
+              <div class="penalties-block">
+                <div class="penalties-title">Desempate por penaltis</div>
+                <div class="penalties-row">
+                  <div class="score-input">
+                    <button
+                      @click="${() => this.adjustPenalty('A', -1)}"
+                      aria-label="Restar penalti ${tA?.shortName}">−</button>
+                    <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
+                    <button
+                      @click="${() => this.adjustPenalty('A', 1)}"
+                      aria-label="Añadir penalti ${tA?.shortName}">+</button>
+                  </div>
 
-            <!-- Score B -->
-            <div class="score-input">
-              <button
-                @click="${() => this.adjustScore('B', -1)}"
-                aria-label="Restar gol ${tB?.shortName}">−</button>
-              <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
-              <button
-                @click="${() => this.adjustScore('B', 1)}"
-                aria-label="Añadir gol ${tB?.shortName}">+</button>
-            </div>
-            
-            <button class="btn btn-secondary" style="margin-left: auto; flex: 0; min-width: 80px;" @click="${this.clear}">LIMPIAR</button>
+                  <span class="penalties-badge">Pen</span>
+
+                  <div class="score-input">
+                    <button
+                      @click="${() => this.adjustPenalty('B', -1)}"
+                      aria-label="Restar penalti ${tB?.shortName}">−</button>
+                    <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
+                    <button
+                      @click="${() => this.adjustPenalty('B', 1)}"
+                      aria-label="Añadir penalti ${tB?.shortName}">+</button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
           </div>
 
           ${isDraw
-            ? html`<div class="warn">En eliminatorias debe haber un ganador.</div>`
+            ? html`<div class="warn">En eliminatorias con empate debes indicar el ganador por penaltis.</div>`
             : ''
           }
         </div>

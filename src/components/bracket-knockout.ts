@@ -20,7 +20,7 @@ export class BracketKnockout extends LitElement {
   private unsubscribeStore?: () => void;
   @state() private _pulseId: string | null = null;
 
-  static styles = css`
+  public static readonly styles = css`
     :host { display: block; width: 100%; overflow: hidden; }
 
     .bracket-actions {
@@ -170,6 +170,17 @@ export class BracketKnockout extends LitElement {
       font-size: 12px;
     }
 
+    .match-note {
+      padding: 4px 8px;
+      border-top: 1px solid var(--ink);
+      background: rgba(0, 0, 0, 0.05);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     /* Champion box amarilla */
     .champion-box {
       background: var(--retro-yellow);
@@ -309,6 +320,8 @@ export class BracketKnockout extends LitElement {
     modal.teamB = match.teamB;
     modal.initialScoreA = match.scoreA;
     modal.initialScoreB = match.scoreB;
+    modal.initialPenaltyScoreA = match.penaltyScoreA ?? null;
+    modal.initialPenaltyScoreB = match.penaltyScoreB ?? null;
     modal.phase = 'knockout';
     (modal as any).venue = (match as any).venue || '';
     (modal as any).city = (match as any).city || '';
@@ -317,8 +330,8 @@ export class BracketKnockout extends LitElement {
     if (s) (modal as any).stadiumImage = s.image;
 
     const handler = (ev: Event) => {
-      const { scoreA, scoreB } = (ev as CustomEvent).detail;
-      useTournamentStore.getState().setKnockoutMatchResult(matchId, scoreA, scoreB);
+      const { scoreA, scoreB, penaltyScoreA, penaltyScoreB } = (ev as CustomEvent).detail;
+      useTournamentStore.getState().setKnockoutMatchResult(matchId, scoreA, scoreB, penaltyScoreA, penaltyScoreB);
       this._pulseId = matchId;
       setTimeout(() => { this._pulseId = null; }, 700);
       modal.remove();
@@ -334,6 +347,10 @@ export class BracketKnockout extends LitElement {
     const tB = this.getTeam(m?.teamB ?? null);
     const isPlayed = m?.isPlayed ?? false;
     const winnerId = m?.winnerId ?? null;
+    const penaltyScoreA = m?.penaltyScoreA ?? null;
+    const penaltyScoreB = m?.penaltyScoreB ?? null;
+    const decidedOnPenalties = penaltyScoreA !== null && penaltyScoreB !== null;
+    const isPending = isPlayed === false;
     const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
 
     const renderRow = (teamId: string | null, score: number | null) => {
@@ -348,7 +365,7 @@ export class BracketKnockout extends LitElement {
             ${this.renderFlag(team)}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
-          <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
+          <div class="score ${isPending ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
         </div>
       `;
     };
@@ -359,12 +376,13 @@ export class BracketKnockout extends LitElement {
         style="--i:${idx}"
         role="button"
         tabindex="0"
-        aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}` : ', click para editar'}"
+        aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}${decidedOnPenalties ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}` : ''}` : ', click para editar'}"
         @click="${() => this.openMatch(matchId)}"
         @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
         ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
+        ${decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : ''}
         
         ${(m as any).venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
@@ -392,6 +410,7 @@ export class BracketKnockout extends LitElement {
   render() {
     const km = useTournamentStore.getState().knockoutMatches;
     const hasKnockout = Object.keys(km).length > 0;
+    const showGenerateButton = hasKnockout === false;
     const championId = km['FIN-01']?.winnerId;
     const champion = this.getTeam(championId ?? null);
 
@@ -405,7 +424,7 @@ export class BracketKnockout extends LitElement {
       <div class="bracket-actions">
         <div class="bracket-actions-label">★ BRACKET · ELIMINATORIAS</div>
         <div class="bracket-actions-btns">
-          ${!hasKnockout
+          ${showGenerateButton
             ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">GENERAR ELIMINATORIAS</button>`
             : html`<button class="btn" @click="${this.handleSimulate}">SIMULAR RESTO</button>`
           }
