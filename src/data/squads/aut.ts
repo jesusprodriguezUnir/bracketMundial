@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Sasa Kalajdzic', position: 'FW', age: 29, club: 'Wolverhampton' },
   { number: 22, name: 'Florian Kainz', position: 'FW', age: 34, club: 'Köln' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 3, 13, 6, 8, 11, 16, 10, 9]
+};

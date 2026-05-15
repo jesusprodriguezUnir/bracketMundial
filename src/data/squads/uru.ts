@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 20, name: 'Facundo Torres', position: 'FW', age: 26, club: 'Orlando City' },
   { number: 21, name: 'Luciano Rodríguez', position: 'FW', age: 22, club: 'Bahia' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 13, 4, 2, 22, 5, 8, 6, 18, 9, 7]
+};

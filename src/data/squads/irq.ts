@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Danilo Al-Saed', position: 'FW', age: 26, club: 'Sandefjord' },
   { number: 22, name: 'Ahmed Yasin', position: 'FW', age: 34, club: 'AIK' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 14, 2, 3, 4, 8, 16, 18, 10, 17, 19]
+};

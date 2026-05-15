@@ -27,3 +27,8 @@ export const squad: Player[] = [
   { number: 25, name: 'Kento Shiogai',          position: 'FW', age: 21, club: 'VfL Wolfsburg' },
   { number: 26, name: 'Keisuke Goto',           position: 'FW', age: 21, club: 'Sint-Truidense VV' },
 ];
+
+export const lineup = {
+  formation: '3-4-2-1',
+  startingXI: [1, 4, 2, 22, 14, 6, 17, 7, 20, 8, 9]
+};

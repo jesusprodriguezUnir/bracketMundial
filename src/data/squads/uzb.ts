@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Dostonbek Khamdamov', position: 'FW', age: 29, club: 'Andijon' },
   { number: 22, name: 'Khusayin Norchaev', position: 'FW', age: 24, club: 'Neftchi' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 15, 6, 14, 16, 10, 17, 7]
+};

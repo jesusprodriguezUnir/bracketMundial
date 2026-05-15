@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 20, name: 'Paulo Dybala', position: 'FW', age: 33, club: 'Roma' },
   { number: 21, name: 'Ángel Correa', position: 'FW', age: 31, club: 'Atlético de Madrid' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 13, 3, 7, 8, 6, 10, 11, 9]
+};

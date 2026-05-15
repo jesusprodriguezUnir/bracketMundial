@@ -26,3 +26,8 @@ export const squad: Player[] = [
   { number: 24, name: 'Aleksandar Pavlović',    position: 'MF', age: 21, club: 'Bayern Munich' },
   { number: 25, name: 'Tim Kleindienst',        position: 'FW', age: 29, club: 'Borussia M\'gladbach' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 3, 6, 8, 16, 10, 14, 7]
+};

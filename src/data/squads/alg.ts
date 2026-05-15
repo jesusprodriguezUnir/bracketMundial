@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Youcef Belaïli', position: 'FW', age: 34, club: 'MC Alger' },
   { number: 22, name: 'Anis Hadj Moussa', position: 'FW', age: 24, club: 'Feyenoord' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 5, 2, 4, 3, 6, 8, 10, 7, 9, 11]
+};

@@ -26,3 +26,8 @@ export const squad: Player[] = [
   { number: 18, name: 'Jean-Philippe Mateta', position: 'FW', age: 28, club: 'Crystal Palace' },
   { number: 24, name: 'Maghnes Akliouche', position: 'FW', age: 24, club: 'Monaco' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [16, 5, 4, 3, 19, 6, 17, 10, 7, 9, 25]
+};

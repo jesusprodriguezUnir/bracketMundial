@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Lisandro Semedo', position: 'FW', age: 29, club: 'Rizespor' },
   { number: 22, name: 'Dailon Rocha Livramento', position: 'FW', age: 25, club: 'Verona' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 13, 4, 3, 5, 6, 14, 10, 9, 11, 8]
+};

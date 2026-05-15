@@ -2,6 +2,8 @@ import './index.css';
 import './app-root';
 import { inject } from '@vercel/analytics';
 
+inject();
+
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
 if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -16,9 +18,8 @@ try {
 
 const root = document.getElementById('root');
 if (root) {
+  // Remove SEO pre-render content before mounting the Lit app
+  root.innerHTML = '';
   const app = document.createElement('app-root');
   root.appendChild(app);
 }
-
-// Initialize Vercel Web Analytics
-inject();

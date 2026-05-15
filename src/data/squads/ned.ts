@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Donyell Malen',          position: 'FW', age: 27, club: 'Borussia Dortmund' },
   { number: 24, name: 'Joshua Zirkzee',         position: 'FW', age: 25, club: 'Manchester United' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 5, 3, 16, 6, 17, 11, 10, 21]
+};

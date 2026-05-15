@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Alberto Espínola',       position: 'FW', age: 25, club: 'Olimpia' },
   { number: 24, name: 'Diego Gómez',            position: 'MF', age: 23, club: 'Inter Miami' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 22, 2, 3, 13, 6, 16, 8, 7, 9, 11]
+};
+

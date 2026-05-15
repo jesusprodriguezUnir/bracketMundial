@@ -25,3 +25,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Folarin Balogun',        position: 'FW', age: 24, club: 'Monaco' },
   { number: 24, name: 'Patrick Agyemang',       position: 'FW', age: 23, club: 'New England Revolution' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 3, 13, 5, 8, 6, 16, 11, 21, 10]
+};

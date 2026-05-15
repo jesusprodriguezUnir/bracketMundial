@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Kusini Yengi',           position: 'FW', age: 25, club: 'Portsmouth' },
   { number: 22, name: 'Craig Goodwin',          position: 'FW', age: 33, club: 'Adelaide United' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 5, 3, 15, 8, 10, 14, 7, 9, 22]
+};
+

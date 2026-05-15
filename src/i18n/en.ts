@@ -17,6 +17,7 @@ export const en: Record<TranslationKey, string> = {
 
   'tabs.label': 'Tournament phases',
   'tabs.view': 'View {tab}',
+  'tabs.hero': 'Home',
   'tabs.groups': 'Groups',
   'tabs.squads': 'Teams',
   'tabs.calendar': 'Schedule',
@@ -75,6 +76,17 @@ export const en: Record<TranslationKey, string> = {
   'squads.official': 'OFFICIAL',
   'squads.officials.one': 'official',
   'squads.officials.many': 'officials',
+  'squads.back': '← Back to teams',
+  'squads.tab.squad': 'Squad',
+  'squads.tab.matches': 'Fixtures',
+  'squads.tab.venues': 'Venues',
+  'squads.tab.news': 'News',
+  'squads.coach.title': 'Head Coach',
+  'squads.matches.pending': '{n} pending',
+  'squads.matches.empty': 'No pending fixtures remaining.',
+  'squads.news.loading': 'Loading news…',
+  'squads.news.empty': 'No recent news for this national team.',
+  'squads.news.source': 'Source:',
 
   'calendar.empty': 'No matches for the active filters.',
   'calendar.r32': 'R32',
@@ -121,4 +133,14 @@ export const en: Record<TranslationKey, string> = {
   'card.qf': 'QF',
   'card.sf': 'SF',
   'card.final': 'FINAL',
+
+  // Footer
+  'footer.follow': 'FOLLOW US',
+  'footer.contact': 'CONTACT',
+
+  // SEO Info
+  'seo.aboutTitle': 'How does the World Cup 2026 Simulator work?',
+  'seo.aboutText': 'Our interactive bracket allows you to predict every result, from the group stage with its 12 groups of 4 teams, to the grand final at MetLife Stadium. You can simulate the brackets, see who the best third-placed teams would be, and share your complete prediction with friends.',
+  'seo.formatTitle': 'New Format: 48 Teams',
+  'seo.formatText': 'The 2026 FIFA World Cup debuts a new format with 48 teams. This means more matches (104 in total), an extra round of 32, and unprecedented excitement across host cities in the USA, Mexico, and Canada.',
 };

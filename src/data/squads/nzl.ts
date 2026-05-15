@@ -27,3 +27,8 @@ export const squad: Player[] = [
   { number: 25, name: 'Jesse Randall', position: 'FW', age: 23, club: 'Auckland FC' },
   { number: 26, name: 'Ben Waine', position: 'FW', age: 24, club: 'Port Vale' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 15, 3, 2, 4, 7, 14, 8, 10, 9, 24]
+};

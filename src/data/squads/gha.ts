@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Joseph Paintsil', position: 'FW', age: 28, club: 'LA Galaxy' },
   { number: 22, name: 'Ransford-Yeboah Königsdörffer', position: 'FW', age: 25, club: 'Hamburgo' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 14, 4, 5, 3, 6, 8, 16, 10, 7, 11]
+};

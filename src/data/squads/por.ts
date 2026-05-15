@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 20, name: 'Cristiano Ronaldo', position: 'FW', age: 41, club: 'Al Nassr' },
   { number: 21, name: 'Diogo Jota', position: 'FW', age: 30, club: 'Liverpool' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 5, 3, 6, 8, 10, 7, 20, 21]
+};

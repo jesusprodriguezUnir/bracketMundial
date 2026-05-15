@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Jacob Shaffelburg',       position: 'FW', age: 25, club: 'Toronto FC' },
   { number: 24, name: 'Jacen Russell-Rowe',      position: 'FW', age: 23, club: 'Columbus Crew' },
 ];
+
+export const lineup = {
+  formation: '4-4-2',
+  startingXI: [1, 2, 5, 3, 22, 11, 6, 10, 19, 9, 7]
+};
+

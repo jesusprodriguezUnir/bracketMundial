@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from './store/tournament-store';
 import './components/groups-view';
 import './components/bracket-knockout';
+import './components/hero-view';
 import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
 import './components/stadiums-view';
@@ -12,9 +13,10 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
+type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
 
 const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
+  hero:     'tabs.hero',
   groups:   'tabs.groups',
   squads:   'tabs.squads',
   calendar: 'tabs.calendar',
@@ -28,7 +30,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
-  @state() private _activeTab: PhaseTab = 'groups';
+  @state() private _activeTab: PhaseTab = 'hero';
 
   private unsubscribeStore?: () => void;
 
@@ -41,7 +43,7 @@ export class BracketView extends LitElement {
       background: var(--paper-2);
       border-bottom: 4px solid var(--ink);
       position: sticky;
-      top: 73px; /* altura topbar retro */
+      top: 64px; /* altura topbar retro v2 */
       z-index: 90;
       overflow-x: auto;
       scrollbar-width: none;
@@ -189,11 +191,11 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
     const at = this._activeTab;
 
     return html`
-      <div>
+      <div @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
         <nav class="phase-tabs" aria-label="${t('tabs.label')}">
           ${tabs.map(tab => html`
             <button
@@ -205,6 +207,11 @@ export class BracketView extends LitElement {
             </button>
           `)}
         </nav>
+
+        <!-- Hero / Inicio -->
+        <div class="section-groups ${at === 'hero' ? 'visible' : ''}">
+          ${at === 'hero' ? html`<hero-view></hero-view>` : ''}
+        </div>
 
         <!-- Fase de Grupos -->
         <div

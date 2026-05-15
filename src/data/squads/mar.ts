@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Anass Zaroury',          position: 'FW', age: 24, club: 'Burnley' },
   { number: 24, name: 'Ilaix Moriba',           position: 'MF', age: 23, club: 'Valencia' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 5, 3, 14, 8, 10, 7, 9, 11]
+};

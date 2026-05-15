@@ -17,6 +17,7 @@ export const es = {
   // Tabs
   'tabs.label': 'Fases del torneo',
   'tabs.view': 'Ver {tab}',
+  'tabs.hero': 'Inicio',
   'tabs.groups': 'Grupos',
   'tabs.squads': 'Equipos',
   'tabs.calendar': 'Calendario',
@@ -81,6 +82,17 @@ export const es = {
   'squads.official': 'OFICIAL',
   'squads.officials.one': 'oficial',
   'squads.officials.many': 'oficiales',
+  'squads.back': '← Volver a equipos',
+  'squads.tab.squad': 'Plantilla',
+  'squads.tab.matches': 'Partidos',
+  'squads.tab.venues': 'Sedes',
+  'squads.tab.news': 'Noticias',
+  'squads.coach.title': 'Entrenador',
+  'squads.matches.pending': '{n} pendientes',
+  'squads.matches.empty': 'No quedan partidos pendientes de jugar.',
+  'squads.news.loading': 'Cargando noticias…',
+  'squads.news.empty': 'Sin noticias recientes para esta selección.',
+  'squads.news.source': 'Fuente:',
 
   // Calendar
   'calendar.empty': 'No hay partidos para los filtros activos.',
@@ -130,6 +142,16 @@ export const es = {
   'card.qf': 'CUARTOS',
   'card.sf': 'SEMIS',
   'card.final': 'FINAL',
+
+  // Footer
+  'footer.follow': 'SÍGUENOS',
+  'footer.contact': 'CONTACTO',
+
+  // SEO Info
+  'seo.aboutTitle': '¿Cómo funciona el Simulador del Mundial 2026?',
+  'seo.aboutText': 'Nuestro bracket interactivo te permite predecir cada resultado, desde la fase de grupos con sus 12 grupos de 4 selecciones, hasta la gran final en el MetLife Stadium. Puedes simular los cruces, ver quiénes serían los mejores terceros y compartir tu cuadro completo con amigos.',
+  'seo.formatTitle': 'Nuevo formato: 48 selecciones',
+  'seo.formatText': 'El Mundial de la FIFA 2026 estrena formato con 48 equipos. Esto significa más partidos (104 en total), una ronda extra de dieciseisavos de final y una emoción sin precedentes en las sedes de Estados Unidos, México y Canadá.',
 } as const;
 
 export type TranslationKey = keyof typeof es;

@@ -436,6 +436,20 @@ export class BracketKnockout extends LitElement {
         </div>
       </div>
 
+      <!-- Trophy banner: rondas + info final -->
+      <div style="
+        margin-bottom: 2px;
+        padding: 8px 16px;
+        background: var(--ink); color: var(--retro-yellow);
+        font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em;
+        display: flex; justify-content: space-between; align-items: center;
+        border: 3px solid var(--ink);
+      ">
+        <span style="color: var(--paper)">◀ 1/16 · OCTAVOS · CUARTOS · SEMIFINALES</span>
+        <span>★ DOM 19 JUL · METLIFE STADIUM ★</span>
+        <span style="color: var(--retro-orange)">TOCA PARA PREDECIR</span>
+      </div>
+
       <div class="bracket-scroll">
         <div class="bracket-container">
           <svg class="connectors" aria-hidden="true"></svg>

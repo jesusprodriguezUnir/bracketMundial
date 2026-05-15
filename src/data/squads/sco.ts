@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Dango Ouattara',         position: 'FW', age: 23, club: 'Bournemouth' },
   { number: 21, name: 'Ben Doak',               position: 'FW', age: 20, club: 'Liverpool' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 3, 16, 10, 7, 8, 17, 11]
+};
+

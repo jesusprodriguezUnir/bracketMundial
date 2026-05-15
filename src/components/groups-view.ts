@@ -134,6 +134,17 @@ export class GroupsView extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .pos-badge {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      padding: 1px 4px;
+      border: 1px solid var(--ink);
+      letter-spacing: 0.1em;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
 
     .wdl {
       font-family: var(--font-mono);
@@ -406,12 +417,14 @@ export class GroupsView extends LitElement {
                 ${standings.map((s, idx) => {
                   const team = this.getTeam(s.teamId);
                   const top2 = idx < 2;
+                  const posLabel = idx === 0 ? '1°' : idx === 1 ? '2°' : null;
                   return html`
                     <div class="standing-row ${top2 ? '' : 'muted'}">
                       <div class="rank-badge ${top2 ? 'qualify' : ''}">${idx + 1}</div>
                       <div class="team-cell">
                         ${this.renderFlag(team)}
                         <span class="team-short">${team?.shortName ?? s.teamId}</span>
+                        ${posLabel ? html`<span class="pos-badge">${posLabel}</span>` : ''}
                       </div>
                       <span class="wdl">${s.won}-${s.drawn}-${s.lost}</span>
                       <span class="pts ${top2 ? '' : 'muted'}">${s.points}</span>

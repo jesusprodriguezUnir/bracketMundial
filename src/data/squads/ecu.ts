@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Lolo Rodríguez',         position: 'FW', age: 24, club: 'Aucas' },
   { number: 21, name: 'Romario Ibarra',         position: 'FW', age: 29, club: 'Pachuca' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 13, 3, 7, 6, 8, 18, 10, 9, 16]
+};
+

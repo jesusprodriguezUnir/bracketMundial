@@ -15,7 +15,10 @@
       "WebFetch(domain:en.wikipedia.org)",
       "Bash(npm test *)",
       "Bash(node scripts/generate-icons.mjs)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\jesus\\\\.claude\\\\projects\\\\d--Personal-bracketMundial\\\\6a808351-4a52-4fd6-b9ba-342980660d37\\\\tool-results\\\\extracted\" -Recurse | ForEach-Object { \"$\\($_.Length.ToString\\(\\).PadLeft\\(8\\)\\)  $\\($_.FullName.Replace\\('C:\\\\Users\\\\jesus\\\\.claude\\\\projects\\\\d--Personal-bracketMundial\\\\6a808351-4a52-4fd6-b9ba-342980660d37\\\\tool-results\\\\extracted\\\\',''\\)\\)\" })",
+      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd d:\\\\Personal\\\\bracketMundial; npm run dev\" -WindowStyle Normal)"
     ]
   }
 }

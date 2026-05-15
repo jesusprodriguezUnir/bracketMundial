@@ -27,3 +27,8 @@ export const squad: Player[] = [
   { number: 25, name: 'Julián Quiñones',        position: 'FW', age: 28, club: 'América' },
   { number: 26, name: 'Fidel Ambriz',           position: 'FW', age: 22, club: 'Pachuca' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 3, 5, 22, 4, 18, 16, 7, 20, 10]
+};

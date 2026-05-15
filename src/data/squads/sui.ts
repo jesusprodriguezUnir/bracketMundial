@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Kwadwo Duah',            position: 'FW', age: 27, club: 'Nürnberg' },
   { number: 23, name: 'Zeki Amdouni',           position: 'FW', age: 25, club: 'Burnley' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 13, 5, 3, 10, 8, 6, 11, 7, 18]
+};
+

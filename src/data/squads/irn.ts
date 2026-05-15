@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Younes Delfi', position: 'FW', age: 25, club: 'Asteras Tripolis' },
   { number: 23, name: 'Ali Gholizadeh', position: 'FW', age: 30, club: 'Lech Poznan' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 19, 13, 4, 3, 6, 14, 7, 10, 9, 17]
+};

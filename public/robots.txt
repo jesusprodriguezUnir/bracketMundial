@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /assets/flags/
 
+Host: https://bracketmundial.com
 Sitemap: https://bracketmundial.com/sitemap.xml

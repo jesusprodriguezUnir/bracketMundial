@@ -1,0 +1,17 @@
+<svg viewBox="0 0 680 227" width="1500" height="500" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Bracket Mundial 2026 - Banner para X/Twitter</title>
+  <desc>Banner retro para redes sociales con texto Bracket Mundial 2026 sobre fondo azul marino</desc>
+  <rect width="680" height="227" fill="#1a1933"/>
+  <rect x="0" y="0" width="680" height="14" fill="#e63946"/>
+  <rect x="0" y="14" width="680" height="7" fill="#e8904a"/>
+  <rect x="0" y="197" width="680" height="30" fill="#e8904a"/>
+  <text x="340" y="217" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="13" font-weight="900" fill="#1a1933" letter-spacing="3">FIFA WORLD CUP 2026 · 48 EQUIPOS · 16 SEDES · 104 PARTIDOS</text>
+  <polyline points="42,40 20,40 20,190 42,190" fill="none" stroke="#e8904a" stroke-width="5" stroke-linecap="square"/>
+  <polyline points="638,40 660,40 660,190 638,190" fill="none" stroke="#e8904a" stroke-width="5" stroke-linecap="square"/>
+  <text x="343" y="109" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="68" font-weight="900" fill="#b84d0e">BRACKET MUNDIAL</text>
+  <text x="340" y="106" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="68" font-weight="900" fill="#e8904a">BRACKET MUNDIAL</text>
+  <rect x="80" y="118" width="520" height="4" fill="#e8904a" opacity="0.35"/>
+  <text x="340" y="151" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="21" font-weight="900" fill="#ecdfc0" letter-spacing="5">PREDICE · SIMULA · COMPARTE</text>
+  <text x="344" y="188" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="31" font-weight="900" fill="#b84d0e">bracketmundial.com</text>
+  <text x="340" y="185" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="31" font-weight="900" fill="#e63946">bracketmundial.com</text>
+</svg>

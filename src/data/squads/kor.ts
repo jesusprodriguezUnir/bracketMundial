@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 19, name: 'Lim Chang-woo',          position: 'FW', age: 23, club: 'Gangwon' },
   { number: 24, name: 'Yang Min-hyeok',         position: 'FW', age: 19, club: 'Bayer Leverkusen' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 3, 13, 16, 8, 11, 10, 7, 9]
+};
+

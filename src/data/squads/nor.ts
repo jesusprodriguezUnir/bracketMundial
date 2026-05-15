@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Ola Solbakken', position: 'FW', age: 28, club: 'Empoli' },
   { number: 22, name: 'Kristian Thorstvedt', position: 'FW', age: 27, club: 'Sassuolo' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 13, 3, 8, 10, 17, 7, 9, 18]
+};

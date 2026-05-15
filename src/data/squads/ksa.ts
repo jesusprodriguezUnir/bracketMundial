@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Fahad Al-Muwallad', position: 'FW', age: 31, club: 'Al Shabab' },
   { number: 22, name: 'Turki Al-Ammar', position: 'FW', age: 25, club: 'Al Qadsiah' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 13, 10, 8, 11, 7, 16, 9]
+};
