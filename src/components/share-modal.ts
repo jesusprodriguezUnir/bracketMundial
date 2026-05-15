@@ -6,6 +6,7 @@ import {
   generateBracketImage,
   buildShareText,
   shareViaWebAPI,
+  shareToInstagram,
   openTwitterIntent,
   openWhatsAppIntent,
   downloadBlob,
@@ -18,6 +19,7 @@ export class ShareModal extends LitElement {
   @state() private _previewUrl = '';
   @state() private _copied = false;
   @state() private _copiedLink = false;
+  @state() private _igDownloaded = false;
 
   private _blob: Blob | null = null;
   private _shareText = '';
@@ -192,8 +194,9 @@ export class ShareModal extends LitElement {
       background: var(--retro-orange);
       color: var(--paper);
     }
-    .btn-share.twitter  { background: #1da1f2; color: #fff; }
-    .btn-share.whatsapp { background: #25d366; color: #fff; }
+    .btn-share.twitter    { background: #1da1f2; color: #fff; }
+    .btn-share.whatsapp   { background: #25d366; color: #fff; }
+    .btn-share.instagram  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); color: #fff; }
     .btn-share.copied   { background: var(--retro-green); color: var(--paper); }
     .btn-share:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -283,6 +286,12 @@ export class ShareModal extends LitElement {
     openWhatsAppIntent(this._shareText);
   }
 
+  private async _instagram() {
+    if (!this._blob) return;
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
+  }
+
   private async _copyText() {
     try {
       await navigator.clipboard.writeText(this._shareText);
@@ -357,6 +366,9 @@ export class ShareModal extends LitElement {
           <button class="btn-share whatsapp" ?disabled="${!isReady}" @click="${this._whatsapp}" aria-label="${t('share.whatsappLabel')}">
             ${t('share.whatsapp')}
           </button>
+          <button class="btn-share instagram" ?disabled="${!isReady}" @click="${this._instagram}" aria-label="${t('share.instagramLabel')}">
+            ${t('share.instagram')}
+          </button>
           <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="${t('share.copyTextLabel')}">
             ${this._copied ? t('share.copied') : t('share.copyText')}
           </button>
@@ -366,7 +378,7 @@ export class ShareModal extends LitElement {
         </div>
 
         <div class="ig-hint">
-          ${t('share.igHint')}
+          ${this._igDownloaded ? t('share.igDownloaded') : t('share.igHint')}
         </div>
       </div>
     `;

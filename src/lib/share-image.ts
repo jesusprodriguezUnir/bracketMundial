@@ -9,9 +9,11 @@ function getTeamName(id: string | null): string {
 
 export async function generateBracketImage(node: HTMLElement): Promise<Blob> {
   await document.fonts.ready;
+  const width  = node.scrollWidth  || 1200;
+  const height = node.scrollHeight || node.offsetHeight;
   const blob = await toBlob(node, {
-    width: 1200,
-    height: 675,
+    width,
+    height,
     pixelRatio: 2,
     cacheBust: true,
     style: { transform: 'none', animation: 'none' },
@@ -42,6 +44,18 @@ export function buildShareText(
   if (third)    text += `\n🥉 3º: ${third}`;
   text += '\n#Mundial2026 #FIFAWorldCup';
   return text;
+}
+
+export async function shareToInstagram(blob: Blob, text: string): Promise<'shared' | 'downloaded'> {
+  const file = new File([blob], 'bracket-mundial-2026.png', { type: 'image/png' });
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ title: 'Mi Bracket Mundial 2026', text, files: [file] });
+      return 'shared';
+    } catch { /* usuario canceló o falló → cae a descarga */ }
+  }
+  downloadBlob(blob, 'bracket-mundial-2026.png');
+  return 'downloaded';
 }
 
 export async function shareViaWebAPI(blob: Blob, text: string): Promise<boolean> {

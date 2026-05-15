@@ -19,12 +19,9 @@ export class ShareCard extends LitElement {
     :host {
       display: block;
       width: 1200px;
-      height: 675px;
-      overflow: hidden;
       background: #ecdfc0;
       font-family: 'Bowlby One', 'Anton', Impact, sans-serif;
       color: #1a1933;
-      position: relative;
     }
 
     /* ---- HEADER ---- */
@@ -105,10 +102,8 @@ export class ShareCard extends LitElement {
 
     /* ---- BRACKET AREA ---- */
     .card-body {
-      height: 531px;
       display: flex;
       align-items: stretch;
-      overflow: hidden;
       background: #ecdfc0;
       background-image:
         radial-gradient(circle at 20% 30%, rgba(232,84,31,0.04) 0, transparent 30%),
@@ -264,10 +259,6 @@ export class ShareCard extends LitElement {
 
     /* ---- FOOTER ---- */
     .card-footer {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
       height: 68px;
       background: #1a1933;
       border-top: 4px solid #1a1933;
