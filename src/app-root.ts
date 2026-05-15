@@ -2,10 +2,12 @@ import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import './bracket-view';
 import { useTournamentStore } from './store/tournament-store';
+import { t, toggleLocale, useLocaleStore } from './i18n';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
   private unsubscribeStore?: () => void;
+  private unsubscribeLocale?: () => void;
 
   static styles = css`
     :host {
@@ -169,11 +171,44 @@ export class AppRoot extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this._loadSharedBracketIfPresent();
+  }
+
+  private async _loadSharedBracketIfPresent() {
+    const { extractHashPayload, decodeBracket } = await import('./lib/bracket-codec');
+    const payload = extractHashPayload();
+    if (!payload) return;
+    const data = decodeBracket(payload);
+    if (!data) return;
+    const ok = window.confirm('¿Cargar el bracket compartido? Esto sobrescribirá tu predicción actual.');
+    if (ok) {
+      useTournamentStore.getState().applySharedBracket(data);
+    }
+    history.replaceState(null, '', window.location.pathname);
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
+  }
+
+  private get _isDark() {
+    return document.documentElement.dataset.theme === 'dark';
+  }
+
+  private _toggleTheme() {
+    const next = this._isDark ? 'light' : 'dark';
+    if (next === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+    localStorage.setItem('bm-theme', next);
+    const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.content = next === 'dark' ? '#231d3e' : '#1a1933';
+    this.requestUpdate();
   }
 
   private handleExport() {
@@ -216,13 +251,13 @@ export class AppRoot extends LitElement {
         <header class="topbar">
           <!-- Wordmark en ink -->
           <div class="wordmark">
-            <div class="wordmark-title">BRACKET</div>
-            <div class="wordmark-sub">MUNDIAL · 2026</div>
+            <div class="wordmark-title">${t('header.title')}</div>
+            <div class="wordmark-sub">${t('header.subtitle')}</div>
           </div>
 
           <!-- Stamp edición -->
           <div class="stamp">
-            <div class="stamp-label">EDICIÓN</div>
+            <div class="stamp-label">${t('header.edition')}</div>
             <div class="stamp-num">XXIII</div>
           </div>
 
@@ -235,16 +270,18 @@ export class AppRoot extends LitElement {
 
           <!-- Stats mini -->
           <div class="topbar-stats">
-            <span>48 selecciones · 12 grupos · 104 partidos</span>
-            <span class="stats-played">${totalPlayed} / 104 jugados</span>
+            <span>${t('header.stats')}</span>
+            <span class="stats-played">${t('header.played', { n: totalPlayed })}</span>
           </div>
 
           <!-- Acciones -->
           <div class="header-actions">
             <input type="file" id="file-upload" style="display:none" accept=".json" @change="${this.handleFileChange}">
-            <button @click="${this.triggerImport}">IMPORTAR</button>
-            <button class="primary" @click="${this.handleExport}">EXPORTAR</button>
-            <button @click="${this.handleShare}">COMPARTIR</button>
+            <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
+            <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
+            <button @click="${this.triggerImport}">${t('header.import')}</button>
+            <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
+            <button @click="${this.handleShare}">${t('header.share')}</button>
           </div>
         </header>
 

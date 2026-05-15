@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
+import { t, useLocaleStore } from '../i18n';
 
 
 @customElement('match-modal')
@@ -63,15 +64,19 @@ export class MatchModal extends LitElement {
     if (e.target === this) this.close();
   };
 
+  private _unsubscribeLocale?: () => void;
+
   override connectedCallback() {
     super.connectedCallback();
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
+    this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   override disconnectedCallback() {
     document.removeEventListener('keydown', this._handleKeydown);
     this.removeEventListener('click', this._handleHostClick);
+    this._unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -535,10 +540,9 @@ export class MatchModal extends LitElement {
 
   private getPenaltyBadgeText() {
     if (this._penaltyScoreA === null || this._penaltyScoreB === null) {
-      return 'FINAL · 90+5';
+      return t('modal.finalTime');
     }
-
-    return `PEN ${this._penaltyScoreA}-${this._penaltyScoreB}`;
+    return t('modal.penScore', { a: this._penaltyScoreA, b: this._penaltyScoreB });
   }
 
   render() {
@@ -556,8 +560,8 @@ export class MatchModal extends LitElement {
     const canSave = hasCompleteScore && penaltiesAreValid;
     const groupLetter = tA?.group ?? '?';
     const phaseLabel = this.phase === 'group'
-      ? `GRUPO ${groupLetter}`
-      : 'ELIMINATORIAS';
+      ? t('modal.phaseGroup', { letter: groupLetter })
+      : t('modal.phaseKnockout');
     const scoreBadgeText = this.getPenaltyBadgeText();
 
     return html`
@@ -565,13 +569,13 @@ export class MatchModal extends LitElement {
 
         <!-- Ticket header -->
         <div class="ticket-header">
-          <span class="ticket-label">★ TICKET</span>
+          <span class="ticket-label">${t('modal.ticket')}</span>
           <div style="display: flex; align-items: center; gap: 10px;">
-            ${this.stadiumImage ? html`<img src="${this.stadiumImage}" style="width: 40px; height: 25px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 2px 2px 0 0 var(--ink);" alt="Estadio">` : ''}
-            <span class="ticket-info">№ ${this.matchId} · ${this.city} · ${this.venue} · ${this.timeSpain ? html`<span style="color: var(--retro-yellow)">${this.timeSpain} ESP</span>` : ''}</span>
+            ${this.stadiumImage ? html`<img src="${this.stadiumImage}" style="width: 40px; height: 25px; object-fit: cover; border: 1px solid var(--ink); box-shadow: 2px 2px 0 0 var(--ink);" alt="${t('modal.stadium')}">` : ''}
+            <span class="ticket-info">№ ${this.matchId} · ${this.city} · ${this.venue} · ${this.timeSpain ? html`<span style="color: var(--retro-yellow)">${this.timeSpain} ${t('modal.timeLabel')}</span>` : ''}</span>
           </div>
           <span class="ticket-group">${phaseLabel}</span>
-          <button class="ticket-close" @click="${this.close}" aria-label="Cerrar">✕</button>
+          <button class="ticket-close" @click="${this.close}" aria-label="${t('modal.close')}">✕</button>
         </div>
 
         <!-- Showdown grande con stickers -->
@@ -608,18 +612,18 @@ export class MatchModal extends LitElement {
 
         <!-- Editor de marcador -->
         <div class="editor-section">
-          <div class="editor-label">EDITAR MARCADOR ▶</div>
+          <div class="editor-label">${t('modal.editScore')}</div>
           <div class="editor-stack">
             <div class="editor-row">
               <div class="score-input">
                 <button
                   class="score-add-a"
                   @click="${() => this.adjustScore('A', -1)}"
-                  aria-label="Restar gol ${tA?.shortName}">−</button>
+                  aria-label="${t('modal.subtractGoal', { team: tA?.shortName ?? '' })}">−</button>
                 <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
                 <button
                   @click="${() => this.adjustScore('A', 1)}"
-                  aria-label="Añadir gol ${tA?.shortName}">+</button>
+                  aria-label="${t('modal.addGoal', { team: tA?.shortName ?? '' })}">+</button>
               </div>
 
               <span class="vs-sep">×</span>
@@ -627,28 +631,28 @@ export class MatchModal extends LitElement {
               <div class="score-input">
                 <button
                   @click="${() => this.adjustScore('B', -1)}"
-                  aria-label="Restar gol ${tB?.shortName}">−</button>
+                  aria-label="${t('modal.subtractGoal', { team: tB?.shortName ?? '' })}">−</button>
                 <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
                 <button
                   @click="${() => this.adjustScore('B', 1)}"
-                  aria-label="Añadir gol ${tB?.shortName}">+</button>
+                  aria-label="${t('modal.addGoal', { team: tB?.shortName ?? '' })}">+</button>
               </div>
 
-              <button class="btn btn-danger limpiar-btn" @click="${this.clear}">LIMPIAR</button>
+              <button class="btn btn-danger limpiar-btn" @click="${this.clear}">${t('modal.clear')}</button>
             </div>
 
             ${penaltiesVisible ? html`
               <div class="penalties-block">
-                <div class="penalties-title">Desempate por penaltis</div>
+                <div class="penalties-title">${t('modal.penalties')}</div>
                 <div class="penalties-row">
                   <div class="score-input">
                     <button
                       @click="${() => this.adjustPenalty('A', -1)}"
-                      aria-label="Restar penalti ${tA?.shortName}">−</button>
+                      aria-label="${t('modal.subtractPen', { team: tA?.shortName ?? '' })}">−</button>
                     <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
                     <button
                       @click="${() => this.adjustPenalty('A', 1)}"
-                      aria-label="Añadir penalti ${tA?.shortName}">+</button>
+                      aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
                   </div>
 
                   <span class="penalties-badge">Pen</span>
@@ -656,11 +660,11 @@ export class MatchModal extends LitElement {
                   <div class="score-input">
                     <button
                       @click="${() => this.adjustPenalty('B', -1)}"
-                      aria-label="Restar penalti ${tB?.shortName}">−</button>
+                      aria-label="${t('modal.subtractPen', { team: tB?.shortName ?? '' })}">−</button>
                     <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
                     <button
                       @click="${() => this.adjustPenalty('B', 1)}"
-                      aria-label="Añadir penalti ${tB?.shortName}">+</button>
+                      aria-label="${t('modal.addPen', { team: tB?.shortName ?? '' })}">+</button>
                   </div>
                 </div>
               </div>
@@ -668,18 +672,18 @@ export class MatchModal extends LitElement {
           </div>
 
           ${isDraw
-            ? html`<div class="warn">En eliminatorias con empate debes indicar el ganador por penaltis.</div>`
+            ? html`<div class="warn">${t('modal.penRequired')}</div>`
             : ''
           }
         </div>
 
         <!-- Footer -->
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="${this.close}">CANCELAR</button>
+          <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
           <button
             class="btn btn-primary"
             ?disabled="${!canSave}"
-            @click="${this.save}">GUARDAR</button>
+            @click="${this.save}">${t('modal.save')}</button>
         </div>
       </div>
     `;

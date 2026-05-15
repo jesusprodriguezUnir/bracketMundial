@@ -8,6 +8,7 @@ import { formatFullDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
 import type { MatchModal } from './match-modal';
 import './match-modal';
+import { t, useLocaleStore } from '../i18n';
 
 interface CalendarRow {
   id: string;
@@ -27,13 +28,13 @@ interface CalendarRow {
   penaltyScoreB: number | null;
 }
 
-const KNOCKOUT_LABELS: Array<{ key: string; label: string }> = [
-  { key: 'R32', label: '1/16' },
-  { key: 'R16', label: 'Octavos' },
-  { key: 'QF', label: 'Cuartos' },
-  { key: 'SF', label: 'Semis' },
-  { key: 'TP', label: '3er puesto' },
-  { key: 'FIN', label: 'Final' },
+const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: 'calendar.r32' | 'calendar.r16' | 'calendar.qf' | 'calendar.sf' | 'calendar.tp' | 'tabs.final' }> = [
+  { key: 'R32', i18nKey: 'calendar.r32' },
+  { key: 'R16', i18nKey: 'calendar.r16' },
+  { key: 'QF',  i18nKey: 'calendar.qf' },
+  { key: 'SF',  i18nKey: 'calendar.sf' },
+  { key: 'TP',  i18nKey: 'calendar.tp' },
+  { key: 'FIN', i18nKey: 'tabs.final' },
 ];
 
 @customElement('calendar-view')
@@ -264,13 +265,17 @@ export class CalendarView extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -299,7 +304,7 @@ export class CalendarView extends LitElement {
         id: match.matchId,
         kind: 'group' as const,
         phaseKey: match.group,
-        phaseLabel: `Grupo ${match.group}`,
+        phaseLabel: t('groups.group', { letter: match.group }),
         date: match.date ?? '',
         timeSpain: match.timeSpain ?? '',
         venue: match.venue ?? 'TBD',
@@ -353,7 +358,8 @@ export class CalendarView extends LitElement {
   }
 
   private getKnockoutPhaseLabel(phaseKey: string) {
-    return KNOCKOUT_LABELS.find(item => item.key === phaseKey)?.label ?? phaseKey;
+    const entry = KNOCKOUT_LABEL_KEYS.find(item => item.key === phaseKey);
+    return entry ? t(entry.i18nKey) : phaseKey;
   }
 
   private formatDateLabel(date: string) {
@@ -454,9 +460,9 @@ export class CalendarView extends LitElement {
                 Grupo ${group}
               </button>
             `)}
-            ${KNOCKOUT_LABELS.map(phase => html`
+            ${KNOCKOUT_LABEL_KEYS.map(phase => html`
               <button class="chip ${this.selectedPhase === phase.key ? 'active' : ''}" @click=${() => { this.selectedPhase = phase.key; }}>
-                ${phase.label}
+                ${t(phase.i18nKey)}
               </button>
             `)}
           </div>
@@ -465,7 +471,7 @@ export class CalendarView extends LitElement {
 
       <div class="summary">${rows.length} partidos visibles</div>
 
-      ${rows.length === 0 ? html`<div class="empty">No hay partidos para los filtros activos.</div>` : ''}
+      ${rows.length === 0 ? html`<div class="empty">${t('calendar.empty')}</div>` : ''}
 
       ${Object.entries(groupedRows).map(([date, dateRows]) => html`
         <section class="day-group">

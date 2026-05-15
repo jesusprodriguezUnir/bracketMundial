@@ -1,9 +1,14 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import { STADIUMS } from '../data/stadiums';
+import type { Stadium } from '../data/stadiums';
+import { t } from '../i18n';
+import './stadium-modal';
 
 @customElement('stadiums-view')
 export class StadiumsView extends LitElement {
+  @state() private _selectedStadium: Stadium | null = null;
+
   static styles = css`
     :host {
       display: block;
@@ -58,6 +63,7 @@ export class StadiumsView extends LitElement {
       flex-direction: column;
       position: relative;
       transition: transform 0.2s;
+      cursor: pointer;
     }
 
     .stadium-card:hover {
@@ -183,12 +189,12 @@ export class StadiumsView extends LitElement {
       <div class="stadiums-container">
         <div class="stadiums-hero">
           <div class="hero-eyebrow">WORLD CUP 2026</div>
-          <h2 class="hero-title">SEDES Y ESTADIOS</h2>
+          <h2 class="hero-title">${t('stadiums.title')}</h2>
         </div>
 
         <div class="stadiums-grid">
           ${STADIUMS.map(stadium => html`
-            <div class="stadium-card">
+            <div class="stadium-card" @click="${() => this._selectStadium(stadium)}">
               <div class="image-container">
                 <div class="capacity-badge">${stadium.capacity.toLocaleString()} ASIENTOS</div>
                 <img class="stadium-image" src="${stadium.image}" alt="${stadium.name}">
@@ -215,7 +221,17 @@ export class StadiumsView extends LitElement {
           `)}
         </div>
       </div>
+
+      <stadium-modal 
+        .stadium="${this._selectedStadium}" 
+        ?open="${!!this._selectedStadium}"
+        @close-stadium-modal="${() => this._selectStadium(null)}">
+      </stadium-modal>
     `;
+  }
+
+  private _selectStadium(stadium: Stadium | null) {
+    this._selectedStadium = stadium;
   }
 
   private _getCountryClass(country: string) {

@@ -5,6 +5,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
+import { t, useLocaleStore } from '../i18n';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -256,13 +257,17 @@ export class BracketKnockout extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -425,8 +430,8 @@ export class BracketKnockout extends LitElement {
         <div class="bracket-actions-label">★ BRACKET · ELIMINATORIAS</div>
         <div class="bracket-actions-btns">
           ${showGenerateButton
-            ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">GENERAR ELIMINATORIAS</button>`
-            : html`<button class="btn" @click="${this.handleSimulate}">SIMULAR RESTO</button>`
+            ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">${t('knockout.generate')}</button>`
+            : html`<button class="btn" @click="${this.handleSimulate}">${t('knockout.simulate')}</button>`
           }
         </div>
       </div>

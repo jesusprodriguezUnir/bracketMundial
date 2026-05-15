@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
+import { t, useLocaleStore } from '../i18n';
 import {
   generateBracketImage,
   buildShareText,
@@ -16,9 +17,11 @@ export class ShareModal extends LitElement {
   @state() private _status: 'generating' | 'ready' | 'error' = 'generating';
   @state() private _previewUrl = '';
   @state() private _copied = false;
+  @state() private _copiedLink = false;
 
   private _blob: Blob | null = null;
   private _shareText = '';
+  private _unsubscribeLocale?: () => void;
 
   static override styles = css`
     :host {
@@ -223,12 +226,14 @@ export class ShareModal extends LitElement {
     super.connectedCallback();
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
+    this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._generate();
   }
 
   override disconnectedCallback() {
     document.removeEventListener('keydown', this._handleKeydown);
     this.removeEventListener('click', this._handleHostClick);
+    this._unsubscribeLocale?.();
     if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);
     super.disconnectedCallback();
   }
@@ -286,6 +291,17 @@ export class ShareModal extends LitElement {
     } catch { /* clipboard unavailable */ }
   }
 
+  private async _copyLink() {
+    try {
+      const { buildShareUrl } = await import('../lib/bracket-codec');
+      const state = useTournamentStore.getState();
+      const url = buildShareUrl(state.groupMatches, state.knockoutMatches);
+      await navigator.clipboard.writeText(url);
+      this._copiedLink = true;
+      setTimeout(() => { this._copiedLink = false; }, 2000);
+    } catch { /* clipboard unavailable */ }
+  }
+
   override render() {
     const canNativeShare = !!navigator.canShare;
     const isReady = this._status === 'ready';
@@ -296,11 +312,11 @@ export class ShareModal extends LitElement {
         <share-card></share-card>
       </div>
 
-      <div class="modal" role="dialog" aria-modal="true" aria-label="Compartir bracket">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="${t('share.ariaLabel')}">
         <!-- Header -->
         <div class="modal-header">
-          <div class="modal-title">★ COMPARTIR BRACKET</div>
-          <button class="modal-close" @click="${this._close}" aria-label="Cerrar">✕</button>
+          <div class="modal-title">${t('share.title')}</div>
+          <button class="modal-close" @click="${this._close}" aria-label="${t('share.closeLabel')}">✕</button>
         </div>
 
         <!-- Preview -->
@@ -309,45 +325,48 @@ export class ShareModal extends LitElement {
             ${this._status === 'generating' ? html`
               <div class="spinner-wrap">
                 <div class="spinner"></div>
-                <div class="spinner-label">Generando imagen…</div>
+                <div class="spinner-label">${t('share.generating')}</div>
               </div>` : ''}
             ${this._status === 'error' ? html`
               <div class="error-wrap">
-                <div class="error-text">Error al generar la imagen.<br>Inténtalo de nuevo.</div>
+                <div class="error-text">${t('share.error').replace('\n', '<br>')}</div>
               </div>` : ''}
             ${this._status === 'ready' ? html`
-              <img src="${this._previewUrl}" alt="Vista previa del bracket">` : ''}
+              <img src="${this._previewUrl}" alt="${t('share.preview')}">` : ''}
           </div>
 
           ${isReady ? html`
             <div class="share-text-block">
-              <div class="share-text-label">Texto para compartir</div>
+              <div class="share-text-label">${t('share.textLabel')}</div>
               <div class="share-text-content">${this._shareText}</div>
             </div>` : ''}
         </div>
 
         <!-- Actions -->
         <div class="actions">
-          <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._download}" aria-label="Descargar imagen PNG">
-            ⬇ DESCARGAR PNG
+          <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._download}" aria-label="${t('share.downloadLabel')}">
+            ${t('share.download')}
           </button>
           ${canNativeShare ? html`
-            <button class="btn-share" ?disabled="${!isReady}" @click="${this._nativeShare}" aria-label="Compartir con app del sistema">
-              ↗ COMPARTIR
+            <button class="btn-share" ?disabled="${!isReady}" @click="${this._nativeShare}" aria-label="${t('share.nativeShareLabel')}">
+              ${t('share.nativeShare')}
             </button>` : ''}
-          <button class="btn-share twitter" ?disabled="${!isReady}" @click="${this._twitter}" aria-label="Compartir en Twitter">
-            𝕏 TWITTER
+          <button class="btn-share twitter" ?disabled="${!isReady}" @click="${this._twitter}" aria-label="${t('share.twitterLabel')}">
+            ${t('share.twitter')}
           </button>
-          <button class="btn-share whatsapp" ?disabled="${!isReady}" @click="${this._whatsapp}" aria-label="Compartir en WhatsApp">
-            ✉ WHATSAPP
+          <button class="btn-share whatsapp" ?disabled="${!isReady}" @click="${this._whatsapp}" aria-label="${t('share.whatsappLabel')}">
+            ${t('share.whatsapp')}
           </button>
-          <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="Copiar texto al portapapeles">
-            ${this._copied ? '✓ COPIADO' : '⎘ COPIAR TEXTO'}
+          <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="${t('share.copyTextLabel')}">
+            ${this._copied ? t('share.copied') : t('share.copyText')}
+          </button>
+          <button class="btn-share ${this._copiedLink ? 'copied' : ''}" @click="${this._copyLink}" aria-label="${t('share.copyLinkLabel')}">
+            ${this._copiedLink ? t('share.linkCopied') : t('share.copyLink')}
           </button>
         </div>
 
         <div class="ig-hint">
-          📸 Instagram: descarga la imagen y súbela desde la app.
+          ${t('share.igHint')}
         </div>
       </div>
     `;

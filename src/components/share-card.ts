@@ -3,6 +3,7 @@ import { customElement } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import type { KnockoutMatchResult } from '../store/tournament-store';
+import { t, useLocaleStore } from '../i18n';
 
 const ROUND_COLORS: Record<string, string> = {
   r32:   '#22418c',
@@ -319,9 +320,21 @@ export class ShareCard extends LitElement {
     }
   `;
 
+  private _unsubscribeLocale?: () => void;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this._unsubscribeLocale?.();
+  }
+
   private getTeam(id: string | null) {
     if (!id) return undefined;
-    return TEAMS_2026.find(t => t.id === id);
+    return TEAMS_2026.find(team => team.id === id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,22 +402,22 @@ export class ShareCard extends LitElement {
       <!-- HEADER -->
       <div class="card-header">
         <div class="hd-wordmark">
-          <span class="hd-title">BRACKET MUNDIAL</span>
-          <span class="hd-sub">FIFA WORLD CUP · 2026 · USA · CAN · MEX</span>
+          <span class="hd-title">${t('card.title')}</span>
+          <span class="hd-sub">${t('card.subtitle')}</span>
         </div>
         <div class="hd-divider"></div>
-        <div class="hd-hosts">48 SELECCIONES · 104 PARTIDOS</div>
+        <div class="hd-hosts">${t('card.hosts')}</div>
 
         <div class="hd-champion">
           ${champion
             ? html`
               <div>
-                <div class="hd-champion-label">🏆 CAMPEÓN</div>
+                <div class="hd-champion-label">${t('card.champion')}</div>
                 <div class="hd-champion-name">
                   ${this.renderFlag(champion, 'hd-flag-img')} ${champion.name.toUpperCase()}
                 </div>
               </div>`
-            : html`<div class="hd-prediction-badge">MI PREDICCIÓN</div>`
+            : html`<div class="hd-prediction-badge">${t('card.prediction')}</div>`
           }
         </div>
       </div>
@@ -415,46 +428,46 @@ export class ShareCard extends LitElement {
           <!-- R32 -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.r32}">
-              <span>1/16 AVOS</span><span class="round-count">[16]</span>
+              <span>${t('card.r32')}</span><span class="round-count">[16]</span>
             </div>
             ${r32.map(id => this.renderMatch(km, id, ROUND_COLORS.r32))}
           </div>
           <!-- R16 -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.r16}">
-              <span>OCTAVOS</span><span class="round-count">[8]</span>
+              <span>${t('card.r16')}</span><span class="round-count">[8]</span>
             </div>
             ${r16.map(id => this.renderMatch(km, id, ROUND_COLORS.r16))}
           </div>
           <!-- QF -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.qf}">
-              <span>CUARTOS</span><span class="round-count">[4]</span>
+              <span>${t('card.qf')}</span><span class="round-count">[4]</span>
             </div>
             ${qf.map(id => this.renderMatch(km, id, ROUND_COLORS.qf))}
           </div>
           <!-- SF -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.sf}">
-              <span>SEMIS</span><span class="round-count">[2]</span>
+              <span>${t('card.sf')}</span><span class="round-count">[2]</span>
             </div>
             ${sf.map(id => this.renderMatch(km, id, ROUND_COLORS.sf))}
           </div>
           <!-- FINAL + CHAMPION + 3P -->
           <div class="round-col">
             <div class="round-title is-final" style="background-color:${ROUND_COLORS.final}">
-              <span>FINAL</span><span class="round-count">[1]</span>
+              <span>${t('card.final')}</span><span class="round-count">[1]</span>
             </div>
             ${this.renderMatch(km, 'FIN-01', ROUND_COLORS.final)}
 
             <div class="champion-box">
-              <div class="champion-title">🏆 CAMPEÓN</div>
+              <div class="champion-title">${t('card.champion')}</div>
               ${champion
                 ? html`<div class="champion-team">${this.renderFlag(champion, 'flag-img-champion')} ${champion.name.toUpperCase()}</div>`
-                : html`<div class="champion-team tbd">POR DEFINIR</div>`}
+                : html`<div class="champion-team tbd">${t('card.tbd')}</div>`}
             </div>
 
-            <div class="third-place-label">TERCER PUESTO</div>
+            <div class="third-place-label">${t('card.thirdPlace')}</div>
             ${this.renderMatch(km, 'TP-01', ROUND_COLORS.sf)}
           </div>
         </div>
@@ -466,7 +479,7 @@ export class ShareCard extends LitElement {
           <div class="podium-item">
             <span class="podium-medal">🥇</span>
             <div>
-              <span class="podium-label">CAMPEÓN</span>
+              <span class="podium-label">${t('card.championLabel')}</span>
               <span class="podium-name ${!champion ? 'tbd' : ''}">
                 ${champion ? html`${this.renderFlag(champion, 'footer-flag-img')} ${champion.name.toUpperCase()}` : '???'}
               </span>
@@ -475,7 +488,7 @@ export class ShareCard extends LitElement {
           <div class="podium-item">
             <span class="podium-medal">🥈</span>
             <div>
-              <span class="podium-label">SUBCAMPEÓN</span>
+              <span class="podium-label">${t('card.runnerUp')}</span>
               <span class="podium-name ${!runnerUp ? 'tbd' : ''}">
                 ${runnerUp ? html`${this.renderFlag(runnerUp, 'footer-flag-img')} ${runnerUp.name.toUpperCase()}` : '???'}
               </span>
@@ -484,7 +497,7 @@ export class ShareCard extends LitElement {
           <div class="podium-item">
             <span class="podium-medal">🥉</span>
             <div>
-              <span class="podium-label">TERCER LUGAR</span>
+              <span class="podium-label">${t('card.thirdLabel')}</span>
               <span class="podium-name ${!third ? 'tbd' : ''}">
                 ${third ? html`${this.renderFlag(third, 'footer-flag-img')} ${third.name.toUpperCase()}` : '???'}
               </span>

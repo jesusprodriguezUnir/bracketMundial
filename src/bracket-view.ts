@@ -9,19 +9,21 @@ import './components/stadiums-view';
 import './components/squads-view';
 import './components/calendar-view';
 import { STADIUMS } from './data/stadiums';
+import { t, useLocaleStore } from './i18n';
+import type { TranslationKey } from './i18n/es';
 
 type PhaseTab = 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
 
-const PHASE_LABELS: Record<PhaseTab, string> = {
-  groups: 'Grupos',
-  squads: 'Equipos',
-  calendar: 'Calendario',
-  r32:    '1/16',
-  r16:    'Octavos',
-  qf:     'Cuartos',
-  sf:     'Semis',
-  final:  'Final',
-  stadiums: 'Estadios',
+const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
+  groups:   'tabs.groups',
+  squads:   'tabs.squads',
+  calendar: 'tabs.calendar',
+  r32:      'tabs.r32',
+  r16:      'tabs.r16',
+  qf:       'tabs.qf',
+  sf:       'tabs.sf',
+  final:    'tabs.final',
+  stadiums: 'tabs.stadiums',
 };
 
 @customElement('bracket-view')
@@ -129,13 +131,17 @@ export class BracketView extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -188,14 +194,14 @@ export class BracketView extends LitElement {
 
     return html`
       <div>
-        <nav class="phase-tabs" aria-label="Fases del torneo">
+        <nav class="phase-tabs" aria-label="${t('tabs.label')}">
           ${tabs.map(tab => html`
             <button
               class="phase-tab ${at === tab ? 'active' : ''}"
-              aria-label="Ver ${PHASE_LABELS[tab]}"
+              aria-label="${t('tabs.view', { tab: t(PHASE_TAB_KEYS[tab]) })}"
               aria-pressed="${at === tab}"
               @click="${() => this._selectTab(tab)}">
-              ${PHASE_LABELS[tab]}
+              ${t(PHASE_TAB_KEYS[tab])}
             </button>
           `)}
         </nav>
@@ -205,24 +211,24 @@ export class BracketView extends LitElement {
           id="section-groups"
           class="section-groups ${at === 'groups' ? 'visible' : ''}">
           <div class="section-heading">
-            <div class="section-eyebrow">⚽ FASE DE GRUPOS</div>
-            <div class="section-title">12 GRUPOS · 48 EQUIPOS</div>
+            <div class="section-eyebrow">${t('section.groups.eyebrow')}</div>
+            <div class="section-title">${t('section.groups.title')}</div>
           </div>
           <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
         </div>
 
         <div id="section-squads" class="section-squads ${at === 'squads' ? 'visible' : ''}">
           <div class="section-heading">
-            <div class="section-eyebrow">✦ EQUIPOS Y PLANTILLAS</div>
-            <div class="section-title">48 SELECCIONES · ROSTERS + SEDES</div>
+            <div class="section-eyebrow">${t('section.squads.eyebrow')}</div>
+            <div class="section-title">${t('section.squads.title')}</div>
           </div>
           <squads-view></squads-view>
         </div>
 
         <div id="section-calendar" class="section-calendar ${at === 'calendar' ? 'visible' : ''}">
           <div class="section-heading">
-            <div class="section-eyebrow">🗓️ CALENDARIO GLOBAL</div>
-            <div class="section-title">104 PARTIDOS · 11 JUN A 19 JUL</div>
+            <div class="section-eyebrow">${t('section.calendar.eyebrow')}</div>
+            <div class="section-title">${t('section.calendar.title')}</div>
           </div>
           <calendar-view></calendar-view>
         </div>
@@ -239,8 +245,8 @@ export class BracketView extends LitElement {
             id="section-knockout-bracket"
             class="knockout-section ${at !== 'groups' && at !== 'squads' && at !== 'calendar' && at !== 'stadiums' ? 'visible' : ''}">
             <div class="section-heading knockout">
-              <div class="section-eyebrow">★ ELIMINATORIAS ★</div>
-              <div class="section-title">EL CAMINO A LA GLORIA</div>
+              <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
+              <div class="section-title">${t('section.knockout.title')}</div>
             </div>
             <bracket-knockout></bracket-knockout>
           </div>
@@ -251,8 +257,8 @@ export class BracketView extends LitElement {
           id="section-stadiums"
           class="section-stadiums ${at === 'stadiums' ? 'visible' : ''}">
           <div class="section-heading">
-            <div class="section-eyebrow">🏟️ SEDES OFICIALES</div>
-            <div class="section-title">16 ESTADIOS · 3 PAÍSES</div>
+            <div class="section-eyebrow">${t('section.stadiums.eyebrow')}</div>
+            <div class="section-title">${t('section.stadiums.title')}</div>
           </div>
           <stadiums-view></stadiums-view>
         </div>

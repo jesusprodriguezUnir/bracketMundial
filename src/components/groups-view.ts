@@ -4,6 +4,7 @@ import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { formatShortDate } from '../lib/date-utils';
+import { t, useLocaleStore } from '../i18n';
 
 function formatDate(iso?: string): string {
   return iso ? formatShortDate(iso) : '';
@@ -329,13 +330,17 @@ export class GroupsView extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -377,8 +382,8 @@ export class GroupsView extends LitElement {
 
     return html`
       <div class="group-actions">
-        <button class="btn btn-primary" @click="${this.handleSimulateAll}">SIMULAR GRUPOS</button>
-        <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">REINICIAR TODO</button>
+        <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
+        <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
       </div>
 
       <div class="groups-grid">
@@ -392,8 +397,8 @@ export class GroupsView extends LitElement {
             <div class="group-card" id="group-${g}" style="--i:${gIdx}">
               <!-- Cabecera coloreada con halftone -->
               <div class="group-header" style="background-color: ${accentColor}">
-                <span class="group-header-title">GRUPO ${g}</span>
-                <span class="group-header-badge">${playedCount}/6 JUGADOS</span>
+                <span class="group-header-title">${t('groups.group', { letter: g })}</span>
+                <span class="group-header-badge">${t('groups.played', { n: playedCount })}</span>
               </div>
 
               <!-- Standings retro -->
@@ -432,7 +437,7 @@ export class GroupsView extends LitElement {
                           <strong>${tB?.shortName ?? m.teamB}</strong>
                         </div>
                         <div class="match-score ${!isPlayed ? 'pending' : ''}">
-                          ${isPlayed ? `${m.scoreA} - ${m.scoreB}` : 'EDITAR'}
+                          ${isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit')}
                         </div>
                       </div>
                       <div class="match-meta">
@@ -449,7 +454,7 @@ export class GroupsView extends LitElement {
                             <span style="font-size: 8px; opacity: 0.7;">${m.venue}</span>
                           </div>
                         ` : ''}
-                        <span class="badge ${isPlayed ? 'badge-played' : 'badge-upcoming'}">${isPlayed ? 'JUGADO' : 'PRÓXIMO'}</span>
+                        <span class="badge ${isPlayed ? 'badge-played' : 'badge-upcoming'}">${isPlayed ? t('groups.badgePlayed') : t('groups.badgeNext')}</span>
                       </div>
                     </div>
                   `;
@@ -469,8 +474,8 @@ export class GroupsView extends LitElement {
                 <th class="col-rank">#</th>
                 <th>EQUIPO</th>
                 <th class="col-stat">GRP</th>
-                <th class="col-stat">DG</th>
-                <th class="col-pts-val">PTS</th>
+                <th class="col-stat">${t('groups.statGD')}</th>
+                <th class="col-pts-val">${t('groups.statPTS')}</th>
                 <th></th>
               </tr>
             </thead>

@@ -79,6 +79,10 @@ interface TournamentState {
   };
   exportTournament: () => void;
   importTournament: (jsonData: string) => boolean;
+  applySharedBracket: (data: {
+    groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>;
+    knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }>;
+  }) => void;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -161,7 +165,18 @@ function mapThirds(standings: Record<string, GroupStanding[]>): TeamStats[] {
   return thirds;
 }
 
-const initialGroupMatches: GroupMatchResult[] = generateGroupMatches();
+export const initialGroupMatches: GroupMatchResult[] = generateGroupMatches();
+
+export function getKnockoutMatchOrder(): string[] {
+  return [
+    ...KNOCKOUT_BRACKET.roundOf32.map(match => match.id),
+    ...KNOCKOUT_BRACKET.roundOf16.map(match => match.id),
+    ...KNOCKOUT_BRACKET.quarterfinals.map(match => match.id),
+    ...KNOCKOUT_BRACKET.semifinals.map(match => match.id),
+    KNOCKOUT_BRACKET.thirdPlace.id,
+    KNOCKOUT_BRACKET.final.id,
+  ];
+}
 
 function hydrateGroupMatch(match: GroupMatchResult): GroupMatchResult {
   const fresh = initialGroupMatches.find(item => item.matchId === match.matchId);
@@ -214,17 +229,6 @@ function resolveKnockoutMatches(
   knockoutMatches: Record<string, KnockoutMatchResult>
 ): Record<string, KnockoutMatchResult> {
   return syncKnockoutBracket(standings, knockoutMatches, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
-}
-
-function getKnockoutMatchOrder(): string[] {
-  return [
-    ...KNOCKOUT_BRACKET.roundOf32.map(match => match.id),
-    ...KNOCKOUT_BRACKET.roundOf16.map(match => match.id),
-    ...KNOCKOUT_BRACKET.quarterfinals.map(match => match.id),
-    ...KNOCKOUT_BRACKET.semifinals.map(match => match.id),
-    KNOCKOUT_BRACKET.thirdPlace.id,
-    KNOCKOUT_BRACKET.final.id,
-  ];
 }
 
 function getWinnerId(
@@ -390,6 +394,36 @@ export const useTournamentStore = createStore<TournamentState>()(
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
         linkElement.click();
+      },
+
+      applySharedBracket: (data) => {
+        set(state => {
+          const groupScoreMap = new Map(data.groupScores.map(s => [s.matchId, s]));
+          const groupMatches = state.groupMatches.map(m => {
+            const override = groupScoreMap.get(m.matchId);
+            return override ? { ...m, scoreA: override.scoreA, scoreB: override.scoreB } : m;
+          });
+          const groupStandings = recalculateStandings(groupMatches, state.groupStandings);
+
+          let knockoutMatches = resolveKnockoutMatches(groupStandings, {});
+          const knockoutScoreMap = new Map(data.knockoutScores.map(s => [s.matchId, s]));
+          for (const matchId of getKnockoutMatchOrder()) {
+            const score = knockoutScoreMap.get(matchId);
+            const match = knockoutMatches[matchId];
+            if (!match || !score || score.scoreA === null || score.scoreB === null) continue;
+
+            const isDrawAfterRegularTime = score.scoreA === score.scoreB;
+            const penaltyScoreA = isDrawAfterRegularTime ? score.penaltyScoreA : null;
+            const penaltyScoreB = isDrawAfterRegularTime ? score.penaltyScoreB : null;
+            const winnerId = getWinnerId(match.teamA, match.teamB, score.scoreA, score.scoreB, penaltyScoreA, penaltyScoreB);
+            knockoutMatches = resolveKnockoutMatches(groupStandings, {
+              ...knockoutMatches,
+              [matchId]: { ...match, scoreA: score.scoreA, scoreB: score.scoreB, penaltyScoreA, penaltyScoreB, winnerId, isPlayed: winnerId !== null },
+            });
+          }
+
+          return { groupMatches, groupStandings, knockoutMatches, activePhase: 'groups' as const, selectedMatch: null };
+        });
       },
 
       importTournament: (jsonData: string) => {

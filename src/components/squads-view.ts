@@ -9,6 +9,7 @@ import { renderFlag } from '../lib/render-flag';
 import { formatShortDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
 import '../components/player-card';
+import { t, useLocaleStore } from '../i18n';
 
 function normalize(str: string): string {
   return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -516,13 +517,17 @@ export class SquadsView extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
+    this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }
 
@@ -624,7 +629,7 @@ export class SquadsView extends LitElement {
           <div>
             <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
             <div class="detail-sub">
-              ${isOfficial ? html`<span class="official-badge">OFICIAL</span>` : ''}
+              ${isOfficial ? html`<span class="official-badge">${t('squads.official')}</span>` : ''}
               Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles
             </div>
           </div>
@@ -804,7 +809,7 @@ export class SquadsView extends LitElement {
                       <div class="team-name">${team.name}</div>
                       <div class="team-meta">
                         ${isOfficialSquad(team.id) 
-                          ? html`<span style="color: var(--retro-green);">✓ ${getSquad(team.id).length} oficial${getSquad(team.id).length !== 1 ? 'es' : ''}</span>` 
+                          ? html`<span style="color: var(--retro-green);">✓ ${getSquad(team.id).length} ${getSquad(team.id).length !== 1 ? t('squads.officials.many') : t('squads.officials.one')}</span>`
                           : html`${getSquad(team.id).length} pendientes`}
                       </div>
                     </button>

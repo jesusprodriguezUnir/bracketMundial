@@ -38,6 +38,28 @@
     radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
 }
 
+/* Tema oscuro — papel de noche, identidad Panini retro conservada */
+:root[data-theme="dark"] {
+  --paper:         #1a1933;
+  --paper-2:       #231d3e;
+  --paper-3:       #2e2750;
+  --ink:           #ecdfc0;
+  --retro-orange:  #f0713d;
+  --retro-red:     #e83345;
+  --retro-green:   #2d9c56;
+  --retro-blue:    #4570d4;
+  --retro-yellow:  #f5c040;
+  --dim:           #8a8070;
+
+  --halftone:      radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+  --halftone-soft: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
+
+  --paper-texture:
+    radial-gradient(circle at 20% 30%, rgba(240,113,61,0.05) 0, transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(69,112,212,0.05) 0, transparent 30%),
+    radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
