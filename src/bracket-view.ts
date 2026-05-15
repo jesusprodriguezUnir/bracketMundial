@@ -282,7 +282,7 @@ export class BracketView extends LitElement {
         </div>
 
         <!-- Eliminatorias (lazy) -->
-        <div class="knockout-sections ${isKnockoutTab && at !== 'hero' ? 'visible' : ''}">
+        <div class="knockout-sections ${isKnockoutTab ? 'visible' : ''}">
           ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
             <div
               id="section-knockout-${phase}"
