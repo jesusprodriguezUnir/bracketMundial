@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { Player } from '../data/squads';
 import { searchPlayer } from '../lib/player-service';
 import type { PlayerDetail } from '../lib/player-service';
+import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
 
@@ -43,24 +44,30 @@ export class PlayerCard extends LitElement {
     // Pero por ahora, el servicio gestiona el enriquecimiento completo (bio, redes, etc)
     this._detail = 'loading';
     const result = await searchPlayer(
-      this.player.name, 
-      this.teamId, 
-      this.player.number, 
+      this.player.name,
+      this.teamId,
+      this.player.number,
       this.player.thesportsdbId
     );
 
-    // Si el jugador tiene un photoUrl personalizado, lo sobreescribimos en el detalle
-    if (result && this.player.photoUrl) {
-      result.photoUrl = this.player.photoUrl;
-    } else if (!result && this.player.photoUrl) {
-       // Si no hay resultado de API pero sí foto manual, creamos un detalle mínimo
-       this._detail = {
-         id: 'manual',
-         name: this.player.name,
-         position: this.player.position,
-         photoUrl: this.player.photoUrl
-       };
-       return;
+    const localPhoto = hasPlayerPhoto(this.teamId, this.player.number)
+      ? playerPhotoSrc(this.teamId, this.player.number)
+      : undefined;
+
+    if (result) {
+      if (localPhoto) result.photoUrl = localPhoto;
+      else if (this.player.photoUrl) result.photoUrl = this.player.photoUrl;
+    } else {
+      const fallbackPhoto = localPhoto ?? this.player.photoUrl;
+      if (fallbackPhoto) {
+        this._detail = {
+          id: 'local',
+          name: this.player.name,
+          position: this.player.position,
+          photoUrl: fallbackPhoto,
+        };
+        return;
+      }
     }
 
     this._detail = result;

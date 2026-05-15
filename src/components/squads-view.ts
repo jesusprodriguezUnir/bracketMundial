@@ -13,6 +13,7 @@ import { formatShortDate, isMatchPending, coachAge } from '../lib/date-utils';
 import { getTeamNews } from '../lib/news-service';
 import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
+import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
 import '../components/player-card';
 import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
@@ -508,6 +509,15 @@ export class SquadsView extends LitElement {
       justify-content: center;
       flex-shrink: 0;
       letter-spacing: 0;
+      overflow: hidden;
+    }
+
+    .player-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
     }
 
     .matches-list,
@@ -855,7 +865,7 @@ export class SquadsView extends LitElement {
             </div>
             
             ${this.squadViewMode === 'pitch' && getLineup(selectedTeam.id) ? html`
-              <lineup-view .squad=${squad} .lineup=${getLineup(selectedTeam.id)}></lineup-view>
+              <lineup-view .squad=${squad} .lineup=${getLineup(selectedTeam.id)} .teamId=${selectedTeam.id}></lineup-view>
             ` : html`
               <div class="table-wrap">
                 <table>
@@ -875,7 +885,11 @@ export class SquadsView extends LitElement {
                       class="player-row"
                       @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
                     >
-                      <td><div class="player-avatar">${getInitials(player.name)}</div></td>
+                      <td><div class="player-avatar">
+                        ${hasPlayerPhoto(selectedTeam.id, player.number)
+                          ? html`<img src="${playerPhotoSrc(selectedTeam.id, player.number)}" alt="${player.name}" loading="lazy">`
+                          : getInitials(player.name)}
+                      </div></td>
                       <td>${player.number}</td>
                       <td>
                         ${player.name}
