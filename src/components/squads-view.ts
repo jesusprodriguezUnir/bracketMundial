@@ -3,10 +3,15 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
+import { GROUP_MATCHES } from '../data/match-schedule';
 import { getSquad, getLineup, SQUADS, isOfficialSquad } from '../data/squads';
 import type { Player } from '../data/squads';
+import { getCoach } from '../data/coaches';
+import type { Coach } from '../data/coaches';
 import { renderFlag } from '../lib/render-flag';
-import { formatShortDate } from '../lib/date-utils';
+import { formatShortDate, isMatchPending, coachAge } from '../lib/date-utils';
+import { getTeamNews } from '../lib/news-service';
+import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
 import '../components/player-card';
 import '../components/lineup-view';
@@ -37,19 +42,37 @@ export class SquadsView extends LitElement {
   @property() targetTeamId: string | null = null;
 
   @state() private selectedTeamId: string | null = null;
-  @state() private activeTab: 'squad' | 'matches' | 'venues' = 'squad';
+  @state() private activeTab: 'squad' | 'matches' | 'venues' | 'news' = 'squad';
   @state() private squadViewMode: 'list' | 'pitch' = 'list';
   @state() private searchQuery = '';
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
+  @state() private _news: NewsItem[] | null = null;
+  @state() private _newsLoading = false;
+  @state() private _newsTeamId: string | null = null;
 
   private unsubscribeStore?: () => void;
 
   override updated(changedProps: PropertyValues) {
     if (changedProps.has('targetTeamId') && this.targetTeamId) {
-      this.selectedTeamId = this.targetTeamId;
+      const tid = this.targetTeamId;
+      this.selectedTeamId = tid;
       this.activeTab = 'squad';
       this.targetTeamId = null;
+      this._loadNewsForTeam(tid);
     }
+  }
+
+  private _loadNewsForTeam(teamId: string) {
+    if (this._newsTeamId === teamId) return;
+    this._newsTeamId = teamId;
+    this._news = null;
+    this._newsLoading = true;
+    getTeamNews(teamId).then(items => {
+      if (this._newsTeamId === teamId) {
+        this._news = items;
+        this._newsLoading = false;
+      }
+    });
   }
 
   static styles = css`
@@ -235,11 +258,134 @@ export class SquadsView extends LitElement {
       color: var(--paper);
     }
 
-    /* ── Detail grid: 3 columns ── */
+    /* ── Coach card ── */
+
+    .coach-card {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 18px;
+      border-bottom: 4px solid var(--ink);
+      background: var(--paper-2);
+    }
+
+    .coach-avatar {
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--retro-blue);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 0;
+    }
+
+    .coach-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .coach-body {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .coach-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .coach-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .coach-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+    }
+
+    .coach-bio {
+      margin-top: 4px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    /* ── News panel ── */
+
+    .news-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .news-card {
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      overflow: hidden;
+    }
+
+    .news-link {
+      display: block;
+      padding: 12px 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .news-link:hover {
+      background: var(--retro-yellow);
+    }
+
+    .news-headline {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.35;
+    }
+
+    .news-footer {
+      margin-top: 6px;
+      display: flex;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .news-loading {
+      padding: 28px 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-align: center;
+      color: var(--dim);
+    }
+
+    /* ── Detail grid: 4 columns ── */
 
     .detail-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .panel-block {
@@ -549,6 +695,21 @@ export class SquadsView extends LitElement {
 
       .tabs {
         display: flex;
+        flex-wrap: wrap;
+      }
+
+      .tabs button {
+        flex: 1 1 calc(50% - 1px);
+        border-bottom: 3px solid var(--ink);
+      }
+
+      .tabs button:nth-child(odd):last-child {
+        flex: 1 1 100%;
+      }
+
+      .coach-card {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   `;
@@ -572,46 +733,28 @@ export class SquadsView extends LitElement {
   }
 
   private getTeamMatches(teamId: string): TeamMatchSummary[] {
-    const store = useTournamentStore.getState();
-
-    const groupMatches = store.groupMatches
-      .filter(match => match.teamA === teamId || match.teamB === teamId)
-      .map(match => ({
-        id: match.matchId,
-        phase: `Grupo ${match.group}`,
-        date: match.date ?? '',
-        timeSpain: match.timeSpain ?? '',
-        venue: match.venue ?? 'TBD',
-        city: match.city ?? 'TBD',
-        opponentId: match.teamA === teamId ? match.teamB : match.teamA,
-      }));
-
-    const knockoutMatches = Object.values(store.knockoutMatches)
-      .filter(match => match.isPlayed && (match.teamA === teamId || match.teamB === teamId))
-      .map(match => ({
-        id: match.matchId,
-        phase: this.labelKnockout(match.matchId),
-        date: match.date ?? '',
-        timeSpain: match.timeSpain ?? '',
-        venue: match.venue ?? 'TBD',
-        city: match.city ?? 'TBD',
-        opponentId: match.teamA === teamId ? match.teamB : match.teamA,
-      }));
-
-    return [...groupMatches, ...knockoutMatches].sort((left, right) => {
-      const leftKey = `${left.date || '9999-12-31'}T${left.timeSpain || '23:59'}`;
-      const rightKey = `${right.date || '9999-12-31'}T${right.timeSpain || '23:59'}`;
-      return leftKey.localeCompare(rightKey);
-    });
-  }
-
-  private labelKnockout(matchId: string) {
-    if (matchId.startsWith('R32')) return '1/16';
-    if (matchId.startsWith('R16')) return 'Octavos';
-    if (matchId.startsWith('QF')) return 'Cuartos';
-    if (matchId.startsWith('SF')) return 'Semifinal';
-    if (matchId.startsWith('TP')) return '3er puesto';
-    return 'Final';
+    return GROUP_MATCHES
+      .filter(match =>
+        (match.teamA === teamId || match.teamB === teamId) &&
+        isMatchPending(match.date, match.timeSpain)
+      )
+      .map(match => {
+        const stadium = STADIUMS.find(s => s.id === match.venueId);
+        return {
+          id: match.matchId,
+          phase: `Grupo ${match.group}`,
+          date: match.date,
+          timeSpain: match.timeSpain,
+          venue: stadium?.name ?? match.venueId,
+          city: stadium?.city ?? '',
+          opponentId: match.teamA === teamId ? match.teamB : match.teamA,
+        };
+      })
+      .sort((a, b) => {
+        const ak = `${a.date}T${a.timeSpain}`;
+        const bk = `${b.date}T${b.timeSpain}`;
+        return ak.localeCompare(bk);
+      });
   }
 
   private formatDate(date: string, timeSpain: string) {
@@ -623,11 +766,14 @@ export class SquadsView extends LitElement {
   private selectTeam(id: string) {
     this.selectedTeamId = id;
     this.activeTab = 'squad';
+    this._loadNewsForTeam(id);
   }
 
   private goBack() {
     this.selectedTeamId = null;
     this.activeTab = 'squad';
+    this._newsTeamId = null;
+    this._news = null;
   }
 
   render() {
@@ -643,6 +789,8 @@ export class SquadsView extends LitElement {
     const squad = getSquad(selectedTeam.id);
     const isOfficial = isOfficialSquad(selectedTeam.id);
     const teamMatches = this.getTeamMatches(selectedTeam.id);
+    const coach: Coach | null = getCoach(selectedTeam.id);
+    const locale = useLocaleStore.getState().locale;
     const venueMap = teamMatches.reduce<Map<string, (typeof STADIUMS)[number]>>((map, match) => {
       const stadium = STADIUMS.find(item => item.name === match.venue);
       if (stadium) map.set(stadium.id, stadium);
@@ -658,7 +806,7 @@ export class SquadsView extends LitElement {
         ></player-card>
       ` : ''}
 
-      <button class="back-btn" @click=${() => this.goBack()}>← Volver a equipos</button>
+      <button class="back-btn" @click=${() => this.goBack()}>${t('squads.back')}</button>
 
       <section class="detail-panel">
         <div class="detail-header">
@@ -666,21 +814,38 @@ export class SquadsView extends LitElement {
             <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
             <div class="detail-sub">
               ${isOfficial ? html`<span class="official-badge">${t('squads.official')}</span>` : ''}
-              Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles
+              Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${t('squads.matches.pending', { n: String(teamMatches.length) })}
             </div>
           </div>
         </div>
 
+        ${coach ? html`
+          <div class="coach-card">
+            <div class="coach-avatar">
+              ${coach.photoUrl
+                ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
+                : getInitials(coach.name)}
+            </div>
+            <div class="coach-body">
+              <div class="coach-label">${t('squads.coach.title')}</div>
+              <div class="coach-name">${coach.name}</div>
+              <div class="coach-meta">${coach.nationality} · ${coachAge(coach.born)} años</div>
+              <div class="coach-bio">${coach.bio[locale]}</div>
+            </div>
+          </div>
+        ` : ''}
+
         <nav class="tabs" role="tablist">
-          <button class=${this.activeTab === 'squad' ? 'active' : ''} @click=${() => { this.activeTab = 'squad'; }}>Plantilla</button>
-          <button class=${this.activeTab === 'matches' ? 'active' : ''} @click=${() => { this.activeTab = 'matches'; }}>Partidos</button>
-          <button class=${this.activeTab === 'venues' ? 'active' : ''} @click=${() => { this.activeTab = 'venues'; }}>Sedes</button>
+          <button class=${this.activeTab === 'squad' ? 'active' : ''} @click=${() => { this.activeTab = 'squad'; }}>${t('squads.tab.squad')}</button>
+          <button class=${this.activeTab === 'matches' ? 'active' : ''} @click=${() => { this.activeTab = 'matches'; }}>${t('squads.tab.matches')}</button>
+          <button class=${this.activeTab === 'venues' ? 'active' : ''} @click=${() => { this.activeTab = 'venues'; }}>${t('squads.tab.venues')}</button>
+          <button class=${this.activeTab === 'news' ? 'active' : ''} @click=${() => { this.activeTab = 'news'; }}>${t('squads.tab.news')}</button>
         </nav>
 
         <div class="detail-grid">
           <div class="panel-block ${this.activeTab !== 'squad' ? 'tab-hidden' : ''}">
             <div class="panel-header-row">
-              <div class="panel-title">Plantilla</div>
+              <div class="panel-title">${t('squads.tab.squad')}</div>
               ${getLineup(selectedTeam.id) ? html`
                 <div class="view-toggle">
                   <button class=${this.squadViewMode === 'list' ? 'active' : ''} @click=${() => { this.squadViewMode = 'list'; }}>Lista</button>
@@ -728,29 +893,33 @@ export class SquadsView extends LitElement {
           </div>
 
           <div class="panel-block ${this.activeTab !== 'matches' ? 'tab-hidden' : ''}">
-            <div class="panel-title">Partidos</div>
-            <div class="matches-list">
-              ${teamMatches.map(match => {
-                const opponent = this.getTeam(match.opponentId);
-                return html`
-                  <article class="match-card">
-                    <div class="match-top">
-                      <span>${match.phase}</span>
-                      <span>${this.formatDate(match.date, match.timeSpain)}</span>
-                    </div>
-                    <div class="match-opponent">
-                      ${renderFlag(opponent, 'sm')}
-                      <span>${opponent?.name ?? 'Rival por decidir'}</span>
-                    </div>
-                    <div class="match-venue">${match.venue} · ${match.city}</div>
-                  </article>
-                `;
-              })}
-            </div>
+            <div class="panel-title">${t('squads.tab.matches')}</div>
+            ${teamMatches.length === 0
+              ? html`<div class="empty">${t('squads.matches.empty')}</div>`
+              : html`
+                <div class="matches-list">
+                  ${teamMatches.map(match => {
+                    const opponent = this.getTeam(match.opponentId);
+                    return html`
+                      <article class="match-card">
+                        <div class="match-top">
+                          <span>${match.phase}</span>
+                          <span>${this.formatDate(match.date, match.timeSpain)}</span>
+                        </div>
+                        <div class="match-opponent">
+                          ${renderFlag(opponent, 'sm')}
+                          <span>${opponent?.name ?? 'Rival por decidir'}</span>
+                        </div>
+                        <div class="match-venue">${match.venue} · ${match.city}</div>
+                      </article>
+                    `;
+                  })}
+                </div>
+              `}
           </div>
 
           <div class="panel-block ${this.activeTab !== 'venues' ? 'tab-hidden' : ''}">
-            <div class="panel-title">Sedes</div>
+            <div class="panel-title">${t('squads.tab.venues')}</div>
             ${venueMap.size === 0
               ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>`
               : html`
@@ -766,6 +935,30 @@ export class SquadsView extends LitElement {
                   `)}
                 </div>
               `}
+          </div>
+
+          <div class="panel-block ${this.activeTab !== 'news' ? 'tab-hidden' : ''}">
+            <div class="panel-title">${t('squads.tab.news')}</div>
+            ${this._newsLoading
+              ? html`<div class="news-loading">${t('squads.news.loading')}</div>`
+              : this._news === null || this._news.length === 0
+                ? html`<div class="empty">${t('squads.news.empty')}</div>`
+                : html`
+                  <div class="news-list">
+                    ${this._news.map(item => html`
+                      <article class="news-card">
+                        <a class="news-link" href="${item.url}" target="_blank" rel="noopener noreferrer">
+                          <div class="news-headline">${item.title[locale]}</div>
+                          <div class="news-footer">
+                            <span>${formatShortDate(item.date)}</span>
+                            <span>·</span>
+                            <span>${t('squads.news.source')} ${item.source}</span>
+                          </div>
+                        </a>
+                      </article>
+                    `)}
+                  </div>
+                `}
           </div>
         </div>
       </section>

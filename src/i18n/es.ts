@@ -82,6 +82,17 @@ export const es = {
   'squads.official': 'OFICIAL',
   'squads.officials.one': 'oficial',
   'squads.officials.many': 'oficiales',
+  'squads.back': '← Volver a equipos',
+  'squads.tab.squad': 'Plantilla',
+  'squads.tab.matches': 'Partidos',
+  'squads.tab.venues': 'Sedes',
+  'squads.tab.news': 'Noticias',
+  'squads.coach.title': 'Entrenador',
+  'squads.matches.pending': '{n} pendientes',
+  'squads.matches.empty': 'No quedan partidos pendientes de jugar.',
+  'squads.news.loading': 'Cargando noticias…',
+  'squads.news.empty': 'Sin noticias recientes para esta selección.',
+  'squads.news.source': 'Fuente:',
 
   // Calendar
   'calendar.empty': 'No hay partidos para los filtros activos.',

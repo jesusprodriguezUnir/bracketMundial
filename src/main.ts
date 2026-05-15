@@ -18,6 +18,8 @@ try {
 
 const root = document.getElementById('root');
 if (root) {
+  // Remove SEO pre-render content before mounting the Lit app
+  root.innerHTML = '';
   const app = document.createElement('app-root');
   root.appendChild(app);
 }

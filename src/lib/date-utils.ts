@@ -29,7 +29,7 @@ export function formatFullDate(isoDate: string): string {
  */
 export function formatShortDate(isoDate: string): string {
   if (!isoDate) return '';
-  
+
   try {
     const date = new Date(`${isoDate}T12:00:00Z`);
     return new Intl.DateTimeFormat('es-ES', {
@@ -40,4 +40,25 @@ export function formatShortDate(isoDate: string): string {
   } catch (e) {
     return isoDate;
   }
+}
+
+/** Returns true if the match kickoff (CEST, UTC+2) is still in the future. */
+export function isMatchPending(date: string, timeSpain: string): boolean {
+  if (!date) return true;
+  try {
+    const kickoff = new Date(`${date}T${timeSpain || '00:00'}:00+02:00`);
+    return kickoff.getTime() > Date.now();
+  } catch {
+    return true;
+  }
+}
+
+/** Calculates age in full years from a YYYY-MM-DD birth date. */
+export function coachAge(born: string): number {
+  const b = new Date(`${born}T00:00:00Z`);
+  const now = new Date();
+  let age = now.getUTCFullYear() - b.getUTCFullYear();
+  const m = now.getUTCMonth() - b.getUTCMonth();
+  if (m < 0 || (m === 0 && now.getUTCDate() < b.getUTCDate())) age--;
+  return age;
 }
