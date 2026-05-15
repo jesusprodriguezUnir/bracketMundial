@@ -5,6 +5,8 @@ export interface Player {
   age: number;
   club: string;
   captain?: boolean;
+  thesportsdbId?: string;
+  photoUrl?: string;
 }
 
 import { squad as MEX } from './mex';
@@ -73,6 +75,6 @@ export const SQUADS: Record<string, Player[]> = {
 
 export const getSquad = (teamId: string): Player[] => SQUADS[teamId] ?? [];
 
-export const OFFICIAL_SQUADS: string[] = ['BIH', 'SWE', 'FRA', 'NZL'];
+export const OFFICIAL_SQUADS: string[] = ['BIH', 'SWE', 'FRA', 'NZL', 'JPN'];
 
 export const isOfficialSquad = (teamId: string): boolean => OFFICIAL_SQUADS.includes(teamId);

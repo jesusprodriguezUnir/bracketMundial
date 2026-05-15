@@ -96,6 +96,7 @@ export async function searchPlayer(
   name: string,
   teamId: string,
   playerNumber: number,
+  thesportsdbId?: string,
 ): Promise<PlayerDetail | null> {
   const key = _cacheKey(teamId, playerNumber);
   const cached = _fromCache(key);
@@ -103,16 +104,25 @@ export async function searchPlayer(
 
   await _throttle();
   try {
-    const resp = await fetch(`${API_BASE}/searchplayers.php?p=${encodeURIComponent(name)}`);
+    let url = `${API_BASE}/searchplayers.php?p=${encodeURIComponent(name)}`;
+    if (thesportsdbId) {
+      url = `${API_BASE}/lookupplayer.php?id=${thesportsdbId}`;
+    }
+
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const json = await resp.json() as { player: SportsDbPlayer[] | null };
+    const json = await resp.json() as { player: SportsDbPlayer[] | null | undefined };
     const players = json.player;
     if (!Array.isArray(players) || players.length === 0) {
       _toCache(key, null);
       return null;
     }
-    const exact = players.find(p => (p.strPlayer ?? '').toLowerCase() === name.toLowerCase());
-    const detail = _mapPlayer(exact ?? players[0]);
+
+    const selected = thesportsdbId 
+      ? players[0] 
+      : (players.find(p => (p.strPlayer ?? '').toLowerCase() === name.toLowerCase()) ?? players[0]);
+
+    const detail = _mapPlayer(selected);
     _toCache(key, detail);
     return detail;
   } catch {

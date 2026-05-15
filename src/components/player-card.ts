@@ -38,8 +38,31 @@ export class PlayerCard extends LitElement {
 
   private async _fetchDetail() {
     if (!this.player) return;
+    
+    // Si ya tenemos una foto directa, podemos saltarnos la búsqueda o usarla como fallback prioritario
+    // Pero por ahora, el servicio gestiona el enriquecimiento completo (bio, redes, etc)
     this._detail = 'loading';
-    const result = await searchPlayer(this.player.name, this.teamId, this.player.number);
+    const result = await searchPlayer(
+      this.player.name, 
+      this.teamId, 
+      this.player.number, 
+      this.player.thesportsdbId
+    );
+
+    // Si el jugador tiene un photoUrl personalizado, lo sobreescribimos en el detalle
+    if (result && this.player.photoUrl) {
+      result.photoUrl = this.player.photoUrl;
+    } else if (!result && this.player.photoUrl) {
+       // Si no hay resultado de API pero sí foto manual, creamos un detalle mínimo
+       this._detail = {
+         id: 'manual',
+         name: this.player.name,
+         position: this.player.position,
+         photoUrl: this.player.photoUrl
+       };
+       return;
+    }
+
     this._detail = result;
   }
 
