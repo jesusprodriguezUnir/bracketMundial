@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SITE_URL = 'https://bracketmundial.vercel.app';
+const SITE_URL = 'https://bracketmundial.com';
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const __filename = fileURLToPath(import.meta.url);

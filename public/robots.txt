@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bracketmundial.vercel.app/sitemap.xml
+Sitemap: https://bracketmundial.com/sitemap.xml
