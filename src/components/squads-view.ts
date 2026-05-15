@@ -1,11 +1,16 @@
 import { LitElement, css, html } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
-import { STADIUMS } from '../data/stadiums';
-import { getSquad } from '../data/squads';
+import { STADIUMS, type Stadium } from '../data/stadiums';
+import { getSquad, SQUADS } from '../data/squads';
 import { renderFlag } from '../lib/render-flag';
 import { formatShortDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
+
+function normalize(str: string): string {
+  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
 
 interface TeamMatchSummary {
   id: string;
@@ -19,10 +24,21 @@ interface TeamMatchSummary {
 
 @customElement('squads-view')
 export class SquadsView extends LitElement {
+  @property() targetTeamId: string | null = null;
+
   @state() private selectedTeamId: string | null = null;
   @state() private activeTab: 'squad' | 'matches' | 'venues' = 'squad';
+  @state() private searchQuery = '';
 
   private unsubscribeStore?: () => void;
+
+  override updated(changedProps: PropertyValues) {
+    if (changedProps.has('targetTeamId') && this.targetTeamId) {
+      this.selectedTeamId = this.targetTeamId;
+      this.activeTab = 'squad';
+      this.targetTeamId = null;
+    }
+  }
 
   static styles = css`
     :host {
@@ -345,6 +361,85 @@ export class SquadsView extends LitElement {
       color: var(--ink);
     }
 
+    /* ── Buscador ── */
+    .search-bar {
+      margin-bottom: 18px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      outline: none;
+      box-sizing: border-box;
+    }
+    .search-input:focus {
+      box-shadow: var(--shadow-hard-md);
+    }
+    .player-results {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+    .player-result-btn {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .player-result-btn:hover {
+      background: var(--retro-yellow);
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-hard-md);
+    }
+    .player-result-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+    .player-number {
+      font-family: var(--font-var);
+      font-size: 14px;
+      min-width: 20px;
+      text-align: center;
+      color: var(--retro-orange);
+    }
+    .player-pos {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 5px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      letter-spacing: 0.08em;
+    }
+    .player-team-flag {
+      margin-left: auto;
+      font-size: 13px;
+    }
+    .no-results {
+      padding: 20px;
+      border: 3px dashed var(--ink);
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--dim);
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+
     @media (max-width: 768px) {
       .detail-grid {
         grid-template-columns: 1fr;
@@ -558,27 +653,98 @@ export class SquadsView extends LitElement {
     `;
   }
 
+  private _getPlayerResults() {
+    const q = normalize(this.searchQuery.trim());
+    if (q.length < 2) return [];
+    const results: Array<{ teamId: string; number: number; name: string; position: string; club: string }> = [];
+    for (const [teamId, players] of Object.entries(SQUADS)) {
+      for (const player of players) {
+        if (normalize(player.name).includes(q) || normalize(player.club).includes(q)) {
+          results.push({ teamId, number: player.number, name: player.name, position: player.position, club: player.club });
+          if (results.length >= 8) return results;
+        }
+      }
+    }
+    return results;
+  }
+
+  private _teamMatchesQuery(teamId: string): boolean {
+    const q = normalize(this.searchQuery.trim());
+    if (q.length < 2) return true;
+    const team = TEAMS_2026.find(t => t.id === teamId);
+    if (!team) return false;
+    return normalize(team.name).includes(q) || normalize(team.shortName).includes(q);
+  }
+
   private renderGroupsList() {
     const groups = 'ABCDEFGHIJKL'.split('');
+    const q = this.searchQuery.trim();
+    const isFiltering = q.length >= 2;
+    const playerResults = this._getPlayerResults();
+
+    const groupsWithMatch = isFiltering
+      ? groups.filter(group => TEAMS_2026.filter(t => t.group === group).some(t => this._teamMatchesQuery(t.id)))
+      : groups;
+
+    const showNoResults = isFiltering && groupsWithMatch.length === 0 && playerResults.length === 0;
+
     return html`
-      <div class="groups-stack">
-        ${groups.map(group => html`
-          <section class="group-block">
-            <div class="group-header">
-              <div class="group-title">Grupo ${group}</div>
-              <div class="group-sub">4 selecciones</div>
-            </div>
-            <div class="teams-grid">
-              ${TEAMS_2026.filter(team => team.group === group).map(team => html`
-                <button class="team-card" @click=${() => this.selectTeam(team.id)}>
-                  ${renderFlag(team, 'md')}
-                  <div class="team-name">${team.name}</div>
-                  <div class="team-meta">${getSquad(team.id).length} jugadores cargados</div>
+      <div class="search-bar">
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Buscar equipo o jugador…"
+          aria-label="Buscar equipo o jugador"
+          .value=${this.searchQuery}
+          @input=${(e: InputEvent) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
+        >
+        ${playerResults.length > 0 ? html`
+          <div class="player-results">
+            ${playerResults.map(p => {
+              const team = TEAMS_2026.find(t => t.id === p.teamId);
+              return html`
+                <button class="player-result-btn" @click=${() => this.selectTeam(p.teamId)}>
+                  <span class="player-number">${p.number}</span>
+                  <span class="player-pos">${p.position}</span>
+                  <span>${p.name}</span>
+                  <span style="color: var(--dim); font-size: 11px;">· ${p.club}</span>
+                  <span class="player-team-flag">${renderFlag(team, 'sm')}</span>
                 </button>
-              `)}
-            </div>
-          </section>
-        `)}
+              `;
+            })}
+          </div>
+        ` : ''}
+      </div>
+
+      ${showNoResults ? html`<div class="no-results">SIN RESULTADOS · Prueba con otro nombre</div>` : ''}
+
+      <div class="groups-stack">
+        ${groupsWithMatch.map(group => {
+          const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
+          return html`
+            <section class="group-block">
+              <div class="group-header">
+                <div class="group-title">Grupo ${group}</div>
+                <div class="group-sub">4 selecciones</div>
+              </div>
+              <div class="teams-grid">
+                ${teamsInGroup.map(team => {
+                  const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
+                  return html`
+                    <button
+                      class="team-card"
+                      style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
+                      @click=${() => this.selectTeam(team.id)}>
+                      ${renderFlag(team, 'md')}
+                      <div class="team-name">${team.name}</div>
+                      <div class="team-meta">${getSquad(team.id).length} jugadores cargados</div>
+                    </button>
+                  `;
+                })}
+              </div>
+            </section>
+          `;
+        })}
       </div>
     `;
   }

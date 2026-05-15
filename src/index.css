@@ -90,6 +90,23 @@ h1, h2, h3 {
   background: var(--retro-yellow);
 }
 
+.btn-secondary {
+  background: var(--paper-3);
+  color: var(--ink);
+}
+.btn-secondary:hover {
+  background: var(--paper);
+}
+
+.btn-danger {
+  background: var(--retro-red);
+  color: var(--paper);
+}
+.btn-danger:hover {
+  background: var(--retro-orange);
+  color: var(--paper);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @keyframes fadeSlideIn {
     from { opacity: 0; transform: translateY(8px); }

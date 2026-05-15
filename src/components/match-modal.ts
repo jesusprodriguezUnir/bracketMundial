@@ -210,15 +210,36 @@ export class MatchModal extends LitElement {
     .ticket-close {
       all: unset;
       cursor: pointer;
+      background: transparent;
+      border: 2px solid var(--paper);
       color: var(--paper);
       font-family: var(--font-var);
-      font-size: 18px;
-      opacity: 0.7;
-      margin-left: 10px;
-      flex-shrink: 0;
+      font-size: 16px;
       line-height: 1;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 10px;
+      box-shadow: 2px 2px 0 0 rgba(255,255,255,0.3);
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
     }
-    .ticket-close:hover { opacity: 1; }
+    .ticket-close:hover {
+      background: var(--retro-red);
+      border-color: var(--retro-red);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 0 rgba(0,0,0,0.4);
+    }
+    .ticket-close:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0 0 rgba(0,0,0,0.4);
+    }
+    .ticket-close:focus-visible {
+      outline: 3px solid var(--retro-yellow);
+      outline-offset: 2px;
+    }
 
     /* ─── Showdown grande con stickers ─── */
     .showdown {
@@ -434,6 +455,11 @@ export class MatchModal extends LitElement {
       background: var(--paper);
     }
     .modal-footer .btn { flex: 1; }
+    .limpiar-btn {
+      flex: 0;
+      min-width: 90px;
+      margin-left: auto;
+    }
     .btn:disabled {
       opacity: 0.35;
       cursor: not-allowed;
@@ -493,7 +519,7 @@ export class MatchModal extends LitElement {
         bottom: 0;
       }
       .modal-footer .btn,
-      .editor-row .btn-secondary {
+      .limpiar-btn {
         width: 100%;
       }
     }
@@ -609,7 +635,7 @@ export class MatchModal extends LitElement {
                   aria-label="Añadir gol ${tB?.shortName}">+</button>
               </div>
 
-              <button class="btn btn-secondary" style="margin-left: auto; flex: 0; min-width: 80px;" @click="${this.clear}">LIMPIAR</button>
+              <button class="btn btn-danger limpiar-btn" @click="${this.clear}">LIMPIAR</button>
             </div>
 
             ${penaltiesVisible ? html`
@@ -650,7 +676,7 @@ export class MatchModal extends LitElement {
 
         <!-- Footer -->
         <div class="modal-footer">
-          <button class="btn" @click="${this.close}">CANCELAR</button>
+          <button class="btn btn-secondary" @click="${this.close}">CANCELAR</button>
           <button
             class="btn btn-primary"
             ?disabled="${!canSave}"
