@@ -1,5 +1,6 @@
 import './index.css';
 import './app-root';
+import { inject } from '@vercel/analytics';
 
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
@@ -18,3 +19,6 @@ if (root) {
   const app = document.createElement('app-root');
   root.appendChild(app);
 }
+
+// Initialize Vercel Web Analytics
+inject();
