@@ -1,32 +1,37 @@
 import type { Player } from './index';
+
 export const squad: Player[] = [
-  { number: 1,  name: 'Kim Seung-gyu',          position: 'GK', age: 35, club: 'Jeonbuk' },
-  { number: 21, name: 'Jo Hyeon-woo',           position: 'GK', age: 33, club: 'Ulsan' },
-  { number: 23, name: 'Song Bum-keun',          position: 'GK', age: 28, club: 'Jeonbuk' },
+  { number: 1,  name: 'Kim Seung-gyu',          position: 'GK', age: 35, club: 'FC Tokyo' },
+  { number: 21, name: 'Jo Hyeon-woo',           position: 'GK', age: 34, club: 'Ulsan HD' },
+  { number: 12, name: 'Song Bum-keun',          position: 'GK', age: 28, club: 'Jeonbuk Hyundai' },
   { number: 4,  name: 'Kim Min-jae',            position: 'DF', age: 29, club: 'Bayern Munich', captain: true },
-  { number: 3,  name: 'Kim Young-gwon',         position: 'DF', age: 35, club: 'Ulsan' },
-  { number: 2,  name: 'Kim Moon-hwan',          position: 'DF', age: 29, club: 'Jeonbuk' },
-  { number: 15, name: 'Jung Seung-hyun',        position: 'DF', age: 31, club: 'Shimizu S-Pulse' },
-  { number: 13, name: 'Hong Chul',              position: 'DF', age: 33, club: 'Suwon' },
-  { number: 20, name: 'Lee Ki-je',              position: 'DF', age: 26, club: 'Gimcheon' },
-  { number: 22, name: 'Park Jin-seop',          position: 'DF', age: 25, club: 'Gangwon' },
-  { number: 8,  name: 'Hwang In-beom',          position: 'MF', age: 28, club: 'Feyenoord' },
-  { number: 16, name: 'Jung Woo-young',         position: 'MF', age: 35, club: 'Al-Qadsiah' },
-  { number: 6,  name: 'Son Jun-ho',             position: 'MF', age: 30, club: 'Shandong Taishan' },
-  { number: 14, name: 'Lee Jae-sung',           position: 'MF', age: 31, club: 'Mainz' },
-  { number: 5,  name: 'Paik Seung-ho',          position: 'MF', age: 28, club: 'Jeonbuk' },
-  { number: 17, name: 'Kwon Chang-hoon',        position: 'MF', age: 30, club: 'Strasbourg' },
-  { number: 10, name: 'Lee Kang-in',            position: 'MF', age: 24, club: 'PSG' },
-  { number: 7,  name: 'Son Heung-min',          position: 'FW', age: 34, club: 'Tottenham' },
-  { number: 9,  name: 'Cho Gue-sung',           position: 'FW', age: 27, club: 'Celta Vigo' },
-  { number: 11, name: 'Hwang Hee-chan',         position: 'FW', age: 29, club: 'Wolves' },
-  { number: 18, name: 'Oh Hyeon-gyu',           position: 'FW', age: 24, club: 'Celtic' },
-  { number: 19, name: 'Lim Chang-woo',          position: 'FW', age: 23, club: 'Gangwon' },
-  { number: 24, name: 'Yang Min-hyeok',         position: 'FW', age: 19, club: 'Bayer Leverkusen' },
+  { number: 15, name: 'Cho Yu-min',             position: 'DF', age: 29, club: 'Sharjah FC' },
+  { number: 3,  name: 'Lee Han-beom',           position: 'DF', age: 23, club: 'FC Midtjylland' },
+  { number: 5,  name: 'Kim Ju-sung',            position: 'DF', age: 25, club: 'Sanfrecce Hiroshima' },
+  { number: 14, name: 'Kim Tae-hyeon',          position: 'DF', age: 25, club: 'Kashima Antlers' },
+  { number: 22, name: 'Seol Young-woo',         position: 'DF', age: 27, club: 'Crvena Zvezda' },
+  { number: 2,  name: 'Kim Moon-hwan',          position: 'DF', age: 30, club: 'Daejeon Hana Citizen' },
+  { number: 20, name: 'Park Jin-seob',          position: 'DF', age: 30, club: 'Zhejiang Professional' },
+  { number: 18, name: 'Lee Kang-in',            position: 'MF', age: 25, club: 'PSG' },
+  { number: 13, name: 'Paik Seung-ho',          position: 'MF', age: 29, club: 'Birmingham City' },
+  { number: 8,  name: 'Kim Jin-kyu',            position: 'MF', age: 29, club: 'Jeonbuk Hyundai' },
+  { number: 10, name: 'Lee Jae-sung',           position: 'MF', age: 33, club: 'Mainz 05' },
+  { number: 6,  name: 'Hong Hyun-seok',         position: 'MF', age: 26, club: 'Mainz 05' },
+  { number: 17, name: 'Bae Jun-ho',             position: 'MF', age: 22, club: 'Stoke City' },
+  { number: 16, name: 'Kwon Hyeok-kyu',         position: 'MF', age: 25, club: 'Karlsruher SC' },
+  { number: 24, name: 'Lee Tae-seok',           position: 'MF', age: 23, club: 'Austria Wien' },
+  { number: 25, name: 'Jens Castrop',           position: 'MF', age: 22, club: 'Gladbach' },
+  { number: 7,  name: 'Son Heung-min',          position: 'FW', age: 33, club: 'Los Angeles FC' },
+  { number: 11, name: 'Hwang Hee-chan',         position: 'FW', age: 30, club: 'Wolves' },
+  { number: 9,  name: 'Cho Gue-sung',           position: 'FW', age: 28, club: 'FC Midtjylland' },
+  { number: 19, name: 'Oh Hyeon-gyu',           position: 'FW', age: 25, club: 'Beşiktaş' },
+  { number: 23, name: 'Yang Hyun-jun',          position: 'FW', age: 24, club: 'Celtic' },
+  { number: 26, name: 'Eom Ji-sung',            position: 'FW', age: 24, club: 'Swansea City' },
 ];
 
 export const lineup = {
   formation: '4-2-3-1',
-  startingXI: [1, 2, 4, 3, 13, 16, 8, 11, 10, 7, 9]
+  startingXI: [1, 2, 4, 15, 22, 13, 20, 18, 10, 7, 9]
 };
+
 
