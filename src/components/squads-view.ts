@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
-import { getSquad, SQUADS } from '../data/squads';
+import { getSquad, SQUADS, isOfficialSquad } from '../data/squads';
 import type { Player } from '../data/squads';
 import { renderFlag } from '../lib/render-flag';
 import { formatShortDate } from '../lib/date-utils';
@@ -181,10 +181,24 @@ export class SquadsView extends LitElement {
     }
 
     .detail-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
+    }
+
+    .official-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background: var(--retro-green);
+      color: var(--paper);
+      font-size: 9px;
+      font-weight: bold;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
     }
 
     /* ── Mobile tabs (hidden on desktop) ── */
@@ -609,7 +623,10 @@ export class SquadsView extends LitElement {
         <div class="detail-header">
           <div>
             <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
-            <div class="detail-sub">Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles</div>
+            <div class="detail-sub">
+              ${isOfficial ? html`<span class="official-badge">OFICIAL</span>` : ''}
+              Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles
+            </div>
           </div>
         </div>
 
@@ -785,7 +802,11 @@ export class SquadsView extends LitElement {
                       @click=${() => this.selectTeam(team.id)}>
                       ${renderFlag(team, 'md')}
                       <div class="team-name">${team.name}</div>
-                      <div class="team-meta">${getSquad(team.id).length} jugadores cargados</div>
+                      <div class="team-meta">
+                        ${isOfficialSquad(team.id) 
+                          ? html`<span style="color: var(--retro-green);">✓ ${getSquad(team.id).length} oficial${getSquad(team.id).length !== 1 ? 'es' : ''}</span>` 
+                          : html`${getSquad(team.id).length} pendientes`}
+                      </div>
                     </button>
                   `;
                 })}

@@ -78,6 +78,50 @@ main.ts
 - Cambios de reglas del torneo: `npm test` o `npm test -- src/lib/bracket-logic.test.ts`.
 - Cambios de estructura del knockout: revisar a la vez [src/data/fifa-2026.ts](src/data/fifa-2026.ts) y [src/store/tournament-store.ts](src/store/tournament-store.ts).
 
+## Datos oficiales del torneo
+
+### Fuente autoritativa FIFA
+
+La fuente de verdad para datos del torneo es la FIFA oficial. Sus páginas son renderizadas con JavaScript y **WebFetch no las carga**; usa **WebSearch** con dominio `fifa.com` o fuentes agregadoras verificadas.
+
+URLs clave:
+
+- Calendario (ES): `https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026/articles/calendario-fixture-mundial-2026-partidos-fechas`
+- Resultados en vivo (EN): `https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures`
+- Fixture + estadios (EN): `https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums`
+
+Fuente alternativa que sí responde a WebFetch (verificada a 2026-05-15): `https://worldcupwiki.com/schedule/`
+
+### Datos verificados del torneo (actualizados 2026-05-15)
+
+**Formato:** 48 equipos · 12 grupos (A–L) · 4 equipos/grupo · 104 partidos · 16 estadios
+
+**Fase de grupos:** 11 jun – 27 jun 2026
+**Ronda de 32:** 28 jun – 3 jul · **Octavos:** 4–7 jul · **Cuartos:** 9–11 jul
+**Semifinales:** 14–15 jul · **Tercer puesto:** 18 jul (Hard Rock Stadium, Miami)
+**Final:** 19 jul 2026 (MetLife Stadium, Nueva Jersey) — 21:00 hora España
+
+**Distribución de sedes:** 11 estadios en EE. UU. · 3 en México · 2 en Canadá
+
+**Grupos (confirmados FIFA):**
+
+```text
+A: México, Sudáfrica, Corea del Sur, Rep. Checa
+B: Canadá, Bosnia y Herz., Catar, Suiza
+C: Brasil, Marruecos, Haití, Escocia
+D: EE. UU., Paraguay, Australia, Turquía
+E: Alemania, Curazao, Costa de Marfil, Ecuador
+F: Países Bajos, Japón, Suecia, Túnez
+G: Bélgica, Egipto, Irán, Nueva Zelanda
+H: España, Cabo Verde, Arabia Saudita, Uruguay
+I: Francia, Senegal, Irak, Noruega
+J: Argentina, Argelia, Austria, Jordania
+K: Portugal, RD Congo, Uzbekistán, Colombia
+L: Inglaterra, Croacia, Ghana, Panamá
+```
+
+> Si hay dudas sobre un dato del torneo, verifica contra estas fuentes antes de tocar [src/data/fifa-2026.ts](src/data/fifa-2026.ts) o [src/data/match-schedule.ts](src/data/match-schedule.ts).
+
 ## Referencias
 
 - [AGENTS.md](AGENTS.md): guia breve para agentes.
