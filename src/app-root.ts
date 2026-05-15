@@ -5,6 +5,7 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
+import './components/ad-block';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
@@ -279,6 +280,22 @@ export class AppRoot extends LitElement {
         padding: 24px;
       }
     }
+
+    /* Franja de anuncio global */
+    .ad-strip {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 8px 40px;
+      box-sizing: border-box;
+      min-height: 90px; /* Reserva espacio mientras AdSense carga */
+    }
+    @media (max-width: 768px) {
+      .ad-strip {
+        padding: 8px 16px;
+        min-height: 60px;
+      }
+    }
   `;
 
   connectedCallback() {
@@ -402,6 +419,11 @@ export class AppRoot extends LitElement {
         <!-- Tournament progress -->
         <div class="progress-bar">
           <div class="progress-fill" style="width: ${Math.round((totalPlayed / 104) * 100)}%"></div>
+        </div>
+
+        <!-- AdSense — debajo del topbar, visible en todas las vistas -->
+        <div class="ad-strip">
+          <ad-block></ad-block>
         </div>
 
         <main class="content">
