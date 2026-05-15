@@ -20,6 +20,7 @@ interface TeamMatchSummary {
 @customElement('squads-view')
 export class SquadsView extends LitElement {
   @state() private selectedTeamId: string | null = null;
+  @state() private activeTab: 'squad' | 'matches' | 'venues' = 'squad';
 
   private unsubscribeStore?: () => void;
 
@@ -27,6 +28,8 @@ export class SquadsView extends LitElement {
     :host {
       display: block;
     }
+
+    /* ── Groups list ── */
 
     .groups-stack {
       display: grid;
@@ -84,7 +87,7 @@ export class SquadsView extends LitElement {
       min-height: 92px;
     }
 
-    .team-card.active {
+    .team-card:hover {
       background: var(--retro-yellow);
     }
 
@@ -102,8 +105,31 @@ export class SquadsView extends LitElement {
       text-transform: uppercase;
     }
 
+    /* ── Detail view ── */
+
+    .back-btn {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .back-btn:hover {
+      background: var(--retro-yellow);
+    }
+
     .detail-panel {
-      margin-top: 22px;
       border: 4px solid var(--ink);
       box-shadow: var(--shadow-hard-lg);
       background: var(--paper);
@@ -112,7 +138,6 @@ export class SquadsView extends LitElement {
 
     .detail-header {
       display: flex;
-      justify-content: space-between;
       gap: 16px;
       align-items: center;
       padding: 18px;
@@ -137,15 +162,48 @@ export class SquadsView extends LitElement {
       text-transform: uppercase;
     }
 
+    /* ── Mobile tabs (hidden on desktop) ── */
+
+    .tabs {
+      display: none;
+      border-bottom: 4px solid var(--ink);
+    }
+
+    .tabs button {
+      all: unset;
+      cursor: pointer;
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      border-right: 3px solid var(--ink);
+      background: var(--paper-2);
+    }
+
+    .tabs button:last-child {
+      border-right: none;
+    }
+
+    .tabs button.active {
+      background: var(--retro-orange);
+      color: var(--paper);
+    }
+
+    /* ── Detail grid: 3 columns ── */
+
     .detail-grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
-      gap: 0;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .panel-block {
       padding: 18px;
       border-right: 3px solid var(--ink);
+      min-height: 0;
     }
 
     .panel-block:last-child {
@@ -168,7 +226,7 @@ export class SquadsView extends LitElement {
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 560px;
+      min-width: 380px;
     }
 
     th,
@@ -287,7 +345,7 @@ export class SquadsView extends LitElement {
       color: var(--ink);
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 768px) {
       .detail-grid {
         grid-template-columns: 1fr;
       }
@@ -301,8 +359,16 @@ export class SquadsView extends LitElement {
         border-bottom: none;
       }
 
+      .panel-block.tab-hidden {
+        display: none;
+      }
+
       .detail-title {
         font-size: 28px;
+      }
+
+      .tabs {
+        display: flex;
       }
     }
   `;
@@ -370,12 +436,28 @@ export class SquadsView extends LitElement {
     return `${base} · ${timeSpain || '--:--'} ESP`;
   }
 
-  render() {
-    const groups = 'ABCDEFGHIJKL'.split('');
-    const selectedTeam = this.getTeam(this.selectedTeamId);
-    const squad = selectedTeam ? getSquad(selectedTeam.id) : [];
-    const teamMatches = selectedTeam ? this.getTeamMatches(selectedTeam.id) : [];
+  private selectTeam(id: string) {
+    this.selectedTeamId = id;
+    this.activeTab = 'squad';
+  }
 
+  private goBack() {
+    this.selectedTeamId = null;
+    this.activeTab = 'squad';
+  }
+
+  render() {
+    if (!this.selectedTeamId) {
+      return this.renderGroupsList();
+    }
+
+    const selectedTeam = this.getTeam(this.selectedTeamId);
+    if (!selectedTeam) {
+      return this.renderGroupsList();
+    }
+
+    const squad = getSquad(selectedTeam.id);
+    const teamMatches = this.getTeamMatches(selectedTeam.id);
     const venueMap = teamMatches.reduce<Map<string, (typeof STADIUMS)[number]>>((map, match) => {
       const stadium = STADIUMS.find(item => item.name === match.venue);
       if (stadium) map.set(stadium.id, stadium);
@@ -383,90 +465,81 @@ export class SquadsView extends LitElement {
     }, new Map());
 
     return html`
-      <div class="groups-stack">
-        ${groups.map(group => html`
-          <section class="group-block">
-            <div class="group-header">
-              <div class="group-title">Grupo ${group}</div>
-              <div class="group-sub">4 selecciones</div>
-            </div>
-            <div class="teams-grid">
-              ${TEAMS_2026.filter(team => team.group === group).map(team => html`
-                <button class="team-card ${this.selectedTeamId === team.id ? 'active' : ''}" @click=${() => { this.selectedTeamId = team.id; }}>
-                  ${renderFlag(team, 'md')}
-                  <div class="team-name">${team.name}</div>
-                  <div class="team-meta">${getSquad(team.id).length} jugadores cargados</div>
-                </button>
-              `)}
-            </div>
-          </section>
-        `)}
-      </div>
+      <button class="back-btn" @click=${() => this.goBack()}>← Volver a equipos</button>
 
-      ${selectedTeam ? html`
-        <section class="detail-panel">
-          <div class="detail-header">
-            <div>
-              <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
-              <div class="detail-sub">Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles</div>
+      <section class="detail-panel">
+        <div class="detail-header">
+          <div>
+            <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
+            <div class="detail-sub">Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${teamMatches.length} partidos visibles</div>
+          </div>
+        </div>
+
+        <nav class="tabs" role="tablist">
+          <button class=${this.activeTab === 'squad' ? 'active' : ''} @click=${() => { this.activeTab = 'squad'; }}>Plantilla</button>
+          <button class=${this.activeTab === 'matches' ? 'active' : ''} @click=${() => { this.activeTab = 'matches'; }}>Partidos</button>
+          <button class=${this.activeTab === 'venues' ? 'active' : ''} @click=${() => { this.activeTab = 'venues'; }}>Sedes</button>
+        </nav>
+
+        <div class="detail-grid">
+          <div class="panel-block ${this.activeTab !== 'squad' ? 'tab-hidden' : ''}">
+            <div class="panel-title">Plantilla</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Jugador</th>
+                    <th>Pos</th>
+                    <th>Edad</th>
+                    <th>Club</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${squad.map(player => html`
+                    <tr>
+                      <td>${player.number}</td>
+                      <td>
+                        ${player.name}
+                        ${player.captain ? html`<span class="captain">CAP</span>` : ''}
+                      </td>
+                      <td>${player.position}</td>
+                      <td>${player.age}</td>
+                      <td>${player.club}</td>
+                    </tr>
+                  `)}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div class="detail-grid">
-            <div class="panel-block">
-              <div class="panel-title">Plantilla</div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Dorsal</th>
-                      <th>Jugador</th>
-                      <th>Pos</th>
-                      <th>Edad</th>
-                      <th>Club</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${squad.map(player => html`
-                      <tr>
-                        <td>${player.number}</td>
-                        <td>
-                          ${player.name}
-                          ${player.captain ? html`<span class="captain">CAP</span>` : ''}
-                        </td>
-                        <td>${player.position}</td>
-                        <td>${player.age}</td>
-                        <td>${player.club}</td>
-                      </tr>
-                    `)}
-                  </tbody>
-                </table>
-              </div>
+          <div class="panel-block ${this.activeTab !== 'matches' ? 'tab-hidden' : ''}">
+            <div class="panel-title">Partidos</div>
+            <div class="matches-list">
+              ${teamMatches.map(match => {
+                const opponent = this.getTeam(match.opponentId);
+                return html`
+                  <article class="match-card">
+                    <div class="match-top">
+                      <span>${match.phase}</span>
+                      <span>${this.formatDate(match.date, match.timeSpain)}</span>
+                    </div>
+                    <div class="match-opponent">
+                      ${renderFlag(opponent, 'sm')}
+                      <span>${opponent?.name ?? 'Rival por decidir'}</span>
+                    </div>
+                    <div class="match-venue">${match.venue} · ${match.city}</div>
+                  </article>
+                `;
+              })}
             </div>
+          </div>
 
-            <div class="panel-block">
-              <div class="panel-title">Partidos</div>
-              <div class="matches-list">
-                ${teamMatches.map(match => {
-                  const opponent = this.getTeam(match.opponentId);
-                  return html`
-                    <article class="match-card">
-                      <div class="match-top">
-                        <span>${match.phase}</span>
-                        <span>${this.formatDate(match.date, match.timeSpain)}</span>
-                      </div>
-                      <div class="match-opponent">
-                        ${renderFlag(opponent, 'sm')}
-                        <span>${opponent?.name ?? 'Rival por decidir'}</span>
-                      </div>
-                      <div class="match-venue">${match.venue} · ${match.city}</div>
-                    </article>
-                  `;
-                })}
-              </div>
-
-              <div class="panel-title" style="margin-top: 18px;">Sedes donde juega</div>
-              ${venueMap.size === 0 ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>` : html`
+          <div class="panel-block ${this.activeTab !== 'venues' ? 'tab-hidden' : ''}">
+            <div class="panel-title">Sedes</div>
+            ${venueMap.size === 0
+              ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>`
+              : html`
                 <div class="venues-grid">
                   ${[...venueMap.values()].map(stadium => html`
                     <article class="venue-card">
@@ -479,10 +552,34 @@ export class SquadsView extends LitElement {
                   `)}
                 </div>
               `}
-            </div>
           </div>
-        </section>
-      ` : html`<div class="empty" style="margin-top: 22px;">Selecciona un equipo para ver su plantilla, sus partidos y sus sedes.</div>`}
+        </div>
+      </section>
+    `;
+  }
+
+  private renderGroupsList() {
+    const groups = 'ABCDEFGHIJKL'.split('');
+    return html`
+      <div class="groups-stack">
+        ${groups.map(group => html`
+          <section class="group-block">
+            <div class="group-header">
+              <div class="group-title">Grupo ${group}</div>
+              <div class="group-sub">4 selecciones</div>
+            </div>
+            <div class="teams-grid">
+              ${TEAMS_2026.filter(team => team.group === group).map(team => html`
+                <button class="team-card" @click=${() => this.selectTeam(team.id)}>
+                  ${renderFlag(team, 'md')}
+                  <div class="team-name">${team.name}</div>
+                  <div class="team-meta">${getSquad(team.id).length} jugadores cargados</div>
+                </button>
+              `)}
+            </div>
+          </section>
+        `)}
+      </div>
     `;
   }
 }
