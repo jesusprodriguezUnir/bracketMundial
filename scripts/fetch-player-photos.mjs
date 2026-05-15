@@ -9,7 +9,7 @@ const SQUADS_DIR = join(ROOT, 'src', 'data', 'squads');
 const PUBLIC_PLAYERS = join(ROOT, 'public', 'players');
 const MANIFEST_PATH = join(ROOT, 'src', 'data', 'player-photos.ts');
 const API_BASE = 'https://www.thesportsdb.com/api/v1/json/3';
-const THROTTLE_MS = 500;
+const THROTTLE_MS = 1500;
 
 let lastReq = 0;
 async function throttle() {
@@ -48,8 +48,10 @@ function generateManifest() {
   return keys.length;
 }
 
+const filter = process.argv.slice(2).map(t => t.toLowerCase());
 const squadFiles = readdirSync(SQUADS_DIR)
-  .filter(f => f.endsWith('.ts') && f !== 'index.ts');
+  .filter(f => f.endsWith('.ts') && f !== 'index.ts')
+  .filter(f => filter.length === 0 || filter.includes(basename(f, '.ts').toLowerCase()));
 
 const stats = { found: 0, skipped: 0, notFound: 0, errors: 0 };
 const missing = {};
