@@ -1,0 +1,55 @@
+name: Update news feed
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 05:00 UTC daily
+  workflow_dispatch:        # allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate news feed
+        run: node scripts/generate-news.mjs
+
+      - name: Publish to news-data branch
+        run: |
+          # Configure git identity
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if news-feed.json changed compared to the news-data branch
+          git fetch origin news-data 2>/dev/null || true
+          REMOTE_HASH=$(git show origin/news-data:news-feed.json 2>/dev/null | sha256sum | cut -d' ' -f1 || echo "none")
+          LOCAL_HASH=$(sha256sum news-feed.json | cut -d' ' -f1)
+
+          if [ "$REMOTE_HASH" = "$LOCAL_HASH" ]; then
+            echo "No changes in news feed — skipping commit."
+            exit 0
+          fi
+
+          # Create / update orphan news-data branch with only the JSON
+          git checkout --orphan news-data-tmp
+          git reset --hard
+          cp news-feed.json /tmp/news-feed.json
+          git rm -rf . --quiet
+          cp /tmp/news-feed.json news-feed.json
+          git add news-feed.json
+          git commit -m "chore: update news feed $(date -u +%Y-%m-%d)"
+          git push origin news-data-tmp:news-data --force
+          echo "✅ news-data branch updated."

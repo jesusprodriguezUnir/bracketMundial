@@ -50,7 +50,7 @@ export class SquadsView extends LitElement {
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
   @state() private _news: NewsItem[] | null = null;
   @state() private _newsLoading = false;
-  @state() private _newsTeamId: string | null = null;
+  @state() private _newsKey: string | null = null;
 
   private unsubscribeStore?: () => void;
 
@@ -60,17 +60,18 @@ export class SquadsView extends LitElement {
       this.selectedTeamId = tid;
       this.activeTab = 'squad';
       this.targetTeamId = null;
-      this._loadNewsForTeam(tid);
+      this._loadNewsForTeam(tid, useLocaleStore.getState().locale);
     }
   }
 
-  private _loadNewsForTeam(teamId: string) {
-    if (this._newsTeamId === teamId) return;
-    this._newsTeamId = teamId;
+  private _loadNewsForTeam(teamId: string, locale: 'es' | 'en') {
+    const key = `${teamId}:${locale}`;
+    if (this._newsKey === key) return;
+    this._newsKey = key;
     this._news = null;
     this._newsLoading = true;
-    getTeamNews(teamId).then(items => {
-      if (this._newsTeamId === teamId) {
+    getTeamNews(teamId, locale).then(items => {
+      if (this._newsKey === key) {
         this._news = items;
         this._newsLoading = false;
       }
@@ -734,7 +735,12 @@ export class SquadsView extends LitElement {
       s => s.groupStandings,
       () => this.requestUpdate(),
     );
-    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => {
+      this.requestUpdate();
+      if (this.selectedTeamId) {
+        this._loadNewsForTeam(this.selectedTeamId, useLocaleStore.getState().locale);
+      }
+    });
   }
 
   disconnectedCallback() {
@@ -781,13 +787,13 @@ export class SquadsView extends LitElement {
   private selectTeam(id: string) {
     this.selectedTeamId = id;
     this.activeTab = 'squad';
-    this._loadNewsForTeam(id);
+    this._loadNewsForTeam(id, useLocaleStore.getState().locale);
   }
 
   private goBack() {
     this.selectedTeamId = null;
     this.activeTab = 'squad';
-    this._newsTeamId = null;
+    this._newsKey = null;
     this._news = null;
   }
 
@@ -967,7 +973,7 @@ export class SquadsView extends LitElement {
                     ${this._news.map(item => html`
                       <article class="news-card">
                         <a class="news-link" href="${item.url}" target="_blank" rel="noopener noreferrer">
-                          <div class="news-headline">${item.title[locale]}</div>
+                          <div class="news-headline">${item.title}</div>
                           <div class="news-footer">
                             <span>${formatShortDate(item.date)}</span>
                             <span>·</span>

@@ -20,7 +20,8 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\jesus\\\\.claude\\\\projects\\\\d--Personal-bracketMundial\\\\6a808351-4a52-4fd6-b9ba-342980660d37\\\\tool-results\\\\extracted\" -Recurse | ForEach-Object { \"$\\($_.Length.ToString\\(\\).PadLeft\\(8\\)\\)  $\\($_.FullName.Replace\\('C:\\\\Users\\\\jesus\\\\.claude\\\\projects\\\\d--Personal-bracketMundial\\\\6a808351-4a52-4fd6-b9ba-342980660d37\\\\tool-results\\\\extracted\\\\',''\\)\\)\" })",
       "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd d:\\\\Personal\\\\bracketMundial; npm run dev\" -WindowStyle Normal)",
       "Bash(Get-Content \"C:\\\\Users\\\\jesus\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Personal-bracketMundial\\\\ac88ef3b-8fb0-41bc-87cc-01b3d68056c9\\\\tasks\\\\bi9avcwbb.output\")",
-      "Bash(Select-Object -Last 80)"
+      "Bash(Select-Object -Last 80)",
+      "Bash(node scripts/generate-news.mjs)"
     ]
   }
 }
