@@ -1,9 +1,41 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
+import { useTournamentStore } from '../store/tournament-store';
+import { TEAMS_2026 } from '../data/fifa-2026';
 import './logo-crest';
+
+/** Opening match: June 11 2026, 21:00 CEST = 19:00 UTC */
+const KICKOFF_UTC = Date.UTC(2026, 5, 11, 19, 0, 0);
+
+interface CountdownValues { days: number; hours: number; minutes: number; seconds: number; started: boolean; }
+
+function calcCountdown(): CountdownValues {
+  const diff = KICKOFF_UTC - Date.now();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, started: true };
+  return {
+    days: Math.floor(diff / 86400000),
+    hours: Math.floor((diff % 86400000) / 3600000),
+    minutes: Math.floor((diff % 3600000) / 60000),
+    seconds: Math.floor((diff % 60000) / 1000),
+    started: false,
+  };
+}
 
 @customElement('hero-view')
 export class HeroView extends LitElement {
+  @state() private _cd: CountdownValues = calcCountdown();
+  private _timer?: ReturnType<typeof setInterval>;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._timer = setInterval(() => { this._cd = calcCountdown(); }, 1000);
+  }
+
+  disconnectedCallback() {
+    clearInterval(this._timer);
+    super.disconnectedCallback();
+  }
+
   static styles = css`
     :host { display: block; }
 
@@ -129,6 +161,62 @@ export class HeroView extends LitElement {
       box-shadow: 6px 6px 0 0 var(--retro-yellow);
     }
 
+    /* Countdown */
+    .countdown {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .cd-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 56px;
+      padding: 10px 8px 8px;
+      background: var(--ink);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+    }
+    .cd-num {
+      font-family: var(--font-var);
+      font-size: 32px;
+      line-height: 1;
+      color: var(--retro-yellow);
+      letter-spacing: 0.04em;
+    }
+    .cd-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      color: var(--paper-2);
+      margin-top: 4px;
+    }
+    .cd-sep {
+      font-family: var(--font-var);
+      font-size: 28px;
+      color: var(--dim);
+      align-self: flex-start;
+      padding-top: 10px;
+    }
+    .cd-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--retro-red);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      font-family: var(--font-var);
+      font-size: 16px;
+      color: var(--paper-3);
+      letter-spacing: 0.08em;
+      animation: pulse-live 2s ease-in-out infinite;
+    }
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
     /* Stats strip */
     .stats-strip {
       display: flex;
@@ -211,26 +299,51 @@ export class HeroView extends LitElement {
       letter-spacing: 0.12em;
     }
 
-    /* Bottom ticker */
+    /* Animated ticker marquee */
     .ticker {
       position: relative;
       z-index: 1;
       background: var(--ink);
       color: var(--paper);
-      padding: 8px 22px;
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 0.18em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      letter-spacing: 0.14em;
       border-top: 3px solid var(--retro-orange);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      height: 36px;
     }
-    .ticker-live {
+    .ticker-label {
+      flex-shrink: 0;
+      padding: 0 14px;
       color: var(--retro-yellow);
+      z-index: 1;
+      background: var(--ink);
+      border-right: 2px solid var(--retro-orange);
+      height: 100%;
+      display: flex;
+      align-items: center;
     }
-    .ticker-more {
+    .ticker-track {
+      display: flex;
+      animation: marquee 30s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-track:hover {
+      animation-play-state: paused;
+    }
+    .ticker-item {
+      flex-shrink: 0;
+      padding: 0 24px;
+    }
+    .ticker-score {
       color: var(--retro-yellow);
+      font-weight: 700;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
     }
 
     @media (max-width: 768px) {
@@ -245,10 +358,71 @@ export class HeroView extends LitElement {
       .btn-cta-primary,
       .btn-cta-secondary { font-size: 14px; padding: 12px 18px; }
       .stat-num { font-size: 22px; }
+      .cd-cell { min-width: 44px; padding: 8px 6px 6px; }
+      .cd-num { font-size: 24px; }
+      .countdown { gap: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+      .cd-live { animation: none; }
     }
   `;
 
+  private _getTickerItems(): Array<{ label: string; score: string }> {
+    const store = useTournamentStore.getState();
+    const played = store.groupMatches.filter(m => m.scoreA !== null && m.scoreB !== null);
+    if (played.length > 0) {
+      // Show last 12 played matches
+      return played.slice(-12).map(m => {
+        const a = TEAMS_2026.find(t => t.id === m.teamA);
+        const b = TEAMS_2026.find(t => t.id === m.teamB);
+        return {
+          label: `${a?.id ?? '??'} vs ${b?.id ?? '??'}`,
+          score: `${m.scoreA}-${m.scoreB}`,
+        };
+      });
+    }
+    // No matches played — show day 1 fixture
+    const day1 = store.groupMatches.filter(m => m.date === '2026-06-11');
+    if (day1.length > 0) {
+      return day1.map(m => {
+        const a = TEAMS_2026.find(t => t.id === m.teamA);
+        const b = TEAMS_2026.find(t => t.id === m.teamB);
+        return { label: `${a?.id ?? '??'} vs ${b?.id ?? '??'}`, score: m.timeSpain ?? '' };
+      });
+    }
+    return [
+      { label: 'MEX vs RSA', score: '11 JUN' },
+      { label: 'KOR vs CZE', score: '12 JUN' },
+      { label: 'CAN vs BIH', score: '12 JUN' },
+    ];
+  }
+
+  private _renderCountdown() {
+    const cd = this._cd;
+    if (cd.started) {
+      return html`<div class="cd-live">⚽ EN CURSO</div>`;
+    }
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return html`
+      <div class="countdown">
+        <div class="cd-cell"><div class="cd-num">${cd.days}</div><div class="cd-label">DÍAS</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-cell"><div class="cd-num">${pad(cd.hours)}</div><div class="cd-label">HORAS</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-cell"><div class="cd-num">${pad(cd.minutes)}</div><div class="cd-label">MIN</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-cell"><div class="cd-num">${pad(cd.seconds)}</div><div class="cd-label">SEG</div></div>
+      </div>
+    `;
+  }
+
   render() {
+    const tickerItems = this._getTickerItems();
+    const hasPlayed = useTournamentStore.getState().groupMatches.some(m => m.scoreA !== null);
+    const tickerLabel = hasPlayed ? '◉ RESULTADOS' : '◉ PRÓXIMO';
+
     return html`
       <section>
         <div class="hero">
@@ -269,6 +443,7 @@ export class HeroView extends LitElement {
                 <button class="btn-cta-primary" @click="${this._goToBracket}">▶ EMPEZAR MI BRACKET</button>
                 <button class="btn-cta-secondary" @click="${this._goToGroups}">VER GRUPOS</button>
               </div>
+              ${this._renderCountdown()}
             </div>
             <!-- Stats strip -->
             <div class="stats-strip">
@@ -291,11 +466,17 @@ export class HeroView extends LitElement {
           </div>
         </div>
 
-        <!-- Ticker -->
+        <!-- Animated ticker -->
         <div class="ticker">
-          <span class="ticker-live">◉ EN VIVO</span>
-          <span>JORNADA 1 · MEX 2-1 RSA · BRA 3-0 SCO · ARG 2-0 JOR · ESP 1-0 SAU</span>
-          <span class="ticker-more">▶ +</span>
+          <span class="ticker-label">${tickerLabel}</span>
+          <div class="ticker-track">
+            ${tickerItems.map(item => html`
+              <span class="ticker-item">${item.label} <span class="ticker-score">${item.score}</span></span>
+            `)}
+            ${tickerItems.map(item => html`
+              <span class="ticker-item">${item.label} <span class="ticker-score">${item.score}</span></span>
+            `)}
+          </div>
         </div>
       </section>
     `;

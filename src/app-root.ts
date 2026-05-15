@@ -137,6 +137,21 @@ export class AppRoot extends LitElement {
       padding: 24px 40px;
     }
 
+    /* Tournament progress bar */
+    .progress-bar {
+      height: 5px;
+      background: rgba(26,25,51,0.2);
+      position: sticky;
+      top: 56px;
+      z-index: 99;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--retro-yellow);
+      transition: width 0.4s ease;
+      box-shadow: 0 0 6px rgba(240,176,33,0.5);
+    }
+
     /* ---- FOOTER ---- */
     .site-footer {
       border-top: 4px solid var(--ink);
@@ -383,6 +398,11 @@ export class AppRoot extends LitElement {
             <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
           </div>
         </header>
+
+        <!-- Tournament progress -->
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${Math.round((totalPlayed / 104) * 100)}%"></div>
+        </div>
 
         <main class="content">
           <bracket-view></bracket-view>
