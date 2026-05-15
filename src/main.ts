@@ -1,5 +1,8 @@
 import './index.css';
 import './app-root';
+import { inject } from '@vercel/analytics';
+
+inject();
 
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
