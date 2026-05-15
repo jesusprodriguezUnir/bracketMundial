@@ -164,37 +164,33 @@ function mapThirds(standings: Record<string, GroupStanding[]>): TeamStats[] {
 const initialGroupMatches: GroupMatchResult[] = generateGroupMatches();
 
 function hydrateGroupMatch(match: GroupMatchResult): GroupMatchResult {
-  if (match.date && match.venue && match.city && match.timeSpain) {
-    return match;
-  }
-
   const fresh = initialGroupMatches.find(item => item.matchId === match.matchId);
-  return fresh
-    ? {
-        ...match,
-        date: match.date ?? fresh.date,
-        venue: match.venue ?? fresh.venue,
-        city: match.city ?? fresh.city,
-        timeSpain: match.timeSpain ?? fresh.timeSpain,
-      }
-    : match;
+  if (!fresh) return match;
+
+  return {
+    ...match,
+    date: fresh.date,
+    venue: fresh.venue,
+    city: fresh.city,
+    timeSpain: fresh.timeSpain,
+  };
 }
 
 function hydrateKnockoutMatches(matches: Record<string, KnockoutMatchResult>): Record<string, KnockoutMatchResult> {
   return Object.fromEntries(
     Object.entries(matches).map(([matchId, match]) => {
       const scheduled = KNOCKOUT_SCHEDULE[matchId];
+      if (!scheduled) return [matchId, match];
+
       return [
         matchId,
-        scheduled
-          ? {
-              ...match,
-              date: match.date ?? scheduled.date,
-              venue: match.venue ?? scheduled.venue,
-              city: match.city ?? scheduled.city,
-              timeSpain: match.timeSpain ?? scheduled.timeSpain,
-            }
-          : match,
+        {
+          ...match,
+          date: scheduled.date,
+          venue: scheduled.venue,
+          city: scheduled.city,
+          timeSpain: scheduled.timeSpain,
+        }
       ];
     })
   );

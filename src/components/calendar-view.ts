@@ -4,6 +4,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { STADIUMS } from '../data/stadiums';
 import { renderFlag } from '../lib/render-flag';
+import { formatFullDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
 import type { MatchModal } from './match-modal';
 import './match-modal';
@@ -356,11 +357,7 @@ export class CalendarView extends LitElement {
   }
 
   private formatDateLabel(date: string) {
-    return new Intl.DateTimeFormat('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      weekday: 'long',
-    }).format(new Date(`${date}T00:00:00`));
+    return formatFullDate(date);
   }
 
   private getFilteredRows() {

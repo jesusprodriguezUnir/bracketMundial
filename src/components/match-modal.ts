@@ -3,13 +3,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 
-// Stats placeholder — solo flavor visual, igual que el diseño dir2-retro.jsx
-const STATS_STRIP = [
-  { label: 'POSESIÓN', value: '58 — 42', accent: 'var(--retro-blue)' },
-  { label: 'REMATES',  value: '14 — 9',  accent: 'var(--retro-orange)' },
-  { label: 'CÓRNERS',  value: '6 — 4',   accent: 'var(--retro-green)' },
-  { label: 'ASIST.',   value: '78 215',  accent: 'var(--retro-red)' },
-];
 
 @customElement('match-modal')
 export class MatchModal extends LitElement {
@@ -320,32 +313,6 @@ export class MatchModal extends LitElement {
       opacity: 0.5;
     }
 
-    /* ─── Stats strip (flavor visual) ─── */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      padding: 0 16px 16px;
-    }
-    .stat-card {
-      border: 3px solid var(--ink);
-      background: var(--paper-2);
-      padding: 8px 12px;
-    }
-    .stat-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .stat-value {
-      font-family: var(--font-var);
-      font-size: 22px;
-      color: var(--ink);
-      line-height: 1.1;
-      margin-top: 2px;
-    }
 
     /* ─── Editor de marcador ─── */
     .editor-section {
@@ -504,10 +471,6 @@ export class MatchModal extends LitElement {
         transform: none;
       }
       .score-big { font-size: 60px; }
-      .stats-strip {
-        grid-template-columns: 1fr 1fr;
-        padding: 0 10px 12px;
-      }
       .editor-section { padding: 12px 10px 12px; }
       .editor-row,
       .penalties-row {
@@ -566,7 +529,6 @@ export class MatchModal extends LitElement {
     const penaltiesAreValid = !isDraw || (hasCompletePenalties && this._penaltyScoreA !== this._penaltyScoreB);
     const canSave = hasCompleteScore && penaltiesAreValid;
     const isPlayed = this.initialScoreA !== null || this.initialScoreB !== null;
-    const showStats = this.phase === 'group' && isPlayed;
     const groupLetter = tA?.group ?? '?';
     const phaseLabel = this.phase === 'group'
       ? `GRUPO ${groupLetter}`
@@ -618,17 +580,6 @@ export class MatchModal extends LitElement {
           </div>
         </div>
 
-        <!-- Stats strip — flavor visual solamente -->
-        ${showStats ? html`
-          <div class="stats-strip">
-            ${STATS_STRIP.map(s => html`
-              <div class="stat-card" style="box-shadow: 3px 3px 0 0 ${s.accent}">
-                <div class="stat-label">${s.label}</div>
-                <div class="stat-value">${s.value}</div>
-              </div>
-            `)}
-          </div>
-        ` : ''}
 
         <!-- Editor de marcador -->
         <div class="editor-section">

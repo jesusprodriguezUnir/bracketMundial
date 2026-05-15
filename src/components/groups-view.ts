@@ -3,12 +3,10 @@ import { customElement } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
-
-const fmt = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+import { formatShortDate } from '../lib/date-utils';
 
 function formatDate(iso?: string): string {
-  if (!iso) return '';
-  return fmt.format(new Date(iso));
+  return iso ? formatShortDate(iso) : '';
 }
 
 // Colores de cabecera de grupo — rotan entre los 4 retro
