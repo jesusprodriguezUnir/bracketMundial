@@ -126,4 +126,10 @@ export const en: Record<TranslationKey, string> = {
   // Footer
   'footer.follow': 'FOLLOW US',
   'footer.contact': 'CONTACT',
+
+  // SEO Info
+  'seo.aboutTitle': 'How does the World Cup 2026 Simulator work?',
+  'seo.aboutText': 'Our interactive bracket allows you to predict every result, from the group stage with its 12 groups of 4 teams, to the grand final at MetLife Stadium. You can simulate the brackets, see who the best third-placed teams would be, and share your complete prediction with friends.',
+  'seo.formatTitle': 'New Format: 48 Teams',
+  'seo.formatText': 'The 2026 FIFA World Cup debuts a new format with 48 teams. This means more matches (104 in total), an extra round of 32, and unprecedented excitement across host cities in the USA, Mexico, and Canada.',
 };

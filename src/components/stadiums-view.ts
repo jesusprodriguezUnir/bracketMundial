@@ -197,7 +197,7 @@ export class StadiumsView extends LitElement {
             <div class="stadium-card" @click="${() => this._selectStadium(stadium)}">
               <div class="image-container">
                 <div class="capacity-badge">${stadium.capacity.toLocaleString()} ASIENTOS</div>
-                <img class="stadium-image" src="${stadium.image}" alt="${stadium.name}">
+                <img class="stadium-image" src="${stadium.image}" alt="${stadium.name}" loading="lazy">
               </div>
               
               <div class="stadium-info">

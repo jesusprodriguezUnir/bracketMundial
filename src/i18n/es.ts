@@ -135,6 +135,12 @@ export const es = {
   // Footer
   'footer.follow': 'SÍGUENOS',
   'footer.contact': 'CONTACTO',
+
+  // SEO Info
+  'seo.aboutTitle': '¿Cómo funciona el Simulador del Mundial 2026?',
+  'seo.aboutText': 'Nuestro bracket interactivo te permite predecir cada resultado, desde la fase de grupos con sus 12 grupos de 4 selecciones, hasta la gran final en el MetLife Stadium. Puedes simular los cruces, ver quiénes serían los mejores terceros y compartir tu cuadro completo con amigos.',
+  'seo.formatTitle': 'Nuevo formato: 48 selecciones',
+  'seo.formatText': 'El Mundial de la FIFA 2026 estrena formato con 48 equipos. Esto significa más partidos (104 en total), una ronda extra de dieciseisavos de final y una emoción sin precedentes en las sedes de Estados Unidos, México y Canadá.',
 } as const;
 
 export type TranslationKey = keyof typeof es;
