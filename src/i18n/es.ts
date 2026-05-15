@@ -130,6 +130,10 @@ export const es = {
   'card.qf': 'CUARTOS',
   'card.sf': 'SEMIS',
   'card.final': 'FINAL',
+
+  // Footer
+  'footer.follow': 'SÍGUENOS',
+  'footer.contact': 'CONTACTO',
 } as const;
 
 export type TranslationKey = keyof typeof es;

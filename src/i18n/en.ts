@@ -121,4 +121,8 @@ export const en: Record<TranslationKey, string> = {
   'card.qf': 'QF',
   'card.sf': 'SF',
   'card.final': 'FINAL',
+
+  // Footer
+  'footer.follow': 'FOLLOW US',
+  'footer.contact': 'CONTACT',
 };

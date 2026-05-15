@@ -149,6 +149,71 @@ export class AppRoot extends LitElement {
       padding: 24px 40px;
     }
 
+    /* ---- FOOTER ---- */
+    .site-footer {
+      border-top: 4px solid var(--ink);
+      background: var(--paper-2);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 14px 32px;
+      margin-top: 40px;
+    }
+    .footer-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .footer-social {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-social a,
+    .footer-email {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      padding: 4px 10px;
+      box-shadow: 2px 2px 0 var(--ink);
+      transition: background 0.1s, box-shadow 0.1s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .footer-social a:hover,
+    .footer-email:hover {
+      background: var(--retro-yellow);
+      box-shadow: 3px 3px 0 var(--ink);
+      transform: translate(-1px, -1px);
+    }
+    .footer-sep {
+      color: var(--dim);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      user-select: none;
+    }
+    .footer-copy {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
     @media (max-width: 768px) {
       .stamp,
       .host-chips,
@@ -164,6 +229,15 @@ export class AppRoot extends LitElement {
       .header-actions button {
         padding: 0 14px;
         font-size: 13px;
+      }
+      .site-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 14px 16px;
+        gap: 12px;
+      }
+      .footer-copy {
+        margin-left: 0;
       }
     }
   `;
@@ -288,6 +362,36 @@ export class AppRoot extends LitElement {
         <main class="content">
           <bracket-view></bracket-view>
         </main>
+
+        <footer class="site-footer">
+          <!-- Redes sociales -->
+          <div class="footer-section">
+            <span class="footer-label">${t('footer.follow')}</span>
+            <div class="footer-social">
+              <a href="https://x.com/bracketmundial" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter) @bracketmundial">
+                𝕏 @bracketmundial
+              </a>
+              <a href="https://www.tiktok.com/@bracketmundial" target="_blank" rel="noopener noreferrer" aria-label="TikTok @bracketmundial">
+                ▶ @bracketmundial
+              </a>
+              <a href="https://www.instagram.com/bracketmun33918" target="_blank" rel="noopener noreferrer" aria-label="Instagram @bracketmun33918">
+                ◈ @bracketmun33918
+              </a>
+            </div>
+          </div>
+
+          <span class="footer-sep">·</span>
+
+          <!-- Contacto -->
+          <div class="footer-section">
+            <span class="footer-label">${t('footer.contact')}</span>
+            <a class="footer-email" href="mailto:bracketmundial@gmail.com" aria-label="Email bracketmundial@gmail.com">
+              ✉ bracketmundial@gmail.com
+            </a>
+          </div>
+
+          <span class="footer-copy">© BRACKET MUNDIAL 2026</span>
+        </footer>
       </div>
     `;
   }
