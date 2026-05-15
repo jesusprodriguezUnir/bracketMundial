@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import './bracket-view';
+import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 
@@ -19,79 +20,60 @@ export class AppRoot extends LitElement {
       position: relative;
     }
 
-    /* Topbar multi-bloque varsity retro */
+    /* Topbar oscura retro Panini v2 */
     .topbar {
       display: flex;
       align-items: stretch;
-      border-bottom: 4px solid var(--ink);
-      background: var(--paper-2);
+      border-bottom: 4px solid #1a1933;
+      background: #1a1933;
       position: sticky;
       top: 0;
       z-index: 100;
     }
 
-    /* Bloque wordmark ink */
-    .wordmark {
-      background: var(--ink);
-      color: var(--paper);
-      padding: 14px 22px 12px;
-      border-right: 4px solid var(--ink);
-      flex-shrink: 0;
-    }
-    .wordmark-title {
-      font-family: var(--font-var);
-      font-size: 32px;
-      line-height: 0.9;
-      letter-spacing: -0.02em;
-    }
-    .wordmark-sub {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      color: var(--retro-yellow);
-      margin-top: 3px;
-    }
-
-    /* Bloque stamp edición */
-    .stamp {
-      padding: 12px 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      border-right: 2px solid var(--ink);
-      flex-shrink: 0;
-    }
-    .stamp-label {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .stamp-num {
-      font-family: var(--font-var);
-      font-size: 22px;
-      color: var(--retro-red);
-      line-height: 0.9;
-    }
-
-    /* Country chips */
-    .host-chips {
+    /* Bloque logo lockup: crest + wordmark */
+    .logo-lockup {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 0 18px;
-      border-right: 2px solid var(--ink);
+      gap: 12px;
+      padding: 8px 20px 8px 18px;
+      border-right: 1px solid rgba(236,223,192,0.13);
       flex-shrink: 0;
+      text-decoration: none;
     }
-    .host-chip {
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 0.85;
+    }
+    .logo-main {
+      font-family: var(--font-var);
+      font-size: 26px;
+      color: #ecdfc0;
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      font-family: var(--font-var);
+      font-size: 10px;
+      color: #f0b021;
+      letter-spacing: 0.18em;
+      margin-top: 2px;
+    }
+
+    /* Bloque edición */
+    .edition-badge {
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid rgba(236,223,192,0.13);
       font-family: var(--font-mono);
       font-size: 10px;
-      padding: 4px 8px;
-      border: 2px solid var(--ink);
-      background: var(--retro-yellow);
-      color: var(--ink);
-      letter-spacing: 0.05em;
+      color: rgba(236,223,192,0.6);
+      letter-spacing: 0.2em;
+      flex-shrink: 0;
+    }
+    .edition-badge span {
+      color: #f0b021;
     }
 
     /* Stats en la barra */
@@ -101,7 +83,7 @@ export class AppRoot extends LitElement {
       padding: 0 18px;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: rgba(236,223,192,0.5);
       letter-spacing: 0.1em;
       gap: 16px;
       flex: 1;
@@ -109,10 +91,10 @@ export class AppRoot extends LitElement {
     .stats-played {
       font-family: var(--font-var);
       font-size: 14px;
-      color: var(--ink);
+      color: #ecdfc0;
     }
 
-    /* Acciones (import/export) pegadas a la derecha */
+    /* Acciones pegadas a la derecha */
     .header-actions {
       display: flex;
       align-items: stretch;
@@ -121,26 +103,31 @@ export class AppRoot extends LitElement {
     .header-actions button {
       all: unset;
       cursor: pointer;
-      padding: 0 22px;
+      padding: 0 18px;
       font-family: var(--font-var);
-      font-size: 15px;
+      font-size: 13px;
       letter-spacing: 0.04em;
-      border-left: 2px solid var(--ink);
+      border-left: 1px solid rgba(236,223,192,0.13);
       display: flex;
       align-items: center;
-      color: var(--ink);
+      color: #ecdfc0;
       background: transparent;
       transition: background 0.1s;
     }
     .header-actions button:hover {
-      background: var(--retro-yellow);
+      background: rgba(240,176,33,0.15);
     }
     .header-actions button.primary {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--retro-yellow);
+      color: #1a1933;
+      border: 2px solid #1a1933;
+      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      margin: 8px 12px;
+      padding: 0 14px;
     }
     .header-actions button.primary:hover {
-      background: var(--retro-red);
+      background: var(--retro-orange);
+      color: #ecdfc0;
     }
 
     .content {
@@ -215,20 +202,22 @@ export class AppRoot extends LitElement {
     }
 
     @media (max-width: 768px) {
-      .stamp,
-      .host-chips,
+      .edition-badge,
       .topbar-stats {
         display: none;
       }
       .content {
         padding: 16px 16px;
       }
-      .wordmark-title {
-        font-size: 24px;
+      .logo-main {
+        font-size: 20px;
+      }
+      .logo-sub {
+        font-size: 8px;
       }
       .header-actions button {
-        padding: 0 14px;
-        font-size: 13px;
+        padding: 0 12px;
+        font-size: 11px;
       }
       .site-footer {
         flex-direction: column;
@@ -323,24 +312,17 @@ export class AppRoot extends LitElement {
     return html`
       <div class="shell">
         <header class="topbar">
-          <!-- Wordmark en ink -->
-          <div class="wordmark">
-            <div class="wordmark-title">${t('header.title')}</div>
-            <div class="wordmark-sub">${t('header.subtitle')}</div>
+          <!-- Logo lockup: crest + wordmark -->
+          <div class="logo-lockup">
+            <logo-crest size="44"></logo-crest>
+            <div class="logo-text">
+              <div class="logo-main">BRACKET</div>
+              <div class="logo-sub">★ MUNDIAL · 2026 ★</div>
+            </div>
           </div>
 
-          <!-- Stamp edición -->
-          <div class="stamp">
-            <div class="stamp-label">${t('header.edition')}</div>
-            <div class="stamp-num">XXIII</div>
-          </div>
-
-          <!-- Sedes anfitrionas -->
-          <div class="host-chips">
-            <span class="host-chip">🇲🇽 MEX</span>
-            <span class="host-chip">🇺🇸 USA</span>
-            <span class="host-chip">🇨🇦 CAN</span>
-          </div>
+          <!-- Edición -->
+          <div class="edition-badge"><span>★ </span>EDICIÓN XXIII</div>
 
           <!-- Stats mini -->
           <div class="topbar-stats">
@@ -354,8 +336,8 @@ export class AppRoot extends LitElement {
             <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
-            <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
             <button @click="${this.handleShare}">${t('header.share')}</button>
+            <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
           </div>
         </header>
 

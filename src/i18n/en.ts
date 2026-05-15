@@ -17,6 +17,7 @@ export const en: Record<TranslationKey, string> = {
 
   'tabs.label': 'Tournament phases',
   'tabs.view': 'View {tab}',
+  'tabs.hero': 'Home',
   'tabs.groups': 'Groups',
   'tabs.squads': 'Teams',
   'tabs.calendar': 'Schedule',

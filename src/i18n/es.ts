@@ -17,6 +17,7 @@ export const es = {
   // Tabs
   'tabs.label': 'Fases del torneo',
   'tabs.view': 'Ver {tab}',
+  'tabs.hero': 'Inicio',
   'tabs.groups': 'Grupos',
   'tabs.squads': 'Equipos',
   'tabs.calendar': 'Calendario',
