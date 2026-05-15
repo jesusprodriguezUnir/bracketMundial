@@ -252,6 +252,33 @@ export class CalendarView extends LitElement {
       text-align: center;
     }
 
+    .gcal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      background: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .gcal-btn:hover {
+      background: var(--retro-blue);
+      color: var(--paper);
+    }
+
+    .gcal-btn svg {
+      flex-shrink: 0;
+    }
+
     @media (max-width: 900px) {
       .match-row {
         grid-template-columns: 1fr;
@@ -382,6 +409,23 @@ export class CalendarView extends LitElement {
     }, {});
   }
 
+  private buildGCalUrl(row: CalendarRow): string | null {
+    if (!row.date || !row.timeSpain) return null;
+    const [year, month, day] = row.date.split('-').map(Number);
+    const [hour, minute] = row.timeSpain.split(':').map(Number);
+    // World Cup is during CEST (UTC+2)
+    const startUtc = new Date(Date.UTC(year, month - 1, day, hour - 2, minute));
+    const endUtc = new Date(startUtc.getTime() + 2 * 60 * 60 * 1000);
+    const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const teamAName = this.getTeam(row.teamA)?.name ?? 'Por decidir';
+    const teamBName = this.getTeam(row.teamB)?.name ?? 'Por decidir';
+    const text = encodeURIComponent(`${teamAName} vs ${teamBName} · FIFA Mundial 2026`);
+    const dates = `${fmt(startUtc)}/${fmt(endUtc)}`;
+    const details = encodeURIComponent(`${row.phaseLabel} · ${row.venue}, ${row.city}`);
+    const location = encodeURIComponent(`${row.venue}, ${row.city}`);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+  }
+
   private openMatch(row: CalendarRow) {
     const teamA = row.teamA;
     const teamB = row.teamB;
@@ -485,8 +529,13 @@ export class CalendarView extends LitElement {
               const teamA = this.getTeam(row.teamA);
               const teamB = this.getTeam(row.teamB);
               const clickable = Boolean(row.teamA && row.teamB);
+              const gcalUrl = this.buildGCalUrl(row);
               return html`
-                <button class="match-row ${clickable ? '' : 'disabled'}" ?disabled=${!clickable} @click=${() => this.openMatch(row)}>
+                <div class="match-row ${clickable ? '' : 'disabled'}"
+                     role="button"
+                     tabindex=${clickable ? '0' : '-1'}
+                     @click=${() => { if (clickable) this.openMatch(row); }}
+                     @keydown=${(e: KeyboardEvent) => { if (clickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.openMatch(row); } }}>
                   <div class="time-block">
                     <div class="time">${row.timeSpain || '--:--'}</div>
                     <div class="phase-badge">${row.phaseLabel}</div>
@@ -510,8 +559,25 @@ export class CalendarView extends LitElement {
                   <div class="venue-block">
                     <div class="venue">${row.venue}</div>
                     <div class="city">${row.city}</div>
+                    ${gcalUrl ? html`
+                      <a class="gcal-btn"
+                         href=${gcalUrl}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         @click=${(e: Event) => e.stopPropagation()}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <rect x="3" y="4" width="18" height="18"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/>
+                          <line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                          <line x1="12" y1="14" x2="12" y2="20"/>
+                          <line x1="9" y1="17" x2="15" y2="17"/>
+                        </svg>
+                        Google Calendar
+                      </a>
+                    ` : ''}
                   </div>
-                </button>
+                </div>
               `;
             })}
           </div>
