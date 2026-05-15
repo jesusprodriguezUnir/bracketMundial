@@ -21,7 +21,10 @@
       "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd d:\\\\Personal\\\\bracketMundial; npm run dev\" -WindowStyle Normal)",
       "Bash(Get-Content \"C:\\\\Users\\\\jesus\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Personal-bracketMundial\\\\ac88ef3b-8fb0-41bc-87cc-01b3d68056c9\\\\tasks\\\\bi9avcwbb.output\")",
       "Bash(Select-Object -Last 80)",
-      "Bash(node scripts/generate-news.mjs)"
+      "Bash(node scripts/generate-news.mjs)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "mcp__claude_ai_Vercel__search_vercel_documentation"
     ]
   }
 }
