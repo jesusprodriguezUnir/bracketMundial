@@ -12,7 +12,8 @@
       "WebFetch(domain:www.aljazeera.com)",
       "WebFetch(domain:worldcupwiki.com)",
       "WebFetch(domain:es.wikipedia.org)",
-      "WebFetch(domain:en.wikipedia.org)"
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(npm test *)"
     ]
   }
 }

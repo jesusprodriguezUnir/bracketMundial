@@ -169,6 +169,10 @@ function hydrateGroupMatch(match: GroupMatchResult): GroupMatchResult {
 
   return {
     ...match,
+    teamA: fresh.teamA,
+    teamB: fresh.teamB,
+    group: fresh.group,
+    matchDay: fresh.matchDay,
     date: fresh.date,
     venue: fresh.venue,
     city: fresh.city,

@@ -74,62 +74,27 @@ export const MATCH_DAYS = [
 ];
 
 import { STADIUMS } from './stadiums';
-import { GROUP_SCHEDULE } from './match-schedule';
+import { GROUP_MATCHES } from './match-schedule';
 
 
 export function generateGroupMatches() {
-  const groups = 'ABCDEFGHIJKL'.split('');
-  const matches: Array<{
-    id: string;
-    matchId: string;
-    group: string;
-    teamA: string;
-    teamB: string;
-    matchDay: number;
-    date: string;
-    timeSpain: string;
-    venue: string;
-    city: string;
-    scoreA: number | null;
-    scoreB: number | null;
-  }> = [];
-  groups.forEach((g, gIdx) => {
-    const teams = TEAMS_2026.filter(t => t.group === g).map(t => t.id);
-    const fixtures = [
-      [0, 1], [2, 3], // MD1
-      [0, 2], [1, 3], // MD2
-      [0, 3], [1, 2], // MD3
-    ];
-    fixtures.forEach(([i, j], idx) => {
-      const matchDayIdx = Math.floor(idx / 2);
-      // Formula to map group and matchday to the correct global match ID (M1-M72)
-      // Each matchday has 24 matches (12 groups * 2 matches).
-      // Group A (0) MD1: M1, M2; Group B (1) MD1: M3, M4...
-      const currentMatchIdNum = (matchDayIdx * 24) + (gIdx * 2) + (idx % 2) + 1;
-      const matchId = `M${currentMatchIdNum}`;
-      
-      const scheduled = GROUP_SCHEDULE.find(s => s.matchId === matchId);
-      const stadium = scheduled
-        ? (STADIUMS.find(st => st.id === scheduled.venueId) ?? STADIUMS[0])
-        : STADIUMS[(currentMatchIdNum - 1) % STADIUMS.length];
-
-      matches.push({
-        id: matchId,
-        matchId: matchId,
-        group: g,
-        teamA: teams[i],
-        teamB: teams[j],
-        matchDay: matchDayIdx + 1,
-        date: scheduled?.date ?? MATCH_DAYS[matchDayIdx].date,
-        timeSpain: scheduled?.timeSpain ?? '18:00',
-        venue: stadium.name,
-        city: stadium.city,
-        scoreA: null,
-        scoreB: null,
-      });
-    });
+  return GROUP_MATCHES.map(m => {
+    const stadium = STADIUMS.find(st => st.id === m.venueId) ?? STADIUMS[0];
+    return {
+      id: m.matchId,
+      matchId: m.matchId,
+      group: m.group,
+      teamA: m.teamA,
+      teamB: m.teamB,
+      matchDay: m.matchDay,
+      date: m.date,
+      timeSpain: m.timeSpain,
+      venue: stadium.name,
+      city: stadium.city,
+      scoreA: null as number | null,
+      scoreB: null as number | null,
+    };
   });
-  return matches;
 }
 
 export const KNOCKOUT_BRACKET = {
