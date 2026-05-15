@@ -302,7 +302,7 @@ export class HeroView extends LitElement {
   }
 
   private _goToBracket() {
-    this.dispatchEvent(new CustomEvent('navigate', { detail: 'r32', bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
   }
 
   private _goToGroups() {
