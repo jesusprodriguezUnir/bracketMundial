@@ -1,19 +1,37 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from './store/tournament-store';
-import './components/groups-view';
-import './components/bracket-knockout';
+// Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
 import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
-import './components/stadiums-view';
-import './components/squads-view';
-import './components/calendar-view';
 import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
 type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
+
+// Mapa de vista → módulo lazy
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums';
+
+const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
+  groups:   () => import('./components/groups-view'),
+  knockout: () => import('./components/bracket-knockout'),
+  squads:   () => import('./components/squads-view'),
+  calendar: () => import('./components/calendar-view'),
+  stadiums: () => import('./components/stadiums-view'),
+};
+
+/** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
+function tabToView(tab: PhaseTab): LazyView | null {
+  if (tab === 'hero') return null;
+  if (tab === 'groups') return 'groups';
+  if (tab === 'squads') return 'squads';
+  if (tab === 'calendar') return 'calendar';
+  if (tab === 'stadiums') return 'stadiums';
+  // Todas las fases del knockout necesitan bracket-knockout
+  return 'knockout';
+}
 
 const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   hero:     'tabs.hero',
@@ -31,6 +49,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
 @customElement('bracket-view')
 export class BracketView extends LitElement {
   @state() private _activeTab: PhaseTab = 'hero';
+  @state() private _loadedViews = new Set<LazyView>();
 
   private unsubscribeStore?: () => void;
 
@@ -139,6 +158,8 @@ export class BracketView extends LitElement {
     super.connectedCallback();
     this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    // Pre-cargar groups en idle (el tab más visitado tras hero)
+    this._ensureView('groups');
   }
 
   disconnectedCallback() {
@@ -147,7 +168,19 @@ export class BracketView extends LitElement {
     super.disconnectedCallback();
   }
 
-  private _selectTab(tab: PhaseTab) {
+  /** Carga el módulo de una vista si aún no se cargó */
+  private async _ensureView(view: LazyView): Promise<void> {
+    if (this._loadedViews.has(view)) return;
+    await VIEW_IMPORTS[view]();
+    // Mutar una copia del Set para disparar @state reactivo
+    this._loadedViews = new Set([...this._loadedViews, view]);
+  }
+
+  private async _selectTab(tab: PhaseTab) {
+    const view = tabToView(tab);
+    if (view) {
+      await this._ensureView(view);
+    }
     this._activeTab = tab;
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
@@ -193,6 +226,8 @@ export class BracketView extends LitElement {
   render() {
     const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
     const at = this._activeTab;
+    const loaded = this._loadedViews;
+    const isKnockoutTab = at === 'r32' || at === 'r16' || at === 'qf' || at === 'sf' || at === 'final';
 
     return html`
       <div @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
@@ -213,63 +248,76 @@ export class BracketView extends LitElement {
           ${at === 'hero' ? html`<hero-view></hero-view>` : ''}
         </div>
 
-        <!-- Fase de Grupos -->
+        <!-- Fase de Grupos (lazy) -->
         <div
           id="section-groups"
           class="section-groups ${at === 'groups' ? 'visible' : ''}">
-          <div class="section-heading">
-            <div class="section-eyebrow">${t('section.groups.eyebrow')}</div>
-            <div class="section-title">${t('section.groups.title')}</div>
-          </div>
-          <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
+          ${at === 'groups' && loaded.has('groups') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.groups.eyebrow')}</div>
+              <div class="section-title">${t('section.groups.title')}</div>
+            </div>
+            <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
+          ` : ''}
         </div>
 
+        <!-- Equipos (lazy) -->
         <div id="section-squads" class="section-squads ${at === 'squads' ? 'visible' : ''}">
-          <div class="section-heading">
-            <div class="section-eyebrow">${t('section.squads.eyebrow')}</div>
-            <div class="section-title">${t('section.squads.title')}</div>
-          </div>
-          <squads-view></squads-view>
+          ${at === 'squads' && loaded.has('squads') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.squads.eyebrow')}</div>
+              <div class="section-title">${t('section.squads.title')}</div>
+            </div>
+            <squads-view></squads-view>
+          ` : ''}
         </div>
 
+        <!-- Calendario (lazy) -->
         <div id="section-calendar" class="section-calendar ${at === 'calendar' ? 'visible' : ''}">
-          <div class="section-heading">
-            <div class="section-eyebrow">${t('section.calendar.eyebrow')}</div>
-            <div class="section-title">${t('section.calendar.title')}</div>
-          </div>
-          <calendar-view></calendar-view>
+          ${at === 'calendar' && loaded.has('calendar') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.calendar.eyebrow')}</div>
+              <div class="section-title">${t('section.calendar.title')}</div>
+            </div>
+            <calendar-view></calendar-view>
+          ` : ''}
         </div>
 
-        <!-- Eliminatorias -->
-        <div class="knockout-sections ${at !== 'groups' && at !== 'squads' && at !== 'calendar' && at !== 'stadiums' ? 'visible' : ''}">
+        <!-- Eliminatorias (lazy) -->
+        <div class="knockout-sections ${isKnockoutTab && at !== 'hero' ? 'visible' : ''}">
           ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
             <div
               id="section-knockout-${phase}"
               class="knockout-section ${at === phase ? 'visible' : ''}">
             </div>
           `)}
-          <div
-            id="section-knockout-bracket"
-            class="knockout-section ${at !== 'groups' && at !== 'squads' && at !== 'calendar' && at !== 'stadiums' ? 'visible' : ''}">
-            <div class="section-heading knockout">
-              <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
-              <div class="section-title">${t('section.knockout.title')}</div>
+          ${isKnockoutTab && loaded.has('knockout') ? html`
+            <div
+              id="section-knockout-bracket"
+              class="knockout-section visible">
+              <div class="section-heading knockout">
+                <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
+                <div class="section-title">${t('section.knockout.title')}</div>
+              </div>
+              <bracket-knockout></bracket-knockout>
             </div>
-            <bracket-knockout></bracket-knockout>
-          </div>
+          ` : ''}
         </div>
 
-        <!-- Vista de Estadios -->
+        <!-- Vista de Estadios (lazy) -->
         <div
           id="section-stadiums"
           class="section-stadiums ${at === 'stadiums' ? 'visible' : ''}">
-          <div class="section-heading">
-            <div class="section-eyebrow">${t('section.stadiums.eyebrow')}</div>
-            <div class="section-title">${t('section.stadiums.title')}</div>
-          </div>
-          <stadiums-view></stadiums-view>
+          ${at === 'stadiums' && loaded.has('stadiums') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.stadiums.eyebrow')}</div>
+              <div class="section-title">${t('section.stadiums.title')}</div>
+            </div>
+            <stadiums-view></stadiums-view>
+          ` : ''}
         </div>
       </div>
     `;
   }
 }
+
