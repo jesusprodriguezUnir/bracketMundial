@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Dion Drena Beljo', position: 'FW', age: 24, club: 'Augsburgo' },
   { number: 22, name: 'Josip Brekalo', position: 'FW', age: 28, club: 'Fiorentina' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 6, 4, 3, 10, 8, 15, 7, 9, 11]
+};

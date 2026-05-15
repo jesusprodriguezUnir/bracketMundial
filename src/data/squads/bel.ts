@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 14, name: 'Dodi Lukébakio', position: 'FW', age: 29, club: 'Sevilla' },
   { number: 20, name: 'Malick Fofana', position: 'FW', age: 21, club: 'Lyon' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 21, 3, 6, 14, 8, 10, 9, 11]
+};

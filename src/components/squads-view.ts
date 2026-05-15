@@ -3,12 +3,13 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
-import { getSquad, SQUADS, isOfficialSquad } from '../data/squads';
+import { getSquad, getLineup, SQUADS, isOfficialSquad } from '../data/squads';
 import type { Player } from '../data/squads';
 import { renderFlag } from '../lib/render-flag';
 import { formatShortDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
 import '../components/player-card';
+import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
 
 function normalize(str: string): string {
@@ -37,6 +38,7 @@ export class SquadsView extends LitElement {
 
   @state() private selectedTeamId: string | null = null;
   @state() private activeTab: 'squad' | 'matches' | 'venues' = 'squad';
+  @state() private squadViewMode: 'list' | 'pitch' = 'list';
   @state() private searchQuery = '';
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
 
@@ -254,7 +256,41 @@ export class SquadsView extends LitElement {
       font-family: var(--font-var);
       font-size: 22px;
       color: var(--ink);
+    }
+
+    .panel-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 12px;
+    }
+
+    .view-toggle {
+      display: flex;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: var(--shadow-hard-sm);
+    }
+
+    .view-toggle button {
+      all: unset;
+      cursor: pointer;
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .view-toggle button.active {
+      background: var(--retro-yellow);
+      color: var(--ink);
+      font-weight: bold;
+    }
+
+    .view-toggle button:first-child {
+      border-right: 2px solid var(--ink);
     }
 
     .table-wrap {
@@ -643,9 +679,21 @@ export class SquadsView extends LitElement {
 
         <div class="detail-grid">
           <div class="panel-block ${this.activeTab !== 'squad' ? 'tab-hidden' : ''}">
-            <div class="panel-title">Plantilla</div>
-            <div class="table-wrap">
-              <table>
+            <div class="panel-header-row">
+              <div class="panel-title">Plantilla</div>
+              ${getLineup(selectedTeam.id) ? html`
+                <div class="view-toggle">
+                  <button class=${this.squadViewMode === 'list' ? 'active' : ''} @click=${() => { this.squadViewMode = 'list'; }}>Lista</button>
+                  <button class=${this.squadViewMode === 'pitch' ? 'active' : ''} @click=${() => { this.squadViewMode = 'pitch'; }}>Cancha</button>
+                </div>
+              ` : ''}
+            </div>
+            
+            ${this.squadViewMode === 'pitch' && getLineup(selectedTeam.id) ? html`
+              <lineup-view .squad=${squad} .lineup=${getLineup(selectedTeam.id)}></lineup-view>
+            ` : html`
+              <div class="table-wrap">
+                <table>
                 <thead>
                   <tr>
                     <th></th>
@@ -676,6 +724,7 @@ export class SquadsView extends LitElement {
                 </tbody>
               </table>
             </div>
+            `}
           </div>
 
           <div class="panel-block ${this.activeTab !== 'matches' ? 'tab-hidden' : ''}">

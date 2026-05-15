@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 20, name: 'Mikel Oyarzabal', position: 'FW', age: 29, club: 'Real Sociedad' },
   { number: 21, name: 'Ayoze Pérez', position: 'FW', age: 32, club: 'Villarreal' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 5, 14, 3, 6, 8, 15, 7, 9, 11]
+};

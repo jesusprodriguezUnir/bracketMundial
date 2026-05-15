@@ -27,3 +27,8 @@ export const squad: Player[] = [
   { number: 25, name: 'Gustaf Nilsson', position: 'FW', age: 27, club: 'Club Brugge' },
   { number: 26, name: 'Taha Ali', position: 'FW', age: 23, club: 'Malmö FF' },
 ];
+
+export const lineup = {
+  formation: '4-4-2',
+  startingXI: [12, 7, 2, 3, 5, 22, 8, 13, 19, 9, 21]
+};

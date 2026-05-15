@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Jarrod Bowen', position: 'FW', age: 29, club: 'West Ham' },
   { number: 22, name: 'Ollie Watkins', position: 'FW', age: 31, club: 'Aston Villa' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 3, 8, 18, 7, 10, 11, 9]
+};

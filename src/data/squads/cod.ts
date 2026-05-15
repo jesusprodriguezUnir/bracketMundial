@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Jordan Botaka', position: 'FW', age: 32, club: 'Sint-Truiden' },
   { number: 22, name: 'Ngalayel Mukau', position: 'FW', age: 21, club: 'Lille' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 3, 6, 16, 18, 10, 17, 9]
+};

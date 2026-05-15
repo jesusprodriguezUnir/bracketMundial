@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Baris Alper Yilmaz',     position: 'FW', age: 25, club: 'Galatasaray' },
   { number: 21, name: 'Ozan Kabak',             position: 'DF', age: 26, club: 'Hoffenheim' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 5, 15, 3, 6, 10, 18, 16, 17, 20]
+};
+

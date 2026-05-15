@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Jan Střelec',            position: 'FW', age: 24, club: 'Club Brugge' },
   { number: 24, name: 'Pavel Šulc',             position: 'MF', age: 25, club: 'Plzeň' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 4, 5, 20, 6, 8, 11, 7, 9, 10]
+};
+

@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Juan Fernando Quintero', position: 'FW', age: 33, club: 'Racing Club' },
   { number: 22, name: 'Marino Hinestroza', position: 'FW', age: 23, club: 'Atlético Nacional' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 3, 4, 15, 6, 8, 10, 16, 11, 7]
+};

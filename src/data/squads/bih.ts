@@ -26,3 +26,8 @@ export const squad: Player[] = [
   { number: 23, name: 'Haris Tabaković', position: 'FW', age: 26, club: 'Borussia Mönchengladbach' },
   { number: 25, name: 'Jovo Lukić', position: 'FW', age: 24, club: 'Universitatea Cluj' },
 ];
+
+export const lineup = {
+  formation: '4-4-2',
+  startingXI: [1, 15, 4, 5, 2, 8, 6, 10, 14, 7, 9]
+};

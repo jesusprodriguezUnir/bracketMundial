@@ -23,3 +23,8 @@ export const squad: Player[] = [
   { number: 22, name: 'Mohamed Ali Ben Romdhane', position: 'FW', age: 25, club: 'Espérance Tunis' },
   { number: 24, name: 'Ghailene Chaalali',      position: 'MF', age: 27, club: 'Espérance Tunis' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 6, 3, 4, 2, 14, 8, 10, 7, 9, 11]
+};

@@ -26,3 +26,8 @@ export const squad: Player[] = [
   { number: 24, name: 'Estêvão',                position: 'FW', age: 18, club: 'Palmeiras' },
   { number: 25, name: 'Savinho',                position: 'FW', age: 21, club: 'Manchester City' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 6, 3, 8, 16, 20, 11, 10, 17]
+};

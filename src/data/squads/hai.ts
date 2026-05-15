@@ -23,3 +23,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Kervens Belfort',        position: 'FW', age: 34, club: 'FC Dallas', captain: true },
   { number: 24, name: 'Adekel Calixte',         position: 'MF', age: 23, club: 'Rayo Vallecano' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 3, 2, 14, 5, 10, 6, 17, 11, 16, 21]
+};

@@ -23,3 +23,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Yousuf Abdurisag',       position: 'FW', age: 24, club: 'Al Rayyan' },
   { number: 24, name: 'Yosef Hassan',           position: 'FW', age: 22, club: 'Al Khor' },
 ];
+
+export const lineup = {
+  formation: '5-3-2',
+  startingXI: [1, 2, 3, 4, 5, 14, 8, 6, 10, 7, 9]
+};
+

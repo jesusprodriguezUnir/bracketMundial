@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Mohammad Abu Zrayq', position: 'FW', age: 28, club: 'Al-Ahli' },
   { number: 22, name: 'Sharara', position: 'FW', age: 27, club: 'Al-Faisaly' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 3, 4, 13, 8, 6, 16, 10, 18, 7]
+};

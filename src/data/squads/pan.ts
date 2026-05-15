@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Freddy Góndola', position: 'FW', age: 30, club: 'McAllen Toros' },
   { number: 22, name: 'Kahiser Lenis', position: 'FW', age: 24, club: 'Jaguares de Córdoba' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 4, 5, 13, 6, 16, 10, 7, 9, 11]
+};

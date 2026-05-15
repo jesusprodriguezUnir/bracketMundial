@@ -23,3 +23,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Willy Boly',             position: 'DF', age: 33, club: 'Nottingham Forest' },
   { number: 22, name: 'Simon Adingra',          position: 'FW', age: 23, club: 'Brighton' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 2, 5, 21, 3, 10, 8, 14, 7, 9, 22]
+};
+

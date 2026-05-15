@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Mostafa Shalaby', position: 'FW', age: 31, club: 'Zamalek' },
   { number: 22, name: 'Mohamed Sherif', position: 'FW', age: 30, club: 'Al Khaleej' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 5, 4, 3, 6, 7, 13, 17, 10, 9, 11]
+};

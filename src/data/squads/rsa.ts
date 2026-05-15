@@ -24,3 +24,9 @@ export const squad: Player[] = [
   { number: 21, name: 'Siyethemba Sithebe',     position: 'FW', age: 30, club: 'AmaZulu' },
   { number: 22, name: 'Lebo Mothiba',           position: 'FW', age: 30, club: 'Strasbourg' },
 ];
+
+export const lineup = {
+  formation: '4-2-3-1',
+  startingXI: [1, 2, 5, 6, 12, 8, 14, 7, 10, 11, 9]
+};
+

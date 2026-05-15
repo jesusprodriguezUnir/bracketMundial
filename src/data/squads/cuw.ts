@@ -23,3 +23,9 @@ export const squad: Player[] = [
   { number: 20, name: 'Bobby Petta',            position: 'FW', age: 27, club: 'AZ Alkmaar' },
   { number: 21, name: 'Myron Boadu',            position: 'FW', age: 24, club: 'Monaco' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 5, 4, 17, 13, 6, 14, 16, 18, 21, 9]
+};
+

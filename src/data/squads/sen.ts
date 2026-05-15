@@ -24,3 +24,8 @@ export const squad: Player[] = [
   { number: 21, name: 'Habib Diallo', position: 'FW', age: 31, club: 'Al-Shabab' },
   { number: 22, name: 'Abdallah Sima', position: 'FW', age: 25, club: 'Brest' },
 ];
+
+export const lineup = {
+  formation: '4-3-3',
+  startingXI: [1, 15, 3, 4, 5, 8, 10, 18, 7, 19, 11]
+};
