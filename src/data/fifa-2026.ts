@@ -93,25 +93,29 @@ export function generateGroupMatches() {
     scoreA: number | null;
     scoreB: number | null;
   }> = [];
-  let mId = 1;
-
-  for (const g of groups) {
+  groups.forEach((g, gIdx) => {
     const teams = TEAMS_2026.filter(t => t.group === g).map(t => t.id);
     const fixtures = [
-      [0, 1], [2, 3],
-      [0, 2], [1, 3],
-      [0, 3], [1, 2],
+      [0, 1], [2, 3], // MD1
+      [0, 2], [1, 3], // MD2
+      [0, 3], [1, 2], // MD3
     ];
     fixtures.forEach(([i, j], idx) => {
       const matchDayIdx = Math.floor(idx / 2);
-      const scheduled = GROUP_SCHEDULE.find(s => s.matchId === `M${mId}`);
+      // Formula to map group and matchday to the correct global match ID (M1-M72)
+      // Each matchday has 24 matches (12 groups * 2 matches).
+      // Group A (0) MD1: M1, M2; Group B (1) MD1: M3, M4...
+      const currentMatchIdNum = (matchDayIdx * 24) + (gIdx * 2) + (idx % 2) + 1;
+      const matchId = `M${currentMatchIdNum}`;
+      
+      const scheduled = GROUP_SCHEDULE.find(s => s.matchId === matchId);
       const stadium = scheduled
         ? (STADIUMS.find(st => st.id === scheduled.venueId) ?? STADIUMS[0])
-        : STADIUMS[(mId - 1) % STADIUMS.length];
+        : STADIUMS[(currentMatchIdNum - 1) % STADIUMS.length];
 
       matches.push({
-        id: `M${mId}`,
-        matchId: `M${mId++}`,
+        id: matchId,
+        matchId: matchId,
         group: g,
         teamA: teams[i],
         teamB: teams[j],
@@ -124,7 +128,7 @@ export function generateGroupMatches() {
         scoreB: null,
       });
     });
-  }
+  });
   return matches;
 }
 

@@ -120,10 +120,10 @@ function createMatchState(
     penaltyScoreB: teamsChanged ? null : existing?.penaltyScoreB ?? null,
     winnerId: teamsChanged ? null : existing?.winnerId ?? null,
     isPlayed: teamsChanged ? false : existing?.isPlayed ?? false,
-    venue: existing?.venue ?? scheduled?.venue,
-    city: existing?.city ?? scheduled?.city,
-    timeSpain: existing?.timeSpain ?? scheduled?.timeSpain,
-    date: existing?.date ?? scheduled?.date,
+    venue: scheduled?.venue ?? existing?.venue,
+    city: scheduled?.city ?? existing?.city,
+    timeSpain: scheduled?.timeSpain ?? existing?.timeSpain,
+    date: scheduled?.date ?? existing?.date,
   };
 }
 

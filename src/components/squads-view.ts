@@ -4,6 +4,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { getSquad } from '../data/squads';
 import { renderFlag } from '../lib/render-flag';
+import { formatShortDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
 
 interface TeamMatchSummary {
@@ -336,7 +337,7 @@ export class SquadsView extends LitElement {
       }));
 
     const knockoutMatches = Object.values(store.knockoutMatches)
-      .filter(match => match.teamA === teamId || match.teamB === teamId)
+      .filter(match => match.isPlayed && (match.teamA === teamId || match.teamB === teamId))
       .map(match => ({
         id: match.matchId,
         phase: this.labelKnockout(match.matchId),
@@ -348,7 +349,9 @@ export class SquadsView extends LitElement {
       }));
 
     return [...groupMatches, ...knockoutMatches].sort((left, right) => {
-      return `${left.date}T${left.timeSpain}`.localeCompare(`${right.date}T${right.timeSpain}`);
+      const leftKey = `${left.date || '9999-12-31'}T${left.timeSpain || '23:59'}`;
+      const rightKey = `${right.date || '9999-12-31'}T${right.timeSpain || '23:59'}`;
+      return leftKey.localeCompare(rightKey);
     });
   }
 
@@ -363,10 +366,7 @@ export class SquadsView extends LitElement {
 
   private formatDate(date: string, timeSpain: string) {
     if (!date) return 'Fecha por confirmar';
-    const base = new Intl.DateTimeFormat('es-ES', {
-      day: 'numeric',
-      month: 'short',
-    }).format(new Date(`${date}T00:00:00`));
+    const base = formatShortDate(date);
     return `${base} · ${timeSpain || '--:--'} ESP`;
   }
 
