@@ -9,7 +9,7 @@ const SQUADS_DIR = join(ROOT, 'src', 'data', 'squads');
 const PUBLIC_PLAYERS = join(ROOT, 'public', 'players');
 const MANIFEST_PATH = join(ROOT, 'src', 'data', 'player-photos.ts');
 const API_BASE = 'https://www.thesportsdb.com/api/v1/json/3';
-const THROTTLE_MS = 3000;
+const THROTTLE_MS = 1500;
 
 let lastReq = 0;
 async function throttle() {
