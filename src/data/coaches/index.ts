@@ -310,7 +310,7 @@ export const COACHES: Record<string, Coach> = {
     name: 'Luis de la Fuente',
     born: '1961-04-21',
     nationality: 'España',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Luis_de_la_Fuente_2023.jpg/400px-Luis_de_la_Fuente_2023.jpg',
+    photoUrl: 'https://www.thesportsdb.com/images/media/player/thumb/p10z0k1694605417.jpg',
     bio: {
       es: 'Riojano que forjó su talento en las categorías inferiores de la RFEF, ganando tres Eurocopas sub-21. Coronó su trayectoria ganando la Eurocopa 2024 con la selección absoluta.',
       en: 'From La Rioja, he honed his talent in Spanish youth football, winning three U-21 European Championships. He crowned his career by winning Euro 2024 with the senior national team.',
