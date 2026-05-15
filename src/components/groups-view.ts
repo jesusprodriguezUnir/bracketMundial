@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
+import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { formatShortDate } from '../lib/date-utils';
@@ -345,7 +346,12 @@ export class GroupsView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      s => ({ gm: s.groupMatches, gs: s.groupStandings }),
+      () => this.requestUpdate(),
+      (a, b) => a.gm === b.gm && a.gs === b.gs,
+    );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
@@ -400,7 +406,14 @@ export class GroupsView extends LitElement {
       <div class="groups-grid">
         ${groups.map((g, gIdx) => {
           const standings = store.groupStandings[g] || [];
-          const matches = store.groupMatches.filter(m => m.group === g);
+          const matches = store.groupMatches
+            .filter(m => m.group === g)
+            .sort((a, b) => {
+              const da = a.date ?? '';
+              const db = b.date ?? '';
+              if (da !== db) return da < db ? -1 : 1;
+              return (a.matchDay ?? 0) - (b.matchDay ?? 0);
+            });
           const playedCount = matches.filter(m => m.scoreA !== null).length;
           const accentColor = GROUP_COLORS[gIdx % 4];
 
