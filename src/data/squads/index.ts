@@ -132,6 +132,6 @@ export const LINEUPS: Record<string, Lineup> = {
 export const getSquad = (teamId: string): Player[] => SQUADS[teamId] ?? [];
 export const getLineup = (teamId: string): Lineup | null => LINEUPS[teamId] ?? null;
 
-export const OFFICIAL_SQUADS: string[] = ['BIH', 'SWE', 'FRA', 'NZL', 'JPN', 'BEL', 'HAI', 'ENG'];
+export const OFFICIAL_SQUADS: string[] = ['BIH', 'SWE', 'FRA', 'NZL', 'JPN', 'BEL', 'HAI', 'ENG', 'CZE'];
 
 export const isOfficialSquad = (teamId: string): boolean => OFFICIAL_SQUADS.includes(teamId);
