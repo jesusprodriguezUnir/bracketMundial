@@ -72,3 +72,7 @@ export const SQUADS: Record<string, Player[]> = {
 };
 
 export const getSquad = (teamId: string): Player[] => SQUADS[teamId] ?? [];
+
+export const OFFICIAL_SQUADS: string[] = ['BIH', 'SWE', 'FRA', 'NZL'];
+
+export const isOfficialSquad = (teamId: string): boolean => OFFICIAL_SQUADS.includes(teamId);

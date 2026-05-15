@@ -554,7 +554,6 @@ export class MatchModal extends LitElement {
       && this._scoreA === this._scoreB;
     const penaltiesAreValid = !isDraw || (hasCompletePenalties && this._penaltyScoreA !== this._penaltyScoreB);
     const canSave = hasCompleteScore && penaltiesAreValid;
-    const isPlayed = this.initialScoreA !== null || this.initialScoreB !== null;
     const groupLetter = tA?.group ?? '?';
     const phaseLabel = this.phase === 'group'
       ? `GRUPO ${groupLetter}`

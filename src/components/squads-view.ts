@@ -2,14 +2,22 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
-import { STADIUMS, type Stadium } from '../data/stadiums';
+import { STADIUMS } from '../data/stadiums';
 import { getSquad, SQUADS } from '../data/squads';
+import type { Player } from '../data/squads';
 import { renderFlag } from '../lib/render-flag';
 import { formatShortDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
+import '../components/player-card';
 
 function normalize(str: string): string {
   return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 interface TeamMatchSummary {
@@ -29,6 +37,7 @@ export class SquadsView extends LitElement {
   @state() private selectedTeamId: string | null = null;
   @state() private activeTab: 'squad' | 'matches' | 'venues' = 'squad';
   @state() private searchQuery = '';
+  @state() private _openPlayer: { player: Player; teamId: string } | null = null;
 
   private unsubscribeStore?: () => void;
 
@@ -277,6 +286,31 @@ export class SquadsView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.06em;
       margin-left: 6px;
+    }
+
+    .player-row {
+      cursor: pointer;
+    }
+
+    .player-row:hover td {
+      background: var(--retro-yellow);
+    }
+
+    .player-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+      background: var(--retro-blue);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: 0;
     }
 
     .matches-list,
@@ -552,6 +586,7 @@ export class SquadsView extends LitElement {
     }
 
     const squad = getSquad(selectedTeam.id);
+    const isOfficial = isOfficialSquad(selectedTeam.id);
     const teamMatches = this.getTeamMatches(selectedTeam.id);
     const venueMap = teamMatches.reduce<Map<string, (typeof STADIUMS)[number]>>((map, match) => {
       const stadium = STADIUMS.find(item => item.name === match.venue);
@@ -560,6 +595,14 @@ export class SquadsView extends LitElement {
     }, new Map());
 
     return html`
+      ${this._openPlayer ? html`
+        <player-card
+          .player=${this._openPlayer.player}
+          .teamId=${this._openPlayer.teamId}
+          @close=${() => { this._openPlayer = null; }}
+        ></player-card>
+      ` : ''}
+
       <button class="back-btn" @click=${() => this.goBack()}>← Volver a equipos</button>
 
       <section class="detail-panel">
@@ -583,6 +626,7 @@ export class SquadsView extends LitElement {
               <table>
                 <thead>
                   <tr>
+                    <th></th>
                     <th>#</th>
                     <th>Jugador</th>
                     <th>Pos</th>
@@ -592,7 +636,11 @@ export class SquadsView extends LitElement {
                 </thead>
                 <tbody>
                   ${squad.map(player => html`
-                    <tr>
+                    <tr
+                      class="player-row"
+                      @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
+                    >
+                      <td><div class="player-avatar">${getInitials(player.name)}</div></td>
                       <td>${player.number}</td>
                       <td>
                         ${player.name}
