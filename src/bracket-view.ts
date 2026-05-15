@@ -51,7 +51,6 @@ export class BracketView extends LitElement {
   @state() private _activeTab: PhaseTab = 'hero';
   @state() private _loadedViews = new Set<LazyView>();
 
-  private unsubscribeStore?: () => void;
 
   static readonly styles = css`
     :host { display: block; }
@@ -156,14 +155,13 @@ export class BracketView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    // bracket-view no necesita reaccionar al store — usa getState() imperativo en openMatchFromGroups
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     // Pre-cargar groups en idle (el tab más visitado tras hero)
     this._ensureView('groups');
   }
 
   disconnectedCallback() {
-    this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
     super.disconnectedCallback();
   }

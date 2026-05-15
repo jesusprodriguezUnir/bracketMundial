@@ -3,6 +3,7 @@ import { customElement } from 'lit/decorators.js';
 import './bracket-view';
 import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
+import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 
 @customElement('app-root')
@@ -267,7 +268,15 @@ export class AppRoot extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      s => {
+        const gp = s.groupMatches.filter(m => m.scoreA !== null).length;
+        const kp = Object.values(s.knockoutMatches).filter(m => m.isPlayed).length;
+        return gp + kp;
+      },
+      () => this.requestUpdate(),
+    );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._loadSharedBracketIfPresent();
   }

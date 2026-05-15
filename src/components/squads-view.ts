@@ -13,6 +13,7 @@ import { formatShortDate, isMatchPending, coachAge } from '../lib/date-utils';
 import { getTeamNews } from '../lib/news-service';
 import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
+import { subscribeSlice } from '../store/store-utils';
 import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
 import '../components/player-card';
 import '../components/lineup-view';
@@ -728,7 +729,11 @@ export class SquadsView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      s => s.groupStandings,
+      () => this.requestUpdate(),
+    );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 

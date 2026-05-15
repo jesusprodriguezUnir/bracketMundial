@@ -6,6 +6,7 @@ import { STADIUMS } from '../data/stadiums';
 import { renderFlag } from '../lib/render-flag';
 import { formatFullDate } from '../lib/date-utils';
 import { useTournamentStore } from '../store/tournament-store';
+import { subscribeSlice } from '../store/store-utils';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 import { t, useLocaleStore } from '../i18n';
@@ -296,7 +297,12 @@ export class CalendarView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      s => ({ gm: s.groupMatches, km: s.knockoutMatches }),
+      () => this.requestUpdate(),
+      (a, b) => a.gm === b.gm && a.km === b.km,
+    );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 

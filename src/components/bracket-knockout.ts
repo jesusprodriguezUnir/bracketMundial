@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
+import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import type { MatchModal } from './match-modal';
 import './match-modal';
@@ -261,7 +262,11 @@ export class BracketKnockout extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = useTournamentStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      s => s.knockoutMatches,
+      () => this.requestUpdate(),
+    );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
