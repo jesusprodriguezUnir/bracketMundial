@@ -201,6 +201,7 @@ export class ShareModal extends LitElement {
     .btn-share.whatsapp   { background: #25d366; color: #fff; }
     .btn-share.facebook   { background: #1877f2; color: #fff; }
     .btn-share.instagram  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); color: #fff; }
+    .btn-share.tiktok     { background: #000000; color: #fff; }
     .btn-share.copied   { background: var(--retro-green); color: var(--paper); }
     .btn-share:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -300,6 +301,12 @@ export class ShareModal extends LitElement {
     if (!this._blob) return;
     const result = await shareToInstagram(this._blob, this._shareText);
     if (result === 'downloaded') this._igDownloaded = true;
+  }
+
+  private async _tiktok() {
+    if (!this._blob) return;
+    downloadBlob(this._blob, 'bracket-mundial-2026.png');
+    this._igDownloaded = true; // Reutilizamos el flag de descarga para mostrar el hint
   }
 
   private async _copyText() {
@@ -409,6 +416,9 @@ export class ShareModal extends LitElement {
           </button>
           <button class="btn-share instagram" ?disabled="${!isReady}" @click="${this._instagram}" aria-label="${t('share.instagramLabel')}">
             ${t('share.instagram')}
+          </button>
+          <button class="btn-share tiktok" ?disabled="${!isReady}" @click="${this._tiktok}" aria-label="${t('share.tiktokLabel')}">
+            ${t('share.tiktok')}
           </button>
         </div>
 

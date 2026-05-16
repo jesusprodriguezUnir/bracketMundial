@@ -464,10 +464,10 @@ export class AppRoot extends LitElement {
                 𝕏 @bracketmundial
               </a>
               <a href="https://www.tiktok.com/@bracketmundial" target="_blank" rel="noopener noreferrer" aria-label="TikTok @bracketmundial">
-                ▶ @bracketmundial
+                🎬 @bracketmundial
               </a>
               <a href="https://www.instagram.com/bracketmundial/" target="_blank" rel="noopener noreferrer" aria-label="Instagram @bracketmundial">
-                ◈ @bracketmundial
+                📸 @bracketmundial
               </a>
             </div>
           </div>

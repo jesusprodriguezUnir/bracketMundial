@@ -134,6 +134,8 @@ export const en: Record<TranslationKey, string> = {
   'share.igHint': '📸 Instagram cannot be posted from the web: use the Instagram button (mobile) or download the PNG.',
   'share.instagram': '📸 INSTAGRAM',
   'share.instagramLabel': 'Share on Instagram',
+  'share.tiktok': '▶ TIKTOK',
+  'share.tiktokLabel': 'Share on TikTok',
   'share.igDownloaded': '✓ Image downloaded. Open the Instagram app and post it as a story or feed post.',
   'share.closeLabel': 'Close',
   'share.nativeShareLabel': 'Share with system app',
