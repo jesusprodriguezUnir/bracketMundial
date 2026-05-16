@@ -1,0 +1,5 @@
+{
+  "name": "social-media-video",
+  "description": "Graba videos demos de la app para redes sociales (Instagram, TikTok, Facebook, Twitter/X)",
+  "triggers": ["graba un video", "video demo", "video para instagram", "video para tiktok", "social media video", "make a video"]
+}

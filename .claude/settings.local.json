@@ -54,7 +54,8 @@
       "Bash(cat capacitor.config.json)",
       "Bash(node -e ' *)",
       "Bash(git checkout *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(gh pr create --title 'feat: friend leagues system \\(Phase 2\\)' --body ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"
