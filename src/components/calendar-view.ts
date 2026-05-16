@@ -31,7 +31,7 @@ interface CalendarRow {
   penaltyScoreB: number | null;
 }
 
-const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: string }> = [
+const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: TranslationKey }> = [
   { key: 'R32', i18nKey: 'calendar.r32' },
   { key: 'R16', i18nKey: 'calendar.r16' },
   { key: 'QF',  i18nKey: 'calendar.qf' },

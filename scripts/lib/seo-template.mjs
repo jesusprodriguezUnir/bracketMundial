@@ -1,6 +1,6 @@
-// Plantilla HTML compartida para las páginas estáticas prerenderizadas.
+﻿// Plantilla HTML compartida para las pÃ¡ginas estÃ¡ticas prerenderizadas.
 // El <head> replica el de index.html (GTM, fuentes, AdSense, PWA) para
-// mantener consistencia; sólo se parametriza lo específico de cada página.
+// mantener consistencia; sÃ³lo se parametriza lo especÃ­fico de cada pÃ¡gina.
 
 import { OG_IMAGE } from './seo-i18n.mjs';
 
@@ -9,7 +9,7 @@ import { OG_IMAGE } from './seo-i18n.mjs';
  * @param {'es'|'en'} p.lang
  * @param {string} p.title
  * @param {string} p.description
- * @param {string} p.canonical       URL absoluta canónica de esta página
+ * @param {string} p.canonical       URL absoluta canÃ³nica de esta pÃ¡gina
  * @param {string} p.altEs           URL absoluta equivalente en ES
  * @param {string} p.altEn           URL absoluta equivalente en EN
  * @param {string} p.keywords
@@ -30,7 +30,7 @@ export function renderPage(p) {
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-PLZWJLCM');</script>
+    })(window,document,'script','dataLayer','GTM-NL5BC7FG');</script>
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -68,7 +68,7 @@ ${JSON.stringify(jsonLd, null, 2)}
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PLZWJLCM"
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NL5BC7FG"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div id="root">

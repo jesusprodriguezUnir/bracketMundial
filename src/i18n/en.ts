@@ -25,6 +25,7 @@ export const en: Record<TranslationKey, string> = {
   'tabs.calendar': 'Schedule',
   'tabs.knockout': 'Knockout',
   'tabs.stadiums': 'Stadiums',
+  'tabs.coaches': 'Coaches',
   'tabs.tv': 'Where to Watch',
 
   'section.groups.eyebrow': '⚽ GROUP STAGE',
@@ -39,6 +40,8 @@ export const en: Record<TranslationKey, string> = {
   'section.stadiums.title': '16 STADIUMS · 3 COUNTRIES',
   'section.tv.eyebrow': '📺 WHERE TO WATCH (SPAIN)',
   'section.tv.title': 'RTVE RIGHTS & SCHEDULE',
+  'section.coaches.eyebrow': '📋 COACHING STAFF',
+  'section.coaches.title': 'COACHES OF THE 48 NATIONAL TEAMS',
 
   'modal.ticket': '★ TICKET',
   'modal.phaseGroup': 'GROUP {letter}',

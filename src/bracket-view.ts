@@ -222,7 +222,6 @@ export class BracketView extends LitElement {
       if (tab === 'stadiums') targetId = 'section-stadiums';
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
-      if (tab === 'tv') targetId = 'section-tv';
       if (tab === 'coaches') targetId = 'section-coaches';
       
       const el = this.shadowRoot?.getElementById(targetId);
@@ -362,14 +361,8 @@ export class BracketView extends LitElement {
         <!-- Dónde ver (lazy) -->
         <div
           id="section-tv"
-          class="section-tv ${at === 'tv' ? 'visible' : ''}">
-          ${at === 'tv' && loaded.has('tv') ? html`
-            <div class="section-heading">
-              <div class="section-eyebrow">${t('section.tv.eyebrow')}</div>
-              <div class="section-title">${t('section.tv.title')}</div>
-            </div>
-            <broadcasting-view></broadcasting-view>
-          ` : ''}
+          class="section-tv">
+          <!-- tab 'tv' removed from PhaseTab -->
         </div>
 
         <!-- Vista de Entrenadores (lazy) -->
