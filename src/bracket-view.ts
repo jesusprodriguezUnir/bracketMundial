@@ -5,6 +5,7 @@ import { useTournamentStore } from './store/tournament-store';
 import './components/hero-view';
 import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
+import './components/ad-block';
 import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
@@ -158,6 +159,12 @@ export class BracketView extends LitElement {
       color: var(--dim);
     }
 
+    /* Franja de anuncio entre secciones */
+    .ad-inline {
+      margin: 32px 0;
+      min-height: 90px;
+    }
+
     @media (max-width: 768px) {
       .section-groups,
       .knockout-section,
@@ -183,6 +190,10 @@ export class BracketView extends LitElement {
         grid-template-columns: 1fr;
         margin: 40px 16px 0;
         padding: 24px;
+      }
+      .ad-inline {
+        margin: 20px 0;
+        min-height: 60px;
       }
     }
   `;
@@ -305,6 +316,9 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.groups.title')}</div>
             </div>
             <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
+            <div class="ad-inline">
+              <ad-block></ad-block>
+            </div>
           ` : ''}
         </div>
 
@@ -341,6 +355,9 @@ export class BracketView extends LitElement {
                 <div class="section-title">${t('section.knockout.title')}</div>
               </div>
               <bracket-knockout></bracket-knockout>
+              <div class="ad-inline">
+                <ad-block></ad-block>
+              </div>
             </div>
           ` : ''}
         </div>

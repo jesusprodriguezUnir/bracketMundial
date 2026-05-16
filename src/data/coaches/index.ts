@@ -452,7 +452,7 @@ export const COACHES: Record<string, Coach> = {
       en: 'French coach with extensive experience in African football, having managed Uganda and other continental sides. He took charge of DR Congo in 2023 with the World Cup as the goal.',
     },
   },
-UZB: {
+  UZB: {
     name: 'Fabio Cannavaro',
     born: '1973-09-13',
     nationality: 'Italia',

@@ -465,6 +465,11 @@ export class AppRoot extends LitElement {
           <bracket-view></bracket-view>
         </main>
 
+        <!-- AdSense — antes del footer -->
+        <div class="ad-strip">
+          <ad-block></ad-block>
+        </div>
+
         <footer class="site-footer">
           <!-- Redes sociales -->
           <div class="footer-section">
