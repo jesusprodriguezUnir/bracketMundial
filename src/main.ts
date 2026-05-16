@@ -22,11 +22,9 @@ try {
 // Locale inicial según la ruta estática (antes del primer render)
 applyLocaleFromRoute();
 
-// Inicializa sesión Supabase (no bloqueante) y limpia token del magic link de la URL
+// Inicializa sesión Supabase (no bloqueante); la limpieza de la URL se hace en
+// onAuthStateChange tras el intercambio PKCE para evitar borrar el code prematuramente.
 initAuth();
-if (window.location.search.includes('code=') || window.location.hash.includes('access_token=')) {
-  history.replaceState(null, '', window.location.pathname);
-}
 
 // En nativo, escucha el deep link del magic link (custom URL scheme)
 import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => {

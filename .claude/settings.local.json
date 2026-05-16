@@ -55,7 +55,8 @@
       "Bash(node -e ' *)",
       "Bash(git checkout *)",
       "Bash(git pull *)",
-      "Bash(gh pr create --title 'feat: friend leagues system \\(Phase 2\\)' --body ' *)"
+      "Bash(gh pr create --title 'feat: friend leagues system \\(Phase 2\\)' --body ' *)",
+      "Bash(gh pr create --title 'feat: scoring engine, leaderboard & admin publish \\(Fase 3\\)' --body ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"

@@ -65,12 +65,23 @@ export function initAuth(): void {
     useAuthStore.getState()._setSession(session);
 
     if (session && (!prev || wasInit)) {
+      _cleanAuthParams();
       _onSignedIn();
     }
     if (!session && prev) {
       import('../lib/prediction-sync').then(({ stopSync }) => stopSync());
     }
   });
+}
+
+function _cleanAuthParams(): void {
+  const url = new URL(window.location.href);
+  let changed = false;
+  if (url.searchParams.has('code')) { url.searchParams.delete('code'); changed = true; }
+  if (url.hash.includes('access_token')) { url.hash = ''; changed = true; }
+  if (!changed) return;
+  const qs = url.searchParams.toString();
+  history.replaceState(null, '', url.pathname + (qs ? '?' + qs : '') + url.hash);
 }
 
 function _onSignedIn() {
