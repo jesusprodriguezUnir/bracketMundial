@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "icons": "node scripts/generate-icons.mjs",
-    "photos": "node scripts/fetch-player-photos.mjs",
+    "photos": "node scripts/fetch-squad-assets.mjs",
+    "assets:report": "node scripts/fetch-squad-assets.mjs --report",
     "pages": "tsx scripts/generate-pages.mjs",
     "prebuild": "tsx scripts/generate-pages.mjs && node scripts/generate-icons.mjs",
     "build": "tsc && vite build",

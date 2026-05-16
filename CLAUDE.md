@@ -6,12 +6,18 @@ Esta guia complementa [AGENTS.md](AGENTS.md). Usa [AGENTS.md](AGENTS.md) como ar
 
 ```bash
 npm install
-npm run dev        # Vite dev server en http://localhost:5173
-npm run build      # tsc && vite build
-npm run preview    # Sirve el build de produccion
-npm test           # Vitest en modo run
+npm run dev            # Vite dev server en http://localhost:5173
+npm run build          # tsc && vite build
+npm run preview        # Sirve el build de produccion
+npm test               # Vitest en modo run
 npm test -- src/lib/bracket-logic.test.ts
 npx vitest run -t "best 3rd placed"
+
+# Fotos de jugadores y entrenadores
+npm run assets:report                  # Lista huecos → docs/missing-assets.md
+npm run photos -- JOR                  # Descarga fotos del equipo JOR
+npm run photos -- CPV HAI --type coach # Fotos de entrenador de CPV y HAI
+npm run photos -- ARG --verify-data   # Verifica nombres contra API → docs/data-discrepancies.md
 ```
 
 ## Arquitectura
@@ -61,6 +67,46 @@ main.ts
 - La UI usa papel texturizado, sombras duras offset y esquinas rectas.
 - Tipografias principales: Bowlby One / Archivo Black / Archivo / Space Mono.
 - Si el usuario no pide un rediseno, conserva este lenguaje visual al tocar la UI.
+
+## Sistema de Fotos de Jugadores y Entrenadores
+
+Las fotos se almacenan localmente en `public/` y se gestionan con el script [`scripts/fetch-squad-assets.mjs`](scripts/fetch-squad-assets.mjs).
+
+### Estructura
+
+- **Jugadores:** `public/players/{TEAM}/{numero}.webp` (ej. `public/players/ARG/10.webp`)
+- **Entrenadores:** `public/coaches/{TEAM}.webp` (ej. `public/coaches/ARG.webp`)
+- **Manifiestos autogenerados:**
+  - [`src/data/player-photos.ts`](src/data/player-photos.ts) — `PLAYER_PHOTOS: ReadonlySet<string>`
+  - [`src/data/coach-photos.ts`](src/data/coach-photos.ts) — `COACH_PHOTOS: ReadonlySet<string>`
+- **Helpers de render:**
+  - [`src/lib/player-photo.ts`](src/lib/player-photo.ts) — `hasPlayerPhoto`, `playerPhotoSrc`
+  - [`src/lib/coach-photo.ts`](src/lib/coach-photo.ts) — `hasCoachPhoto`, `coachPhotoSrc`
+
+### Fuentes de imágenes (cascada de prioridad)
+
+1. **API-Football** (RapidAPI, `API_FOOTBALL_KEY`) — mejor cobertura, plan free 100 req/día
+2. **TheSportsDB** (sin key) — buena para equipos europeos
+3. **Wikipedia** (sin key) — último recurso, útil para selecciones menores
+
+Las keys van en `.env` (ver `.env.example`). Sin keys el script sigue funcionando con TheSportsDB + Wikipedia.
+
+### Render en squads-view
+
+El avatar del entrenador usa cascada: **foto local → `coach.photoUrl` remoto → iniciales**.
+Los jugadores sin foto en el manifiesto muestran iniciales directamente.
+
+### Cobertura actual (2026-05-17)
+
+- **Jugadores:** 1010/1172 con foto · 162 faltantes en 31 equipos
+- **Entrenadores:** 45/48 con foto local · faltan CPV, HAI, KSA
+- **Reporte completo:** [`docs/missing-assets.md`](docs/missing-assets.md) (regenerar con `npm run assets:report`)
+
+### Notas de mantenimiento
+
+- Tras descargar fotos, el script regenera automáticamente ambos manifiestos.
+- No editar `player-photos.ts` ni `coach-photos.ts` a mano.
+- La skill `/fetch-squads` de Claude Code orquesta el flujo completo (ver [`.claude/skills/fetch-squads/SKILL.md`](.claude/skills/fetch-squads/SKILL.md)).
 
 ## Sistema de Noticias
 

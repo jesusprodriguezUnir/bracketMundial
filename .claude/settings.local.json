@@ -66,10 +66,15 @@
       "PowerShell(python -c \"import PIL; print\\('pillow ok'\\)\" 2>&1)",
       "PowerShell(tesseract --version 2>&1)",
       "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,1\\)\\);console.log\\('deps:',Object.keys\\(p.dependencies||{}\\).join\\(', '\\)\\)\")",
-      "Bash(node --input-type=module)"
+      "Bash(node --input-type=module)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./package.json'\\).scripts,null,1\\)\\)\")",
+      "Bash(mkdir -p \"d:/Personal/bracketMundial/.claude/skills/fetch-squads\")",
+      "Edit(/.claude/skills/fetch-squads/**)",
+      "Bash(node scripts/fetch-squad-assets.mjs --report)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\jesus\\bm-newsdata-tmp"
+      "C:\\Users\\jesus\\bm-newsdata-tmp",
+      "d:\\Personal\\bracketMundial\\.claude\\skills"
     ]
   }
 }

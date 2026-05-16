@@ -20,6 +20,9 @@ dist-ssr
 # PDFs de cromos Panini (docs/)
 docs/*.pdf
 
+# Artefactos de inspección de scripts (no versionar)
+scripts/preview_p*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -15,6 +15,7 @@ import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
+import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
 import '../components/player-card';
 import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
@@ -843,9 +844,11 @@ export class SquadsView extends LitElement {
         ${coach ? html`
           <div class="coach-card">
             <div class="coach-avatar">
-              ${coach.photoUrl
-                ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
-                : getInitials(coach.name)}
+              ${hasCoachPhoto(selectedTeam.id)
+                ? html`<img src="${coachPhotoSrc(selectedTeam.id)}" alt="${coach.name}" loading="lazy">`
+                : coach.photoUrl
+                  ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
+                  : getInitials(coach.name)}
             </div>
             <div class="coach-body">
               <div class="coach-label">${t('squads.coach.title')}</div>
