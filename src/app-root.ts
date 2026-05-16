@@ -7,6 +7,7 @@ import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 import { useAuthStore } from './store/auth-store';
 import { isSupabaseConfigured } from './lib/supabase-client';
+import { isAdmin, saveOfficialResults } from './lib/official-results';
 import './components/ad-block';
 
 @customElement('app-root')
@@ -388,6 +389,11 @@ export class AppRoot extends LitElement {
     openLeaguesModal();
   }
 
+  private async handlePublishResults() {
+    const ok = await saveOfficialResults();
+    alert(ok ? t('admin.publishOk') : t('admin.publishErr'));
+  }
+
   private triggerImport() {
     const fileInput = this.shadowRoot?.querySelector('#file-upload') as HTMLInputElement;
     if (fileInput) fileInput.click();
@@ -458,6 +464,7 @@ export class AppRoot extends LitElement {
             <button @click="${this.handleExcelExport}" title="Descargar plantilla Excel">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
             ${isSupabaseConfigured ? html`
+              ${isAdmin() ? html`<button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
               <button @click="${this.handleLeagues}" title="${t('leagues.title')}">${t('leagues.headerBtn')}</button>
               <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
                 ${this._authEmail ?? t('account.signIn')}

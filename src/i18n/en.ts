@@ -249,4 +249,13 @@ export const en: Record<TranslationKey, string> = {
   'leagues.joinedOk': 'You joined the league!',
   'leagues.owner': 'Creator',
   'leagues.notSignedIn': 'Sign in to create or join a league.',
+  'leagues.leaderboard': 'Leaderboard',
+  'leagues.rank': 'Rank',
+  'leagues.points': 'Pts',
+  'leagues.noResults': 'Official results not available yet.',
+  'leagues.leaderboardLoading': 'Calculating scores…',
+  'admin.publishResults': 'PUBLISH RESULTS',
+  'admin.publishOk': '✓ Results published',
+  'admin.publishErr': 'Error publishing. Please try again.',
+  'predict.locked': 'Match started — prediction locked',
 };

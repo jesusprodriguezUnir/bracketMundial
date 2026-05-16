@@ -106,7 +106,7 @@ function createInitialStandings(): Record<string, GroupStanding[]> {
   return standings;
 }
 
-function recalculateStandings(matches: GroupMatchResult[], _standings: Record<string, GroupStanding[]>): Record<string, GroupStanding[]> {
+export function recalculateStandings(matches: GroupMatchResult[], _standings?: Record<string, GroupStanding[]>): Record<string, GroupStanding[]> {
   const newStandings = createInitialStandings();
 
   for (const match of matches) {
@@ -233,7 +233,7 @@ function resolveKnockoutMatches(
   return syncKnockoutBracket(standings, knockoutMatches, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
 }
 
-function getWinnerId(
+export function getWinnerId(
   teamA: string | null,
   teamB: string | null,
   scoreA: number | null,

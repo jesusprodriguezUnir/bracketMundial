@@ -16,6 +16,13 @@ export interface LeagueMember {
   joined_at: string;
 }
 
+export interface LeaderboardEntry {
+  user_id: string;
+  display_name: string;
+  total: number;
+  byRound: Record<string, number>;
+}
+
 type LeaguesStatus = 'idle' | 'loading' | 'error';
 
 interface LeaguesState {
@@ -23,6 +30,7 @@ interface LeaguesState {
   myLeagues: League[];
   activeLeagueId: string | null;
   members: LeagueMember[];
+  leaderboard: LeaderboardEntry[];
   status: LeaguesStatus;
   lastError: string | null;
   loadProfile: () => Promise<void>;
@@ -33,6 +41,7 @@ interface LeaguesState {
   leaveLeague: (id: string) => Promise<void>;
   deleteLeague: (id: string) => Promise<void>;
   loadMembers: (leagueId: string) => Promise<void>;
+  loadLeaderboard: (leagueId: string) => Promise<void>;
   setActiveLeague: (id: string | null) => void;
 }
 
@@ -47,6 +56,7 @@ export const useLeaguesStore = createStore<LeaguesState>()((set, _get) => ({
   myLeagues: [],
   activeLeagueId: null,
   members: [],
+  leaderboard: [],
   status: 'idle',
   lastError: null,
 
@@ -178,6 +188,44 @@ export const useLeaguesStore = createStore<LeaguesState>()((set, _get) => ({
       joined_at: row['joined_at'] as string,
     }));
     set({ members, status: 'idle' });
+  },
+
+  loadLeaderboard: async (leagueId) => {
+    const sb = getSupabase();
+    if (!sb) return;
+    set({ status: 'loading', lastError: null });
+
+    const { loadOfficialResults } = await import('../lib/official-results');
+    const official = await loadOfficialResults();
+    if (!official) { set({ leaderboard: [], status: 'idle' }); return; }
+
+    const { data: memberRows, error: membErr } = await sb
+      .from('league_members')
+      .select('user_id, profiles(display_name)')
+      .eq('league_id', leagueId);
+    if (membErr) { set({ status: 'error', lastError: membErr.message }); return; }
+
+    const userIds = (memberRows ?? []).map((r: Record<string, unknown>) => r['user_id'] as string);
+    const { data: predRows, error: predErr } = await sb
+      .from('predictions')
+      .select('user_id, payload')
+      .in('user_id', userIds);
+    if (predErr) { set({ status: 'error', lastError: predErr.message }); return; }
+
+    const { scoreBracket } = await import('../lib/scoring');
+    const { decodeBracket } = await import('../lib/bracket-codec');
+
+    const predMap = new Map((predRows ?? []).map((r: Record<string, unknown>) => [r['user_id'] as string, r['payload'] as string]));
+    const entries: LeaderboardEntry[] = (memberRows ?? []).map((r: Record<string, unknown>) => {
+      const userId = r['user_id'] as string;
+      const displayName = (r['profiles'] as { display_name?: string } | null)?.display_name ?? '???';
+      const payload = predMap.get(userId);
+      const pred = payload ? decodeBracket(payload) : null;
+      const score = pred ? scoreBracket(pred, official) : { total: 0, byRound: {} };
+      return { user_id: userId, display_name: displayName, total: score.total, byRound: score.byRound };
+    });
+    entries.sort((a, b) => b.total - a.total);
+    set({ leaderboard: entries, status: 'idle' });
   },
 
   setActiveLeague: (id) => set({ activeLeagueId: id }),

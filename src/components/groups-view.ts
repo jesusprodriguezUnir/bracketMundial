@@ -4,7 +4,7 @@ import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
-import { formatShortDate } from '../lib/date-utils';
+import { formatShortDate, isMatchPending } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
 
 function formatDate(iso?: string): string {
@@ -365,7 +365,8 @@ export class GroupsView extends LitElement {
     return TEAMS_2026.find(t => t.id === id);
   }
 
-  private openMatch(matchId: string) {
+  private openMatch(matchId: string, date?: string, timeSpain?: string) {
+    if (!isMatchPending(date ?? '', timeSpain ?? '')) return;
     this.dispatchEvent(new CustomEvent('open-match', {
       detail: { matchId },
       bubbles: true,
@@ -453,7 +454,7 @@ export class GroupsView extends LitElement {
                   const tB = this.getTeam(m.teamB);
                   const isPlayed = m.scoreA !== null;
                   return html`
-                    <div class="match-item" @click="${() => this.openMatch(m.matchId)}">
+                    <div class="match-item" @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}">
                       <div class="match-top">
                         <div class="match-teams">
                           ${this.renderFlag(tA)}
