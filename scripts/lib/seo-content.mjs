@@ -1,7 +1,7 @@
 // Genera el descriptor de cada página estática (ES + EN) a partir de los
 // datos del torneo: ruta, meta, JSON-LD y cuerpo HTML único (>300 palabras).
 
-import { SITE_URL, esc, slugify } from './seo-i18n.mjs';
+import { SITE_URL, OG_IMAGE, esc, slugify } from './seo-i18n.mjs';
 import { countryEn } from './seo-i18n.mjs';
 
 const MONTHS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -201,6 +201,18 @@ ${matchRows}
             startDate: m.date,
             sport: 'Football',
             location: { '@type': 'Place', name: m.stadium.name, address: m.stadium.city },
+            performer: [
+              { '@type': 'SportsTeam', name: teamName(m.teamA, lang) },
+              { '@type': 'SportsTeam', name: teamName(m.teamB, lang) },
+            ],
+            image: OG_IMAGE,
+            offers: {
+              '@type': 'Offer',
+              url: `${SITE_URL}${P.group(letter)}`,
+              availability: 'https://schema.org/InStock',
+              price: '0',
+              priceCurrency: 'USD',
+            },
           },
         })),
       },
@@ -523,6 +535,7 @@ ${groupList}
         '@type': 'WebApplication',
         name: 'World Cup 2026 Bracket',
         url: `${SITE_URL}/en/`,
+        image: OG_IMAGE,
         applicationCategory: 'SportsApplication',
         operatingSystem: 'Any',
         inLanguage: 'en',

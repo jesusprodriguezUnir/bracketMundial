@@ -27,7 +27,21 @@
       "mcp__claude_ai_Vercel__search_vercel_documentation",
       "Bash(node --experimental-strip-types -e \"import\\('./src/data/fifa-2026.ts'\\).then\\(m => console.log\\('TEAMS', m.TEAMS_2026.length, 'GROUP', m.generateGroupMatches\\(\\).length, 'KO', Object.keys\\(m.KNOCKOUT_BRACKET\\)\\)\\).catch\\(e => { console.error\\('FAIL', e.message\\); process.exit\\(1\\); }\\)\")",
       "Bash(npx tsx *)",
-      "Bash(git ls-tree *)"
+      "Bash(git ls-tree *)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" branch -a)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" ls-remote --heads origin)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" log -3 --format=\"%h %ci %s\" origin/news-data)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" show origin/news-data:news-feed.json)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" log -3 --format=\"%h %ci %s\" origin/main -- .github/workflows/news.yml scripts/generate-news.mjs)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" remote -v)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" log --all --format=\"%h %ci %s\")",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" log -1 --format=\"%h %ci %s\" origin/main)",
+      "Bash(git ls-remote *)",
+      "Bash(gh run *)",
+      "Bash(node scripts/generate-news.mjs --write-seed)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\jesus\\bm-newsdata-tmp"
     ]
   }
 }

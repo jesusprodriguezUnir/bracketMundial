@@ -410,6 +410,7 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'FRA-11',
   'FRA-12',
   'FRA-13',
+  'FRA-14',
   'FRA-15',
   'FRA-16',
   'FRA-17',
