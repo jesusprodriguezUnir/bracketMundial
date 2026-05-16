@@ -9,10 +9,10 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'knockout' | 'stadiums' | 'tv';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:   () => import('./components/groups-view'),
@@ -21,28 +21,29 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   calendar: () => import('./components/calendar-view'),
   stadiums: () => import('./components/stadiums-view'),
   tv:       () => import('./components/broadcasting-view'),
+  coaches:  () => import('./components/coaches-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
 function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'hero') return null;
   if (tab === 'groups') return 'groups';
+  if (tab === 'knockout') return 'knockout';
   if (tab === 'squads') return 'squads';
   if (tab === 'calendar') return 'calendar';
   if (tab === 'stadiums') return 'stadiums';
-  if (tab === 'tv') return 'tv';
-  // Todas las fases del knockout necesitan bracket-knockout
-  return 'knockout';
+  if (tab === 'coaches') return 'coaches';
+  return null;
 }
 
 const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   hero:     'tabs.hero',
   groups:   'tabs.groups',
+  knockout: 'tabs.knockout',
   squads:   'tabs.squads',
   calendar: 'tabs.calendar',
-  knockout: 'tabs.knockout',
   stadiums: 'tabs.stadiums',
-  tv:       'tabs.tv',
+  coaches:  'tabs.coaches',
 };
 
 @customElement('bracket-view')
@@ -222,6 +223,7 @@ export class BracketView extends LitElement {
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
       if (tab === 'tv') targetId = 'section-tv';
+      if (tab === 'coaches') targetId = 'section-coaches';
       
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -258,7 +260,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'knockout', 'stadiums', 'tv'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
     const at = this._activeTab;
     const loaded = this._loadedViews;
     const isKnockoutTab = at === 'knockout';
@@ -367,6 +369,19 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.tv.title')}</div>
             </div>
             <broadcasting-view></broadcasting-view>
+          ` : ''}
+        </div>
+
+        <!-- Vista de Entrenadores (lazy) -->
+        <div
+          id="section-coaches"
+          class="section-coaches ${at === 'coaches' ? 'visible' : ''}">
+          ${at === 'coaches' && loaded.has('coaches') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.coaches.eyebrow')}</div>
+              <div class="section-title">${t('section.coaches.title')}</div>
+            </div>
+            <coaches-view></coaches-view>
           ` : ''}
         </div>
       </div>

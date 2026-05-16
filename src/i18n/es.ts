@@ -23,8 +23,9 @@ export const es = {
   'tabs.groups': 'Grupos',
   'tabs.squads': 'Equipos',
   'tabs.calendar': 'Calendario',
-  'tabs.knockout': 'Eliminatorias',
+  'tabs.knockout': 'Cruces',
   'tabs.stadiums': 'Estadios',
+  'tabs.coaches': 'Entrenadores',
   'tabs.tv': 'Dónde ver',
 
   // Section headings
@@ -40,6 +41,8 @@ export const es = {
   'section.stadiums.title': '16 ESTADIOS · 3 PAÍSES',
   'section.tv.eyebrow': '📺 DÓNDE VER (ESPAÑA)',
   'section.tv.title': 'DERECHOS Y CALENDARIO RTVE',
+  'section.coaches.eyebrow': '📋 CUERPO TÉCNICO',
+  'section.coaches.title': 'ENTRENADORES DE LAS 48 SELECCIONES',
 
   // Match modal
   'modal.ticket': '★ TICKET',

@@ -10,6 +10,7 @@ import { subscribeSlice } from '../store/store-utils';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 import { t, useLocaleStore } from '../i18n';
+import type { TranslationKey } from '../i18n/es';
 import { getBroadcastInfo } from '../lib/broadcasting';
 
 interface CalendarRow {

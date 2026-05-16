@@ -105,9 +105,11 @@ export class BracketKnockout extends LitElement {
       cursor: pointer;
       transition: transform 0.1s, box-shadow 0.1s;
     }
-    .match-box:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 0 var(--ink);
+    @media (hover: hover) {
+      .match-box:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 3px 3px 0 0 var(--ink);
+      }
     }
     .match-box:active {
       transform: translate(1px, 1px);

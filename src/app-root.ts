@@ -36,6 +36,7 @@ export class AppRoot extends LitElement {
       position: sticky;
       top: 0;
       z-index: 100;
+      padding-top: env(safe-area-inset-top);
     }
 
     /* Bloque logo lockup: crest + wordmark */
@@ -121,8 +122,10 @@ export class AppRoot extends LitElement {
       background: transparent;
       transition: background 0.1s;
     }
-    .header-actions button:hover {
-      background: rgba(240,176,33,0.15);
+    @media (hover: hover) {
+      .header-actions button:hover {
+        background: rgba(240,176,33,0.15);
+      }
     }
     .header-actions button.primary {
       background: var(--retro-yellow);
@@ -132,9 +135,11 @@ export class AppRoot extends LitElement {
       margin: 8px 12px;
       padding: 0 14px;
     }
-    .header-actions button.primary:hover {
-      background: var(--retro-orange);
-      color: #ecdfc0;
+    @media (hover: hover) {
+      .header-actions button.primary:hover {
+        background: var(--retro-orange);
+        color: #ecdfc0;
+      }
     }
     .header-actions button.account-btn {
       max-width: 160px;
@@ -207,12 +212,16 @@ export class AppRoot extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      min-height: 44px;
+      justify-content: center;
     }
-    .footer-social a:hover,
-    .footer-email:hover {
-      background: var(--retro-yellow);
-      box-shadow: 3px 3px 0 var(--ink);
-      transform: translate(-1px, -1px);
+    @media (hover: hover) {
+      .footer-social a:hover,
+      .footer-email:hover {
+        background: var(--retro-yellow);
+        box-shadow: 3px 3px 0 var(--ink);
+        transform: translate(-1px, -1px);
+      }
     }
     .footer-sep {
       color: var(--dim);
@@ -236,6 +245,7 @@ export class AppRoot extends LitElement {
       }
       .content {
         padding: 16px 16px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
       }
       .logo-main {
         font-size: 20px;
@@ -251,6 +261,7 @@ export class AppRoot extends LitElement {
         flex-direction: column;
         align-items: flex-start;
         padding: 14px 16px;
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
         gap: 12px;
       }
       .footer-copy {

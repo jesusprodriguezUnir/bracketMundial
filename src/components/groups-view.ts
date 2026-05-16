@@ -182,9 +182,11 @@ export class GroupsView extends LitElement {
       transition: transform 0.1s, box-shadow 0.1s;
     }
     .match-item:last-child { margin-bottom: 0; }
-    .match-item:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 0 var(--ink);
+    @media (hover: hover) {
+      .match-item:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 3px 3px 0 0 var(--ink);
+      }
     }
     .match-item:active {
       transform: translate(1px, 1px);
