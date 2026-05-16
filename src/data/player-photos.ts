@@ -552,7 +552,6 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'KOR-26',
   'KOR-3',
   'KOR-4',
-  'KOR-5',
   'KOR-6',
   'KOR-7',
   'KOR-9',

@@ -31,7 +31,9 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.4",
+    "@playwright/test": "^1.60.0",
     "jsdom": "^28.1.0",
+    "playwright": "^1.60.0",
     "sharp": "^0.34.5",
     "tsx": "^4.22.0",
     "typescript": "~6.0.2",
