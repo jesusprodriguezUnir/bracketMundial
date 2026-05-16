@@ -222,7 +222,7 @@ export class ShareModal extends LitElement {
     if (e.key === 'Escape') this._close();
   };
   private readonly _handleHostClick = (e: MouseEvent) => {
-    if (e.target === this) this._close();
+    if (e.composedPath()[0] === this) this._close();
   };
 
   override connectedCallback() {

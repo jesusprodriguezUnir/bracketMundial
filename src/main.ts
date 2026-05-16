@@ -2,6 +2,7 @@ import './index.css';
 import './app-root';
 import { inject } from '@vercel/analytics';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
+import { initAuth } from './store/auth-store';
 
 inject();
 
@@ -19,6 +20,12 @@ try {
 
 // Locale inicial según la ruta estática (antes del primer render)
 applyLocaleFromRoute();
+
+// Inicializa sesión Supabase (no bloqueante) y limpia token del magic link de la URL
+initAuth();
+if (window.location.search.includes('code=') || window.location.hash.includes('access_token=')) {
+  history.replaceState(null, '', window.location.pathname);
+}
 
 const root = document.getElementById('root');
 if (root) {
