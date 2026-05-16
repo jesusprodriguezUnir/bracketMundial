@@ -3,6 +3,7 @@ import './app-root';
 import { inject } from '@vercel/analytics';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { initAuth } from './store/auth-store';
+import { extractJoinCode } from './lib/league-invite';
 
 inject();
 
@@ -26,6 +27,10 @@ initAuth();
 if (window.location.search.includes('code=') || window.location.hash.includes('access_token=')) {
   history.replaceState(null, '', window.location.pathname);
 }
+
+// Detecta enlace de invitación a liga (?join=CODE) y guarda en sessionStorage
+const joinCode = extractJoinCode();
+if (joinCode) sessionStorage.setItem('bm-join-code', joinCode);
 
 const root = document.getElementById('root');
 if (root) {

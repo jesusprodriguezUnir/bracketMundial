@@ -383,6 +383,11 @@ export class AppRoot extends LitElement {
     openAuthModal();
   }
 
+  private async handleLeagues() {
+    const { openLeaguesModal } = await import('./components/leagues-modal');
+    openLeaguesModal();
+  }
+
   private triggerImport() {
     const fileInput = this.shadowRoot?.querySelector('#file-upload') as HTMLInputElement;
     if (fileInput) fileInput.click();
@@ -453,6 +458,7 @@ export class AppRoot extends LitElement {
             <button @click="${this.handleExcelExport}" title="Descargar plantilla Excel">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
             ${isSupabaseConfigured ? html`
+              <button @click="${this.handleLeagues}" title="${t('leagues.title')}">${t('leagues.headerBtn')}</button>
               <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
                 ${this._authEmail ?? t('account.signIn')}
               </button>` : ''}

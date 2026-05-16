@@ -52,7 +52,7 @@ export function initAuth(): void {
   sb.auth.getSession().then(({ data }) => {
     useAuthStore.getState()._setSession(data.session);
     if (data.session) {
-      import('../lib/prediction-sync').then(({ onSignedIn }) => onSignedIn());
+      _onSignedIn();
     }
   });
 
@@ -62,10 +62,25 @@ export function initAuth(): void {
     useAuthStore.getState()._setSession(session);
 
     if (session && (!prev || wasInit)) {
-      import('../lib/prediction-sync').then(({ onSignedIn }) => onSignedIn());
+      _onSignedIn();
     }
     if (!session && prev) {
       import('../lib/prediction-sync').then(({ stopSync }) => stopSync());
     }
   });
+}
+
+function _onSignedIn() {
+  import('../lib/prediction-sync').then(({ onSignedIn }) => onSignedIn());
+  import('../store/leagues-store').then(({ useLeaguesStore }) => {
+    useLeaguesStore.getState().loadProfile();
+    useLeaguesStore.getState().loadMyLeagues();
+  });
+  const pendingCode = sessionStorage.getItem('bm-join-code');
+  if (pendingCode) {
+    sessionStorage.removeItem('bm-join-code');
+    import('../components/leagues-modal').then(({ openLeaguesModal }) => {
+      openLeaguesModal(pendingCode);
+    });
+  }
 }
