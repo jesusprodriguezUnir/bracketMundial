@@ -43,10 +43,11 @@ jobs:
             exit 0
           fi
 
+          # Safeguard the generated file BEFORE any git branch surgery
+          cp news-feed.json /tmp/news-feed.json
+
           # Create / update orphan news-data branch with only the JSON
           git checkout --orphan news-data-tmp
-          git reset --hard
-          cp news-feed.json /tmp/news-feed.json
           git rm -rf . --quiet
           cp /tmp/news-feed.json news-feed.json
           git add news-feed.json
