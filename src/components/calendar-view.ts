@@ -10,6 +10,7 @@ import { subscribeSlice } from '../store/store-utils';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 import { t, useLocaleStore } from '../i18n';
+import { getBroadcastInfo } from '../lib/broadcasting';
 
 interface CalendarRow {
   id: string;
@@ -189,6 +190,24 @@ export class CalendarView extends LitElement {
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+
+    .broadcast-badge {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .badge-tv {
+      padding: 2px 6px;
+      border: 1px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-rtve { background: var(--retro-red); color: var(--paper); }
+    .badge-dazn { background: var(--ink); color: var(--retro-yellow); }
 
     .teams-block {
       display: grid;
@@ -545,6 +564,14 @@ export class CalendarView extends LitElement {
                   <div class="time-block">
                     <div class="time">${row.timeSpain || '--:--'}</div>
                     <div class="phase-badge">${row.phaseLabel}</div>
+                    <div class="broadcast-badge">
+                      ${getBroadcastInfo(row.id, row.teamA ?? undefined, row.teamB ?? undefined) === 'BOTH' ? html`
+                        <span class="badge-tv badge-rtve">RTVE</span>
+                        <span class="badge-tv badge-dazn">DAZN</span>
+                      ` : html`
+                        <span class="badge-tv badge-dazn">DAZN</span>
+                      `}
+                    </div>
                   </div>
 
                   <div class="teams-block">

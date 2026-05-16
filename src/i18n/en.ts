@@ -27,6 +27,7 @@ export const en: Record<TranslationKey, string> = {
   'tabs.sf': 'SF',
   'tabs.final': 'Final',
   'tabs.stadiums': 'Stadiums',
+  'tabs.tv': 'Where to Watch',
 
   'section.groups.eyebrow': '⚽ GROUP STAGE',
   'section.groups.title': '12 GROUPS · 48 TEAMS',
@@ -38,6 +39,8 @@ export const en: Record<TranslationKey, string> = {
   'section.knockout.title': 'THE ROAD TO GLORY',
   'section.stadiums.eyebrow': '🏟️ OFFICIAL VENUES',
   'section.stadiums.title': '16 STADIUMS · 3 COUNTRIES',
+  'section.tv.eyebrow': '📺 WHERE TO WATCH (SPAIN)',
+  'section.tv.title': 'RTVE RIGHTS & SCHEDULE',
 
   'modal.ticket': '★ TICKET',
   'modal.phaseGroup': 'GROUP {letter}',
@@ -94,6 +97,20 @@ export const en: Record<TranslationKey, string> = {
   'calendar.qf': 'QF',
   'calendar.sf': 'SF',
   'calendar.tp': '3rd place',
+  'calendar.broadcast': 'Broadcast',
+  'calendar.exclusive': 'Exclusive DAZN',
+
+  // Broadcasting
+  'tv.intro': 'In Spain, the 2026 World Cup broadcasting rights are split between RTVE (free-to-air) and DAZN (pay-per-view).',
+  'tv.fullPackage': 'Complete Package (104 matches)',
+  'tv.fullPackageDesc': 'All matches are broadcast on DAZN and enabled channels on Movistar Plus+ and Orange TV.',
+  'tv.openPackage': '33 matches on free-to-air',
+  'tv.openPackageDesc': 'Free through RTVE (La 1, Teledeporte, and RTVE Play). Includes all Spain matches, semifinals, and the final.',
+  'tv.groupStageTitle': 'Group Stage: Free-to-Air Matches',
+  'tv.exclusiveNote': 'Any match not on this list will be broadcast exclusively on paid platforms (DAZN).',
+  'tv.knockoutTitle': 'Knockout Stage and Final Phase',
+  'tv.knockoutDesc': 'RTVE will broadcast a selection of round of 16 and quarterfinals, plus both semifinals, the third-place match, and the grand final simultaneously with DAZN.',
+  'tv.spainNote': 'Note: All matches involving the Spanish National Team will be broadcast for free on RTVE.',
 
   'share.title': '★ SHARE BRACKET',
   'share.ariaLabel': 'Share bracket',

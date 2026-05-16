@@ -27,6 +27,7 @@ export const es = {
   'tabs.sf': 'Semis',
   'tabs.final': 'Final',
   'tabs.stadiums': 'Estadios',
+  'tabs.tv': 'Dónde ver',
 
   // Section headings
   'section.groups.eyebrow': '⚽ FASE DE GRUPOS',
@@ -39,6 +40,8 @@ export const es = {
   'section.knockout.title': 'EL CAMINO A LA GLORIA',
   'section.stadiums.eyebrow': '🏟️ SEDES OFICIALES',
   'section.stadiums.title': '16 ESTADIOS · 3 PAÍSES',
+  'section.tv.eyebrow': '📺 DÓNDE VER (ESPAÑA)',
+  'section.tv.title': 'DERECHOS Y CALENDARIO RTVE',
 
   // Match modal
   'modal.ticket': '★ TICKET',
@@ -101,8 +104,20 @@ export const es = {
   'calendar.qf': 'Cuartos',
   'calendar.sf': 'Semis',
   'calendar.tp': '3er puesto',
+  'calendar.broadcast': 'Emisión',
+  'calendar.exclusive': 'Exclusivo DAZN',
 
-  // Share modal
+  // Broadcasting
+  'tv.intro': 'En España, los derechos de emisión del Mundial 2026 se dividen entre RTVE (abierto) y DAZN (pago).',
+  'tv.fullPackage': 'Paquete Completo (104 partidos)',
+  'tv.fullPackageDesc': 'Todos los partidos se emiten en DAZN y canales habilitados en Movistar Plus+ y Orange TV.',
+  'tv.openPackage': '33 partidos en abierto',
+  'tv.openPackageDesc': 'Gratis a través de RTVE (La 1, Teledeporte y RTVE Play). Incluye todos los partidos de España, semifinales y final.',
+  'tv.groupStageTitle': 'Fase de Grupos: Partidos en Abierto',
+  'tv.exclusiveNote': 'Cualquier partido que no figure en esta lista se emitirá exclusivamente en plataformas de pago (DAZN).',
+  'tv.knockoutTitle': 'Eliminatorias y Fase Final',
+  'tv.knockoutDesc': 'RTVE emitirá una selección de octavos y cuartos, además de las dos semifinales, el tercer puesto y la gran final de forma simultánea con DAZN.',
+  'tv.spainNote': 'Nota: Todos los partidos de la Selección Española se emitirán en abierto por RTVE.',
   'share.title': '★ COMPARTIR BRACKET',
   'share.ariaLabel': 'Compartir bracket',
   'share.generating': 'Generando imagen…',

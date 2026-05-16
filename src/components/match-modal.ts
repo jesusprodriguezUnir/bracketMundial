@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { t, useLocaleStore } from '../i18n';
+import { getBroadcastInfo } from '../lib/broadcasting';
 
 
 @customElement('match-modal')
@@ -211,6 +212,19 @@ export class MatchModal extends LitElement {
       color: var(--retro-yellow);
       letter-spacing: 0.15em;
       flex-shrink: 0;
+    }
+    .ticket-broadcast {
+      background: var(--retro-blue);
+      color: var(--paper);
+      padding: 2px 8px;
+      font-family: var(--font-var);
+      font-size: 11px;
+      border: 1px solid var(--paper);
+      margin-left: 8px;
+    }
+    .ticket-broadcast.exclusive {
+      background: var(--ink);
+      color: var(--retro-yellow);
     }
     .ticket-close {
       all: unset;
@@ -575,6 +589,13 @@ export class MatchModal extends LitElement {
             <span class="ticket-info">№ ${this.matchId} · ${this.city} · ${this.venue} · ${this.timeSpain ? html`<span style="color: var(--retro-yellow)">${this.timeSpain} ${t('modal.timeLabel')}</span>` : ''}</span>
           </div>
           <span class="ticket-group">${phaseLabel}</span>
+          ${(() => {
+            const info = getBroadcastInfo(this.matchId, this.teamA, this.teamB);
+            if (info === 'BOTH') {
+              return html`<span class="ticket-broadcast">RTVE + DAZN</span>`;
+            }
+            return html`<span class="ticket-broadcast exclusive">DAZN</span>`;
+          })()}
           <button class="ticket-close" @click="${this.close}" aria-label="${t('modal.close')}">✕</button>
         </div>
 

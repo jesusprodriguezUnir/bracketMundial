@@ -9,10 +9,10 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums';
+type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums' | 'tv';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:   () => import('./components/groups-view'),
@@ -20,6 +20,7 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   squads:   () => import('./components/squads-view'),
   calendar: () => import('./components/calendar-view'),
   stadiums: () => import('./components/stadiums-view'),
+  tv:       () => import('./components/broadcasting-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -29,6 +30,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'squads') return 'squads';
   if (tab === 'calendar') return 'calendar';
   if (tab === 'stadiums') return 'stadiums';
+  if (tab === 'tv') return 'tv';
   // Todas las fases del knockout necesitan bracket-knockout
   return 'knockout';
 }
@@ -44,6 +46,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   sf:       'tabs.sf',
   final:    'tabs.final',
   stadiums: 'tabs.stadiums',
+  tv:       'tabs.tv',
 };
 
 @customElement('bracket-view')
@@ -118,14 +121,16 @@ export class BracketView extends LitElement {
     .knockout-sections,
     .section-stadiums,
     .section-squads,
-    .section-calendar {
+    .section-calendar,
+    .section-tv {
       display: none;
     }
     .section-groups.visible,
     .knockout-sections.visible,
     .section-stadiums.visible,
     .section-squads.visible,
-    .section-calendar.visible {
+    .section-calendar.visible,
+    .section-tv.visible {
       display: block;
     }
 
@@ -134,14 +139,16 @@ export class BracketView extends LitElement {
       .knockout-section,
       .section-stadiums,
       .section-squads,
-      .section-calendar {
+      .section-calendar,
+      .section-tv {
         display: none;
       }
       .section-groups.visible,
       .knockout-section.visible,
       .section-stadiums.visible,
       .section-squads.visible,
-      .section-calendar.visible {
+      .section-calendar.visible,
+      .section-tv.visible {
         display: block;
       }
       .phase-tab {
@@ -186,6 +193,7 @@ export class BracketView extends LitElement {
       if (tab === 'stadiums') targetId = 'section-stadiums';
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
+      if (tab === 'tv') targetId = 'section-tv';
       
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -222,7 +230,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums', 'tv'];
     const at = this._activeTab;
     const loaded = this._loadedViews;
     const isKnockoutTab = at === 'r32' || at === 'r16' || at === 'qf' || at === 'sf' || at === 'final';
@@ -312,6 +320,19 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.stadiums.title')}</div>
             </div>
             <stadiums-view></stadiums-view>
+          ` : ''}
+        </div>
+
+        <!-- Dónde ver (lazy) -->
+        <div
+          id="section-tv"
+          class="section-tv ${at === 'tv' ? 'visible' : ''}">
+          ${at === 'tv' && loaded.has('tv') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.tv.eyebrow')}</div>
+              <div class="section-title">${t('section.tv.title')}</div>
+            </div>
+            <broadcasting-view></broadcasting-view>
           ` : ''}
         </div>
       </div>
