@@ -455,9 +455,13 @@ export const useTournamentStore = createStore<TournamentState>()(
       },
 
       exportExcel: async () => {
-        const { ExcelService } = await import('../lib/excel-service');
+        const [{ ExcelService }, { useLocaleStore }] = await Promise.all([
+          import('../lib/excel-service'),
+          import('../i18n/index'),
+        ]);
         const state = _get();
-        const blob = await ExcelService.exportToExcel(state.groupMatches, state.knockoutMatches);
+        const locale = useLocaleStore.getState().locale;
+        const blob = await ExcelService.exportToExcel(state.groupMatches, state.knockoutMatches, locale);
         
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

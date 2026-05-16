@@ -251,7 +251,7 @@ export class ExcelService {
 
     const drawInfos    = this.createGroupsSheet(wb, groupMatches, locale, groupsName);
     this.createCalcSheet(wb, drawInfos, groupsName);
-    this.fillStandingsFormulas(wb, drawInfos, locale, groupsName);
+    this.fillStandingsFormulas(wb, drawInfos, groupsName);
     const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName);
     this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells);
 
@@ -346,10 +346,10 @@ export class ExcelService {
 
     // ── Match rows ────────────────────────────────────────────────────────────
     const groupTeams = TEAMS_2026.filter(t => t.group === letter);
-    const teamMap = new Map<string, { localSA: string[]; localSB: string[]; awaySB: string[]; awaySA: string[]; }>(
-      groupTeams.map((t, i) => [t.id, { localSA: [], localSB: [], awaySB: [], awaySA: [] }] as [string, { localSA: string[]; localSB: string[]; awaySB: string[]; awaySA: string[]; }])
+    type TeamSlots = { localSA: string[]; localSB: string[]; awaySB: string[]; awaySA: string[] };
+    const teamMap = new Map<string, TeamSlots>(
+      groupTeams.map(t => [t.id, { localSA: [], localSB: [], awaySB: [], awaySA: [] }])
     );
-    // Use teamIdx for stable tiebreak in KEY formula
     const teamIdx = new Map(groupTeams.map((t, i) => [t.id, i]));
 
     const matchCells: MatchCell[] = [];
@@ -512,7 +512,6 @@ export class ExcelService {
   private static fillStandingsFormulas(
     wb: ExcelJS.Workbook,
     drawInfos: GroupDrawInfo[],
-    locale: Locale,
     groupsSheetName: string
   ): void {
     const sheet = wb.getWorksheet(groupsSheetName);
@@ -543,8 +542,6 @@ export class ExcelService {
             : { size: 9 };
         });
 
-        // Localized DG column needs a sign fix for display (Excel does it automatically)
-        const _ = locale; // consumed to avoid unused-param lint
       }
     });
   }
@@ -629,29 +626,16 @@ export class ExcelService {
         sheet.getCell(r, 3).font   = { size: 8 };
         sheet.getCell(r, 4).value  = m?.venue ?? '';
         sheet.getCell(r, 4).font   = { size: 8 };
-        sheet.getCell(r, 5).value  = tName(m?.teamA);
-        sheet.getCell(r, 5).font   = { size: 9 };
+        // col 5=Home, 6=FlagA, 7=ScoreA(yellow), 8=sep, 9=ScoreB(yellow), 10=FlagB, 11=Away, 12=Pen(yellow)
+        sheet.getCell(r, 5).value = tName(m?.teamA);
+        sheet.getCell(r, 5).font  = { size: 9 };
         sheet.getCell(r, 5).alignment = { horizontal: 'right', vertical: 'middle' };
-        sheet.getCell(r, 6).value  = tFlag(m?.teamA);
-        sheet.getCell(r, 8).value  = '–';
-        sheet.getCell(r, 9).value  = tFlag(m?.teamB);
-        sheet.getCell(r, 10).value = tName(m?.teamB);
-        sheet.getCell(r, 10).font  = { size: 9 };
-        sheet.getCell(r, 10).alignment = { horizontal: 'left', vertical: 'middle' };
-
-        // Editable score cells
-        yellow(sheet, r, 7);  // scoreA
-        yellow(sheet, r, 9);  // scoreB — wait, col 9 already has flag. Let me fix.
-        // Actually: col layout is 2=ID,3=Date,4=Venue,5=Home,6=FlagA,7=ScoreA,8='-',9=ScoreB,10=FlagB,11=Away,12=Pen
-        // So col 6 = flagA, col 7 = scoreA (yellow), col 8 = sep, col 9 = scoreB (yellow), col 10 = flagB, col 11 = away, col 12 = pen
-
-        // Fix the cell assignments above:
-        sheet.getCell(r, 6).value  = tFlag(m?.teamA);  // flag A
-        // scoreA at col 7 (yellow — set above)
-        sheet.getCell(r, 8).value  = '–';
-        // scoreB at col 9 (yellow — set above)
-        sheet.getCell(r, 10).value = tFlag(m?.teamB);  // flag B
-        sheet.getCell(r, 11).value = tName(m?.teamB);  // away
+        sheet.getCell(r, 6).value = tFlag(m?.teamA);
+        yellow(sheet, r, 7);
+        sheet.getCell(r, 8).value = '–';
+        yellow(sheet, r, 9);
+        sheet.getCell(r, 10).value = tFlag(m?.teamB);
+        sheet.getCell(r, 11).value = tName(m?.teamB);
         sheet.getCell(r, 11).font  = { size: 9 };
         sheet.getCell(r, 11).alignment = { horizontal: 'left', vertical: 'middle' };
 
