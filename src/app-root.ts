@@ -437,8 +437,8 @@ export class AppRoot extends LitElement {
             <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
             <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
-            <button @click="${this.triggerImportExcel}" title="Importar desde Excel">${t('header.importExcel')}</button>
-            <button @click="${this.handleExcelExport}" title="Descargar plantilla Excel">${t('header.exportExcel')}</button>
+            <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
+            <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
             ${isSupabaseConfigured ? html`
               ${isAdmin() ? html`<button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}

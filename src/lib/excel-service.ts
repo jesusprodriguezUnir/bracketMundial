@@ -5,6 +5,21 @@ import type { TranslationKey } from '../i18n/es';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
+import { COACHES } from '../data/coaches/index';
+import { coachAge } from '../lib/date-utils';
+
+// ─── Typed import errors ──────────────────────────────────────────────────────
+
+export type ExcelImportErrorCode = 'no_map_sheet' | 'no_valid_rows' | 'parse_error';
+
+export class ExcelImportError extends Error {
+  readonly code: ExcelImportErrorCode;
+  constructor(code: ExcelImportErrorCode, message: string) {
+    super(message);
+    this.name = 'ExcelImportError';
+    this.code = code;
+  }
+}
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
@@ -49,32 +64,37 @@ function tFlag(id: string | null | undefined): string {
   return TEAMS_2026.find(t => t.id === id)?.flag ?? '';
 }
 
+const FLAG_TIMEOUT_MS = 5000;
+
 /** Fetches the team's SVG flag and rasterizes it to a PNG (base64). Browser-only. */
 async function fetchFlagPng(flagUrl: string): Promise<string | null> {
   try {
-    const resp = await fetch(flagUrl);
-    if (!resp.ok) return null;
-    let svg = await resp.text();
-    // Ensure explicit dimensions so the browser can render the SVG to canvas
-    if (!/<svg[^>]*\swidth=/i.test(svg)) {
-      svg = svg.replace(/(<svg\b[^>]*)>/i, '$1 width="980" height="560">');
-    }
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const url  = URL.createObjectURL(blob);
-    return await new Promise<string>((resolve, reject) => {
-      const img = new Image(30, 20);
-      img.onload = () => {
-        const c = document.createElement('canvas');
-        c.width = 30; c.height = 20;
-        const ctx = c.getContext('2d');
-        if (!ctx) { URL.revokeObjectURL(url); reject(new Error('no ctx')); return; }
-        ctx.drawImage(img, 0, 0, 30, 20);
-        URL.revokeObjectURL(url);
-        resolve(c.toDataURL('image/png').split(',')[1]);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('flag load failed')); };
-      img.src = url;
-    });
+    const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), FLAG_TIMEOUT_MS));
+    const work = (async (): Promise<string | null> => {
+      const resp = await fetch(flagUrl);
+      if (!resp.ok) return null;
+      let svg = await resp.text();
+      if (!/<svg[^>]*\swidth=/i.test(svg)) {
+        svg = svg.replace(/(<svg\b[^>]*)>/i, '$1 width="980" height="560">');
+      }
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url  = URL.createObjectURL(blob);
+      return await new Promise<string>((resolve, reject) => {
+        const img = new Image(30, 20);
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 30; c.height = 20;
+          const ctx = c.getContext('2d');
+          if (!ctx) { URL.revokeObjectURL(url); reject(new Error('no ctx')); return; }
+          ctx.drawImage(img, 0, 0, 30, 20);
+          URL.revokeObjectURL(url);
+          resolve(c.toDataURL('image/png').split(',')[1]);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('flag load failed')); };
+        img.src = url;
+      });
+    })();
+    return await Promise.race([work, timeout]);
   } catch {
     return null;
   }
@@ -337,9 +357,11 @@ export class ExcelService {
       flagImages.set(id, wb.addImage({ base64: png, extension: 'png' }));
     }));
 
-    const groupsName   = lbl('excel.sheetGroups',  locale);
+    const groupsName   = lbl('excel.sheetGroups',   locale);
     const knockoutName = lbl('excel.sheetKnockout', locale);
+    const coachesName  = lbl('excel.sheetCoaches',  locale);
 
+    this.createCoachesSheet(wb, locale, coachesName);
     const drawInfos    = this.createGroupsSheet(wb, groupMatches, locale, groupsName, flagImages);
     this.createCalcSheet(wb, drawInfos, groupsName);
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
@@ -626,6 +648,8 @@ export class ExcelService {
         };
       });
     });
+
+    sheet.protect('', { selectLockedCells: true, selectUnlockedCells: false });
   }
 
   // ── Fill standings formulas in groups sheet (INDEX/MATCH/LARGE → CALC) ───────
@@ -705,7 +729,7 @@ export class ExcelService {
     flagImages: Map<string, number>
   ): KnockoutCell[] {
     const sheet = wb.addWorksheet(sheetName, {
-      views: [{ showGridLines: false }],
+      views: [{ state: 'frozen', xSplit: 0, ySplit: 2, showGridLines: false }],
       properties: { defaultRowHeight: 18 },
     });
 
@@ -902,6 +926,94 @@ export class ExcelService {
       sheet.getCell(r, 5).value = kc.penAddr;
       r++;
     });
+
+    sheet.protect('', { selectLockedCells: true, selectUnlockedCells: false });
+  }
+
+  // ── Coaches sheet ─────────────────────────────────────────────────────────────
+
+  private static createCoachesSheet(
+    wb: ExcelJS.Workbook,
+    locale: Locale,
+    sheetName: string
+  ): void {
+    const sheet = wb.addWorksheet(sheetName, {
+      views: [{ state: 'frozen', xSplit: 0, ySplit: 2, showGridLines: false }],
+      properties: { defaultRowHeight: 20 },
+    });
+
+    // Title row
+    const titleCell = sheet.getCell(1, 1);
+    titleCell.value = `${sheetName.toUpperCase()} · MUNDIAL 2026`;
+    titleCell.font  = { bold: true, size: 14, color: { argb: C.white } };
+    titleCell.fill  = fill(C.orange);
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.mergeCells(1, 1, 1, 6);
+    sheet.getRow(1).height = 26;
+
+    // Header row
+    const headers = [
+      lbl('excel.colTeam', locale),
+      'Grupo',
+      lbl('excel.colCoach', locale),
+      lbl('excel.colNationality', locale),
+      lbl('excel.colAge', locale),
+      lbl('excel.colDate', locale),
+    ];
+    headers.forEach((h, i) => {
+      const c = sheet.getCell(2, i + 1);
+      c.value = h;
+      c.font  = { bold: true, size: 9, color: { argb: C.ink } };
+      c.fill  = fill(C.paper2);
+      c.alignment = { horizontal: 'center', vertical: 'middle' };
+      c.border = { bottom: THIN, top: THIN };
+    });
+
+    // Column widths
+    [22, 8, 26, 18, 6, 14].forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+
+    // Data rows
+    const groups = 'ABCDEFGHIJKL'.split('');
+    let rowNum = 3;
+    groups.forEach(group => {
+      const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
+      teamsInGroup.forEach((team, teamIdx) => {
+        const coach = COACHES[team.id];
+        const bg = fill(rowNum % 2 === 0 ? C.paper3 : 'F0EADA');
+
+        const rowData: (string | number)[] = [
+          team.name,
+          `Grupo ${group}`,
+          coach?.name ?? '—',
+          coach?.nationality ?? '—',
+          coach ? coachAge(coach.born) : 0,
+          coach?.born ?? '—',
+        ];
+        rowData.forEach((v, ci) => {
+          const cell = sheet.getCell(rowNum, ci + 1);
+          cell.value = v;
+          cell.fill  = bg;
+          cell.font  = { size: 9 };
+          cell.alignment = { vertical: 'middle', horizontal: ci < 2 ? 'left' : ci === 4 ? 'center' : 'left' };
+          if (ci === 0) {
+            cell.font = { bold: true, size: 9 };
+          }
+          if (teamIdx === teamsInGroup.length - 1) {
+            cell.border = { bottom: { style: 'thin', color: { argb: C.paper2 } } };
+          }
+        });
+
+        // Accent left border for group separator
+        if (teamIdx === 0) {
+          sheet.getCell(rowNum, 1).border = {
+            ...sheet.getCell(rowNum, 1).border,
+            top: { style: 'medium', color: { argb: GROUP_COLORS_HEX[groups.indexOf(group) % 4] } },
+          };
+        }
+
+        rowNum++;
+      });
+    });
   }
 
   // ── Import ────────────────────────────────────────────────────────────────────
@@ -911,11 +1023,18 @@ export class ExcelService {
   }
 
   static async importFromBuffer(buffer: ArrayBuffer): Promise<ImportResult> {
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buffer);
+    let wb: ExcelJS.Workbook;
+    try {
+      wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buffer);
+    } catch {
+      throw new ExcelImportError('parse_error', 'Could not parse the file as a valid Excel workbook.');
+    }
 
     const mapSheet = wb.getWorksheet('MAP');
-    if (!mapSheet) throw new Error('Formato de Excel no válido: falta la hoja MAP.');
+    if (!mapSheet) {
+      throw new ExcelImportError('no_map_sheet', 'Missing MAP sheet — file is not a valid template.');
+    }
 
     const groupScores:    ImportResult['groupScores']    = [];
     const knockoutScores: ImportResult['knockoutScores'] = [];
@@ -934,8 +1053,10 @@ export class ExcelService {
       const ws = wb.getWorksheet(sName);
       if (!ws) return;
 
-      const scoreA = this.parseScore(ws.getCell(saAddr).value);
-      const scoreB = this.parseScore(ws.getCell(sbAddr).value);
+      const rawA = ws.getCell(saAddr).value;
+      const rawB = ws.getCell(sbAddr).value;
+      const scoreA = this.parseScore(rawA);
+      const scoreB = this.parseScore(rawB);
 
       const isKO = /^(R32|R16|QF|SF|TP|FIN)-/.test(matchId);
       if (isKO) {
@@ -946,21 +1067,32 @@ export class ExcelService {
       }
     });
 
+    if (groupScores.length === 0 && knockoutScores.length === 0) {
+      throw new ExcelImportError('no_valid_rows', 'No valid match rows found in the MAP sheet.');
+    }
+
     return { groupScores, knockoutScores };
   }
 
   private static parseScore(val: ExcelJS.CellValue): number | null {
     if (val === null || val === undefined || val === '') return null;
-    const n = Number(val);
-    return Number.isFinite(n) ? Math.round(n) : null;
+    // ExcelJS may return a formula object with a result field
+    const raw = (val as { result?: unknown }).result !== undefined
+      ? (val as { result: unknown }).result
+      : val;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return null;
+    const rounded = Math.round(n);
+    return rounded >= 0 ? rounded : null;
   }
 
   private static parsePenalties(val: ExcelJS.CellValue): [number | null, number | null] {
-    const str = val?.toString() ?? '';
-    const parts = str.split('-');
-    if (parts.length !== 2) return [null, null];
-    const a = parseInt(parts[0], 10);
-    const b = parseInt(parts[1], 10);
-    return [isNaN(a) ? null : a, isNaN(b) ? null : b];
+    const str = (val?.toString() ?? '').trim();
+    const dashIdx = str.indexOf('-');
+    if (dashIdx === -1) return [null, null];
+    const a = parseInt(str.slice(0, dashIdx).trim(), 10);
+    const b = parseInt(str.slice(dashIdx + 1).trim(), 10);
+    if (isNaN(a) || isNaN(b) || a < 0 || b < 0) return [null, null];
+    return [a, b];
   }
 }

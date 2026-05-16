@@ -472,14 +472,26 @@ export const useTournamentStore = createStore<TournamentState>()(
       },
 
       importExcel: async (file: File) => {
+        const [{ ExcelService, ExcelImportError }, { useLocaleStore: localeStore }, { es }, { en }] = await Promise.all([
+          import('../lib/excel-service'),
+          import('../i18n/index'),
+          import('../i18n/es'),
+          import('../i18n/en'),
+        ]);
+        const locale = localeStore.getState().locale;
+        const dict = locale === 'en' ? en : es;
         try {
-          const { ExcelService } = await import('../lib/excel-service');
           const data = await ExcelService.importFromExcel(file);
           _get().applySharedBracket(data);
           return true;
         } catch (e) {
           console.error("Error importing Excel:", e);
-          alert("Error al importar Excel. Asegúrate de usar la plantilla correcta.");
+          let key: keyof typeof es = 'excel.importError';
+          if (e instanceof ExcelImportError) {
+            if (e.code === 'no_map_sheet') key = 'excel.importErrorTemplate';
+            else if (e.code === 'no_valid_rows') key = 'excel.importErrorNoRows';
+          }
+          alert(dict[key]);
           return false;
         }
       },

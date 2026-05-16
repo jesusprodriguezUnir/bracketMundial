@@ -75,13 +75,13 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   QAT: {
-    name: 'Marquez Lopez',
-    born: '1970-04-14',
+    name: 'Julen Lopetegui',
+    born: '1966-08-28',
     nationality: 'España',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/7p5x9s1707012345.jpg',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Julen_Lopetegui_2018.jpg/400px-Julen_Lopetegui_2018.jpg',
     bio: {
-      es: 'Entrenador español con experiencia en el fútbol asiático. Asumió la dirección de Qatar tras el Mundial 2022 con el objetivo de competir en el torneo de 2026.',
-      en: 'Spanish coach with experience in Asian football. He took charge of Qatar after the 2022 World Cup with the aim of competing in the 2026 edition.',
+      es: 'Exguardameta español con amplia carrera como técnico en el Sevilla, Real Madrid y la selección española. Nombrado seleccionador de Qatar en mayo de 2025 para preparar al equipo para el Mundial en casa.',
+      en: 'Former Spanish goalkeeper with an extensive coaching career at Sevilla, Real Madrid and the Spain national team. Appointed Qatar head coach in May 2025 to prepare the team for the home World Cup.',
     },
   },
   SUI: {
@@ -110,20 +110,18 @@ export const COACHES: Record<string, Coach> = {
     name: 'Mohamed Ouahbi',
     born: '1976-09-07',
     nationality: 'Marruecos',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/up6h1w1765217882.jpg', // Placeholder for now, script will fetch if available
     bio: {
-      es: 'Asumió el cargo en marzo de 2026 tras la sorpresiva renuncia de Walid Regragui. Lideró a Marruecos al título mundial Sub-20 en Chile 2025 y ahora dirige a la selección absoluta.',
-      en: 'Took charge in March 2026 following Walid Regragui\'s resignation. He led Morocco to the U-20 World Cup title in Chile 2025 and now leads the senior national team.',
+      es: 'Técnico belga-marroquí que asumió el cargo en marzo de 2026 tras la renuncia de Walid Regragui. Lideró a Marruecos al título mundial Sub-20 en Chile 2025 —venciendo a Argentina en la final— y ahora dirige a la selección absoluta.',
+      en: 'Belgian-Moroccan coach who took charge in March 2026 following Walid Regragui\'s resignation. He led Morocco to the U-20 World Cup title in Chile 2025 — beating Argentina in the final — and now leads the senior national team.',
     },
   },
   HAI: {
-    name: 'Marc Collat',
-    born: '1968-03-10',
+    name: 'Sébastien Migné',
+    born: '1972-11-30',
     nationality: 'Francia',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Marc_Collat_2015.jpg/400px-Marc_Collat_2015.jpg',
     bio: {
-      es: 'Técnico francés especializado en el desarrollo de selecciones emergentes en el Caribe y Centroamérica. Trabaja en modernizar el sistema defensivo y la proyección ofensiva de Haití.',
-      en: 'French coach specializing in developing emerging national teams in the Caribbean and Central America. He focuses on modernizing Haiti\'s defensive structure and attacking output.',
+      es: 'Técnico francés con amplia experiencia en África (Congo, Kenia, Guinea Ecuatorial, Camerún). Asumió Haití en junio de 2024 y logró la histórica clasificación de los Granaderos para el Mundial 2026, su segunda participación en la historia.',
+      en: 'French coach with extensive experience across Africa (Congo, Kenya, Equatorial Guinea, Cameroon). He took charge of Haiti in June 2024 and secured the historic 2026 World Cup qualification for the Grenadiers, their second-ever appearance.',
     },
   },
   SCO: {
@@ -132,8 +130,8 @@ export const COACHES: Record<string, Coach> = {
     nationality: 'Escocia',
     photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/kainkm1549399439.jpg',
     bio: {
-      es: 'El seleccionador más exitoso de Escocia en décadas modernas, logró clasificaciones para la Eurocopa 2020 y 2024. Tras la Euro 2024 inició una renovación generacional del equipo.',
-      en: 'Scotland\'s most successful manager of the modern era, guiding them to Euro 2020 and Euro 2024. After Euro 2024 he began a generational renewal of the squad.',
+      es: 'El seleccionador más exitoso de Escocia en décadas modernas, logró clasificaciones para la Eurocopa 2020 y 2024. Llevó a Escocia al Mundial 2026 por primera vez desde 1998, con una victoria histórica ante Dinamarca en noviembre de 2025.',
+      en: 'Scotland\'s most successful manager of the modern era, guiding them to Euro 2020 and Euro 2024. He led Scotland to the 2026 World Cup for the first time since 1998, with a historic win over Denmark in November 2025.',
     },
   },
 
@@ -191,13 +189,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   CUW: {
-    name: 'Patrick Kluivert',
-    born: '1976-07-01',
+    name: 'Dick Advocaat',
+    born: '1947-09-27',
     nationality: 'Países Bajos',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/c909vk1491481092.jpg',
     bio: {
-      es: 'Exgoleador del Ajax y el Barcelona, una de las grandes promesas del fútbol neerlandés en los 90. Ahora lidera el proyecto de Curazao como seleccionador nacional.',
-      en: 'Former Ajax and Barcelona striker, one of Dutch football\'s great talents of the 90s. He now leads Curaçao\'s national project as head coach.',
+      es: 'Veterano técnico neerlandés con décadas de experiencia en clubes y selecciones de primer nivel. Guió a Curazao a su histórica primera clasificación para un Mundial en noviembre de 2025, convirtiéndose en el entrenador de mayor edad en la historia de la Copa del Mundo.',
+      en: 'Veteran Dutch coach with decades of experience at top clubs and national teams. He guided Curaçao to their historic first-ever World Cup qualification in November 2025, becoming the oldest head coach in World Cup history.',
     },
   },
   CIV: {
@@ -243,45 +240,43 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   SWE: {
-    name: 'Jon Dahl Tomasson',
-    born: '1976-08-29',
-    nationality: 'Dinamarca',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/7gxqmx1610915993.jpg',
+    name: 'Graham Potter',
+    born: '1975-05-20',
+    nationality: 'Inglaterra',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Graham_Potter_at_%C3%96stersunds_FK_in_2017._%28cropped%29.jpg/400px-Graham_Potter_at_%C3%96stersunds_FK_in_2017._%28cropped%29.jpg',
     bio: {
-      es: 'Exdelantero danés, campeón de la Champions con el Milan. Tomó las riendas de Suecia en 2022 y clasificó al equipo para el Mundial 2026 apostando por la solidez colectiva.',
-      en: 'Former Danish striker and Champions League winner with AC Milan. He took charge of Sweden in 2022, qualifying the team for the 2026 World Cup through collective solidity.',
+      es: 'Técnico inglés con profundas raíces en el fútbol sueco (Östersund, 2011–2018). Llegó a las Tres Coronas en octubre de 2025, consiguió la clasificación vía play-off —con una goleada 3-1 ante Ucrania y 3-2 ante Polonia— y renovó contrato hasta 2030.',
+      en: 'English coach with deep roots in Swedish football (Östersund, 2011–2018). He took charge of Sweden in October 2025, secured qualification through the play-offs — beating Ukraine 3-1 and Poland 3-2 — and signed a contract extension to 2030.',
     },
   },
   TUN: {
-    name: 'Faouzi Benzarti',
-    born: '1953-10-04',
-    nationality: 'Túnez',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Faouzi_Benzarti_2013.jpg/400px-Faouzi_Benzarti_2013.jpg',
+    name: 'Sabri Lamouchi',
+    born: '1971-11-09',
+    nationality: 'Francia',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Sabri_Lamouchi_-_Portrait_2022.jpg/400px-Sabri_Lamouchi_-_Portrait_2022.jpg',
     bio: {
-      es: 'Decano del banquillo tunecino, ha dirigido a la selección en varias etapas a lo largo de su carrera. Regresó para guiar a las Águilas de Cartago a la clasificación para el Mundial 2026.',
-      en: 'The most experienced Tunisian coach, having managed the national team in several stints throughout his career. He returned to guide the Eagles of Carthage to 2026 World Cup qualification.',
+      es: 'Exmediocampista franco-tunecino del Mónaco, el Inter y el Marsella, con doce internacionalidades con Francia. Nombrado técnico de Túnez en enero de 2026, llegó con el objetivo de preparar a las Águilas de Cartago para el Mundial.',
+      en: 'Former French-Tunisian midfielder who played for Monaco, Inter and Marseille with twelve France caps. Appointed Tunisia head coach in January 2026, he arrived to prepare the Eagles of Carthage for the World Cup.',
     },
   },
 
   // Group G
   BEL: {
-    name: 'Domenico Tedesco',
-    born: '1985-12-12',
-    nationality: 'Alemania',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/vs6jr71622208802.jpg',
+    name: 'Rudi Garcia',
+    born: '1964-02-20',
+    nationality: 'Francia',
     bio: {
-      es: 'Técnico italo-alemán que revitalizó la Golden Generation belga dándole frescura táctica. Llevó a Bélgica al Euro 2024 y trabaja en una transición generacional ordenada.',
-      en: 'Italian-German coach who reinvigorated Belgium\'s Golden Generation with tactical freshness. He led Belgium to Euro 2024 and is managing an orderly generational transition.',
+      es: 'Técnico francés con amplia experiencia en el Lille, la Roma, el Marsella, el Lyon y el Nápoles. Nombrado seleccionador de Bélgica en enero de 2025 para impulsar la transición generacional de los Diablos Rojos de cara al Mundial 2026.',
+      en: 'French coach with extensive experience at Lille, Roma, Marseille, Lyon and Napoli. Appointed Belgium head coach in January 2025 to drive the Red Devils\'s generational transition heading into the 2026 World Cup.',
     },
   },
   EGY: {
-    name: 'Hossam El-Badry',
-    born: '1957-08-01',
+    name: 'Hossam Hassan',
+    born: '1966-08-10',
     nationality: 'Egipto',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Hossam_El_Badry_2013.jpg/400px-Hossam_El_Badry_2013.jpg',
     bio: {
-      es: 'El entrenador más laureado del fútbol egipcio, ganó la liga nacional en múltiples ocasiones con Al Ahly. Regresó como seleccionador para recuperar el protagonismo de los Faraones.',
-      en: 'The most decorated coach in Egyptian football, winning the national league multiple times with Al Ahly. He returned as national team coach to restore the Pharaohs to prominence.',
+      es: 'El máximo goleador histórico de la selección egipcia y del fútbol africano, disputó el Mundial 1990 como jugador. Asumió el banquillo de los Faraones en 2024 y los llevó invictos a la clasificación para el Mundial 2026.',
+      en: 'Egypt\'s and Africa\'s all-time top scorer, he played at the 1990 World Cup. He took charge of the Pharaohs in 2024 and guided them unbeaten through 2026 World Cup qualification.',
     },
   },
   IRN: {
@@ -295,13 +290,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   NZL: {
-    name: 'Danny Hay',
-    born: '1975-05-15',
-    nationality: 'Nueva Zelanda',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Danny_Hay_2022.jpg/400px-Danny_Hay_2022.jpg',
+    name: 'Darren Bazeley',
+    born: '1972-10-05',
+    nationality: 'Inglaterra',
     bio: {
-      es: 'Exdefensa central de los All Whites que pasó por el Derby County inglés. Tomó la selección en 2020 y apostó por el desarrollo de jóvenes neozelandeses que compiten en el extranjero.',
-      en: 'Former All Whites centre-back who played for Derby County in England. He took charge of the national team in 2020, focusing on developing young New Zealanders playing abroad.',
+      es: 'Exlateral inglés con más de 500 partidos profesionales en Watford, Wolverhampton y Walsall. Confirmado como entrenador permanente de los All Whites en 2023, llevó a Nueva Zelanda a su primer Mundial desde 2010.',
+      en: 'Former English full-back with over 500 professional appearances at Watford, Wolverhampton and Walsall. Confirmed as permanent All Whites coach in 2023, he led New Zealand to their first World Cup since 2010.',
     },
   },
 
@@ -327,13 +321,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   KSA: {
-    name: 'Roberto Mancini',
-    born: '1964-11-27',
-    nationality: 'Italia',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Roberto_Mancini_2021.jpg/400px-Roberto_Mancini_2021.jpg',
+    name: 'Georgios Donis',
+    born: '1969-10-22',
+    nationality: 'Grecia',
     bio: {
-      es: 'Exfigura del Manchester City y del Inter, campeón de Europa con Italia en 2021. Sorprendió al mundo del fútbol aceptando el banquillo de Arabia Saudí en 2023.',
-      en: 'Former Manchester City and Inter stalwart, European champion with Italy in 2021. He surprised the football world by accepting the Saudi Arabia post in 2023.',
+      es: 'Exmediocampista greco-alemán, el primer griego en jugar en la Premier League con el Blackburn Rovers. Nombrado seleccionador de Arabia Saudí en abril de 2026 tras una larga trayectoria en la liga saudí, incluyendo el Al Hilal.',
+      en: 'Former Greek-German midfielder, the first Greek to play in the Premier League with Blackburn Rovers. Appointed Saudi Arabia head coach in April 2026 after a lengthy career in the Saudi league, including Al Hilal.',
     },
   },
   URU: {
@@ -359,23 +352,21 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   SEN: {
-    name: 'Aliou Cissé',
-    born: '1975-03-24',
+    name: 'Pape Thiaw',
+    born: '1981-02-05',
     nationality: 'Senegal',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Aliou_Cissé_2018.jpg/400px-Aliou_Cissé_2018.jpg',
     bio: {
-      es: 'Histórico capitán de la selección que disputó el Mundial 2002 y llegó a cuartos de final. Como técnico llevó a Senegal a su primera Copa Africana en 2022 y al Mundial de Qatar.',
-      en: 'Historic national team captain who reached the 2002 World Cup quarter-finals. As coach he led Senegal to their first Africa Cup title in 2022 and to the Qatar World Cup.',
+      es: 'Exdelantero senegalés que jugó el Mundial 2002 y pasó por clubes de Francia, Suiza, España y Rusia. Nombrado seleccionador en diciembre de 2024 tras la destitución de Aliou Cissé, clasificó a Senegal para el Mundial 2026 en octubre de 2025.',
+      en: 'Former Senegalese striker who played at the 2002 World Cup and had spells in France, Switzerland, Spain and Russia. Appointed head coach in December 2024 following Aliou Cissé\'s dismissal, he led Senegal to 2026 World Cup qualification in October 2025.',
     },
   },
   IRQ: {
-    name: 'Jesús Casas',
-    born: '1970-12-14',
-    nationality: 'España',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Jesús_Casas_2023.jpg/400px-Jesús_Casas_2023.jpg',
+    name: 'Graham Arnold',
+    born: '1963-08-03',
+    nationality: 'Australia',
     bio: {
-      es: 'Técnico español con experiencia en el fútbol árabe y asiático. Asumió la selección iraquí con el objetivo de aprovechar el talento de su nueva generación y clasificar al Mundial 2026.',
-      en: 'Spanish coach with experience in Arab and Asian football. He took charge of Iraq aiming to harness their new generation\'s talent and secure a 2026 World Cup spot.',
+      es: 'Exdelantero australiano que llevó a los Socceroos al mejor rendimiento mundialista de su historia en 2022. Nombrado técnico de Irak en mayo de 2025, guió a los Leones de Mesopotamia a su primer Mundial desde 1986 venciendo a Bolivia en el play-off intercontinental.',
+      en: 'Former Australian striker who guided the Socceroos to their best-ever World Cup in 2022. Appointed Iraq coach in May 2025, he led the Lions of Mesopotamia to their first World Cup since 1986 by beating Bolivia in the intercontinental play-off.',
     },
   },
   NOR: {
@@ -421,13 +412,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   JOR: {
-    name: 'Hussein Ammouta',
-    born: '1967-12-21',
+    name: 'Jamal Sellami',
+    born: '1970-10-06',
     nationality: 'Marruecos',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Hussein_Ammouta_2021.jpg/400px-Hussein_Ammouta_2021.jpg',
     bio: {
-      es: 'Técnico marroquí que logró con Jordania uno de los mayores hitos del fútbol asiático: llegar a la final de la Copa Asiática 2023. Su trabajo táctico transformó a los Nashama.',
-      en: 'Moroccan coach who achieved one of the greatest feats in Asian football with Jordan: reaching the 2023 AFC Asian Cup final. His tactical work transformed the Nashama.',
+      es: 'Exmediocampista marroquí que disputó el Mundial 1998 con el Raja de Casablanca y el Beşiktaş. Asumió Jordania en junio de 2024 y llevó a los Nashama a su primera clasificación histórica para un Mundial.',
+      en: 'Former Moroccan midfielder who played at the 1998 World Cup with Raja Casablanca and Beşiktaş. He took charge of Jordan in June 2024 and guided the Nashama to their first-ever World Cup qualification.',
     },
   },
 
@@ -453,13 +443,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   UZB: {
-    name: 'Srecko Katanec',
-    born: '1963-03-16',
-    nationality: 'Eslovenia',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Srecko_Katanec_2018.jpg/400px-Srecko_Katanec_2018.jpg',
+    name: 'Fabio Cannavaro',
+    born: '1973-09-13',
+    nationality: 'Italia',
     bio: {
-      es: 'Exdefensa y técnico esloveno que dirigió la selección de su país al Mundial 2002. Con Uzbekistán guió a los «Lobos Blancos» hasta las semifinales de la Copa Asiática 2023.',
-      en: 'Former Slovenian defender and coach who guided his country to the 2002 World Cup. With Uzbekistan he led the "White Wolves" to the semi-finals of the 2023 AFC Asian Cup.',
+      es: 'Uno de los mejores defensas de la historia, capitán de Italia en el Mundial 2006 y ganador del Balón de Oro ese mismo año. Nombrado técnico de Uzbekistán en octubre de 2025 para guiar a los Lobos Blancos en su debut histórico en un Mundial.',
+      en: 'One of the greatest defenders in history, Italy\'s World Cup-winning captain in 2006 and Ballon d\'Or winner that same year. Appointed Uzbekistan coach in October 2025 to lead the White Wolves in their historic World Cup debut.',
     },
   },
   COL: {
@@ -495,13 +484,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   GHA: {
-    name: 'Otto Addo',
-    born: '1975-06-09',
-    nationality: 'Ghana',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Otto_Addo_2022.jpg/400px-Otto_Addo_2022.jpg',
+    name: 'Carlos Queiroz',
+    born: '1953-03-01',
+    nationality: 'Portugal',
     bio: {
-      es: 'Exmediocampista del Borussia Dortmund y referente de la diáspora ghanese en Europa. Regresó para liderar las Estrellas Negras en las eliminatorias mundialistas.',
-      en: 'Former Borussia Dortmund midfielder and standard-bearer of the Ghanaian diaspora in Europe. He returned to lead the Black Stars through World Cup qualifying.',
+      es: 'Técnico portugués con una de las trayectorias más extensas del fútbol mundial: ayudante de Ferguson en el Manchester United, seleccionador de Portugal, Irán, Colombia y Egipto. Nombrado técnico de Ghana en abril de 2026 para su quinta participación consecutiva en un Mundial.',
+      en: 'Portuguese coach with one of the most extensive careers in world football: Ferguson\'s assistant at Manchester United, head coach of Portugal, Iran, Colombia and Egypt. Appointed Ghana coach in April 2026 for his fifth consecutive World Cup appearance.',
     },
   },
   PAN: {

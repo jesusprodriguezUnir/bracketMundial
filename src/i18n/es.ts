@@ -9,6 +9,8 @@ export const es = {
   'header.export': 'EXPORTAR JSON',
   'header.importExcel': 'SUBIR EXCEL',
   'header.exportExcel': 'BAJAR EXCEL',
+  'header.importExcelTitle': 'Importar datos desde un archivo Excel (.xlsx)',
+  'header.exportExcelTitle': 'Descargar plantilla Excel con el bracket actual',
   'header.share': 'COMPARTIR',
   'header.nightMode': '◑ NOCHE',
   'header.dayMode': '◐ DÍA',
@@ -188,6 +190,14 @@ export const es = {
   'excel.colHome': 'Local',
   'excel.colAway': 'Visitante',
   'excel.colPen': 'Penaltis',
+  'excel.sheetCoaches': 'Entrenadores',
+  'excel.colCoach': 'Entrenador',
+  'excel.colNationality': 'Nacionalidad',
+  'excel.colAge': 'Edad',
+  'excel.importOk': 'Bracket importado correctamente desde Excel.',
+  'excel.importError': 'Error al importar el archivo. Comprueba que sea un Excel generado por esta aplicación.',
+  'excel.importErrorTemplate': 'El archivo no es una plantilla válida: falta la hoja MAP.',
+  'excel.importErrorNoRows': 'No se encontraron datos válidos en el archivo.',
 
   // SEO Info
   'seo.aboutTitle': '¿Cómo funciona el Simulador del Mundial 2026?',
