@@ -24,7 +24,10 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
     const sb = getSupabase();
     if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
     set({ status: 'sending', lastError: null });
-    const emailRedirectTo = window.location.origin + window.location.pathname;
+    const { isNativePlatform, getNativeRedirectUrl } = await import('../lib/native-auth');
+    const emailRedirectTo = isNativePlatform()
+      ? getNativeRedirectUrl()
+      : window.location.origin + window.location.pathname;
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo } });
     set(error ? { status: 'error', lastError: error.message } : { status: 'sent' });
   },
