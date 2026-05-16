@@ -38,7 +38,8 @@
       "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" log -1 --format=\"%h %ci %s\" origin/main)",
       "Bash(git ls-remote *)",
       "Bash(gh run *)",
-      "Bash(node scripts/generate-news.mjs --write-seed)"
+      "Bash(node scripts/generate-news.mjs --write-seed)",
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" show origin/news-data:vercel.json)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"
