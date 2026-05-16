@@ -1,8 +1,44 @@
 {
-  "hash": "d29697db",
+  "hash": "4003f156",
   "configHash": "ab83f534",
-  "lockfileHash": "45b28685",
-  "browserHash": "816c11df",
-  "optimized": {},
-  "chunks": {}
+  "lockfileHash": "3e968ad2",
+  "browserHash": "2081c346",
+  "optimized": {
+    "@vercel/analytics": {
+      "src": "../../node_modules/@vercel/analytics/dist/index.mjs",
+      "file": "@vercel_analytics.js",
+      "fileHash": "5756f5c2",
+      "needsInterop": false
+    },
+    "lit": {
+      "src": "../../node_modules/lit/index.js",
+      "file": "lit.js",
+      "fileHash": "ee089a68",
+      "needsInterop": false
+    },
+    "lit/decorators.js": {
+      "src": "../../node_modules/lit/decorators.js",
+      "file": "lit_decorators__js.js",
+      "fileHash": "22ea4097",
+      "needsInterop": false
+    },
+    "zustand/middleware": {
+      "src": "../../node_modules/zustand/esm/middleware.mjs",
+      "file": "zustand_middleware.js",
+      "fileHash": "98d7a7b3",
+      "needsInterop": false
+    },
+    "zustand/vanilla": {
+      "src": "../../node_modules/zustand/esm/vanilla.mjs",
+      "file": "zustand_vanilla.js",
+      "fileHash": "cddb879d",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "reactive-element-ClMeNGvs": {
+      "file": "reactive-element-ClMeNGvs.js",
+      "isDynamicEntry": false
+    }
+  }
 }
