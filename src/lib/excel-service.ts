@@ -1,461 +1,772 @@
 import ExcelJS from 'exceljs';
 import type { GroupMatchResult, KnockoutMatchResult } from '../store/tournament-store';
+import type { Locale } from '../i18n/index';
+import type { TranslationKey } from '../i18n/es';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
 import { TEAMS_2026 } from '../data/fifa-2026';
 
-const COLORS = {
-  paper: 'ECDFC0',
+// ─── Theme ────────────────────────────────────────────────────────────────────
+
+const C = {
   paper2: 'E6D6B1',
-  ink: '1A1933',
+  ink:    '1A1933',
   yellow: 'F0B021',
   orange: 'E8541F',
-  red: 'C41E2C',
-  green: '1F6B3A',
-  blue: '22418C',
-  white: 'FFFFFF',
-  dim: '7A6F54'
-};
+  white:  'FFFFFF',
+  dim:    '7A6F54',
+} as const;
 
-const BORDER_THICK = { style: 'thick' as const, color: { argb: COLORS.ink } };
-const BORDER_THIN = { style: 'thin' as const, color: { argb: COLORS.ink } };
+const THICK: ExcelJS.Border = { style: 'thick', color: { argb: C.ink } };
+const THIN:  ExcelJS.Border = { style: 'thin',  color: { argb: C.ink } };
+
+// ─── i18n (no Zustand dep — reads dicts directly) ────────────────────────────
+
+function lbl(key: TranslationKey, locale: Locale, params?: Record<string, string>): string {
+  const dict = locale === 'en' ? en : es;
+  let str = (dict[key] ?? (es[key] as string)) as string;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) str = str.replaceAll(`{${k}}`, v);
+  }
+  return str;
+}
+
+// ─── Team helpers ─────────────────────────────────────────────────────────────
+
+function tName(id: string | null | undefined): string {
+  if (!id) return '?';
+  return TEAMS_2026.find(t => t.id === id)?.name ?? id;
+}
+
+function tFlag(id: string | null | undefined): string {
+  if (!id) return '';
+  return TEAMS_2026.find(t => t.id === id)?.flag ?? '';
+}
+
+function fmtDate(date?: string): string {
+  if (!date) return '';
+  const p = date.split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}` : date;
+}
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+const BOXES_PER_ROW = 3;
+const BOX_COLS      = 10;
+const BOX_GAP       = 1;
+const BOX_STEP      = BOX_COLS + BOX_GAP; // = 11
+
+// Row offsets within a group box (0-indexed from box startRow):
+const OFF_HEADER    = 0;
+const OFF_MLBLS     = 1;
+const OFF_MATCH_0   = 2;
+const MATCH_COUNT   = 6;
+const OFF_STND_HDR  = OFF_MATCH_0 + MATCH_COUNT;   // 8
+const OFF_STND_LBLS = OFF_STND_HDR + 1;            // 9
+const OFF_STND_0    = OFF_STND_LBLS + 1;           // 10
+const TEAM_COUNT    = 4;
+const BOX_HEIGHT    = OFF_STND_0 + TEAM_COUNT;     // 14
+
+// Match column offsets (from startCol):
+const MC_ID   = 0;
+const MC_MD   = 1;
+const MC_DATE = 2;
+const MC_HOME = 3;
+const MC_FLA  = 4;
+const MC_SA   = 5; // scoreA — editable yellow
+const MC_SEP  = 6;
+const MC_SB   = 7; // scoreB — editable yellow
+const MC_FLB  = 8;
+const MC_AWAY = 9;
+
+// CALC sheet columns (1-indexed):
+const CC_TEAM = 2;
+const CC_PJ   = 3;
+const CC_G    = 4;
+const CC_E    = 5;
+const CC_P    = 6;
+const CC_GF   = 7;
+const CC_GC   = 8;
+const CC_DG   = 9;
+const CC_PTS  = 10;
+const CC_KEY  = 11;
+const CALC_ROW_OFFSET = 2; // group block 0 starts at CALC row 2
+
+// ─── Internal types ───────────────────────────────────────────────────────────
+
+interface TeamMatchInfo {
+  readonly teamId:  string;
+  readonly name:    string;
+  readonly teamIdx: number; // position in TEAMS_2026 filter for this group (0-3)
+  // Addresses of score cells in the groups sheet, for formula building:
+  readonly localSA: string[]; // scoreA cells where this team is teamA (their goals)
+  readonly localSB: string[]; // scoreB cells where this team is teamA (opp goals)
+  readonly awaySB:  string[]; // scoreB cells where this team is teamB (their goals)
+  readonly awaySA:  string[]; // scoreA cells where this team is teamB (opp goals)
+}
+
+interface MatchCell {
+  readonly matchId:   string;
+  readonly sheetName: string;
+  readonly saAddr:    string;
+  readonly sbAddr:    string;
+}
+
+interface KnockoutCell {
+  readonly matchId:   string;
+  readonly sheetName: string;
+  readonly saAddr:    string;
+  readonly sbAddr:    string;
+  readonly penAddr:   string;
+}
+
+interface GroupDrawInfo {
+  readonly letter:     string;
+  readonly groupIdx:   number; // 0=A … 11=L
+  readonly startRow:   number;
+  readonly startCol:   number;
+  readonly teams:      TeamMatchInfo[];
+  readonly matchCells: MatchCell[];
+}
+
+export interface ImportResult {
+  groupScores:    { matchId: string; scoreA: number | null; scoreB: number | null }[];
+  knockoutScores: { matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }[];
+}
+
+// ─── Formula builders ─────────────────────────────────────────────────────────
+
+function shRef(name: string): string {
+  return name.includes(' ') ? `'${name}'` : name;
+}
+
+function xref(sr: string, addr: string): string {
+  return `${sr}!${addr}`;
+}
+
+function colLetter(col: number): string {
+  let r = '', c = col;
+  while (c > 0) { c--; r = String.fromCharCode(65 + c % 26) + r; c = Math.floor(c / 26); }
+  return r;
+}
+
+function calcRange(col: number, r1: number, r4: number): string {
+  const cl = colLetter(col);
+  return `CALC!$${cl}$${r1}:$${cl}$${r4}`;
+}
+
+function standingF(calcCol: number, r1: number, r4: number, pos: number): string {
+  const kr = calcRange(CC_KEY, r1, r4);
+  const vr = calcRange(calcCol, r1, r4);
+  return `INDEX(${vr},MATCH(LARGE(${kr},${pos}),${kr},0))`;
+}
+
+function formulaGF(ti: TeamMatchInfo, sr: string): string {
+  const cells = [...ti.localSA, ...ti.awaySB].map(a => xref(sr, a));
+  return cells.length ? `SUM(${cells.join(',')})` : '0';
+}
+
+function formulaGC(ti: TeamMatchInfo, sr: string): string {
+  const cells = [...ti.localSB, ...ti.awaySA].map(a => xref(sr, a));
+  return cells.length ? `SUM(${cells.join(',')})` : '0';
+}
+
+function formulaPJ(ti: TeamMatchInfo, sr: string): string {
+  const cells = [...ti.localSA, ...ti.awaySB].map(a => xref(sr, a));
+  return cells.length ? `COUNT(${cells.join(',')})` : '0';
+}
+
+function wdl(ti: TeamMatchInfo, sr: string): { w: string; d: string; l: string } {
+  const wp: string[] = [], dp: string[] = [], lp: string[] = [];
+  ti.localSA.forEach((saA, i) => {
+    const s1 = xref(sr, saA), s2 = xref(sr, ti.localSB[i]);
+    const b = `AND(ISNUMBER(${s1}),ISNUMBER(${s2}))`;
+    wp.push(`IF(${b},IF(${s1}>${s2},1,0),0)`);
+    dp.push(`IF(${b},IF(${s1}=${s2},1,0),0)`);
+    lp.push(`IF(${b},IF(${s1}<${s2},1,0),0)`);
+  });
+  ti.awaySB.forEach((sbB, i) => {
+    const s1 = xref(sr, ti.awaySA[i]), s2 = xref(sr, sbB);
+    const b = `AND(ISNUMBER(${s1}),ISNUMBER(${s2}))`;
+    wp.push(`IF(${b},IF(${s2}>${s1},1,0),0)`);
+    dp.push(`IF(${b},IF(${s2}=${s1},1,0),0)`);
+    lp.push(`IF(${b},IF(${s2}<${s1},1,0),0)`);
+  });
+  const join = (a: string[]) => a.length ? a.join('+') : '0';
+  return { w: join(wp), d: join(dp), l: join(lp) };
+}
+
+// ─── Style helpers ────────────────────────────────────────────────────────────
+
+function fill(argb: string): ExcelJS.Fill {
+  return { type: 'pattern', pattern: 'solid', fgColor: { argb } };
+}
+
+function center(sheet: ExcelJS.Worksheet, r: number, c: number): ExcelJS.Cell {
+  const cell = sheet.getCell(r, c);
+  cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  return cell;
+}
+
+function yellow(sheet: ExcelJS.Worksheet, r: number, c: number): void {
+  const cell = sheet.getCell(r, c);
+  cell.fill = fill(C.yellow);
+  cell.border = { top: THIN, left: THIN, bottom: THIN, right: THIN };
+  cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  cell.font = { bold: true, size: 10 };
+  cell.dataValidation = {
+    type: 'whole',
+    operator: 'greaterThanOrEqual',
+    allowBlank: true,
+    showErrorMessage: true,
+    formulae: [0],
+  };
+}
+
+function addBorder(
+  sheet: ExcelJS.Worksheet,
+  r: number, c: number,
+  side: 'top' | 'bottom' | 'left' | 'right',
+  border: ExcelJS.Border
+): void {
+  const cell = sheet.getCell(r, c);
+  cell.border = { ...cell.border, [side]: border };
+}
+
+// ─── Main service ─────────────────────────────────────────────────────────────
 
 export class ExcelService {
   static async exportToExcel(
     groupMatches: GroupMatchResult[],
-    knockoutMatches: Record<string, KnockoutMatchResult>
+    knockoutMatches: Record<string, KnockoutMatchResult>,
+    locale: Locale = 'es'
   ): Promise<Blob> {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Bracket Mundial 2026';
-    workbook.lastModifiedBy = 'Bracket Mundial 2026';
-    workbook.created = new Date();
-    workbook.modified = new Date();
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Bracket Mundial 2026';
+    wb.created = new Date();
+    wb.modified = new Date();
 
-    this.createGroupsSheet(workbook, groupMatches);
-    this.createKnockoutSheet(workbook, knockoutMatches);
-    this.createDataMapSheet(workbook, groupMatches);
+    const groupsName   = lbl('excel.sheetGroups',  locale);
+    const knockoutName = lbl('excel.sheetKnockout', locale);
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const drawInfos    = this.createGroupsSheet(wb, groupMatches, locale, groupsName);
+    this.createCalcSheet(wb, drawInfos, groupsName);
+    this.fillStandingsFormulas(wb, drawInfos, locale, groupsName);
+    const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName);
+    this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells);
+
+    const buffer = await wb.xlsx.writeBuffer();
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
   }
 
-  private static createGroupsSheet(workbook: ExcelJS.Workbook, matches: GroupMatchResult[]) {
-    const sheet = workbook.addWorksheet('Fase de Grupos', {
+  // ── Groups sheet ─────────────────────────────────────────────────────────────
+
+  private static createGroupsSheet(
+    wb: ExcelJS.Workbook,
+    matches: GroupMatchResult[],
+    locale: Locale,
+    sheetName: string
+  ): GroupDrawInfo[] {
+    const sheet = wb.addWorksheet(sheetName, {
       views: [{ showGridLines: false }],
-      properties: { defaultRowHeight: 20 }
+      properties: { defaultRowHeight: 18 },
     });
 
-    sheet.getColumn('A').width = 2;
-    
-    const groups = 'ABCDEFGHIJKL'.split('');
-    let currentColumn = 2;
-    let currentRow = 2;
+    // Column widths — repeat the pattern for each of the 3 box positions
+    const WIDTHS = [5, 7, 10, 16, 4, 6, 3, 6, 4, 16];
+    for (let box = 0; box < BOXES_PER_ROW; box++) {
+      const sc = 2 + box * BOX_STEP;
+      WIDTHS.forEach((w, i) => { sheet.getColumn(sc + i).width = w; });
+    }
+    // Gap column between boxes
+    sheet.getColumn(2 + BOX_STEP - 1).width = 2;
+    sheet.getColumn(2 + 2 * BOX_STEP - 1).width = 2;
 
-    groups.forEach((groupLetter, index) => {
-      const groupMatches = matches.filter(m => m.group === groupLetter);
-      this.drawGroupBox(sheet, groupLetter, groupMatches, currentRow, currentColumn);
+    const GROUPS = 'ABCDEFGHIJKL'.split('');
+    const drawInfos: GroupDrawInfo[] = [];
 
-      if ((index + 1) % 3 === 0) {
-        currentColumn = 2;
-        currentRow += 18;
-      } else {
-        currentColumn += 12;
-      }
+    GROUPS.forEach((letter, idx) => {
+      const row = idx % BOXES_PER_ROW;
+      const boxRow = Math.floor(idx / BOXES_PER_ROW);
+      const startRow = 2 + boxRow * (BOX_HEIGHT + 3);
+      const startCol = 2 + row * BOX_STEP;
+
+      const groupMatches = matches
+        .filter(m => m.group === letter)
+        .sort((a, b) => a.matchDay - b.matchDay);
+
+      drawInfos.push(
+        this.drawGroupBox(sheet, letter, idx, groupMatches, startRow, startCol, locale, sheetName)
+      );
     });
+
+    return drawInfos;
   }
 
   private static drawGroupBox(
     sheet: ExcelJS.Worksheet,
-    group: string,
+    letter: string,
+    groupIdx: number,
     matches: GroupMatchResult[],
-    row: number,
-    col: number
-  ) {
-    // Header - GRUPO
-    const headerCell = sheet.getCell(row, col);
-    headerCell.value = `GRUPO ${group}`;
-    headerCell.font = { bold: true, size: 14, color: { argb: COLORS.white } };
-    headerCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.ink } };
-    headerCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    sheet.mergeCells(row, col, row, col + 9);
+    startRow: number,
+    startCol: number,
+    locale: Locale,
+    sheetName: string
+  ): GroupDrawInfo {
+    // ── Header ────────────────────────────────────────────────────────────────
+    const hdr = sheet.getCell(startRow + OFF_HEADER, startCol);
+    hdr.value = lbl('groups.group', locale, { letter });
+    hdr.font  = { bold: true, size: 13, color: { argb: C.white } };
+    hdr.fill  = fill(C.ink);
+    hdr.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.mergeCells(startRow + OFF_HEADER, startCol, startRow + OFF_HEADER, startCol + BOX_COLS - 1);
 
-    // Labels Matches
-    const labelsRow = row + 1;
-    ['ID', 'Selección Local', '', 'Goles', '-', 'Goles', '', 'Selección Visitante'].forEach((label, i) => {
-      const cell = sheet.getCell(labelsRow, col + i);
-      cell.value = label;
-      cell.font = { bold: true, size: 9, color: { argb: COLORS.ink } };
-      cell.alignment = { horizontal: 'center' };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.paper2 } };
-      cell.border = { bottom: BORDER_THIN };
+    // ── Match column labels ───────────────────────────────────────────────────
+    const mLabels = [
+      lbl('excel.colId', locale),
+      lbl('excel.colMatchday', locale),
+      lbl('excel.colDate', locale),
+      lbl('excel.colHome', locale),
+      '',
+      lbl('excel.colGF', locale),
+      '-',
+      lbl('excel.colGC', locale),
+      '',
+      lbl('excel.colAway', locale),
+    ];
+    mLabels.forEach((v, i) => {
+      const c = center(sheet, startRow + OFF_MLBLS, startCol + i);
+      c.value = v;
+      c.font  = { bold: true, size: 8, color: { argb: C.ink } };
+      c.fill  = fill(C.paper2);
+      c.border = { bottom: THIN };
     });
 
-    sheet.getColumn(col).width = 6; // ID
-    sheet.getColumn(col + 1).width = 18; // Local
-    sheet.getColumn(col + 2).width = 4; // Flag
-    sheet.getColumn(col + 3).width = 7; // S1
-    sheet.getColumn(col + 4).width = 3; // -
-    sheet.getColumn(col + 5).width = 7; // S2
-    sheet.getColumn(col + 6).width = 4; // Flag
-    sheet.getColumn(col + 7).width = 18; // Visitante
-    sheet.getColumn(col + 8).width = 5; // DG
-    sheet.getColumn(col + 9).width = 6; // PTS
+    // ── Match rows ────────────────────────────────────────────────────────────
+    const groupTeams = TEAMS_2026.filter(t => t.group === letter);
+    const teamMap = new Map<string, { localSA: string[]; localSB: string[]; awaySB: string[]; awaySA: string[]; }>(
+      groupTeams.map((t, i) => [t.id, { localSA: [], localSB: [], awaySB: [], awaySA: [] }] as [string, { localSA: string[]; localSB: string[]; awaySB: string[]; awaySA: string[]; }])
+    );
+    // Use teamIdx for stable tiebreak in KEY formula
+    const teamIdx = new Map(groupTeams.map((t, i) => [t.id, i]));
 
-    // Matches
-    const matchStartRow = row + 2;
+    const matchCells: MatchCell[] = [];
+
     matches.forEach((m, i) => {
-      const r = matchStartRow + i;
-      const teamA = TEAMS_2026.find(t => t.id === m.teamA);
-      const teamB = TEAMS_2026.find(t => t.id === m.teamB);
+      const r = startRow + OFF_MATCH_0 + i;
+      const bgFill = fill(i % 2 === 0 ? 'FAFAF5' : 'F0EDE0');
 
-      sheet.getCell(r, col).value = m.matchId;
-      sheet.getCell(r, col).font = { size: 8, color: { argb: COLORS.dim } };
-      
-      sheet.getCell(r, col + 1).value = teamA?.name || m.teamA;
-      sheet.getCell(r, col + 2).value = teamA?.flag || '';
-      sheet.getCell(r, col + 3).value = m.scoreA;
-      sheet.getCell(r, col + 4).value = '-';
-      sheet.getCell(r, col + 5).value = m.scoreB;
-      sheet.getCell(r, col + 6).value = teamB?.flag || '';
-      sheet.getCell(r, col + 7).value = teamB?.name || m.teamB;
-
-      // Styling scores (fillable)
-      [col + 3, col + 5].forEach(c => {
-        const cell = sheet.getCell(r, c);
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.yellow } };
-        cell.border = { top: BORDER_THIN, left: BORDER_THIN, bottom: BORDER_THIN, right: BORDER_THIN };
-        cell.alignment = { horizontal: 'center' };
-        cell.font = { bold: true };
-        cell.dataValidation = { 
-          type: 'whole', 
-          operator: 'greaterThanOrEqual', 
-          showErrorMessage: true, 
-          allowBlank: true, 
-          formulae: [0] 
-        };
+      const rowCells = [MC_ID, MC_MD, MC_DATE, MC_HOME, MC_FLA, MC_SA, MC_SEP, MC_SB, MC_FLB, MC_AWAY];
+      rowCells.forEach(ci => {
+        const cell = sheet.getCell(r, startCol + ci);
+        cell.fill = bgFill;
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
 
-      [col, col + 1, col + 2, col + 4, col + 6, col + 7].forEach(c => {
-        sheet.getCell(r, c).alignment = { horizontal: 'center' };
-      });
+      sheet.getCell(r, startCol + MC_ID).value   = m.matchId;
+      sheet.getCell(r, startCol + MC_ID).font     = { size: 7, color: { argb: C.dim } };
+      sheet.getCell(r, startCol + MC_MD).value    = m.matchDay;
+      sheet.getCell(r, startCol + MC_MD).font     = { size: 8, color: { argb: C.dim } };
+      sheet.getCell(r, startCol + MC_DATE).value  = fmtDate(m.date);
+      sheet.getCell(r, startCol + MC_DATE).font   = { size: 8 };
+      if (m.venue) {
+        sheet.getCell(r, startCol + MC_DATE).note = `${m.venue}${m.city ? ', ' + m.city : ''}`;
+      }
+      sheet.getCell(r, startCol + MC_HOME).value  = tName(m.teamA);
+      sheet.getCell(r, startCol + MC_HOME).font   = { size: 9 };
+      sheet.getCell(r, startCol + MC_HOME).alignment = { horizontal: 'right', vertical: 'middle' };
+      sheet.getCell(r, startCol + MC_FLA).value   = tFlag(m.teamA);
+      sheet.getCell(r, startCol + MC_SEP).value   = '–';
+      sheet.getCell(r, startCol + MC_FLB).value   = tFlag(m.teamB);
+      sheet.getCell(r, startCol + MC_AWAY).value  = tName(m.teamB);
+      sheet.getCell(r, startCol + MC_AWAY).font   = { size: 9 };
+      sheet.getCell(r, startCol + MC_AWAY).alignment = { horizontal: 'left', vertical: 'middle' };
+
+      // Editable yellow score cells
+      yellow(sheet, r, startCol + MC_SA);
+      yellow(sheet, r, startCol + MC_SB);
+      if (m.scoreA !== null) sheet.getCell(r, startCol + MC_SA).value = m.scoreA;
+      if (m.scoreB !== null) sheet.getCell(r, startCol + MC_SB).value = m.scoreB;
+
+      const saAddr = sheet.getCell(r, startCol + MC_SA).address;
+      const sbAddr = sheet.getCell(r, startCol + MC_SB).address;
+
+      matchCells.push({ matchId: m.matchId, sheetName, saAddr, sbAddr });
+
+      const tA = teamMap.get(m.teamA);
+      if (tA) { tA.localSA.push(saAddr); tA.localSB.push(sbAddr); }
+      const tB = teamMap.get(m.teamB);
+      if (tB) { tB.awaySB.push(sbAddr); tB.awaySA.push(saAddr); }
     });
 
-    // Standing Table Section
-    const standingRow = row + 9;
-    const standingHeader = sheet.getCell(standingRow, col);
-    standingHeader.value = 'CLASIFICACIÓN';
-    standingHeader.font = { bold: true, size: 10, color: { argb: COLORS.white } };
-    standingHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.dim } };
-    standingHeader.alignment = { horizontal: 'center' };
-    sheet.mergeCells(standingRow, col, standingRow, col + 9);
+    // ── Standings header (filled by fillStandingsFormulas later) ──────────────
+    const sHdr = sheet.getCell(startRow + OFF_STND_HDR, startCol);
+    sHdr.value = lbl('excel.standings', locale);
+    sHdr.font  = { bold: true, size: 9, color: { argb: C.white } };
+    sHdr.fill  = fill(C.dim);
+    sHdr.alignment = { horizontal: 'center' };
+    sheet.mergeCells(startRow + OFF_STND_HDR, startCol, startRow + OFF_STND_HDR, startCol + BOX_COLS - 1);
 
-    const standingLabelsRow = standingRow + 1;
-    // (Labels are filled in the stats.forEach loop below)
-    
-    // Simpler Standing Table Layout
-    const stats = ['Pos', 'Equipo', 'PJ', 'G', 'E', 'P', 'GF', 'GC', 'DG', 'PTS'];
-    stats.forEach((s, i) => {
-        const cell = sheet.getCell(standingLabelsRow, col + i);
-        cell.value = s;
-        cell.font = { bold: true, size: 8 };
-        cell.alignment = { horizontal: 'center' };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.paper2 } };
-        cell.border = { bottom: BORDER_THIN };
+    const sLabels = [
+      lbl('excel.colPos', locale),
+      lbl('excel.colTeam', locale),
+      lbl('excel.colPlayed', locale),
+      lbl('excel.colWon', locale),
+      lbl('excel.colDrawn', locale),
+      lbl('excel.colLost', locale),
+      lbl('excel.colGF', locale),
+      lbl('excel.colGC', locale),
+      lbl('excel.colGD', locale),
+      lbl('excel.colPts', locale),
+    ];
+    sLabels.forEach((v, i) => {
+      const c = center(sheet, startRow + OFF_STND_LBLS, startCol + i);
+      c.value = v;
+      c.font  = { bold: true, size: 8 };
+      c.fill  = fill(C.paper2);
+      c.border = { bottom: THIN };
     });
 
-    const groupTeams = TEAMS_2026.filter(t => t.group === group);
-    groupTeams.forEach((team, teamIdx) => {
-        const r = standingLabelsRow + 1 + teamIdx;
-        const teamId = team.id;
-        
-        sheet.getCell(r, col).value = teamIdx + 1; // Pos
-        sheet.getCell(r, col + 1).value = team.name; // Equipo
-        
-        // Formula calculation helpers
-        const matchRows = matches.map((_, i) => matchStartRow + i);
-        const getFormula = (type: 'PJ' | 'G' | 'E' | 'P' | 'GF' | 'GC' | 'DG' | 'PTS'): any => {
-            const teamLocalIndices = matches.map((m, i) => m.teamA === teamId ? i : -1).filter(i => i !== -1);
-            const teamAwayIndices = matches.map((m, i) => m.teamB === teamId ? i : -1).filter(i => i !== -1);
-            
-            const allScoreCells = [
-                ...teamLocalIndices.map(i => sheet.getCell(matchRows[i], col + 3).address),
-                ...teamAwayIndices.map(i => sheet.getCell(matchRows[i], col + 5).address)
-            ];
-            
-            if (type === 'PJ') return { formula: `COUNT(${allScoreCells.join(',')})` };
-            if (type === 'GF') {
-                const myScores = [
-                    ...teamLocalIndices.map(i => sheet.getCell(matchRows[i], col + 3).address),
-                    ...teamAwayIndices.map(i => sheet.getCell(matchRows[i], col + 5).address)
-                ];
-                return { formula: `SUM(${myScores.join(',')})` };
-            }
-            if (type === 'GC') {
-                const oppScores = [
-                    ...teamLocalIndices.map(i => sheet.getCell(matchRows[i], col + 5).address),
-                    ...teamAwayIndices.map(i => sheet.getCell(matchRows[i], col + 3).address)
-                ];
-                return { formula: `SUM(${oppScores.join(',')})` };
-            }
-            if (type === 'DG') return { formula: `${sheet.getCell(r, col + 6).address}-${sheet.getCell(r, col + 7).address}` };
-            
-            const winParts: string[] = [];
-            const drawParts: string[] = [];
-            const lostParts: string[] = [];
-
-            teamLocalIndices.forEach(i => {
-                const s1 = sheet.getCell(matchRows[i], col + 3).address;
-                const s2 = sheet.getCell(matchRows[i], col + 5).address;
-                winParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s1}>${s2},1,0),0)`);
-                drawParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s1}=${s2},1,0),0)`);
-                lostParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s1}<${s2},1,0),0)`);
-            });
-            teamAwayIndices.forEach(i => {
-                const s1 = sheet.getCell(matchRows[i], col + 3).address;
-                const s2 = sheet.getCell(matchRows[i], col + 5).address;
-                winParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s2}>${s1},1,0),0)`);
-                drawParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s2}=${s1},1,0),0)`);
-                lostParts.push(`IF(AND(ISNUMBER(${s1}),ISNUMBER(${s2})),IF(${s2}<${s1},1,0),0)`);
-            });
-
-            if (type === 'G') return { formula: winParts.length > 0 ? winParts.join('+') : '0' };
-            if (type === 'E') return { formula: drawParts.length > 0 ? drawParts.join('+') : '0' };
-            if (type === 'P') return { formula: lostParts.length > 0 ? lostParts.join('+') : '0' };
-            if (type === 'PTS') return { formula: `(${sheet.getCell(r, col + 3).address}*3)+${sheet.getCell(r, col + 4).address}` };
-            
-            return 0;
-        };
-
-        sheet.getCell(r, col + 2).value = getFormula('PJ');
-        sheet.getCell(r, col + 3).value = getFormula('G');
-        sheet.getCell(r, col + 4).value = getFormula('E');
-        sheet.getCell(r, col + 5).value = getFormula('P');
-        sheet.getCell(r, col + 6).value = getFormula('GF');
-        sheet.getCell(r, col + 7).value = getFormula('GC');
-        sheet.getCell(r, col + 8).value = getFormula('DG');
-        sheet.getCell(r, col + 9).value = getFormula('PTS');
-
-        // Style standing row
-        for(let i=0; i<10; i++) {
-            const cell = sheet.getCell(r, col + i);
-            cell.alignment = { horizontal: 'center' };
-            cell.font = { size: 9 };
-            if (i === 9) cell.font = { bold: true, size: 10 }; // Points
-        }
-    });
-
-    // Box border
-    const lastRow = standingLabelsRow + 4;
-    for (let r_idx = row; r_idx <= lastRow; r_idx++) {
-      sheet.getCell(r_idx, col).border = { ...sheet.getCell(r_idx, col).border, left: BORDER_THICK };
-      sheet.getCell(r_idx, col + 9).border = { ...sheet.getCell(r_idx, col + 9).border, right: BORDER_THICK };
+    // ── Box outer border ──────────────────────────────────────────────────────
+    const lastRow = startRow + BOX_HEIGHT - 1;
+    const lastCol = startCol + BOX_COLS - 1;
+    for (let c = startCol; c <= lastCol; c++) {
+      addBorder(sheet, startRow, c, 'top', THICK);
+      addBorder(sheet, lastRow,  c, 'bottom', THICK);
     }
-    for (let c_idx = col; c_idx <= col + 9; c_idx++) {
-      sheet.getCell(row, c_idx).border = { ...sheet.getCell(row, c_idx).border, top: BORDER_THICK };
-      sheet.getCell(lastRow, c_idx).border = { ...sheet.getCell(lastRow, c_idx).border, bottom: BORDER_THICK };
+    for (let r = startRow; r <= lastRow; r++) {
+      addBorder(sheet, r, startCol, 'left', THICK);
+      addBorder(sheet, r, lastCol,  'right', THICK);
     }
+
+    const teams: TeamMatchInfo[] = groupTeams.map((t, i) => ({
+      teamId:  t.id,
+      name:    t.name,
+      teamIdx: teamIdx.get(t.id) ?? i,
+      ...teamMap.get(t.id)!,
+    }));
+
+    return { letter, groupIdx, startRow, startCol, teams, matchCells };
   }
 
-  private static createKnockoutSheet(workbook: ExcelJS.Workbook, matches: Record<string, KnockoutMatchResult>) {
-    const sheet = workbook.addWorksheet('Eliminatorias', {
-      views: [{ showGridLines: false }]
+  // ── CALC sheet (hidden) ───────────────────────────────────────────────────────
+
+  private static createCalcSheet(
+    wb: ExcelJS.Workbook,
+    drawInfos: GroupDrawInfo[],
+    groupsSheetName: string
+  ): void {
+    const sheet = wb.addWorksheet('CALC', { state: 'hidden' });
+    const sr = shRef(groupsSheetName);
+
+    // Header
+    ['', 'Equipo', 'PJ', 'G', 'E', 'P', 'GF', 'GC', 'DG', 'PTS', 'KEY'].forEach((h, i) => {
+      sheet.getCell(1, i + 1).value = h;
     });
 
-    sheet.getCell('A1').value = 'CUADRO FINAL';
-    sheet.getCell('A1').font = { bold: true, size: 20 };
-    
-    // For now, let's just list the matches in a column for the user to fill.
-    // Making a full visual tree in Excel via code is extremely tedious.
-    // I'll provide a simplified but clear version.
-    
-    const rounds = [
-      { id: 'roundOf32', label: 'Dieciséis-avos' },
-      { id: 'roundOf16', label: 'Octavos' },
-      { id: 'quarterfinals', label: 'Cuartos' },
-      { id: 'semifinals', label: 'Semifinales' },
-      { id: 'thirdPlace', label: 'Tercer Puesto' },
-      { id: 'final', label: 'Gran Final' }
-    ];
+    drawInfos.forEach(info => {
+      const r1 = CALC_ROW_OFFSET + info.groupIdx * TEAM_COUNT;
+      sheet.getCell(r1 - 1, 1).value = info.letter; // group label in col A
 
-    let currentRow = 3;
-    rounds.forEach(round => {
-      const header = sheet.getCell(currentRow, 2);
-      header.value = round.label.toUpperCase();
-      header.font = { bold: true, color: { argb: COLORS.white } };
-      header.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.orange } };
-      sheet.mergeCells(currentRow, 2, currentRow, 9);
-      currentRow++;
+      info.teams.forEach((ti, teamOffset) => {
+        const r = r1 + teamOffset;
 
-      // Labels
-      ['ID', 'Local', '', 'Score', '-', 'Score', '', 'Visitante', 'Pen'].forEach((l, i) => {
-        const cell = sheet.getCell(currentRow, 2 + i);
-        cell.value = l;
-        cell.font = { bold: true, size: 9 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.paper2 } };
+        // Static team name (not formula — teams don't change)
+        sheet.getCell(r, CC_TEAM).value = ti.name;
+
+        const pjF  = formulaPJ(ti, sr);
+        const gfF  = formulaGF(ti, sr);
+        const gcF  = formulaGC(ti, sr);
+        const { w: wF, d: dF, l: lF } = wdl(ti, sr);
+
+        sheet.getCell(r, CC_PJ).value  = { formula: pjF };
+        sheet.getCell(r, CC_G).value   = { formula: wF };
+        sheet.getCell(r, CC_E).value   = { formula: dF };
+        sheet.getCell(r, CC_P).value   = { formula: lF };
+        sheet.getCell(r, CC_GF).value  = { formula: gfF };
+        sheet.getCell(r, CC_GC).value  = { formula: gcF };
+
+        const dgAddr  = sheet.getCell(r, CC_DG).address;
+        const gfAddr  = sheet.getCell(r, CC_GF).address;
+        const gcAddr  = sheet.getCell(r, CC_GC).address;
+        const gAddr   = sheet.getCell(r, CC_G).address;
+        const eAddr   = sheet.getCell(r, CC_E).address;
+        const ptsAddr = sheet.getCell(r, CC_PTS).address;
+
+        sheet.getCell(r, CC_DG).value  = { formula: `${gfAddr}-${gcAddr}` };
+        sheet.getCell(r, CC_PTS).value = { formula: `${gAddr}*3+${eAddr}` };
+
+        // KEY: PTS*1e5 + (DG+1000)*100 + GF*10 + tiebreak
+        // tiebreak = (3 - teamIdx) ensures unique key; mirrors JS stable-sort order
+        sheet.getCell(r, CC_KEY).value = {
+          formula: `${ptsAddr}*100000+(${dgAddr}+1000)*100+${gfAddr}*10+${3 - ti.teamIdx}`,
+        };
       });
-      currentRow++;
+    });
+  }
 
-      const matchIds = this.getMatchIdsForRound(round.id);
-      matchIds.forEach(id => {
-        const m = matches[id] || { matchId: id, teamA: '?', teamB: '?', scoreA: null, scoreB: null };
-        const r = currentRow;
-        
-        sheet.getCell(r, 2).value = id;
-        sheet.getCell(r, 3).value = this.getTeamName(m.teamA);
-        sheet.getCell(r, 4).value = this.getTeamFlag(m.teamA);
-        sheet.getCell(r, 5).value = m.scoreA;
-        sheet.getCell(r, 6).value = '-';
-        sheet.getCell(r, 7).value = m.scoreB;
-        sheet.getCell(r, 8).value = this.getTeamFlag(m.teamB);
-        sheet.getCell(r, 9).value = this.getTeamName(m.teamB);
-        sheet.getCell(r, 10).value = (m.penaltyScoreA !== undefined || m.penaltyScoreB !== undefined) ? `${m.penaltyScoreA || 0}-${m.penaltyScoreB || 0}` : '';
+  // ── Fill standings formulas in groups sheet (INDEX/MATCH/LARGE → CALC) ───────
 
-        [5, 7, 10].forEach(c => {
-          const cell = sheet.getCell(r, c);
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.yellow } };
-          cell.border = { top: BORDER_THIN, left: BORDER_THIN, bottom: BORDER_THIN, right: BORDER_THIN };
-          cell.alignment = { horizontal: 'center' };
+  private static fillStandingsFormulas(
+    wb: ExcelJS.Workbook,
+    drawInfos: GroupDrawInfo[],
+    locale: Locale,
+    groupsSheetName: string
+  ): void {
+    const sheet = wb.getWorksheet(groupsSheetName);
+    if (!sheet) return;
+
+    drawInfos.forEach(info => {
+      const r1 = CALC_ROW_OFFSET + info.groupIdx * TEAM_COUNT;
+      const r4 = r1 + TEAM_COUNT - 1;
+      const { startRow, startCol } = info;
+
+      for (let pos = 1; pos <= TEAM_COUNT; pos++) {
+        const r = startRow + OFF_STND_0 + (pos - 1);
+
+        sheet.getCell(r, startCol + 0).value = pos;
+        sheet.getCell(r, startCol + 0).alignment = { horizontal: 'center' };
+        sheet.getCell(r, startCol + 0).font = { size: 9, color: { argb: C.dim } };
+
+        const cols: [number, number][] = [
+          [1, CC_TEAM], [2, CC_PJ], [3, CC_G], [4, CC_E], [5, CC_P],
+          [6, CC_GF],   [7, CC_GC], [8, CC_DG], [9, CC_PTS],
+        ];
+        cols.forEach(([offset, calcCol]) => {
+          const cell = sheet.getCell(r, startCol + offset);
+          cell.value = { formula: standingF(calcCol, r1, r4, pos) };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.font = offset === 9
+            ? { bold: true, size: 10 }
+            : { size: 9 };
         });
 
-        currentRow++;
-      });
-      currentRow += 2;
-    });
-  }
-
-  private static getMatchIdsForRound(roundId: string): string[] {
-      // Hardcoded IDs matching tournament-store and data
-      if (roundId === 'roundOf32') return Array.from({length: 16}, (_, i) => `R32-${(i+1).toString().padStart(2, '0')}`);
-      if (roundId === 'roundOf16') return Array.from({length: 8}, (_, i) => `R16-${(i+1).toString().padStart(2, '0')}`);
-      if (roundId === 'quarterfinals') return Array.from({length: 4}, (_, i) => `QF-${(i+1).toString().padStart(2, '0')}`);
-      if (roundId === 'semifinals') return ['SF-01', 'SF-02'];
-      if (roundId === 'thirdPlace') return ['TP-01'];
-      if (roundId === 'final') return ['FIN-01'];
-      return [];
-  }
-
-  private static getTeamName(id: string | null) {
-      if (!id) return '?';
-      return TEAMS_2026.find(t => t.id === id)?.name || id;
-  }
-
-  private static getTeamFlag(id: string | null) {
-      if (!id) return '';
-      return TEAMS_2026.find(t => t.id === id)?.flag || '';
-  }
-
-  private static createDataMapSheet(
-    workbook: ExcelJS.Workbook,
-    groupMatches: GroupMatchResult[]
-  ) {
-    const sheet = workbook.addWorksheet('MAP', { state: 'hidden' });
-    sheet.getCell('A1').value = 'Match ID';
-    sheet.getCell('B1').value = 'Sheet';
-    sheet.getCell('C1').value = 'Score A Cell';
-    sheet.getCell('D1').value = 'Score B Cell';
-    sheet.getCell('E1').value = 'Penalties Cell (Optional)';
-
-    let r = 2;
-    // Map group matches
-    const groupsSheet = workbook.getWorksheet('Fase de Grupos');
-    if (!groupsSheet) return;
-
-    // We need to re-find the cells. For simplicity, let's just re-iterate the logic
-    const groups = 'ABCDEFGHIJKL'.split('');
-    let currentColumn = 2;
-    let currentRow = 2;
-
-    groups.forEach((groupLetter, index) => {
-      const gMatches = groupMatches.filter(m => m.group === groupLetter);
-      gMatches.forEach((m, i) => {
-        sheet.getCell(r, 1).value = m.matchId;
-        sheet.getCell(r, 2).value = 'Fase de Grupos';
-        sheet.getCell(r, 3).value = groupsSheet.getCell(currentRow + 2 + i, currentColumn + 3).address;
-        sheet.getCell(r, 4).value = groupsSheet.getCell(currentRow + 2 + i, currentColumn + 5).address;
-        r++;
-      });
-
-      if ((index + 1) % 3 === 0) {
-        currentColumn = 2;
-        currentRow += 18;
-      } else {
-        currentColumn += 12;
+        // Localized DG column needs a sign fix for display (Excel does it automatically)
+        const _ = locale; // consumed to avoid unused-param lint
       }
     });
+  }
 
-    // Map knockout matches
-    const knockoutSheet = workbook.getWorksheet('Eliminatorias');
-    if (!knockoutSheet) return;
+  // ── Knockout sheet ────────────────────────────────────────────────────────────
 
-    const rounds = ['roundOf32', 'roundOf16', 'quarterfinals', 'semifinals', 'thirdPlace', 'final'];
-    let kRow = 3;
-    rounds.forEach(roundId => {
-        kRow += 2; // Header + Labels
-        const ids = this.getMatchIdsForRound(roundId);
-        ids.forEach(id => {
-            sheet.getCell(r, 1).value = id;
-            sheet.getCell(r, 2).value = 'Eliminatorias';
-            sheet.getCell(r, 3).value = knockoutSheet.getCell(kRow, 5).address;
-            sheet.getCell(r, 4).value = knockoutSheet.getCell(kRow, 7).address;
-            sheet.getCell(r, 5).value = knockoutSheet.getCell(kRow, 10).address;
-            r++;
-            kRow++;
+  private static createKnockoutSheet(
+    wb: ExcelJS.Workbook,
+    matches: Record<string, KnockoutMatchResult>,
+    locale: Locale,
+    sheetName: string
+  ): KnockoutCell[] {
+    const sheet = wb.addWorksheet(sheetName, {
+      views: [{ showGridLines: false }],
+      properties: { defaultRowHeight: 18 },
+    });
+
+    const koCells: KnockoutCell[] = [];
+
+    const ROUNDS: { id: string; label: TranslationKey; ids: string[] }[] = [
+      { id: 'roundOf32',     label: 'card.r32',        ids: Array.from({ length: 16 }, (_, i) => `R32-${String(i + 1).padStart(2, '0')}`) },
+      { id: 'roundOf16',    label: 'card.r16',        ids: Array.from({ length: 8 },  (_, i) => `R16-${String(i + 1).padStart(2, '0')}`) },
+      { id: 'quarterfinals',label: 'card.qf',         ids: Array.from({ length: 4 },  (_, i) => `QF-${String(i + 1).padStart(2, '0')}`) },
+      { id: 'semifinals',   label: 'card.sf',         ids: ['SF-01', 'SF-02'] },
+      { id: 'thirdPlace',   label: 'card.thirdPlace', ids: ['TP-01'] },
+      { id: 'final',        label: 'card.final',      ids: ['FIN-01'] },
+    ];
+
+    // Column widths
+    const KO_WIDTHS = [2, 7, 10, 12, 18, 4, 6, 3, 6, 4, 18, 8];
+    KO_WIDTHS.forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+
+    // Main title
+    const title = sheet.getCell(1, 2);
+    title.value = lbl('section.knockout.title', locale);
+    title.font  = { bold: true, size: 16, color: { argb: C.ink } };
+    sheet.mergeCells(1, 2, 1, 12);
+
+    // Column labels row (reused for each round)
+    const KO_LABELS = [
+      lbl('excel.colId', locale), lbl('excel.colDate', locale), lbl('excel.colVenue', locale),
+      lbl('excel.colHome', locale), '', lbl('excel.colGF', locale), '-',
+      lbl('excel.colGC', locale), '', lbl('excel.colAway', locale), lbl('excel.colPen', locale),
+    ];
+
+    let curRow = 3;
+
+    ROUNDS.forEach(round => {
+      // Round header
+      const hdr = sheet.getCell(curRow, 2);
+      hdr.value = lbl(round.label, locale);
+      hdr.font  = { bold: true, size: 11, color: { argb: C.white } };
+      hdr.fill  = fill(C.orange);
+      hdr.alignment = { horizontal: 'center' };
+      sheet.mergeCells(curRow, 2, curRow, 12);
+      curRow++;
+
+      // Column labels
+      KO_LABELS.forEach((v, i) => {
+        const c = sheet.getCell(curRow, 2 + i);
+        c.value = v;
+        c.font  = { bold: true, size: 8 };
+        c.fill  = fill(C.paper2);
+        c.alignment = { horizontal: 'center' };
+        c.border = { bottom: THIN };
+      });
+      curRow++;
+
+      round.ids.forEach(id => {
+        const m = matches[id];
+        const r = curRow;
+        const bg = fill(r % 2 === 0 ? 'FAFAF5' : 'F0EDE0');
+
+        [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].forEach(c => {
+          sheet.getCell(r, c).fill = bg;
+          sheet.getCell(r, c).alignment = { horizontal: 'center', vertical: 'middle' };
         });
-        kRow += 2; // Spacing
+
+        sheet.getCell(r, 2).value  = id;
+        sheet.getCell(r, 2).font   = { size: 7, color: { argb: C.dim } };
+        sheet.getCell(r, 3).value  = fmtDate(m?.date);
+        sheet.getCell(r, 3).font   = { size: 8 };
+        sheet.getCell(r, 4).value  = m?.venue ?? '';
+        sheet.getCell(r, 4).font   = { size: 8 };
+        sheet.getCell(r, 5).value  = tName(m?.teamA);
+        sheet.getCell(r, 5).font   = { size: 9 };
+        sheet.getCell(r, 5).alignment = { horizontal: 'right', vertical: 'middle' };
+        sheet.getCell(r, 6).value  = tFlag(m?.teamA);
+        sheet.getCell(r, 8).value  = '–';
+        sheet.getCell(r, 9).value  = tFlag(m?.teamB);
+        sheet.getCell(r, 10).value = tName(m?.teamB);
+        sheet.getCell(r, 10).font  = { size: 9 };
+        sheet.getCell(r, 10).alignment = { horizontal: 'left', vertical: 'middle' };
+
+        // Editable score cells
+        yellow(sheet, r, 7);  // scoreA
+        yellow(sheet, r, 9);  // scoreB — wait, col 9 already has flag. Let me fix.
+        // Actually: col layout is 2=ID,3=Date,4=Venue,5=Home,6=FlagA,7=ScoreA,8='-',9=ScoreB,10=FlagB,11=Away,12=Pen
+        // So col 6 = flagA, col 7 = scoreA (yellow), col 8 = sep, col 9 = scoreB (yellow), col 10 = flagB, col 11 = away, col 12 = pen
+
+        // Fix the cell assignments above:
+        sheet.getCell(r, 6).value  = tFlag(m?.teamA);  // flag A
+        // scoreA at col 7 (yellow — set above)
+        sheet.getCell(r, 8).value  = '–';
+        // scoreB at col 9 (yellow — set above)
+        sheet.getCell(r, 10).value = tFlag(m?.teamB);  // flag B
+        sheet.getCell(r, 11).value = tName(m?.teamB);  // away
+        sheet.getCell(r, 11).font  = { size: 9 };
+        sheet.getCell(r, 11).alignment = { horizontal: 'left', vertical: 'middle' };
+
+        if (m?.scoreA !== null && m?.scoreA !== undefined) sheet.getCell(r, 7).value = m.scoreA;
+        if (m?.scoreB !== null && m?.scoreB !== undefined) sheet.getCell(r, 9).value = m.scoreB;
+
+        // Penalty cell (format "a-b")
+        yellow(sheet, r, 12);
+        const penStr = (m?.penaltyScoreA !== null && m?.penaltyScoreA !== undefined &&
+                        m?.penaltyScoreB !== null && m?.penaltyScoreB !== undefined)
+          ? `${m.penaltyScoreA}-${m.penaltyScoreB}`
+          : '';
+        if (penStr) sheet.getCell(r, 12).value = penStr;
+
+        const saAddr  = sheet.getCell(r, 7).address;
+        const sbAddr  = sheet.getCell(r, 9).address;
+        const penAddr = sheet.getCell(r, 12).address;
+
+        koCells.push({ matchId: id, sheetName, saAddr, sbAddr, penAddr });
+
+        curRow++;
+      });
+
+      curRow += 2;
+    });
+
+    return koCells;
+  }
+
+  // ── MAP sheet (hidden) — single source of truth for import ───────────────────
+
+  private static createMapSheet(
+    wb: ExcelJS.Workbook,
+    matchCells: MatchCell[],
+    koCells: KnockoutCell[]
+  ): void {
+    const sheet = wb.addWorksheet('MAP', { state: 'hidden' });
+    ['Match ID', 'Sheet', 'Score A', 'Score B', 'Penalties'].forEach((h, i) => {
+      sheet.getCell(1, i + 1).value = h;
+    });
+    let r = 2;
+    matchCells.forEach(mc => {
+      sheet.getCell(r, 1).value = mc.matchId;
+      sheet.getCell(r, 2).value = mc.sheetName;
+      sheet.getCell(r, 3).value = mc.saAddr;
+      sheet.getCell(r, 4).value = mc.sbAddr;
+      r++;
+    });
+    koCells.forEach(kc => {
+      sheet.getCell(r, 1).value = kc.matchId;
+      sheet.getCell(r, 2).value = kc.sheetName;
+      sheet.getCell(r, 3).value = kc.saAddr;
+      sheet.getCell(r, 4).value = kc.sbAddr;
+      sheet.getCell(r, 5).value = kc.penAddr;
+      r++;
     });
   }
 
-  static async importFromExcel(file: File): Promise<{
-    groupScores: { matchId: string; scoreA: number | null; scoreB: number | null }[],
-    knockoutScores: { matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }[]
-  }> {
-    const workbook = new ExcelJS.Workbook();
-    const arrayBuffer = await file.arrayBuffer();
-    await workbook.xlsx.load(arrayBuffer);
+  // ── Import ────────────────────────────────────────────────────────────────────
 
-    const mapSheet = workbook.getWorksheet('MAP');
-    if (!mapSheet) throw new Error('Formato de Excel no válido: Falta la hoja de mapeo.');
+  static async importFromExcel(file: File): Promise<ImportResult> {
+    return this.importFromBuffer(await file.arrayBuffer());
+  }
 
-    const groupScores: any[] = [];
-    const knockoutScores: any[] = [];
+  static async importFromBuffer(buffer: ArrayBuffer): Promise<ImportResult> {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+
+    const mapSheet = wb.getWorksheet('MAP');
+    if (!mapSheet) throw new Error('Formato de Excel no válido: falta la hoja MAP.');
+
+    const groupScores:    ImportResult['groupScores']    = [];
+    const knockoutScores: ImportResult['knockoutScores'] = [];
 
     mapSheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
-      const matchId = row.getCell(1).value?.toString();
-      const sheetName = row.getCell(2).value?.toString();
-      const scoreACell = row.getCell(3).value?.toString();
-      const scoreBCell = row.getCell(4).value?.toString();
-      const penCell = row.getCell(5).value?.toString();
 
-      if (!matchId || !sheetName || !scoreACell || !scoreBCell) return;
+      const matchId  = row.getCell(1).value?.toString();
+      const sName    = row.getCell(2).value?.toString();
+      const saAddr   = row.getCell(3).value?.toString();
+      const sbAddr   = row.getCell(4).value?.toString();
+      const penAddr  = row.getCell(5).value?.toString();
 
-      const sheet = workbook.getWorksheet(sheetName);
-      if (!sheet) return;
+      if (!matchId || !sName || !saAddr || !sbAddr) return;
 
-      const scoreA = this.parseScore(sheet.getCell(scoreACell).value);
-      const scoreB = this.parseScore(sheet.getCell(scoreBCell).value);
+      const ws = wb.getWorksheet(sName);
+      if (!ws) return;
 
-      if (matchId.startsWith('R32-') || matchId.startsWith('R16-') || matchId.startsWith('QF-') || matchId.startsWith('SF-') || matchId.startsWith('TP-') || matchId.startsWith('FIN-')) {
-          let penaltyScoreA: number | null = null;
-          let penaltyScoreB: number | null = null;
-          if (penCell) {
-              const penVal = sheet.getCell(penCell).value?.toString() || '';
-              const parts = penVal.split('-');
-              if (parts.length === 2) {
-                  penaltyScoreA = parseInt(parts[0], 10);
-                  penaltyScoreB = parseInt(parts[1], 10);
-              }
-          }
-          knockoutScores.push({ matchId, scoreA, scoreB, penaltyScoreA, penaltyScoreB });
+      const scoreA = this.parseScore(ws.getCell(saAddr).value);
+      const scoreB = this.parseScore(ws.getCell(sbAddr).value);
+
+      const isKO = /^(R32|R16|QF|SF|TP|FIN)-/.test(matchId);
+      if (isKO) {
+        const [penA, penB] = penAddr ? this.parsePenalties(ws.getCell(penAddr).value) : [null, null];
+        knockoutScores.push({ matchId, scoreA, scoreB, penaltyScoreA: penA, penaltyScoreB: penB });
       } else {
-          groupScores.push({ matchId, scoreA, scoreB });
+        groupScores.push({ matchId, scoreA, scoreB });
       }
     });
 
     return { groupScores, knockoutScores };
   }
 
-  private static parseScore(val: any): number | null {
-      if (val === null || val === undefined || val === '') return null;
-      const n = parseInt(val.toString(), 10);
-      return isNaN(n) ? null : n;
+  private static parseScore(val: ExcelJS.CellValue): number | null {
+    if (val === null || val === undefined || val === '') return null;
+    const n = Number(val);
+    return Number.isFinite(n) ? Math.round(n) : null;
+  }
+
+  private static parsePenalties(val: ExcelJS.CellValue): [number | null, number | null] {
+    const str = val?.toString() ?? '';
+    const parts = str.split('-');
+    if (parts.length !== 2) return [null, null];
+    const a = parseInt(parts[0], 10);
+    const b = parseInt(parts[1], 10);
+    return [isNaN(a) ? null : a, isNaN(b) ? null : b];
   }
 }

@@ -160,6 +160,28 @@ export const en: Record<TranslationKey, string> = {
   'footer.follow': 'FOLLOW US',
   'footer.contact': 'CONTACT',
 
+  // Excel export
+  'excel.sheetGroups': 'Group Stage',
+  'excel.sheetKnockout': 'Knockout',
+  'excel.standings': 'STANDINGS',
+  'excel.colPos': 'Pos',
+  'excel.colTeam': 'Team',
+  'excel.colPlayed': 'MP',
+  'excel.colWon': 'W',
+  'excel.colDrawn': 'D',
+  'excel.colLost': 'L',
+  'excel.colGF': 'GF',
+  'excel.colGC': 'GA',
+  'excel.colGD': 'GD',
+  'excel.colPts': 'PTS',
+  'excel.colId': 'ID',
+  'excel.colDate': 'Date',
+  'excel.colVenue': 'Venue',
+  'excel.colMatchday': 'Matchday',
+  'excel.colHome': 'Home',
+  'excel.colAway': 'Away',
+  'excel.colPen': 'Pen',
+
   // SEO Info
   'seo.aboutTitle': 'How does the World Cup 2026 Simulator work?',
   'seo.aboutText': 'Our interactive bracket allows you to predict every result, from the group stage with its 12 groups of 4 teams, to the grand final at MetLife Stadium. You can simulate the brackets, see who the best third-placed teams would be, and share your complete prediction with friends.',

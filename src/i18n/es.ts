@@ -167,6 +167,28 @@ export const es = {
   'footer.follow': 'SÍGUENOS',
   'footer.contact': 'CONTACTO',
 
+  // Excel export
+  'excel.sheetGroups': 'Fase de Grupos',
+  'excel.sheetKnockout': 'Eliminatorias',
+  'excel.standings': 'CLASIFICACIÓN',
+  'excel.colPos': 'Pos',
+  'excel.colTeam': 'Equipo',
+  'excel.colPlayed': 'PJ',
+  'excel.colWon': 'G',
+  'excel.colDrawn': 'E',
+  'excel.colLost': 'P',
+  'excel.colGF': 'GF',
+  'excel.colGC': 'GC',
+  'excel.colGD': 'DG',
+  'excel.colPts': 'PTS',
+  'excel.colId': 'ID',
+  'excel.colDate': 'Fecha',
+  'excel.colVenue': 'Sede',
+  'excel.colMatchday': 'Jornada',
+  'excel.colHome': 'Local',
+  'excel.colAway': 'Visitante',
+  'excel.colPen': 'Penaltis',
+
   // SEO Info
   'seo.aboutTitle': '¿Cómo funciona el Simulador del Mundial 2026?',
   'seo.aboutText': 'Nuestro bracket interactivo te permite predecir cada resultado, desde la fase de grupos con sus 12 grupos de 4 selecciones, hasta la gran final en el MetLife Stadium. Puedes simular los cruces, ver quiénes serían los mejores terceros y compartir tu cuadro completo con amigos.',
