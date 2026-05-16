@@ -43,7 +43,11 @@
       "Bash(npx cap *)",
       "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\" -Directory)",
       "Bash(Select-Object Name)",
-      "Bash(xargs grep -l \"firebase\\\\|supabase\")"
+      "Bash(xargs grep -l \"firebase\\\\|supabase\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --title 'feat: Supabase auth + offline-first prediction sync \\(Phase 1\\)' --body ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"

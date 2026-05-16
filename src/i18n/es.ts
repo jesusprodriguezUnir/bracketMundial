@@ -194,6 +194,30 @@ export const es = {
   'seo.aboutText': 'Nuestro bracket interactivo te permite predecir cada resultado, desde la fase de grupos con sus 12 grupos de 4 selecciones, hasta la gran final en el MetLife Stadium. Puedes simular los cruces, ver quiénes serían los mejores terceros y compartir tu cuadro completo con amigos.',
   'seo.formatTitle': 'Nuevo formato: 48 selecciones',
   'seo.formatText': 'El Mundial de la FIFA 2026 estrena formato con 48 equipos. Esto significa más partidos (104 en total), una ronda extra de dieciseisavos de final y una emoción sin precedentes en las sedes de Estados Unidos, México y Canadá.',
+
+  // Account & Auth
+  'account.title': 'Mi cuenta',
+  'account.signIn': 'ENTRAR',
+  'account.signedInAs': 'Conectado como',
+  'account.signOut': 'Cerrar sesión',
+  'auth.title': 'ACCEDER',
+  'auth.emailLabel': 'Tu email',
+  'auth.emailPlaceholder': 'nombre@ejemplo.com',
+  'auth.sendLink': 'ENVIAR ENLACE',
+  'auth.sending': 'ENVIANDO...',
+  'auth.checkInbox': 'Revisa tu correo — te enviamos un enlace a {email}. Ábrelo en este dispositivo.',
+  'auth.resend': 'REENVIAR',
+  'auth.resendIn': 'Reenviar en {s}s',
+  'auth.errorGeneric': 'Error al enviar el enlace. Inténtalo de nuevo.',
+  'auth.notConfigured': 'El backend no está configurado.',
+  'auth.nativeUnsupported': 'El inicio de sesión está disponible en bracketmundial.com (versión web). El soporte en la app llegará pronto.',
+  'auth.closeLabel': 'Cerrar',
+
+  // Sync conflict
+  'sync.conflictTitle': 'PREDICCIÓN EN LA NUBE',
+  'sync.conflictBody': 'Tienes una predicción guardada en la nube (actualizada el {date}) diferente a la de este dispositivo. ¿Cuál conservar?',
+  'sync.keepCloud': 'USAR LA NUBE',
+  'sync.keepLocal': 'USAR LA LOCAL',
 } as const;
 
 export type TranslationKey = keyof typeof es;

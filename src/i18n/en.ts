@@ -187,4 +187,28 @@ export const en: Record<TranslationKey, string> = {
   'seo.aboutText': 'Our interactive bracket allows you to predict every result, from the group stage with its 12 groups of 4 teams, to the grand final at MetLife Stadium. You can simulate the brackets, see who the best third-placed teams would be, and share your complete prediction with friends.',
   'seo.formatTitle': 'New Format: 48 Teams',
   'seo.formatText': 'The 2026 FIFA World Cup debuts a new format with 48 teams. This means more matches (104 in total), an extra round of 32, and unprecedented excitement across host cities in the USA, Mexico, and Canada.',
+
+  // Account & Auth
+  'account.title': 'My account',
+  'account.signIn': 'SIGN IN',
+  'account.signedInAs': 'Signed in as',
+  'account.signOut': 'Sign out',
+  'auth.title': 'SIGN IN',
+  'auth.emailLabel': 'Your email',
+  'auth.emailPlaceholder': 'name@example.com',
+  'auth.sendLink': 'SEND LINK',
+  'auth.sending': 'SENDING...',
+  'auth.checkInbox': 'Check your inbox — we sent a link to {email}. Open it on this device.',
+  'auth.resend': 'RESEND',
+  'auth.resendIn': 'Resend in {s}s',
+  'auth.errorGeneric': 'Error sending the link. Please try again.',
+  'auth.notConfigured': 'Backend is not configured.',
+  'auth.nativeUnsupported': 'Sign in is available at bracketmundial.com (web version). App support coming soon.',
+  'auth.closeLabel': 'Close',
+
+  // Sync conflict
+  'sync.conflictTitle': 'CLOUD PREDICTION',
+  'sync.conflictBody': 'You have a prediction saved in the cloud (updated {date}) that differs from this device. Which one do you want to keep?',
+  'sync.keepCloud': 'USE CLOUD',
+  'sync.keepLocal': 'USE LOCAL',
 };
