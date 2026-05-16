@@ -50,7 +50,8 @@ jobs:
           git checkout --orphan news-data-tmp
           git rm -rf . --quiet
           cp /tmp/news-feed.json news-feed.json
-          git add news-feed.json
+          echo '{"ignoreCommand":"exit 0"}' > vercel.json
+          git add news-feed.json vercel.json
           git commit -m "chore: update news feed $(date -u +%Y-%m-%d)"
           git push origin news-data-tmp:news-data --force
           echo "✅ news-data branch updated."
