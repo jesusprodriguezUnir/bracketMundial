@@ -19,8 +19,9 @@ Este proyecto utiliza un stack moderno y eficiente:
 - **Lógica Dinámica de Terceros**: Cálculo automático de los 8 mejores terceros y su asignación a los cruces de dieciseisavos (1/16) basada en las permutaciones oficiales.
 - **Sincronización en Tiempo Real**: El árbol de eliminatorias se actualiza dinámicamente a medida que se ingresan o limpian los resultados de la fase de grupos.
 - **Gestión de Resultados**: Posibilidad de ingresar marcadores o limpiar la información de un partido para revertir su impacto en las tablas y el bracket.
+- **Noticias del Torneo**: Feed dinámico de noticias de Google News para cada equipo, en español e inglés, actualizado diariamente vía GitHub Actions.
 - **PWA Ready**: Instalable en dispositivos móviles y funcional sin conexión.
-- **UI Premium**: Diseño vibrante con estética "dark mode", tipografías modernas (Syne & Epilogue) y micro-animaciones.
+- **UI Premium**: Diseño vibrante con estética retro tipo Panini, tipografías modernas y micro-animaciones.
 
 ## 📊 Lógica del Torneo (FIFA 2026)
 

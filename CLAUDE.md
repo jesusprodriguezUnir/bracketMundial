@@ -62,6 +62,34 @@ main.ts
 - Tipografias principales: Bowlby One / Archivo Black / Archivo / Space Mono.
 - Si el usuario no pide un rediseno, conserva este lenguaje visual al tocar la UI.
 
+## Sistema de Noticias
+
+Las noticias se cargan dinámicamente desde Google News y se actualizan diariamente:
+
+### Flujo
+
+1. **GitHub Actions cron** (diario a 05:00 UTC) ejecuta [scripts/generate-news.mjs](scripts/generate-news.mjs)
+2. El script obtiene las últimas 3 noticias por equipo y locale (ES/EN) de Google News RSS
+3. Genera [news-feed.json](news-feed.json) y lo pushea a la rama `news-data`
+4. En tiempo de ejecución, [src/lib/news-service.ts](src/lib/news-service.ts) fetch el archivo desde raw.githubusercontent.com
+5. Cache en localStorage por 24 horas; fallback a `NEWS_SEED` si falla el fetch
+
+### Operación
+
+- **Feed URL**: `https://raw.githubusercontent.com/jesusprodriguez/bracketMundial/news-data/news-feed.json`
+- **Rama remota**: [`news-data`](https://github.com/jesusprodriguez/bracketMundial/tree/news-data) (orfana, solo contiene el JSON)
+- **Seed de fallback**: [src/data/news/seed.ts](src/data/news/seed.ts) (bundleada)
+
+### Mantenimiento manual
+
+Para ejecutar la actualización de noticias localmente:
+```bash
+node scripts/generate-news.mjs          # Genera news-feed.json
+node scripts/generate-news.mjs --write-seed  # También regenera seed.ts
+```
+
+Luego crear/actualizar la rama `news-data` (ver CLAUDE.md de commits anteriores o el workflow en `.github/workflows/news.yml`).
+
 ## Areas fragiles
 
 - [src/bracket-view.ts](src/bracket-view.ts) mantiene la vista activa en estado local; tocar tabs o navegacion puede romper el re-render.
