@@ -5,12 +5,16 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
+import { useAuthStore } from './store/auth-store';
+import { isSupabaseConfigured } from './lib/supabase-client';
 import './components/ad-block';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
   private unsubscribeStore?: () => void;
   private unsubscribeLocale?: () => void;
+  private unsubscribeAuth?: () => void;
+  private _authEmail: string | null = null;
 
   static styles = css`
     :host {
@@ -130,6 +134,12 @@ export class AppRoot extends LitElement {
     .header-actions button.primary:hover {
       background: var(--retro-orange);
       color: #ecdfc0;
+    }
+    .header-actions button.account-btn {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .content {
@@ -310,6 +320,11 @@ export class AppRoot extends LitElement {
       () => this.requestUpdate(),
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this.unsubscribeAuth = useAuthStore.subscribe(() => {
+      this._authEmail = useAuthStore.getState().email;
+      this.requestUpdate();
+    });
+    this._authEmail = useAuthStore.getState().email;
     this._loadSharedBracketIfPresent();
   }
 
@@ -329,6 +344,7 @@ export class AppRoot extends LitElement {
   disconnectedCallback() {
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
+    this.unsubscribeAuth?.();
     super.disconnectedCallback();
   }
 
@@ -356,6 +372,11 @@ export class AppRoot extends LitElement {
   private async handleShare() {
     const { openShareModal } = await import('./components/share-modal');
     openShareModal();
+  }
+
+  private async handleAccount() {
+    const { openAuthModal } = await import('./components/auth-modal');
+    openAuthModal();
   }
 
   private triggerImport() {
@@ -411,6 +432,10 @@ export class AppRoot extends LitElement {
             <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
+            ${isSupabaseConfigured ? html`
+              <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
+                ${this._authEmail ?? t('account.signIn')}
+              </button>` : ''}
             <button @click="${this.handleShare}">${t('header.share')}</button>
             <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
           </div>

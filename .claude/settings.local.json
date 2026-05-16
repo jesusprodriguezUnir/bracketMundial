@@ -39,7 +39,12 @@
       "Bash(git ls-remote *)",
       "Bash(gh run *)",
       "Bash(node scripts/generate-news.mjs --write-seed)",
-      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" show origin/news-data:vercel.json)"
+      "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" show origin/news-data:vercel.json)",
+      "Bash(npx cap *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --title 'feat: Supabase auth + offline-first prediction sync \\(Phase 1\\)' --body ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"
