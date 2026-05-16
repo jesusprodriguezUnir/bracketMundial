@@ -7,6 +7,7 @@ import type { MatchModal } from './match-modal';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
+import { isMatchPending } from '../lib/date-utils';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -323,6 +324,7 @@ export class BracketKnockout extends LitElement {
   private openMatch(matchId: string) {
     const match = useTournamentStore.getState().knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
+    if (!isMatchPending(match.date ?? '', match.timeSpain ?? '')) return;
 
     const modal = document.createElement('match-modal') as MatchModal;
     modal.matchId = match.matchId;

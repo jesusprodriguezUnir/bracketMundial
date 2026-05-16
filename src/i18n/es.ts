@@ -256,6 +256,15 @@ export const es = {
   'leagues.joinedOk': '¡Te uniste a la liga!',
   'leagues.owner': 'Creador',
   'leagues.notSignedIn': 'Inicia sesión para crear o unirte a una liga.',
+  'leagues.leaderboard': 'Clasificación',
+  'leagues.rank': 'Pos.',
+  'leagues.points': 'Pts',
+  'leagues.noResults': 'Resultados oficiales no disponibles aún.',
+  'leagues.leaderboardLoading': 'Calculando puntuaciones…',
+  'admin.publishResults': 'PUBLICAR RESULTADOS',
+  'admin.publishOk': '✓ Resultados publicados',
+  'admin.publishErr': 'Error al publicar. Inténtalo de nuevo.',
+  'predict.locked': 'Partido ya iniciado — predicción cerrada',
 } as const;
 
 export type TranslationKey = keyof typeof es;

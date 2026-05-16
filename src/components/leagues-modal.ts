@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useAuthStore } from '../store/auth-store';
 import { useLeaguesStore } from '../store/leagues-store';
-import type { League } from '../store/leagues-store';
+import type { League, LeaderboardEntry } from '../store/leagues-store';
 import { t, useLocaleStore } from '../i18n';
 import { buildInviteUrl } from '../lib/league-invite';
 
@@ -23,6 +23,8 @@ export class LeaguesModal extends LitElement {
   @state() private _status = useLeaguesStore.getState().status;
   @state() private _error: string | null = null;
   @state() private _pendingJoinCode: string | null = null;
+  @state() private _leaderboard: LeaderboardEntry[] = [];
+  @state() private _leaderboardLoading = false;
 
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
@@ -287,6 +289,31 @@ export class LeaguesModal extends LitElement {
       padding: 20px 0;
       line-height: 1.5;
     }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .leaderboard-table th {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 5px 8px;
+      text-align: left;
+      letter-spacing: 0.12em;
+      font-size: 9px;
+    }
+    .leaderboard-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--ink);
+      background: var(--paper-2);
+    }
+    .leaderboard-table tr:nth-child(even) td { background: var(--paper-3, var(--paper-2)); }
+    .lb-rank { color: var(--dim); width: 24px; }
+    .lb-name { font-family: var(--font-var); font-size: 12px; color: var(--ink); }
+    .lb-pts { font-weight: bold; color: var(--retro-orange); text-align: right; }
+    .lb-gold { color: var(--retro-yellow, gold); font-weight: bold; }
   `;
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
@@ -306,6 +333,7 @@ export class LeaguesModal extends LitElement {
       this._displayName = s.displayName;
       this._myLeagues = s.myLeagues;
       this._members = s.members;
+      this._leaderboard = s.leaderboard;
       this._status = s.status;
       if (s.lastError) this._error = s.lastError;
       this.requestUpdate();
@@ -314,6 +342,7 @@ export class LeaguesModal extends LitElement {
     this._displayName = s.displayName;
     this._myLeagues = s.myLeagues;
     this._members = s.members;
+    this._leaderboard = s.leaderboard;
     this._status = s.status;
 
     if (!useAuthStore.getState().session) {
@@ -360,8 +389,13 @@ export class LeaguesModal extends LitElement {
       this._pendingJoinCode = null;
       this._joinCode = '';
       this._activeLeague = league;
-      await useLeaguesStore.getState().loadMembers(league.id);
       this._view = 'detail';
+      this._leaderboardLoading = true;
+      await Promise.all([
+        useLeaguesStore.getState().loadMembers(league.id),
+        useLeaguesStore.getState().loadLeaderboard(league.id),
+      ]);
+      this._leaderboardLoading = false;
     }
   }
 
@@ -371,8 +405,13 @@ export class LeaguesModal extends LitElement {
     if (league) {
       this._leagueName = '';
       this._activeLeague = league;
-      await useLeaguesStore.getState().loadMembers(league.id);
       this._view = 'detail';
+      this._leaderboardLoading = true;
+      await Promise.all([
+        useLeaguesStore.getState().loadMembers(league.id),
+        useLeaguesStore.getState().loadLeaderboard(league.id),
+      ]);
+      this._leaderboardLoading = false;
     }
   }
 
@@ -384,8 +423,13 @@ export class LeaguesModal extends LitElement {
   private async _openLeague(league: League) {
     this._activeLeague = league;
     useLeaguesStore.getState().setActiveLeague(league.id);
-    await useLeaguesStore.getState().loadMembers(league.id);
     this._view = 'detail';
+    this._leaderboardLoading = true;
+    await Promise.all([
+      useLeaguesStore.getState().loadMembers(league.id),
+      useLeaguesStore.getState().loadLeaderboard(league.id),
+    ]);
+    this._leaderboardLoading = false;
   }
 
   private async _copyInviteLink() {
@@ -577,23 +621,33 @@ export class LeaguesModal extends LitElement {
       </div>
 
       <div class="detail-section-label">
-        ${t('leagues.members', { n: String(this._members.length) })}
+        ${t('leagues.leaderboard')} · ${t('leagues.members', { n: String(this._members.length) })}
       </div>
 
-      ${isLoading && this._members.length === 0
-        ? html`<div class="empty-text"><span class="spinner"></span></div>`
-        : html`
-          <div class="members-list">
-            ${this._members.map(m => html`
-              <div class="member-item">
-                <span class="member-name">${m.display_name}</span>
-                ${m.user_id === league.owner_id
-                  ? html`<span class="member-owner">${t('leagues.owner')}</span>`
-                  : ''}
-              </div>
-            `)}
-          </div>
-        `}
+      ${this._leaderboardLoading
+        ? html`<div class="empty-text"><span class="spinner"></span> ${t('leagues.leaderboardLoading')}</div>`
+        : this._leaderboard.length === 0
+          ? html`<p class="empty-text">${t('leagues.noResults')}</p>`
+          : html`
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th class="lb-rank">${t('leagues.rank')}</th>
+                  <th></th>
+                  <th style="text-align:right">${t('leagues.points')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${this._leaderboard.map((entry, i) => html`
+                  <tr>
+                    <td class="lb-rank ${i === 0 ? 'lb-gold' : ''}">${i + 1}</td>
+                    <td class="lb-name">${entry.display_name}${entry.user_id === league.owner_id ? html` <span class="member-owner">${t('leagues.owner')}</span>` : ''}</td>
+                    <td class="lb-pts">${entry.total}</td>
+                  </tr>
+                `)}
+              </tbody>
+            </table>
+          `}
 
       ${this._error ? html`<div class="error-text">${this._error}</div>` : ''}
 
