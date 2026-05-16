@@ -251,10 +251,6 @@ export class AuthModal extends LitElement {
     this._close();
   }
 
-  private _isNative(): boolean {
-    return typeof window !== 'undefined' && !!(window as unknown as Record<string, unknown>)['Capacitor'];
-  }
-
   override render() {
     return html`
       <div class="modal" role="dialog" aria-modal="true">
@@ -270,14 +266,6 @@ export class AuthModal extends LitElement {
   }
 
   private _renderBody() {
-    if (this._isNative()) {
-      return html`
-        <div class="info-block">
-          <div class="info-text">${t('auth.nativeUnsupported')}</div>
-        </div>
-      `;
-    }
-
     if (this._status === 'signed_in') {
       const email = useAuthStore.getState().email ?? '';
       return html`
