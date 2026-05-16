@@ -28,6 +28,11 @@ if (window.location.search.includes('code=') || window.location.hash.includes('a
   history.replaceState(null, '', window.location.pathname);
 }
 
+// En nativo, escucha el deep link del magic link (custom URL scheme)
+import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => {
+  if (isNativePlatform()) initNativeDeepLinks();
+});
+
 // Detecta enlace de invitación a liga (?join=CODE) y guarda en sessionStorage
 const joinCode = extractJoinCode();
 if (joinCode) sessionStorage.setItem('bm-join-code', joinCode);
