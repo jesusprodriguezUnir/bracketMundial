@@ -40,7 +40,10 @@
       "Bash(gh run *)",
       "Bash(node scripts/generate-news.mjs --write-seed)",
       "Bash(git -C \"d:\\\\Personal\\\\bracketMundial\" show origin/news-data:vercel.json)",
-      "Bash(npx cap *)"
+      "Bash(npx cap *)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(xargs grep -l \"firebase\\\\|supabase\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"

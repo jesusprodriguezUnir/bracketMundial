@@ -83,6 +83,8 @@ interface TournamentState {
     groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>;
     knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }>;
   }) => void;
+  exportExcel: () => Promise<void>;
+  importExcel: (file: File) => Promise<boolean>;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -425,7 +427,6 @@ export const useTournamentStore = createStore<TournamentState>()(
           return { groupMatches, groupStandings, knockoutMatches, activePhase: 'groups' as const, selectedMatch: null };
         });
       },
-
       importTournament: (jsonData: string) => {
         try {
           const parsed = JSON.parse(jsonData);
@@ -449,6 +450,32 @@ export const useTournamentStore = createStore<TournamentState>()(
           return false;
         } catch (e) {
           console.error("Error parsing tournament data:", e);
+          return false;
+        }
+      },
+
+      exportExcel: async () => {
+        const { ExcelService } = await import('../lib/excel-service');
+        const state = _get();
+        const blob = await ExcelService.exportToExcel(state.groupMatches, state.knockoutMatches);
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bracket-mundial-2026-${new Date().toISOString().slice(0,10)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      importExcel: async (file: File) => {
+        try {
+          const { ExcelService } = await import('../lib/excel-service');
+          const data = await ExcelService.importFromExcel(file);
+          _get().applySharedBracket(data);
+          return true;
+        } catch (e) {
+          console.error("Error importing Excel:", e);
+          alert("Error al importar Excel. Asegúrate de usar la plantilla correcta.");
           return false;
         }
       },

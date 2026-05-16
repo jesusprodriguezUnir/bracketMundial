@@ -22,6 +22,7 @@
     "@capacitor/core": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
     "@vercel/analytics": "^2.0.1",
+    "exceljs": "^4.4.0",
     "html-to-image": "^1.11.13",
     "lit": "^3.3.2",
     "workbox-window": "^7.4.1",
