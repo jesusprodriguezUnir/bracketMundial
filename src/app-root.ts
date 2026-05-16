@@ -369,6 +369,10 @@ export class AppRoot extends LitElement {
     useTournamentStore.getState().exportTournament();
   }
 
+  private handleExcelExport() {
+    useTournamentStore.getState().exportExcel();
+  }
+
   private async handleShare() {
     const { openShareModal } = await import('./components/share-modal');
     openShareModal();
@@ -384,6 +388,11 @@ export class AppRoot extends LitElement {
     if (fileInput) fileInput.click();
   }
 
+  private triggerImportExcel() {
+    const fileInput = this.shadowRoot?.querySelector('#excel-upload') as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  }
+
   private handleFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
@@ -396,6 +405,14 @@ export class AppRoot extends LitElement {
       }
     };
     reader.readAsText(file);
+    input.value = '';
+  }
+
+  private handleExcelFileChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    useTournamentStore.getState().importExcel(file);
     input.value = '';
   }
 
@@ -429,8 +446,11 @@ export class AppRoot extends LitElement {
           <!-- Acciones -->
           <div class="header-actions">
             <input type="file" id="file-upload" style="display:none" accept=".json" @change="${this.handleFileChange}">
+            <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
             <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
+            <button @click="${this.triggerImportExcel}" title="Importar desde Excel">${t('header.importExcel')}</button>
+            <button @click="${this.handleExcelExport}" title="Descargar plantilla Excel">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImport}">${t('header.import')}</button>
             ${isSupabaseConfigured ? html`
               <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
