@@ -1,5 +1,6 @@
 import type { Player } from './index';
 
+export const coach = 'Luis de la Fuente';
 export const squad: Player[] = [
   { number: 1, name: 'Unai Simón', position: 'GK', age: 29, club: 'Athletic Club' },
   { number: 13, name: 'David Raya', position: 'GK', age: 30, club: 'Arsenal' },
