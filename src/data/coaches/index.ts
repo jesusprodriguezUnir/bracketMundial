@@ -107,13 +107,13 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   MAR: {
-    name: 'Walid Regragui',
-    born: '1975-07-02',
+    name: 'Mohamed Ouahbi',
+    born: '1976-09-07',
     nationality: 'Marruecos',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/m9is5p1639670485.jpg',
+    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/up6h1w1765217882.jpg', // Placeholder for now, script will fetch if available
     bio: {
-      es: 'Dirigió a Marruecos a un histórico cuarto puesto en el Mundial 2022, siendo la primera selección africana en lograrlo. Renovó para continuar el legado del equipo de las mil y una noches.',
-      en: 'Led Morocco to a historic fourth place at the 2022 World Cup, the first African nation to achieve it. He renewed his contract to continue the legacy of that extraordinary squad.',
+      es: 'Asumió el cargo en marzo de 2026 tras la sorpresiva renuncia de Walid Regragui. Lideró a Marruecos al título mundial Sub-20 en Chile 2025 y ahora dirige a la selección absoluta.',
+      en: 'Took charge in March 2026 following Walid Regragui\'s resignation. He led Morocco to the U-20 World Cup title in Chile 2025 and now leads the senior national team.',
     },
   },
   HAI: {

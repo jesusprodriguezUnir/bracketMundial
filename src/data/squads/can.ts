@@ -1,4 +1,5 @@
 import type { Player } from './index';
+export const coach = 'Jesse Marsch';
 export const squad: Player[] = [
   { number: 1,  name: 'Maxime Crépeau',         position: 'GK', age: 32, club: 'Portland Timbers' },
   { number: 16, name: 'Dayne St. Clair',        position: 'GK', age: 29, club: 'Minnesota United' },
@@ -30,6 +31,6 @@ export const squad: Player[] = [
 
 export const lineup = {
   formation: '4-2-3-1',
-  startingXI: [1, 2, 14, 13, 19, 7, 8, 17, 11, 12, 9]
+  startingXI: [1, 19, 13, 14, 2, 7, 8, 12, 11, 17, 9]
 };
 
