@@ -12,6 +12,8 @@ export class AuthModal extends LitElement {
   @state() private _email = '';
   @state() private _emailForDisplay = '';
   @state() private _resendCountdown = 0;
+  @state() private _otpCode = '';
+  @state() private _otpError: string | null = null;
 
   private _unsubAuth?: () => void;
   private _unsubLocale?: () => void;
@@ -229,6 +231,7 @@ export class AuthModal extends LitElement {
   }
 
   private async _resend() {
+    this._otpCode = '';
     await useAuthStore.getState().signInWithMagicLink(this._emailForDisplay);
     this._startResendCooldown();
   }
@@ -244,6 +247,32 @@ export class AuthModal extends LitElement {
         this._resendTimer = undefined;
       }
     }, 1000);
+  }
+
+  private async _verifyOtp() {
+    if (this._otpCode.trim().length < 6) return;
+    this._otpError = null;
+    await useAuthStore.getState().verifyOtp(this._emailForDisplay, this._otpCode);
+    const s = useAuthStore.getState();
+    if (s.status === 'signed_in') {
+      this._close();
+    } else if (s.status === 'error') {
+      this._otpError = this._friendlyError(s.lastError);
+      // Stay on the OTP view
+      useAuthStore.setState({ status: 'sent', lastError: null });
+    }
+  }
+
+  private _friendlyError(raw: string | null): string {
+    if (!raw) return t('auth.errorGeneric');
+    const lower = raw.toLowerCase();
+    if (lower.includes('rate limit') || lower.includes('too many') || lower.includes('over_email_send_rate_limit')) {
+      return t('auth.errorRateLimit');
+    }
+    if (lower.includes('invalid') || lower.includes('expired') || lower.includes('otp')) {
+      return t('auth.errorInvalidOtp');
+    }
+    return raw;
   }
 
   private async _signOut() {
@@ -289,11 +318,12 @@ export class AuthModal extends LitElement {
       `;
     }
 
-    if (this._status === 'sent') {
-      const canResend = this._resendCountdown <= 0;
-      const resendLabel = canResend
-        ? t('auth.resend')
-        : t('auth.resendIn', { s: this._resendCountdown });
+    if (this._status === 'sent' || this._status === 'verifying') {
+      const isVerifying = this._status === 'verifying';
+      const canResend = this._resendCountdown <= 0 && !isVerifying;
+      const resendLabel = this._resendCountdown > 0
+        ? t('auth.resendIn', { s: this._resendCountdown })
+        : t('auth.resend');
       return html`
         <div class="info-block">
           <div class="info-title">✉</div>
@@ -301,6 +331,27 @@ export class AuthModal extends LitElement {
             ${t('auth.checkInbox', { email: this._emailForDisplay })}
           </div>
         </div>
+        <div class="field-hint">${t('auth.otpHint')}</div>
+        <div>
+          <div class="field-label">${t('auth.otpLabel')}</div>
+          <input
+            class="field-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="${t('auth.otpPlaceholder')}"
+            .value="${this._otpCode}"
+            @input="${(e: Event) => { this._otpCode = (e.target as HTMLInputElement).value.replace(/\D/g, ''); }}"
+            ?disabled="${isVerifying}"
+            @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter') this._verifyOtp(); }}"
+          >
+        </div>
+        ${this._otpError ? html`<div class="error-text">${this._otpError}</div>` : ''}
+        <button class="btn btn-primary" ?disabled="${isVerifying || this._otpCode.trim().length < 6}" @click="${this._verifyOtp}">
+          ${isVerifying ? t('auth.verifying') : t('auth.otpVerify')}
+        </button>
         <button class="btn btn-secondary" ?disabled="${!canResend}" @click="${this._resend}">
           ${resendLabel}
         </button>
@@ -324,7 +375,7 @@ export class AuthModal extends LitElement {
           @input="${this._onEmailInput}"
           ?disabled="${isSending}"
         >
-        ${hasError ? html`<div class="error-text">${errorMsg ?? t('auth.errorGeneric')}</div>` : ''}
+        ${hasError ? html`<div class="error-text">${this._friendlyError(errorMsg)}</div>` : ''}
         <br>
         <button class="btn btn-primary" type="submit" ?disabled="${isSending || !this._email}">
           ${isSending ? t('auth.sending') : t('auth.sendLink')}

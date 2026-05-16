@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import type { Session } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase-client';
 
-export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'error';
+export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'verifying' | 'error';
 
 interface AuthState {
   status: AuthStatus;
@@ -10,6 +10,7 @@ interface AuthState {
   email: string | null;
   lastError: string | null;
   signInWithMagicLink: (email: string) => Promise<void>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
   signOut: () => Promise<void>;
   _setSession: (s: Session | null) => void;
 }
@@ -27,6 +28,15 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
     const emailRedirectTo = window.location.origin + window.location.pathname;
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo } });
     set(error ? { status: 'error', lastError: error.message } : { status: 'sent' });
+  },
+
+  verifyOtp: async (email, code) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'verifying', lastError: null });
+    const { error } = await sb.auth.verifyOtp({ email, token: code.trim(), type: 'email' });
+    if (error) { set({ status: 'error', lastError: error.message }); }
+    // On success, onAuthStateChange fires and calls _setSession
   },
 
   signOut: async () => {

@@ -28,6 +28,7 @@ export class LeaguesModal extends LitElement {
 
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
+  private _unsubAuth?: () => void;
 
   static override styles = css`
     :host {
@@ -328,6 +329,7 @@ export class LeaguesModal extends LitElement {
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this._unsubAuth = useAuthStore.subscribe(() => this.requestUpdate());
     this._unsubLeagues = useLeaguesStore.subscribe(() => {
       const s = useLeaguesStore.getState();
       this._displayName = s.displayName;
@@ -359,6 +361,7 @@ export class LeaguesModal extends LitElement {
     this.removeEventListener('click', this._handleHostClick);
     this._unsubLeagues?.();
     this._unsubLocale?.();
+    this._unsubAuth?.();
     super.disconnectedCallback();
   }
 
@@ -369,6 +372,11 @@ export class LeaguesModal extends LitElement {
   private _close() {
     this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
     this.remove();
+  }
+
+  private async _openAuthModal() {
+    const { openAuthModal } = await import('./auth-modal');
+    openAuthModal();
   }
 
   private async _saveNickname() {
@@ -469,10 +477,17 @@ export class LeaguesModal extends LitElement {
 
   private _renderView() {
     const isLoading = this._status === 'loading';
-    const session = useAuthStore.getState().session;
+    const { session, status: authStatus } = useAuthStore.getState();
+
+    if (authStatus === 'init') {
+      return html`<div class="empty-text"><span class="spinner"></span></div>`;
+    }
 
     if (!session) {
-      return html`<p class="empty-text">${t('leagues.notSignedIn')}</p>`;
+      return html`
+        <p class="empty-text">${t('leagues.notSignedIn')}</p>
+        <button class="btn btn-primary" @click="${this._openAuthModal}">${t('auth.sendLink')}</button>
+      `;
     }
 
     if (this._view === 'nickname') return this._renderNickname(isLoading);

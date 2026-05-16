@@ -202,9 +202,16 @@ export const en: Record<TranslationKey, string> = {
   'auth.resend': 'RESEND',
   'auth.resendIn': 'Resend in {s}s',
   'auth.errorGeneric': 'Error sending the link. Please try again.',
+  'auth.errorRateLimit': 'Too many attempts — wait a few minutes before requesting another link.',
+  'auth.errorInvalidOtp': 'Invalid or expired code. Request a new link.',
   'auth.notConfigured': 'Backend is not configured.',
   'auth.nativeUnsupported': 'Sign in is available at bracketmundial.com (web version). App support coming soon.',
   'auth.closeLabel': 'Close',
+  'auth.otpLabel': 'Or enter the 6-digit code from the email',
+  'auth.otpPlaceholder': '123456',
+  'auth.otpVerify': 'VERIFY CODE',
+  'auth.verifying': 'VERIFYING...',
+  'auth.otpHint': 'If the link does not open, use the numeric code from the same email',
 
   // Sync conflict
   'sync.conflictTitle': 'CLOUD PREDICTION',

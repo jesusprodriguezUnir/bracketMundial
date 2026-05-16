@@ -209,9 +209,16 @@ export const es = {
   'auth.resend': 'REENVIAR',
   'auth.resendIn': 'Reenviar en {s}s',
   'auth.errorGeneric': 'Error al enviar el enlace. Inténtalo de nuevo.',
+  'auth.errorRateLimit': 'Demasiados intentos — espera unos minutos antes de volver a pedir el enlace.',
+  'auth.errorInvalidOtp': 'Código incorrecto o caducado. Solicita un nuevo enlace.',
   'auth.notConfigured': 'El backend no está configurado.',
   'auth.nativeUnsupported': 'El inicio de sesión está disponible en bracketmundial.com (versión web). El soporte en la app llegará pronto.',
   'auth.closeLabel': 'Cerrar',
+  'auth.otpLabel': 'O introduce el código de 6 dígitos del email',
+  'auth.otpPlaceholder': '123456',
+  'auth.otpVerify': 'VERIFICAR CÓDIGO',
+  'auth.verifying': 'VERIFICANDO...',
+  'auth.otpHint': 'Si el enlace no se abre, usa el código numérico del mismo email',
 
   // Sync conflict
   'sync.conflictTitle': 'PREDICCIÓN EN LA NUBE',
