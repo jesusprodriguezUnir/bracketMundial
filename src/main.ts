@@ -1,6 +1,7 @@
 import './index.css';
 import './app-root';
 import { inject } from '@vercel/analytics';
+import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 
 inject();
 
@@ -16,10 +17,15 @@ try {
   if (storedLocale === 'en') document.documentElement.lang = 'en';
 } catch { /* ignora */ }
 
+// Locale inicial según la ruta estática (antes del primer render)
+applyLocaleFromRoute();
+
 const root = document.getElementById('root');
 if (root) {
   // Remove SEO pre-render content before mounting the Lit app
   root.innerHTML = '';
   const app = document.createElement('app-root');
   root.appendChild(app);
+  // Abre la tab que corresponde a la ruta (deep-link de entrada)
+  applyDeepLinkTab();
 }

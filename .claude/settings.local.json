@@ -24,7 +24,9 @@
       "Bash(node scripts/generate-news.mjs)",
       "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\" -Force)",
       "Bash(Select-Object Name, Mode)",
-      "mcp__claude_ai_Vercel__search_vercel_documentation"
+      "mcp__claude_ai_Vercel__search_vercel_documentation",
+      "Bash(node --experimental-strip-types -e \"import\\('./src/data/fifa-2026.ts'\\).then\\(m => console.log\\('TEAMS', m.TEAMS_2026.length, 'GROUP', m.generateGroupMatches\\(\\).length, 'KO', Object.keys\\(m.KNOCKOUT_BRACKET\\)\\)\\).catch\\(e => { console.error\\('FAIL', e.message\\); process.exit\\(1\\); }\\)\")",
+      "Bash(npx tsx *)"
     ]
   }
 }

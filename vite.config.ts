@@ -5,6 +5,19 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Las landings SEO estáticas son para crawlers; los usuarios con SW
+        // navegan vía la SPA (navigateFallback a index.html). No precachearlas
+        // mantiene el precache ligero.
+        globIgnores: [
+          '**/grupos/**',
+          '**/calendario/**',
+          '**/estadios/**',
+          '**/plantillas/**',
+          '**/seleccion/**',
+          'en/**',
+        ],
+      },
       devOptions: {
         enabled: true
       },
