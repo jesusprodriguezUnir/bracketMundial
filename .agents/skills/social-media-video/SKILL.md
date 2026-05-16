@@ -50,17 +50,15 @@ node scripts/record-video.mjs facebook 12
 
 ## Output
 
-Los videos se guardan en:
+Los videos finales en formato MP4 se guardan en:
 - `recordings/demo-instagram.mp4`
 - `recordings/demo-twitter.mp4`
 - etc.
 
-Las frames PNG se guardan en `recordings/frame-*.png`
-
 ## Integración con el skill
 
 Este skill permite:
-1. Navegar automáticamente por las tabs de la app
-2. Capturar frames de cada sección
-3. Generar videos en múltiples formatos para diferentes plataformas
-4. Reutilizar frames para generar videos en diferentes resoluciones
+1. Navegar automáticamente por las tabs de la app (`.phase-tab`)
+2. Simular *smooth scrolling* en cada sección para grabar la UI en movimiento
+3. Grabar de forma nativa la sesión completa con Playwright (formato original `.webm`)
+4. Convertir y optimizar automáticamente el video a `.mp4` usando `ffmpeg` para que esté listo para publicar en la resolución de cada plataforma.

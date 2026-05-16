@@ -1,15 +1,17 @@
 import './index.css';
 import './app-root';
 import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { initAuth } from './store/auth-store';
 import { extractJoinCode } from './lib/league-invite';
 
 inject();
+injectSpeedInsights();
 
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
-if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+if (storedTheme === 'dark') {
   document.documentElement.dataset.theme = 'dark';
 }
 

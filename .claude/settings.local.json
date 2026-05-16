@@ -56,7 +56,16 @@
       "Bash(git checkout *)",
       "Bash(git pull *)",
       "Bash(gh pr create --title 'feat: friend leagues system \\(Phase 2\\)' --body ' *)",
-      "Bash(gh pr create --title 'feat: scoring engine, leaderboard & admin publish \\(Fase 3\\)' --body ' *)"
+      "Bash(gh pr create --title 'feat: scoring engine, leaderboard & admin publish \\(Fase 3\\)' --body ' *)",
+      "Bash(python -c \"import fitz; print\\('pymupdf ok'\\)\")",
+      "Bash(python -c \"import PIL; print\\('pillow ok'\\)\")",
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python3 --version 2>&1)",
+      "PowerShell(py --version 2>&1)",
+      "PowerShell(python -c \"import fitz; print\\('pymupdf ok'\\)\" 2>&1)",
+      "PowerShell(python -c \"import PIL; print\\('pillow ok'\\)\" 2>&1)",
+      "PowerShell(tesseract --version 2>&1)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,1\\)\\);console.log\\('deps:',Object.keys\\(p.dependencies||{}\\).join\\(', '\\)\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp"

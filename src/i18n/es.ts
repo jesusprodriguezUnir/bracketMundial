@@ -80,6 +80,7 @@ export const es = {
   // Knockout
   'knockout.generate': 'GENERAR ELIMINATORIAS',
   'knockout.simulate': 'SIMULAR RESTO',
+  'knockout.swipeHint': 'Desliza para ver todo el cuadro',
 
   // Stadiums
   'stadiums.title': 'SEDES Y ESTADIOS',
@@ -147,6 +148,12 @@ export const es = {
   'share.downloadLabel': 'Descargar imagen PNG',
   'share.twitterLabel': 'Compartir en Twitter',
   'share.whatsappLabel': 'Compartir en WhatsApp',
+  'share.shareImage': '📤 COMPARTIR IMAGEN',
+  'share.shareImageLabel': 'Compartir imagen del bracket con app del sistema',
+  'share.facebook': 'f FACEBOOK',
+  'share.facebookLabel': 'Compartir enlace en Facebook',
+  'share.desktopHint': '💡 En escritorio: descarga la imagen y adjúntala manualmente en la red social.',
+  'share.networksLabel': 'COMPARTIR ENLACE + TEXTO',
 
   // Share card
   'card.title': 'BRACKET MUNDIAL',

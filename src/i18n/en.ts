@@ -76,6 +76,7 @@ export const en: Record<TranslationKey, string> = {
 
   'knockout.generate': 'GENERATE BRACKET',
   'knockout.simulate': 'SIMULATE REST',
+  'knockout.swipeHint': 'Swipe to see the full bracket',
 
   'stadiums.title': 'VENUES & STADIUMS',
 
@@ -141,6 +142,12 @@ export const en: Record<TranslationKey, string> = {
   'share.downloadLabel': 'Download PNG image',
   'share.twitterLabel': 'Share on Twitter',
   'share.whatsappLabel': 'Share on WhatsApp',
+  'share.shareImage': '📤 SHARE IMAGE',
+  'share.shareImageLabel': 'Share bracket image with system app',
+  'share.facebook': 'f FACEBOOK',
+  'share.facebookLabel': 'Share link on Facebook',
+  'share.desktopHint': '💡 On desktop: download the image and attach it manually to your social post.',
+  'share.networksLabel': 'SHARE LINK + TEXT',
 
   'card.title': 'WORLD CUP BRACKET',
   'card.subtitle': 'FIFA WORLD CUP · 2026 · USA · CAN · MEX',

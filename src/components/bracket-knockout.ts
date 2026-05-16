@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import type { MatchModal } from './match-modal';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
@@ -18,10 +18,33 @@ const ROUND_COLORS: Record<string, string> = {
   'col-final': 'var(--ink)',
 };
 
+// Aristas del árbol de cruces derivadas de KNOCKOUT_BRACKET (no asume orden por índice)
+const BRACKET_EDGES: Array<{ src: string; dst: string }> = [
+  ...KNOCKOUT_BRACKET.roundOf16.flatMap(m => [
+    { src: m.prevMatchA, dst: m.id },
+    { src: m.prevMatchB, dst: m.id },
+  ]),
+  ...KNOCKOUT_BRACKET.quarterfinals.flatMap(m => [
+    { src: m.prevMatchA, dst: m.id },
+    { src: m.prevMatchB, dst: m.id },
+  ]),
+  ...KNOCKOUT_BRACKET.semifinals.flatMap(m => [
+    { src: m.prevMatchA, dst: m.id },
+    { src: m.prevMatchB, dst: m.id },
+  ]),
+  { src: KNOCKOUT_BRACKET.final.prevMatchA, dst: KNOCKOUT_BRACKET.final.id },
+  { src: KNOCKOUT_BRACKET.final.prevMatchB, dst: KNOCKOUT_BRACKET.final.id },
+];
+
 @customElement('bracket-knockout')
 export class BracketKnockout extends LitElement {
   private unsubscribeStore?: () => void;
+  private unsubscribeLocale?: () => void;
+  private _ro?: ResizeObserver;
+  private readonly _onResize = () => requestAnimationFrame(() => this._drawConnectors());
+
   @state() private _pulseId: string | null = null;
+  @state() private _showSwipeHint = true;
 
   public static readonly styles = css`
     :host { display: block; width: 100%; overflow: hidden; }
@@ -55,12 +78,13 @@ export class BracketKnockout extends LitElement {
       user-select: none;
       background: var(--paper);
       background-image: var(--paper-texture);
+      scroll-snap-type: x proximity;
     }
     .bracket-scroll.is-dragging { cursor: grabbing; }
 
     .bracket-container {
       display: flex;
-      gap: 40px;
+      gap: 56px;
       padding: 0 32px;
       min-width: fit-content;
       align-items: center;
@@ -72,7 +96,8 @@ export class BracketKnockout extends LitElement {
       flex-direction: column;
       gap: 12px;
       justify-content: space-around;
-      min-width: 190px;
+      min-width: 220px;
+      scroll-snap-align: start;
     }
 
     /* Header coloreado de columna con halftone */
@@ -91,15 +116,15 @@ export class BracketKnockout extends LitElement {
       justify-content: space-between;
       align-items: center;
     }
-    /* Color especial para Final — amarillo */
     .round-title.is-final {
       color: var(--retro-yellow);
     }
 
-    /* Match box retro */
+    /* Match box retro con acento de ronda en borde izquierdo */
     .match-box {
       background: var(--paper-2);
       border: 2px solid var(--ink);
+      border-left-width: 6px;
       box-shadow: var(--shadow-hard-sm);
       overflow: hidden;
       cursor: pointer;
@@ -124,9 +149,8 @@ export class BracketKnockout extends LitElement {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px 8px;
-      min-height: 36px;
-      /* cuando es winner, el fondo se pone con --row-bg inline */
+      padding: 6px 8px;
+      min-height: 42px;
     }
     .team-row.winner-row {
       color: var(--paper);
@@ -146,14 +170,14 @@ export class BracketKnockout extends LitElement {
       align-items: center;
       gap: 7px;
       font-family: var(--font-body);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       overflow: hidden;
     }
-    .team-flag { font-size: 13px; flex-shrink: 0; }
+    .team-flag { font-size: 14px; flex-shrink: 0; }
     .flag-img {
-      width: 18px;
-      height: 12px;
+      width: 20px;
+      height: 13px;
       object-fit: cover;
       border: 1px solid var(--ink);
       flex-shrink: 0;
@@ -166,13 +190,13 @@ export class BracketKnockout extends LitElement {
 
     .score {
       font-family: var(--font-var);
-      font-size: 14px;
+      font-size: 16px;
       flex-shrink: 0;
     }
     .score.pending {
       color: var(--dim);
       opacity: 0.4;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .match-note {
@@ -193,7 +217,7 @@ export class BracketKnockout extends LitElement {
       box-shadow: var(--shadow-hard-xl);
       padding: 20px 16px;
       text-align: center;
-      min-width: 190px;
+      min-width: 220px;
     }
     .champion-title {
       font-family: var(--font-mono);
@@ -243,10 +267,36 @@ export class BracketKnockout extends LitElement {
       overflow: visible;
     }
 
+    /* Swipe hint para móvil */
+    .swipe-hint {
+      display: none;
+    }
+
+    @keyframes swipeHintPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
     @media (max-width: 768px) {
       .bracket-scroll { padding: 20px 0; }
-      svg.connectors { display: none; }
-      .round-col { min-width: 150px; }
+      .round-col { min-width: 175px; }
+
+      .swipe-hint {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        color: var(--dim);
+        text-transform: uppercase;
+        animation: swipeHintPulse 2s ease-in-out infinite;
+      }
+      .swipe-hint.hidden {
+        display: none;
+      }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -261,8 +311,6 @@ export class BracketKnockout extends LitElement {
     }
   `;
 
-  private unsubscribeLocale?: () => void;
-
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = subscribeSlice(
@@ -276,11 +324,71 @@ export class BracketKnockout extends LitElement {
   disconnectedCallback() {
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
+    this._ro?.disconnect();
+    window.removeEventListener('resize', this._onResize);
     super.disconnectedCallback();
   }
 
   override firstUpdated() {
     this._initDragScroll();
+    const scrollEl = this.shadowRoot?.querySelector<HTMLElement>('.bracket-scroll');
+    if (scrollEl) {
+      this._ro = new ResizeObserver(() => requestAnimationFrame(() => this._drawConnectors()));
+      this._ro.observe(scrollEl);
+      scrollEl.addEventListener('scroll', () => { this._showSwipeHint = false; }, { once: true });
+    }
+    window.addEventListener('resize', this._onResize);
+  }
+
+  override updated() {
+    requestAnimationFrame(() => this._drawConnectors());
+  }
+
+  private _drawConnectors() {
+    const svg = this.shadowRoot?.querySelector<SVGElement>('svg.connectors');
+    const container = this.shadowRoot?.querySelector<HTMLElement>('.bracket-container');
+    if (!svg || !container) return;
+
+    const cr = container.getBoundingClientRect();
+    if (cr.width === 0) return;
+
+    const getBox = (mid: string) => {
+      const el = container.querySelector<HTMLElement>(`[data-mid="${mid}"]`);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return {
+        right: r.right - cr.left,
+        left:  r.left  - cr.left,
+        cy:    r.top   - cr.top + r.height / 2,
+      };
+    };
+
+    const km = useTournamentStore.getState().knockoutMatches;
+    const champion = km['FIN-01']?.winnerId ?? null;
+
+    let regular = '';
+    let champ = '';
+
+    for (const { src, dst } of BRACKET_EDGES) {
+      const s = getBox(src);
+      const d = getBox(dst);
+      if (!s || !d) continue;
+
+      const midX = (s.right + d.left) / 2;
+      const isPlayed = !!(km[src]?.isPlayed);
+      const isChampPath = champion !== null && km[src]?.winnerId === champion;
+      const opacity = isPlayed ? '1' : '0.3';
+      const dash = isPlayed ? '' : ' stroke-dasharray="6 4"';
+      const pathD = `M ${s.right},${s.cy} H ${midX} V ${d.cy} H ${d.left}`;
+
+      if (isChampPath) {
+        champ += `<path d="${pathD}" stroke="var(--retro-yellow)" stroke-width="5" fill="none" stroke-linejoin="miter" opacity="1"/>`;
+      } else {
+        regular += `<path d="${pathD}" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linejoin="miter" opacity="${opacity}"${dash}/>`;
+      }
+    }
+
+    svg.innerHTML = regular + champ;
   }
 
   private _initDragScroll() {
@@ -386,8 +494,9 @@ export class BracketKnockout extends LitElement {
 
     return html`
       <div
+        data-mid="${matchId}"
         class="match-box ${this._pulseId === matchId ? 'pulse' : ''}"
-        style="--i:${idx}"
+        style="--i:${idx}; border-left-color: ${accentColor};"
         role="button"
         tabindex="0"
         aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}${decidedOnPenalties ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}` : ''}` : ', click para editar'}"
@@ -397,12 +506,12 @@ export class BracketKnockout extends LitElement {
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
         ${decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : ''}
-        
+
         ${(m as any).venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
             ${(() => {
-              const s = STADIUMS.find(st => st.name === (m as any).venue);
-              return s ? html`<img src="${s.image}" style="width: 16px; height: 10px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
+              const st = STADIUMS.find(s => s.name === (m as any).venue);
+              return st ? html`<img src="${st.image}" style="width: 16px; height: 10px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
             })()}
             <span style="font-family: var(--font-mono); font-size: 8px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               ${(m as any).venue} · ${(m as any).city}
@@ -445,7 +554,7 @@ export class BracketKnockout extends LitElement {
         </div>
       </div>
 
-      <!-- Trophy banner: rondas + info final -->
+      <!-- Trophy banner -->
       <div style="
         margin-bottom: 2px;
         padding: 8px 16px;
@@ -519,6 +628,10 @@ export class BracketKnockout extends LitElement {
             ${this.renderMatch('TP-01', ROUND_COLORS['col-sf'], 1)}
           </div>
         </div>
+      </div>
+
+      <div class="swipe-hint ${this._showSwipeHint ? '' : 'hidden'}">
+        ◀ ${t('knockout.swipeHint')} ▶
       </div>
     `;
   }

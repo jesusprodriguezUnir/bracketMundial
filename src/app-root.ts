@@ -343,10 +343,6 @@ export class AppRoot extends LitElement {
     this.requestUpdate();
   }
 
-  private handleExport() {
-    useTournamentStore.getState().exportTournament();
-  }
-
   private handleExcelExport() {
     useTournamentStore.getState().exportExcel();
   }
@@ -361,19 +357,9 @@ export class AppRoot extends LitElement {
     openAuthModal();
   }
 
-  private async handleLeagues() {
-    const { openLeaguesModal } = await import('./components/leagues-modal');
-    openLeaguesModal();
-  }
-
   private async handlePublishResults() {
     const ok = await saveOfficialResults();
     alert(ok ? t('admin.publishOk') : t('admin.publishErr'));
-  }
-
-  private triggerImport() {
-    const fileInput = this.shadowRoot?.querySelector('#file-upload') as HTMLInputElement;
-    if (fileInput) fileInput.click();
   }
 
   private triggerImportExcel() {
@@ -435,19 +421,18 @@ export class AppRoot extends LitElement {
           <div class="header-actions">
             <input type="file" id="file-upload" style="display:none" accept=".json" @change="${this.handleFileChange}">
             <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
-            <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">${this._isDark ? t('header.dayMode') : t('header.nightMode')}</button>
+            <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
+              ${this._isDark ? html`☀️` : html`🌙`}
+            </button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
-            <button @click="${this.triggerImport}">${t('header.import')}</button>
             ${isSupabaseConfigured ? html`
               ${isAdmin() ? html`<button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
-              <button @click="${this.handleLeagues}" title="${t('leagues.title')}">${t('leagues.headerBtn')}</button>
               <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
                 ${this._authEmail ?? t('account.signIn')}
               </button>` : ''}
             <button @click="${this.handleShare}">${t('header.share')}</button>
-            <button class="primary" @click="${this.handleExport}">${t('header.export')}</button>
           </div>
         </header>
 

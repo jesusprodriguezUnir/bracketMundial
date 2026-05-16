@@ -47,3 +47,34 @@ Esta skill te permite extraer datos de jugadores directamente de documentos PDF 
 
 ## Nota Importante
 **NO requieres scripts en Python o Node.js.** Posees capacidades multimodales (visión) integradas en este entorno. Al usar `view_file` en un `.pdf`, el sistema hace el trabajo pesado y te inyecta las imágenes automáticamente. Tu único trabajo es extraer los datos y escribirlos en código.
+
+## Extensión: Extracción de Imágenes
+
+Además de extraer datos de jugadores, este skill ahora incluye la capacidad de extraer imágenes de los cromos y convertirlas a formatos optimizados para la web.
+
+### Flujo Adicional para Imágenes
+1. **Extracción de Imágenes**:
+   - Usa bibliotecas como `PyPDF2` o `pdf2image` para identificar y extraer imágenes de las páginas del PDF.
+   - Guarda las imágenes en formato `.webp` para optimización web.
+
+2. **Organización de Imágenes**:
+   - Las imágenes se guardan en la carpeta `public/assets/players/`.
+   - Se organizan en subcarpetas por equipo, siguiendo el esquema:
+     ```
+     public/assets/players/ARG/messi.webp
+     public/assets/players/BRA/neymar.webp
+     ```
+
+3. **Conversión y Optimización**:
+   - Ajusta las dimensiones de las imágenes a un tamaño estándar (por ejemplo, 512x512 píxeles) usando `Pillow`.
+
+4. **Salida**:
+   - Genera un log con los nombres de los archivos extraídos y su ubicación.
+
+### Validación Adicional
+- Verifica que todas las imágenes se extraen y convierten correctamente.
+- Confirma que las imágenes están organizadas en las carpetas correctas y cumplen con el formato `.webp`.
+
+### Ejemplo de Prompt
+- "Extrae las imágenes de jugadores del archivo `album_panini.pdf` y guárdalas en la carpeta `public/assets/players/` organizadas por equipo."
+- "Convierte las imágenes extraídas del PDF `album_panini.pdf` al formato `.webp` y ajusta su tamaño a 512x512 píxeles."

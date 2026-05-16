@@ -5,10 +5,12 @@ import { t, useLocaleStore } from '../i18n';
 import {
   generateBracketImage,
   buildShareText,
-  shareViaWebAPI,
+  canShareImage,
+  shareImageNative,
   shareToInstagram,
   openTwitterIntent,
   openWhatsAppIntent,
+  openFacebookShare,
   downloadBlob,
 } from '../lib/share-image';
 import './share-card';
@@ -23,6 +25,7 @@ export class ShareModal extends LitElement {
 
   private _blob: Blob | null = null;
   private _shareText = '';
+  private _shareUrl = '';
   private _unsubscribeLocale?: () => void;
 
   static override styles = css`
@@ -196,6 +199,7 @@ export class ShareModal extends LitElement {
     }
     .btn-share.twitter    { background: #1da1f2; color: #fff; }
     .btn-share.whatsapp   { background: #25d366; color: #fff; }
+    .btn-share.facebook   { background: #1877f2; color: #fff; }
     .btn-share.instagram  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); color: #fff; }
     .btn-share.copied   { background: var(--retro-green); color: var(--paper); }
     .btn-share:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -244,19 +248,21 @@ export class ShareModal extends LitElement {
   private async _generate() {
     this._status = 'generating';
     try {
-      // Wait for share-card to render
       await this.updateComplete;
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
       const card = this.shadowRoot?.querySelector<HTMLElement>('share-card');
       if (!card) throw new Error('share-card not found');
 
-      // html-to-image needs to capture the shadow root content; target the host element
+      const state = useTournamentStore.getState();
+      const { buildShareUrl } = await import('../lib/bracket-codec');
+      this._shareUrl = buildShareUrl(state.groupMatches, state.knockoutMatches);
+
       const blob = await generateBracketImage(card);
       this._blob = blob;
       if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);
       this._previewUrl = URL.createObjectURL(blob);
-      this._shareText = buildShareText(useTournamentStore.getState().knockoutMatches);
+      this._shareText = buildShareText(state.knockoutMatches, this._shareUrl);
       this._status = 'ready';
     } catch (_err) {
       this._status = 'error';
@@ -275,15 +281,19 @@ export class ShareModal extends LitElement {
 
   private async _nativeShare() {
     if (!this._blob) return;
-    await shareViaWebAPI(this._blob, this._shareText);
+    await shareImageNative(this._blob, this._shareText);
   }
 
   private _twitter() {
-    openTwitterIntent(this._shareText);
+    openTwitterIntent(this._shareText, this._shareUrl || undefined);
   }
 
   private _whatsapp() {
     openWhatsAppIntent(this._shareText);
+  }
+
+  private _facebook() {
+    if (this._shareUrl) openFacebookShare(this._shareUrl);
   }
 
   private async _instagram() {
@@ -302,9 +312,12 @@ export class ShareModal extends LitElement {
 
   private async _copyLink() {
     try {
-      const { buildShareUrl } = await import('../lib/bracket-codec');
-      const state = useTournamentStore.getState();
-      const url = buildShareUrl(state.groupMatches, state.knockoutMatches);
+      let url = this._shareUrl;
+      if (!url) {
+        const { buildShareUrl } = await import('../lib/bracket-codec');
+        const state = useTournamentStore.getState();
+        url = buildShareUrl(state.groupMatches, state.knockoutMatches);
+      }
       await navigator.clipboard.writeText(url);
       this._copiedLink = true;
       setTimeout(() => { this._copiedLink = false; }, 2000);
@@ -312,7 +325,7 @@ export class ShareModal extends LitElement {
   }
 
   override render() {
-    const canNativeShare = !!navigator.canShare;
+    const hasNativeImageShare = canShareImage();
     const isReady = this._status === 'ready';
 
     return html`
@@ -353,27 +366,49 @@ export class ShareModal extends LitElement {
 
         <!-- Actions -->
         <div class="actions">
-          <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._download}" aria-label="${t('share.downloadLabel')}">
-            ${t('share.download')}
+
+          ${hasNativeImageShare
+            ? html`
+              <!-- Móvil: compartir imagen real por el share sheet del sistema -->
+              <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._nativeShare}" aria-label="${t('share.shareImageLabel')}">
+                ${t('share.shareImage')}
+              </button>
+              <button class="btn-share" ?disabled="${!isReady}" @click="${this._download}" aria-label="${t('share.downloadLabel')}">
+                ${t('share.download')}
+              </button>`
+            : html`
+              <!-- Escritorio: descargar primero, luego adjuntar manualmente -->
+              <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._download}" aria-label="${t('share.downloadLabel')}">
+                ${t('share.download')}
+              </button>`}
+
+          <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="${t('share.copyTextLabel')}">
+            ${this._copied ? t('share.copied') : t('share.copyText')}
           </button>
-          ${canNativeShare ? html`
-            <button class="btn-share" ?disabled="${!isReady}" @click="${this._nativeShare}" aria-label="${t('share.nativeShareLabel')}">
-              ${t('share.nativeShare')}
-            </button>` : ''}
+          <button class="btn-share ${this._copiedLink ? 'copied' : ''}" @click="${this._copyLink}" aria-label="${t('share.copyLinkLabel')}">
+            ${this._copiedLink ? t('share.linkCopied') : t('share.copyLink')}
+          </button>
+        </div>
+
+        ${!hasNativeImageShare ? html`
+          <div class="ig-hint">${t('share.desktopHint')}</div>` : ''}
+
+        <!-- Botones de red: enlace + texto -->
+        <div class="actions" style="padding-top:0; border-top: 1px solid var(--ink-20, rgba(26,25,51,0.15));">
+          <div style="width:100%; font-family:var(--font-mono); font-size:9px; color:var(--dim); letter-spacing:0.18em; text-transform:uppercase; padding-bottom:4px;">
+            ${t('share.networksLabel')}
+          </div>
           <button class="btn-share twitter" ?disabled="${!isReady}" @click="${this._twitter}" aria-label="${t('share.twitterLabel')}">
             ${t('share.twitter')}
           </button>
           <button class="btn-share whatsapp" ?disabled="${!isReady}" @click="${this._whatsapp}" aria-label="${t('share.whatsappLabel')}">
             ${t('share.whatsapp')}
           </button>
+          <button class="btn-share facebook" ?disabled="${!isReady}" @click="${this._facebook}" aria-label="${t('share.facebookLabel')}">
+            ${t('share.facebook')}
+          </button>
           <button class="btn-share instagram" ?disabled="${!isReady}" @click="${this._instagram}" aria-label="${t('share.instagramLabel')}">
             ${t('share.instagram')}
-          </button>
-          <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="${t('share.copyTextLabel')}">
-            ${this._copied ? t('share.copied') : t('share.copyText')}
-          </button>
-          <button class="btn-share ${this._copiedLink ? 'copied' : ''}" @click="${this._copyLink}" aria-label="${t('share.copyLinkLabel')}">
-            ${this._copiedLink ? t('share.linkCopied') : t('share.copyLink')}
           </button>
         </div>
 

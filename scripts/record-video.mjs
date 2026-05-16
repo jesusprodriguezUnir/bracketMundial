@@ -1,8 +1,8 @@
 import { chromium } from 'playwright';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, unlinkSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
@@ -46,7 +46,7 @@ async function startDevServer() {
   });
 }
 
-async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 20) {
+async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
   const config = PLATFORMS[platform] || PLATFORMS[DEFAULT_PLATFORM];
   const { width, height } = config;
   const outputDir = join(rootDir, 'recordings');
@@ -55,76 +55,115 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 20) {
     mkdirSync(outputDir, { recursive: true });
   }
 
-  console.log(`\n🎬 Recording Demo for ${config.name}`);
-  console.log(`   Resolution: ${width}x${height}`);
-  console.log(`   Duration: ${durationSec}s\n`);
+  console.log(`\n🎬 Grabando Video Demo para ${config.name}`);
+  console.log(`   Resolución: ${width}x${height}`);
+  console.log(`   Duración Objetivo: ~${durationSec}s\n`);
 
   let server;
   let browser;
 
   try {
-    console.log('🚀 Starting dev server...');
+    console.log('🚀 Iniciando servidor de desarrollo...');
     server = await startDevServer();
 
     const serverReady = await waitForServer('http://localhost:5173');
-    if (!serverReady) throw new Error('Server failed to start');
+    if (!serverReady) throw new Error('El servidor no inició a tiempo');
 
-    console.log('✅ Server ready\n');
+    console.log('✅ Servidor listo\n');
 
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       viewport: { width, height },
       deviceScaleFactor: 2,
+      recordVideo: {
+        dir: outputDir,
+        size: { width, height }
+      }
     });
 
     const page = await context.newPage();
+    console.log('📱 Cargando la app...');
     await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
+    
+    // Esperar a que la página se pinte completamente
     await sleep(2000);
 
-    console.log('📱 Loading app...');
-
-    const frames = [];
-    const tabs = ['GRUPOS', 'PLANTILLAS', 'CALENDARIO', 'OCTAVOS', 'CUARTOS', 'SEMIS', 'FINAL', 'ESTADIOS', 'TV'];
-
-    const stepDuration = Math.floor((durationSec * 1000) / tabs.length);
-
-    console.log('🎬 Recording frames:\n');
-
-    await page.screenshot({ path: join(outputDir, 'frame-00-home.png'), fullPage: true });
-    console.log('   ✓ Home');
-
-    for (let i = 0; i < tabs.length; i++) {
-      const tabName = tabs[i].toLowerCase();
-
-      try {
-        const tabBtn = page.locator(`.phase-tab`).filter({ hasText: new RegExp(tabName, 'i') }).first();
-        if (await tabBtn.isVisible({ timeout: 2000 })) {
-          await tabBtn.click();
-          await sleep(stepDuration - 200);
-          const frameNum = String(i + 1).padStart(2, '0');
-          await page.screenshot({ path: join(outputDir, `frame-${frameNum}-${tabName}.png`), fullPage: true });
-          console.log(`   ✓ ${tabs[i]}`);
-        }
-      } catch (e) {
-        console.log(`   ✗ ${tabs[i]} (not found)`);
+    // Helper de smooth scroll
+    async function smoothScroll(pixels, duration) {
+      const steps = 30;
+      const stepDelay = duration / steps;
+      const stepPixels = pixels / steps;
+      for (let i = 0; i < steps; i++) {
+        await page.mouse.wheel(0, stepPixels);
+        await sleep(stepDelay);
       }
     }
 
-    console.log('\n✅ Recording complete!\n');
-    console.log(`📁 Frames saved to: ${outputDir}`);
-    console.log('\n📝 To create video, install ffmpeg and run:');
-    console.log(`   ffmpeg -framerate 2 -i "frame-%02d-*.png" -c:v libx264 -pix_fmt yuv420p demo.mp4\n`);
+    console.log('🎬 Iniciando interacciones automáticas...\n');
 
-    const manifest = {
-      platform,
-      resolution: { width, height },
-      frames: frames.length,
-      timestamp: new Date().toISOString(),
-      frameDir: outputDir,
-    };
+    // Localizar todas las tabs de la página
+    const tabsLocator = page.locator('.phase-tab');
+    const tabCount = await tabsLocator.count();
+    
+    // Distribuir el tiempo estimado entre las pestañas disponibles
+    const totalTimeMs = durationSec * 1000;
+    const timePerTab = tabCount > 0 ? Math.max(3000, totalTimeMs / tabCount) : 5000;
 
-    writeFileSync(join(outputDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
-    console.log(`📋 Manifest: ${join(outputDir, 'manifest.json')}`);
+    // Scroll inicial en la home (Hero)
+    console.log('   ✓ Sección: Inicio');
+    await smoothScroll(600, 1000);
+    await sleep(timePerTab / 3);
+    await smoothScroll(-600, 800);
+    await sleep(500);
+
+    // Navegar por cada tab
+    for (let i = 0; i < tabCount; i++) {
+      const tab = tabsLocator.nth(i);
+      const text = await tab.textContent();
+      
+      // Saltar si la tab es invisible o inactiva temporalmente (aunque Playwright autoespera)
+      if (await tab.isVisible()) {
+        console.log(`   ✓ Navegando a: ${text?.trim()}`);
+        await tab.click();
+        await sleep(800); // Dar tiempo al render y animaciones
+        
+        // Simular exploración de la pestaña
+        await smoothScroll(800, 1500);
+        await sleep(timePerTab / 2);
+        
+        // Volver arriba para la próxima tab
+        await smoothScroll(-800, 1000);
+        await sleep(timePerTab / 4);
+      }
+    }
+
+    // Esperar al final para que quede bien grabado el último frame
+    await sleep(1500);
+
+    // Obtener la ruta del video webm grabado
+    const videoPath = await page.video().path();
+    
+    // Cerrar el contexto vuelca el buffer del video a disco
+    await context.close();
+    
+    const finalVideo = join(outputDir, `demo-${platform}.mp4`);
+    console.log(`\n🎞️  Video nativo generado por Playwright: ${videoPath}`);
+    console.log(`🎬 Convirtiendo a formato listo para redes (${finalVideo})...`);
+
+    await new Promise((resolve) => {
+      // Usar ffmpeg para convertir el webm a mp4 (h264)
+      const cmd = `ffmpeg -y -i "${videoPath}" -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p "${finalVideo}"`;
+      exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Error ejecutando ffmpeg. ¿Está instalado en el sistema?', error.message);
+        } else {
+          console.log(`✅ Video final MP4 guardado con éxito: ${finalVideo}`);
+          // Limpiar archivo crudo webm
+          try { unlinkSync(videoPath); } catch (e) {}
+        }
+        resolve(true);
+      });
+    });
 
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -132,33 +171,15 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 20) {
     if (browser) await browser.close();
     if (server) {
       server.kill();
-      console.log('\n🛑 Server stopped');
+      console.log('🛑 Servidor dev detenido\n');
     }
   }
-}
-
-async function createVideoFromFrames(framesDir) {
-  const { exec } = await import('child_process');
-
-  return new Promise((resolve) => {
-    exec(`ffmpeg -framerate 2 -i "${framesDir}/frame-%02d-*.png" -c:v libx264 -pix_fmt yuv420p "${join(framesDir, 'demo.mp4')}"`, (error) => {
-      if (error) {
-        console.log('ffmpeg not available, skipping video creation');
-        resolve(false);
-      } else {
-        resolve(true);
-      }
-    });
-  });
 }
 
 const args = process.argv.slice(2);
 const command = args[0];
 
-if (command === 'generate') {
-  const platform = args[1] || DEFAULT_PLATFORM;
-  generateFromFrames(platform);
-} else if (command === 'list') {
+if (command === 'list') {
   console.log('\n📹 Plataformas disponibles:');
   Object.entries(PLATFORMS).forEach(([key, cfg]) => {
     console.log(`   ${key}: ${cfg.name} (${cfg.width}x${cfg.height})`);
@@ -166,30 +187,6 @@ if (command === 'generate') {
   console.log('');
 } else {
   const platform = command || DEFAULT_PLATFORM;
-  const duration = parseInt(args[1]) || 20;
+  const duration = parseInt(args[1]) || 30; // 30s por defecto
   recordDemo(platform, duration);
-}
-
-async function generateFromFrames(platform) {
-  const config = PLATFORMS[platform] || PLATFORMS[DEFAULT_PLATFORM];
-  const { width, height } = config;
-  const outputFile = join(rootDir, `recordings`, `demo-${platform}.mp4`);
-
-  console.log(`\n🎬 Generando video para ${config.name}`);
-  console.log(`   Resolution: ${width}x${height}\n`);
-
-  const { exec } = await import('child_process');
-
-  return new Promise((resolve) => {
-    const cmd = `ffmpeg -framerate 2 -i "${join(rootDir, 'recordings', 'frame-%02d.png')}" -vf "scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:black" -c:v libx264 -pix_fmt yuv420p -y "${outputFile}"`;
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        console.error('❌ Error:', error.message);
-        resolve(false);
-      } else {
-        console.log(`✅ Video guardado: ${outputFile}\n`);
-        resolve(true);
-      }
-    });
-  });
 }
