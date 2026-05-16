@@ -70,7 +70,10 @@
       "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./package.json'\\).scripts,null,1\\)\\)\")",
       "Bash(mkdir -p \"d:/Personal/bracketMundial/.claude/skills/fetch-squads\")",
       "Edit(/.claude/skills/fetch-squads/**)",
-      "Bash(node scripts/fetch-squad-assets.mjs --report)"
+      "Bash(node scripts/fetch-squad-assets.mjs --report)",
+      "Skill(fetch-squads)",
+      "Skill(fetch-squads:*)",
+      "WebFetch(domain:commons.wikimedia.org)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

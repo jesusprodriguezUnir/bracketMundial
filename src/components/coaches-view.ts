@@ -5,6 +5,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
 import { coachAge, formatFullDate } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
+import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -445,9 +446,11 @@ export class CoachesView extends LitElement {
                   return html`
                     <button class="coach-card-btn" @click=${() => this.selectTeam(team.id)}>
                       <div class="card-photo">
-                        ${coach?.photoUrl
-                          ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
-                          : html`<div class="card-photo-initials">${getInitials(coach ? coach.name : team.name)}</div>`}
+                        ${hasCoachPhoto(team.id)
+                          ? html`<img src="${coachPhotoSrc(team.id)}" alt="${coach?.name ?? team.name}" loading="lazy">`
+                          : coach?.photoUrl
+                            ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
+                            : html`<div class="card-photo-initials">${getInitials(coach ? coach.name : team.name)}</div>`}
                       </div>
                       <div class="card-country-stripe">
                         ${renderFlag(team, 'sm')}
@@ -500,9 +503,11 @@ export class CoachesView extends LitElement {
           <!-- Photo column -->
           <div class="detail-photo-col">
             <div class="detail-photo-wrap">
-              ${coach?.photoUrl
-                ? html`<img src="${coach.photoUrl}" alt="${coach?.name}" loading="lazy">`
-                : html`<div class="detail-photo-initials">${getInitials(coach ? coach.name : selectedTeam.name)}</div>`}
+              ${hasCoachPhoto(selectedTeam.id)
+                ? html`<img src="${coachPhotoSrc(selectedTeam.id)}" alt="${coach?.name ?? selectedTeam.name}" loading="lazy">`
+                : coach?.photoUrl
+                  ? html`<img src="${coach.photoUrl}" alt="${coach?.name}" loading="lazy">`
+                  : html`<div class="detail-photo-initials">${getInitials(coach ? coach.name : selectedTeam.name)}</div>`}
             </div>
           </div>
 
