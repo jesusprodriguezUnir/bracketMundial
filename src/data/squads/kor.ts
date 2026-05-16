@@ -1,5 +1,6 @@
 import type { Player } from './index';
 
+export const coach = 'Hong Myung-bo';
 export const squad: Player[] = [
   { number: 1,  name: 'Kim Seung-gyu',          position: 'GK', age: 35, club: 'FC Tokyo' },
   { number: 21, name: 'Jo Hyeon-woo',           position: 'GK', age: 34, club: 'Ulsan HD' },
@@ -20,13 +21,13 @@ export const squad: Player[] = [
   { number: 10, name: 'Lee Jae-sung',           position: 'MF', age: 33, club: 'Mainz 05' },
   { number: 17, name: 'Bae Jun-ho',             position: 'MF', age: 22, club: 'Stoke City' },
   { number: 16, name: 'Lee Dong-gyeong',        position: 'MF', age: 28, club: 'Ulsan HD' },
-  { number: 24, name: 'Lee Tae-seok',           position: 'MF', age: 23, club: 'Austria Wien' },
+  { number: 24, name: 'Lee Tae-seok',           position: 'DF', age: 23, club: 'Austria Wien' },
   { number: 7,  name: 'Son Heung-min',          position: 'FW', age: 33, club: 'Los Angeles FC' },
   { number: 11, name: 'Hwang Hee-chan',         position: 'FW', age: 30, club: 'Wolves' },
   { number: 9,  name: 'Cho Gue-sung',           position: 'FW', age: 28, club: 'FC Midtjylland' },
   { number: 19, name: 'Oh Hyeon-gyu',           position: 'FW', age: 25, club: 'Beşiktaş' },
-  { number: 23, name: 'Yang Hyun-jun',          position: 'FW', age: 24, club: 'Celtic' },
-  { number: 26, name: 'Eom Ji-sung',            position: 'FW', age: 24, club: 'Swansea City' },
+  { number: 23, name: 'Yang Hyun-jun',          position: 'MF', age: 24, club: 'Celtic' },
+  { number: 26, name: 'Eom Ji-sung',            position: 'MF', age: 24, club: 'Swansea City' },
 ];
 
 export const lineup = {

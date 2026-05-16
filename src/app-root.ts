@@ -258,40 +258,6 @@ export class AppRoot extends LitElement {
       }
     }
 
-    /* SEO Info Section */
-    .seo-info {
-      max-width: 1200px;
-      margin: 60px auto 0;
-      padding: 40px;
-      background: var(--paper);
-      border: 3px solid var(--ink);
-      box-shadow: 8px 8px 0 var(--ink);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-    }
-    .seo-card h2 {
-      font-family: var(--font-var);
-      font-size: 24px;
-      color: var(--ink);
-      margin-bottom: 12px;
-      border-bottom: 2px solid var(--retro-orange);
-      display: inline-block;
-    }
-    .seo-card p {
-      font-family: var(--font-body);
-      font-size: 15px;
-      line-height: 1.6;
-      color: var(--dim);
-    }
-    @media (max-width: 768px) {
-      .seo-info {
-        grid-template-columns: 1fr;
-        margin: 40px 16px 0;
-        padding: 24px;
-      }
-    }
-
     /* Franja de anuncio global */
     .ad-strip {
       width: 100%;
@@ -486,18 +452,6 @@ export class AppRoot extends LitElement {
 
         <main class="content">
           <bracket-view></bracket-view>
-
-          <!-- SEO Section -->
-          <section class="seo-info" aria-labelledby="seo-title">
-            <div class="seo-card">
-              <h2 id="seo-title">${t('seo.aboutTitle')}</h2>
-              <p>${t('seo.aboutText')}</p>
-            </div>
-            <div class="seo-card">
-              <h2>${t('seo.formatTitle')}</h2>
-              <p>${t('seo.formatText')}</p>
-            </div>
-          </section>
         </main>
 
         <footer class="site-footer">

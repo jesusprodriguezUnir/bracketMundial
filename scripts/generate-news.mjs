@@ -9,7 +9,7 @@
  *   node scripts/generate-news.mjs --write-seed  # also regenerates src/data/news/seed.ts
  */
 
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -174,12 +174,26 @@ async function fetchTeamNews(query, hl, gl, ceid) {
 async function main() {
   const writeSeed = process.argv.includes('--write-seed');
   const today = new Date().toISOString().slice(0, 10);
+  const filter = process.argv.filter(a => !a.startsWith('-')).slice(2).map(t => t.toUpperCase());
+  const teamsToProcess = filter.length > 0 
+    ? TEAMS.filter(t => filter.includes(t.id)) 
+    : TEAMS;
 
-  console.log(`📰 Generating news feed for ${TEAMS.length} teams (${today})`);
+  console.log(`📰 Generating news feed for ${teamsToProcess.length} teams (${today})`);
 
-  const items = {};
+  // Load existing feed if it exists, to preserve news for teams we are not updating
+  let items = {};
+  const feedPath = join(ROOT, 'news-feed.json');
+  try {
+    if (existsSync(feedPath)) {
+      const existing = JSON.parse(readFileSync(feedPath, 'utf8'));
+      items = existing.items || {};
+    }
+  } catch (err) {
+    console.warn('  ⚠ Could not read existing news-feed.json, starting fresh.');
+  }
 
-  for (const team of TEAMS) {
+  for (const team of teamsToProcess) {
     process.stdout.write(`  ${team.id} ...`);
 
     const esQuery = `"${team.es}" Mundial 2026`;
@@ -190,6 +204,11 @@ async function main() {
       fetchTeamNews(enQuery, 'en-US', 'US', 'US:en'),
     ]);
 
+    // Sort by date descending (newest first)
+    const sortByDate = (a, b) => b.date.localeCompare(a.date);
+    esNews.sort(sortByDate);
+    enNews.sort(sortByDate);
+
     items[team.id] = { es: esNews, en: enNews };
     console.log(` es:${esNews.length} en:${enNews.length}`);
     await sleep(DELAY_MS);
@@ -197,9 +216,8 @@ async function main() {
 
   // ─── Write news-feed.json ──────────────────────────────────────────────────
   const feed = { updatedAt: today, items };
-  const feedPath = join(ROOT, 'news-feed.json');
   writeFileSync(feedPath, JSON.stringify(feed, null, 2) + '\n', 'utf8');
-  console.log(`\n✅ news-feed.json written (${feedPath})`);
+  console.log(`\n✅ news-feed.json updated (${feedPath})`);
 
   // ─── Optionally regenerate seed.ts ────────────────────────────────────────
   if (writeSeed) {
