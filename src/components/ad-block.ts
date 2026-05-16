@@ -22,17 +22,23 @@ export class AdBlock extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
 
-    // Evitar duplicados si el componente se reconecta
-    if (this.querySelector('ins.adsbygoogle')) return;
+    // Reusar el <ins> existente si el componente se reconecta
+    let ins = this.querySelector<HTMLElement>('ins.adsbygoogle');
 
-    const ins = document.createElement('ins');
-    ins.className = 'adsbygoogle';
-    ins.style.cssText = 'display:block;text-align:center;';
-    ins.dataset['adClient'] = 'ca-pub-8196395794772309';
-    ins.dataset['adSlot'] = '5275853927';
-    ins.dataset['adFormat'] = 'auto';
-    ins.dataset['fullWidthResponsive'] = 'true';
-    this.appendChild(ins);
+    if (!ins) {
+      ins = document.createElement('ins');
+      ins.className = 'adsbygoogle';
+      ins.style.cssText = 'display:block;text-align:center;';
+      ins.dataset['adClient'] = 'ca-pub-8196395794772309';
+      ins.dataset['adSlot'] = '5275853927';
+      ins.dataset['adFormat'] = 'auto';
+      ins.dataset['fullWidthResponsive'] = 'true';
+      this.appendChild(ins);
+    }
+
+    // AdSense pone data-adsbygoogle-status="done" cuando ya procesó el slot;
+    // llamar push() sobre un slot ya inicializado lanza TagError.
+    if (ins.dataset['adsbygoogleStatus']) return;
 
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
