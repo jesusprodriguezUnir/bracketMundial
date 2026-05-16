@@ -9,7 +9,7 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'r32' | 'r16' | 'qf' | 'sf' | 'final' | 'stadiums' | 'tv';
+type PhaseTab = 'hero' | 'groups' | 'squads' | 'calendar' | 'knockout' | 'stadiums' | 'tv';
 
 // Mapa de vista → módulo lazy
 type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv';
@@ -40,11 +40,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   groups:   'tabs.groups',
   squads:   'tabs.squads',
   calendar: 'tabs.calendar',
-  r32:      'tabs.r32',
-  r16:      'tabs.r16',
-  qf:       'tabs.qf',
-  sf:       'tabs.sf',
-  final:    'tabs.final',
+  knockout: 'tabs.knockout',
   stadiums: 'tabs.stadiums',
   tv:       'tabs.tv',
 };
@@ -262,10 +258,10 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'r32', 'r16', 'qf', 'sf', 'final', 'stadiums', 'tv'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'squads', 'calendar', 'knockout', 'stadiums', 'tv'];
     const at = this._activeTab;
     const loaded = this._loadedViews;
-    const isKnockoutTab = at === 'r32' || at === 'r16' || at === 'qf' || at === 'sf' || at === 'final';
+    const isKnockoutTab = at === 'knockout';
 
     return html`
       <div @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
@@ -335,12 +331,6 @@ export class BracketView extends LitElement {
 
         <!-- Eliminatorias (lazy) -->
         <div class="knockout-sections ${isKnockoutTab ? 'visible' : ''}">
-          ${(['r32', 'r16', 'qf', 'sf', 'final'] as PhaseTab[]).map(phase => html`
-            <div
-              id="section-knockout-${phase}"
-              class="knockout-section ${at === phase ? 'visible' : ''}">
-            </div>
-          `)}
           ${isKnockoutTab && loaded.has('knockout') ? html`
             <div
               id="section-knockout-bracket"

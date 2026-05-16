@@ -30,13 +30,13 @@ interface CalendarRow {
   penaltyScoreB: number | null;
 }
 
-const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: 'calendar.r32' | 'calendar.r16' | 'calendar.qf' | 'calendar.sf' | 'calendar.tp' | 'tabs.final' }> = [
+const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: string }> = [
   { key: 'R32', i18nKey: 'calendar.r32' },
   { key: 'R16', i18nKey: 'calendar.r16' },
   { key: 'QF',  i18nKey: 'calendar.qf' },
   { key: 'SF',  i18nKey: 'calendar.sf' },
   { key: 'TP',  i18nKey: 'calendar.tp' },
-  { key: 'FIN', i18nKey: 'tabs.final' },
+  { key: 'FIN', i18nKey: 'calendar.final' },
 ];
 
 @customElement('calendar-view')

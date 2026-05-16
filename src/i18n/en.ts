@@ -23,11 +23,7 @@ export const en: Record<TranslationKey, string> = {
   'tabs.groups': 'Groups',
   'tabs.squads': 'Teams',
   'tabs.calendar': 'Schedule',
-  'tabs.r32': 'R32',
-  'tabs.r16': 'R16',
-  'tabs.qf': 'QF',
-  'tabs.sf': 'SF',
-  'tabs.final': 'Final',
+  'tabs.knockout': 'Knockout',
   'tabs.stadiums': 'Stadiums',
   'tabs.tv': 'Where to Watch',
 
@@ -99,6 +95,7 @@ export const en: Record<TranslationKey, string> = {
   'calendar.qf': 'QF',
   'calendar.sf': 'SF',
   'calendar.tp': '3rd place',
+  'calendar.final': 'Final',
   'calendar.broadcast': 'Broadcast',
   'calendar.exclusive': 'Exclusive DAZN',
 

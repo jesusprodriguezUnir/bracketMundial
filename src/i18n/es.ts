@@ -23,11 +23,7 @@ export const es = {
   'tabs.groups': 'Grupos',
   'tabs.squads': 'Equipos',
   'tabs.calendar': 'Calendario',
-  'tabs.r32': '1/16',
-  'tabs.r16': 'Octavos',
-  'tabs.qf': 'Cuartos',
-  'tabs.sf': 'Semis',
-  'tabs.final': 'Final',
+  'tabs.knockout': 'Eliminatorias',
   'tabs.stadiums': 'Estadios',
   'tabs.tv': 'Dónde ver',
 
@@ -106,6 +102,7 @@ export const es = {
   'calendar.qf': 'Cuartos',
   'calendar.sf': 'Semis',
   'calendar.tp': '3er puesto',
+  'calendar.final': 'Final',
   'calendar.broadcast': 'Emisión',
   'calendar.exclusive': 'Exclusivo DAZN',
 
