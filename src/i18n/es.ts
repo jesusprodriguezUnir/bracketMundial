@@ -152,8 +152,6 @@ export const es = {
   'share.shareImageLabel': 'Compartir imagen del bracket con app del sistema',
   'share.facebook': 'f FACEBOOK',
   'share.facebookLabel': 'Compartir enlace en Facebook',
-  'share.instagram': '◈ INSTAGRAM',
-  'share.instagramLabel': 'Compartir en Instagram',
   'share.tiktok': '▶ TIKTOK',
   'share.tiktokLabel': 'Compartir en TikTok',
   'share.desktopHint': '💡 En escritorio: descarga la imagen y adjúntala manualmente en la red social.',
