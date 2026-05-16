@@ -20,8 +20,13 @@ async function throttle() {
 
 function parsePlayers(content) {
   const entries = [];
-  for (const m of content.matchAll(/\{\s*number:\s*(\d+),\s*name:\s*['"]([^'"]+)['"]/g)) {
-    entries.push({ number: parseInt(m[1], 10), name: m[2] });
+  // Soporta comillas simples o dobles y escapes como N\'Golo
+  const regex = /\{\s*number:\s*(\d+),\s*name:\s*(['"])((?:\\.|(?!\2).)*)\2/g;
+  for (const m of content.matchAll(regex)) {
+    entries.push({ 
+      number: parseInt(m[1], 10), 
+      name: m[3].replace(/\\/g, '') 
+    });
   }
   return entries;
 }
