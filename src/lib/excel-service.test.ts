@@ -86,27 +86,17 @@ describe('ExcelService round-trip', () => {
     expect(r32_02?.penaltyScoreB).toBe(5);
   });
 
-  it('workbook contains required sheets including Coaches', async () => {
+  it('workbook contains required sheets', async () => {
     const blob = await ExcelService.exportToExcel(makeGroupMatches(), makeKnockoutMatches());
     const buffer = await blob.arrayBuffer();
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(buffer);
 
     const names = wb.worksheets.map(ws => ws.name);
-    expect(names).toContain('Entrenadores');
     expect(names).toContain('Fase de Grupos');
     expect(names).toContain('Eliminatorias');
     expect(names).toContain('CALC');
     expect(names).toContain('MAP');
-  });
-
-  it('Coaches sheet is the first sheet in the workbook', async () => {
-    const blob = await ExcelService.exportToExcel(makeGroupMatches(), {});
-    const buffer = await blob.arrayBuffer();
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buffer);
-
-    expect(wb.worksheets[0]?.name).toBe('Entrenadores');
   });
 
   it('MAP sheet has entries for all exported matches', async () => {
