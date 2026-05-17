@@ -1,8 +1,8 @@
 import type { Player } from './index';
 export const squad: Player[] = [
   { number: 16, name: 'Mike Maignan', position: 'GK', age: 30, club: 'AC Milan' },
-  { number: 1, name: 'Robin Risser', position: 'GK', age: 29, club: 'Lens' },
-  { number: 23, name: 'Brice Samba', position: 'GK', age: 31, club: 'Rennes' },
+  { number: 1, name: 'Brice Samba', position: 'GK', age: 31, club: 'Rennes' },
+  { number: 23, name: 'Robin Risser', position: 'GK', age: 29, club: 'Lens' },
   { number: 5, name: 'Jules Koundé', position: 'DF', age: 27, club: 'Barcelona' },
   { number: 2, name: 'Malo Gusto', position: 'DF', age: 22, club: 'Chelsea' },
   { number: 21, name: 'Lucas Hernández', position: 'DF', age: 30, club: 'Paris Saint-Germain' },
@@ -16,6 +16,7 @@ export const squad: Player[] = [
   { number: 17, name: 'Adrien Rabiot', position: 'MF', age: 30, club: 'Milan' },
   { number: 10, name: 'Warren Zaïre-Emery', position: 'MF', age: 19, club: 'Paris Saint-Germain' },
   { number: 14, name: 'N\'Golo Kanté', position: 'MF', age: 35, club: 'Fenerbahçe' },
+  { number: 24, name: 'Eduardo Camavinga', position: 'MF', age: 24, club: 'Real Madrid' },
   { number: 7, name: 'Ousmane Dembélé', position: 'FW', age: 28, club: 'Paris Saint-Germain' },
   { number: 9, name: 'Kylian Mbappé', position: 'FW', age: 27, club: 'Real Madrid', captain: true },
   { number: 11, name: 'Bradley Barcola', position: 'FW', age: 23, club: 'Paris Saint-Germain' },
@@ -24,10 +25,11 @@ export const squad: Player[] = [
   { number: 25, name: 'Michael Olise', position: 'FW', age: 24, club: 'Bayern Munich' },
   { number: 15, name: 'Marcus Thuram', position: 'FW', age: 28, club: 'Inter Milan' },
   { number: 18, name: 'Jean-Philippe Mateta', position: 'FW', age: 28, club: 'Crystal Palace' },
-  { number: 24, name: 'Maghnes Akliouche', position: 'FW', age: 24, club: 'Monaco' },
+  { number: 26, name: 'Maghnes Akliouche', position: 'FW', age: 24, club: 'Monaco' },
+  { number: 27, name: 'Randal Kolo Muani', position: 'FW', age: 27, club: 'Juventus' },
 ];
 
 export const lineup = {
   formation: '4-3-3',
-  startingXI: [16, 5, 4, 3, 19, 6, 17, 10, 7, 9, 25]
+  startingXI: [16, 5, 4, 3, 19, 6, 17, 10, 25, 9, 11]
 };

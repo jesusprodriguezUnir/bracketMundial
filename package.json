@@ -18,7 +18,10 @@
     "test": "vitest run",
     "cap:sync": "npm run build && npx cap sync",
     "android": "npm run cap:sync && npx cap open android",
-    "ios": "npm run cap:sync && npx cap open ios"
+    "ios": "npm run cap:sync && npx cap open ios",
+    "video": "node scripts/record-video.mjs",
+    "video:list": "node scripts/record-video.mjs list",
+    "video:all": "node scripts/record-video-all.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
