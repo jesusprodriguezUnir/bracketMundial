@@ -136,6 +136,37 @@ node scripts/generate-news.mjs --write-seed  # También regenera seed.ts
 
 Luego crear/actualizar la rama `news-data` (ver CLAUDE.md de commits anteriores o el workflow en `.github/workflows/news.yml`).
 
+## Sistema de Probabilidad 1X2 (Odds de Casas de Apuestas)
+
+Probabilidad por partido (gana A / empate / gana B) derivada del consenso de casas de apuestas, visible en cada partido de fase de grupos.
+
+### Flujo de odds
+
+1. **GitHub Actions cron** (2×/día: 06:00 y 18:00 UTC) ejecuta [scripts/generate-odds.mjs](scripts/generate-odds.mjs)
+2. El script llama a The Odds API (`soccer_fifa_world_cup`, mercado `h2h`), convierte odds decimales a probabilidades normalizadas y promedia entre casas
+3. Genera [odds-feed.json](odds-feed.json) y lo pushea a la rama `odds-data`
+4. En tiempo de ejecución, [src/lib/odds-service.ts](src/lib/odds-service.ts) fetch el archivo desde raw.githubusercontent.com
+5. Cache en localStorage por 6 horas; si falla el fetch la UI simplemente oculta el bloque (sin seed de respaldo)
+
+### Operación de odds
+
+- **Feed URL**: `https://raw.githubusercontent.com/jesusprodriguezUnir/bracketMundial/odds-data/odds-feed.json`
+- **Rama remota**: `odds-data` (orfana, solo contiene el JSON)
+- **Sin odds**: si no hay `ODDS_API_KEY` o el fetch falla, `_odds` queda vacío y no se renderiza nada en cada partido
+
+### Mantenimiento de odds
+
+```bash
+npm run odds   # = npx tsx scripts/generate-odds.mjs (requiere ODDS_API_KEY en .env)
+```
+
+### Notas de odds
+
+- Las odds de fase de grupos aparecen solo días antes del torneo (junio 2026) — es normal que el feed esté casi vacío hasta entonces.
+- Secreto GitHub: `ODDS_API_KEY` → Settings → Secrets → Actions.
+- Plan free de The Odds API: ~500 req/mes. El cron usa 1 req/ejecución ≈ 60 req/mes.
+- `odds-service.ts` no tiene seed bundleado (a diferencia de `news-service.ts`); en modo offline simplemente no muestra el bloque.
+
 ## Areas fragiles
 
 - [src/bracket-view.ts](src/bracket-view.ts) mantiene la vista activa en estado local; tocar tabs o navegacion puede romper el re-render.

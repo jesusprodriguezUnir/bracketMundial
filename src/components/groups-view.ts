@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
-import { useTournamentStore } from '../store/tournament-store';
+import { customElement, state } from 'lit/decorators.js';
+import { getAllOdds, type MatchOdds } from '../lib/odds-service';
+import { useTournamentStore, type GroupMatchResult } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
@@ -22,6 +23,9 @@ const GROUP_COLORS = [
 @customElement('groups-view')
 export class GroupsView extends LitElement {
   private unsubscribeStore?: () => void;
+  private _oddsLoaded = false;
+
+  @state() private _odds: Record<string, MatchOdds> = {};
 
   static styles = css`
     :host { display: block; }
@@ -327,9 +331,73 @@ export class GroupsView extends LitElement {
     }
     .qualify-check { color: var(--retro-green); font-weight: 700; }
 
+    /* Editor de marcador inline */
+    .inline-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 0 2px;
+    }
+    .inline-stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 3px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 3px 3px 0 0 var(--retro-orange);
+    }
+    .inline-stepper button {
+      all: unset;
+      cursor: pointer;
+      padding: 2px 8px;
+      font-family: var(--font-var);
+      font-size: 16px;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.4;
+    }
+    .inline-stepper button:hover { background: var(--retro-red); }
+    .inline-stepper button:active { opacity: 0.8; }
+    .inline-val {
+      font-family: var(--font-var);
+      font-size: 22px;
+      line-height: 1;
+      padding: 2px 10px;
+      min-width: 24px;
+      text-align: center;
+      color: var(--ink);
+    }
+    .inline-dash {
+      font-family: var(--font-var);
+      font-size: 18px;
+      color: var(--dim);
+    }
+
+    /* Probabilidad 1X2 de casas de apuestas */
+    .odds-bar {
+      display: flex;
+      height: 6px;
+      border: 2px solid var(--ink);
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .odds-seg { height: 100%; }
+    .odds-figs {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+    }
+    .odds-figs .odds-home { color: var(--retro-blue); }
+    .odds-figs .odds-away { color: var(--retro-red); }
+
     @media (max-width: 768px) {
       .groups-grid { grid-template-columns: 1fr; }
       .group-card { box-shadow: var(--shadow-hard-sm); }
+      .inline-stepper button { padding: 2px 6px; font-size: 14px; }
+      .inline-val { font-size: 18px; padding: 2px 6px; }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -355,6 +423,12 @@ export class GroupsView extends LitElement {
       (a, b) => a.gm === b.gm && a.gs === b.gs,
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    if (!this._oddsLoaded) {
+      this._oddsLoaded = true;
+      getAllOdds().then(odds => {
+        if (this.isConnected) this._odds = odds;
+      });
+    }
   }
 
   disconnectedCallback() {
@@ -374,6 +448,15 @@ export class GroupsView extends LitElement {
       bubbles: true,
       composed: true
     }));
+  }
+
+  private adjustInline(e: Event, m: GroupMatchResult, team: 'A' | 'B', delta: number) {
+    e.stopPropagation();
+    if (!isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
+    const curA = m.scoreA ?? 0, curB = m.scoreB ?? 0;
+    const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
+    const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
+    useTournamentStore.getState().setGroupMatchResult(m.matchId, nextA, nextB);
   }
 
   private handleSimulateAll() {
@@ -455,6 +538,7 @@ export class GroupsView extends LitElement {
                   const tA = this.getTeam(m.teamA);
                   const tB = this.getTeam(m.teamB);
                   const isPlayed = m.scoreA !== null;
+                  const pending = isMatchPending(m.date ?? '', m.timeSpain ?? '');
                   return html`
                     <div class="match-item" @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}">
                       <div class="match-top">
@@ -465,10 +549,45 @@ export class GroupsView extends LitElement {
                           ${this.renderFlag(tB)}
                           <strong>${tB?.shortName ?? m.teamB}</strong>
                         </div>
-                        <div class="match-score ${!isPlayed ? 'pending' : ''}">
-                          ${isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit')}
-                        </div>
+                        ${!pending ? html`
+                          <div class="match-score ${!isPlayed ? 'pending' : ''}">
+                            ${isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit')}
+                          </div>
+                        ` : ''}
                       </div>
+                      ${pending ? html`
+                        <div class="inline-score-row">
+                          <div class="inline-stepper">
+                            <button @click="${(e: Event) => this.adjustInline(e, m, 'A', -1)}" aria-label="${t('groups.decScore')}">−</button>
+                            <span class="inline-val">${m.scoreA ?? 0}</span>
+                            <button @click="${(e: Event) => this.adjustInline(e, m, 'A', 1)}" aria-label="${t('groups.incScore')}">+</button>
+                          </div>
+                          <span class="inline-dash">−</span>
+                          <div class="inline-stepper">
+                            <button @click="${(e: Event) => this.adjustInline(e, m, 'B', -1)}" aria-label="${t('groups.decScore')}">−</button>
+                            <span class="inline-val">${m.scoreB ?? 0}</span>
+                            <button @click="${(e: Event) => this.adjustInline(e, m, 'B', 1)}" aria-label="${t('groups.incScore')}">+</button>
+                          </div>
+                        </div>
+                      ` : ''}
+
+                      ${(() => {
+                        const o = this._odds[m.matchId];
+                        return o ? html`
+                          <div title="${t('groups.oddsSource', { n: o.bookmakers })}">
+                            <div class="odds-bar">
+                              <div class="odds-seg" style="width:${o.home}%;background:var(--retro-blue)"></div>
+                              <div class="odds-seg" style="width:${o.draw}%;background:var(--dim)"></div>
+                              <div class="odds-seg" style="width:${o.away}%;background:var(--retro-red)"></div>
+                            </div>
+                            <div class="odds-figs">
+                              <span class="odds-home">${o.home}%</span>
+                              <span>${o.draw}%</span>
+                              <span class="odds-away">${o.away}%</span>
+                            </div>
+                          </div>
+                        ` : '';
+                      })()}
                       <div class="match-meta">
                         <span class="jornada">J${m.matchDay}</span>
                         ${m.date ? html`<span>${formatDate(m.date)}</span>` : ''}

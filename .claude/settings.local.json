@@ -76,7 +76,8 @@
       "WebFetch(domain:commons.wikimedia.org)",
       "Edit(/.claude/skills/player-photos/**)",
       "Edit(/.claude/skills/coach-photos/**)",
-      "Edit(/.claude/skills/news/**)"
+      "Edit(/.claude/skills/news/**)",
+      "WebFetch(domain:fifa-wc-bracket.com)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

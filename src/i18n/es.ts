@@ -76,6 +76,9 @@ export const es = {
   'groups.badgeNext': 'PRÓXIMO',
   'groups.statGD': 'DG',
   'groups.statPTS': 'PTS',
+  'groups.incScore': 'Sumar gol',
+  'groups.decScore': 'Restar gol',
+  'groups.oddsSource': 'Consenso de {n} casas',
 
   // Knockout
   'knockout.generate': 'GENERAR ELIMINATORIAS',

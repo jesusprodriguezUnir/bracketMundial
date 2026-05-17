@@ -1,0 +1,59 @@
+name: Update odds feed
+
+on:
+  schedule:
+    - cron: '0 6,18 * * *'  # twice daily: 06:00 and 18:00 UTC
+  workflow_dispatch:          # allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-odds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate odds feed
+        run: npx tsx scripts/generate-odds.mjs
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+
+      - name: Publish to odds-data branch
+        run: |
+          # Configure git identity
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if odds-feed.json changed compared to the odds-data branch
+          git fetch origin odds-data 2>/dev/null || true
+          REMOTE_HASH=$(git show origin/odds-data:odds-feed.json 2>/dev/null | sha256sum | cut -d' ' -f1 || echo "none")
+          LOCAL_HASH=$(sha256sum odds-feed.json | cut -d' ' -f1)
+
+          if [ "$REMOTE_HASH" = "$LOCAL_HASH" ]; then
+            echo "No changes in odds feed — skipping commit."
+            exit 0
+          fi
+
+          # Safeguard the generated file BEFORE any git branch surgery
+          cp odds-feed.json /tmp/odds-feed.json
+
+          # Create / update orphan odds-data branch with only the JSON
+          git checkout --orphan odds-data-tmp
+          git rm -rf . --quiet
+          cp /tmp/odds-feed.json odds-feed.json
+          echo '{"ignoreCommand":"exit 0"}' > vercel.json
+          git add odds-feed.json vercel.json
+          git commit -m "chore: update odds feed $(date -u +%Y-%m-%d)"
+          git push origin odds-data-tmp:odds-data --force
+          echo "✅ odds-data branch updated."

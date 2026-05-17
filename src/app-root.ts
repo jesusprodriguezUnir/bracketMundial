@@ -425,8 +425,8 @@ export class AppRoot extends LitElement {
               ${this._isDark ? html`☀️` : html`🌙`}
             </button>
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
-            <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
+            <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
             ${isSupabaseConfigured ? html`
               ${isAdmin() ? html`<button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
               <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">

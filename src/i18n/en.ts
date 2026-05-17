@@ -73,6 +73,9 @@ export const en: Record<TranslationKey, string> = {
   'groups.badgeNext': 'UPCOMING',
   'groups.statGD': 'GD',
   'groups.statPTS': 'PTS',
+  'groups.incScore': 'Add goal',
+  'groups.decScore': 'Subtract goal',
+  'groups.oddsSource': '{n} bookmakers consensus',
 
   'knockout.generate': 'GENERATE BRACKET',
   'knockout.simulate': 'SIMULATE REST',

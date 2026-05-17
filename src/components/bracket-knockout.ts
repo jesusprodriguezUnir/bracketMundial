@@ -309,6 +309,54 @@ export class BracketKnockout extends LitElement {
         to   { opacity: 1; transform: translateY(0); }
       }
     }
+
+    .ko-stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      flex-shrink: 0;
+    }
+    .ko-stepper button {
+      all: unset;
+      cursor: pointer;
+      padding: 1px 5px;
+      font-family: var(--font-var);
+      font-size: 13px;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.4;
+    }
+    .ko-stepper button:hover { background: var(--retro-red); }
+    .ko-val {
+      font-family: var(--font-var);
+      font-size: 16px;
+      padding: 1px 6px;
+      min-width: 18px;
+      text-align: center;
+      color: var(--ink);
+    }
+    .ko-pen-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 4px 6px;
+      border-top: 1px dashed var(--ink);
+      background: var(--paper);
+    }
+    .ko-pen-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+    }
+    .ko-pen-sep {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--dim);
+    }
   `;
 
   connectedCallback() {
@@ -463,6 +511,33 @@ export class BracketKnockout extends LitElement {
     document.body.appendChild(modal);
   }
 
+  private adjustInlineKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
+    e.stopPropagation();
+    const m = useTournamentStore.getState().knockoutMatches[matchId];
+    if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
+    const curA = m.scoreA ?? 0;
+    const curB = m.scoreB ?? 0;
+    const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
+    const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
+    useTournamentStore.getState().setKnockoutMatchResult(
+      matchId, nextA, nextB,
+      m.penaltyScoreA ?? null, m.penaltyScoreB ?? null,
+    );
+  }
+
+  private adjustPenaltyKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
+    e.stopPropagation();
+    const m = useTournamentStore.getState().knockoutMatches[matchId];
+    if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
+    const curA = m.penaltyScoreA ?? 0;
+    const curB = m.penaltyScoreB ?? 0;
+    const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
+    const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
+    useTournamentStore.getState().setKnockoutMatchResult(
+      matchId, m.scoreA, m.scoreB, nextA, nextB,
+    );
+  }
+
   private renderMatch(matchId: string, accentColor: string, idx = 0) {
     const m = useTournamentStore.getState().knockoutMatches[matchId];
     const tA = this.getTeam(m?.teamA ?? null);
@@ -474,11 +549,18 @@ export class BracketKnockout extends LitElement {
     const decidedOnPenalties = penaltyScoreA !== null && penaltyScoreB !== null;
     const isPending = isPlayed === false;
     const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
+    const canEdit = !!(m?.teamA && m?.teamB && isMatchPending(m?.date ?? '', m?.timeSpain ?? ''));
+    const scoreAVal = m?.scoreA ?? 0;
+    const scoreBVal = m?.scoreB ?? 0;
+    const isDraw = canEdit && m?.scoreA !== null && m?.scoreB !== null && m?.scoreA === m?.scoreB;
+    const penAVal = m?.penaltyScoreA ?? 0;
+    const penBVal = m?.penaltyScoreB ?? 0;
 
-    const renderRow = (teamId: string | null, score: number | null) => {
+    const renderRow = (teamId: string | null, score: number | null, teamAB: 'A' | 'B') => {
       const team = this.getTeam(teamId);
       const isWinner = winnerId !== null && winnerId === teamId;
       const isLoser  = winnerId !== null && winnerId !== teamId;
+      const stepVal  = teamAB === 'A' ? scoreAVal : scoreBVal;
       return html`
         <div
           class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
@@ -487,7 +569,14 @@ export class BracketKnockout extends LitElement {
             ${this.renderFlag(team)}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
-          <div class="score ${isPending ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
+          ${canEdit
+            ? html`<div class="ko-stepper">
+                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, -1)}" aria-label="${t('groups.decScore')}">−</button>
+                <span class="ko-val">${stepVal}</span>
+                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, 1)}" aria-label="${t('groups.incScore')}">+</button>
+              </div>`
+            : html`<div class="score ${isPending ? 'pending' : ''}">${isPlayed ? score : '—'}</div>`
+          }
         </div>
       `;
     };
@@ -502,10 +591,25 @@ export class BracketKnockout extends LitElement {
         aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}${decidedOnPenalties ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}` : ''}` : ', click para editar'}"
         @click="${() => this.openMatch(matchId)}"
         @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
-        ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
+        ${renderRow(m?.teamA ?? null, m?.scoreA ?? null, 'A')}
         <div class="team-separator"></div>
-        ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
-        ${decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : ''}
+        ${renderRow(m?.teamB ?? null, m?.scoreB ?? null, 'B')}
+        ${isDraw ? html`
+          <div class="ko-pen-row">
+            <span class="ko-pen-label">PEN</span>
+            <div class="ko-stepper">
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', -1)}" aria-label="${t('groups.decScore')}">−</button>
+              <span class="ko-val">${penAVal}</span>
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', 1)}" aria-label="${t('groups.incScore')}">+</button>
+            </div>
+            <span class="ko-pen-sep">·</span>
+            <div class="ko-stepper">
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', -1)}" aria-label="${t('groups.decScore')}">−</button>
+              <span class="ko-val">${penBVal}</span>
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', 1)}" aria-label="${t('groups.incScore')}">+</button>
+            </div>
+          </div>
+        ` : (decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : '')}
 
         ${(m as any).venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
