@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
+import { retroButton } from '../styles/retro-button';
 import { t, useLocaleStore } from '../i18n';
 import {
   generateBracketImage,
@@ -28,7 +29,7 @@ export class ShareModal extends LitElement {
   private _shareUrl = '';
   private _unsubscribeLocale?: () => void;
 
-  static override styles = css`
+  static override styles = [retroButton, css`
     :host {
       position: fixed;
       inset: 0;
@@ -221,7 +222,7 @@ export class ShareModal extends LitElement {
       top: 0;
       pointer-events: none;
     }
-  `;
+  `];
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this._close();

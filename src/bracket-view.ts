@@ -62,7 +62,7 @@ export class BracketView extends LitElement {
       background: var(--paper-2);
       border-bottom: 4px solid var(--ink);
       position: sticky;
-      top: 64px; /* altura topbar retro v2 */
+      top: 61px; /* topbar 56px + progress-bar 5px */
       z-index: 90;
       overflow-x: auto;
       scrollbar-width: none;
@@ -122,6 +122,7 @@ export class BracketView extends LitElement {
     .section-calendar,
     .section-tv {
       display: none;
+      scroll-margin-top: 120px;
     }
     .section-groups.visible,
     .knockout-sections.visible,

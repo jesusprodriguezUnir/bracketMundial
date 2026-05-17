@@ -361,25 +361,38 @@ export class StadiumsView extends LitElement {
       letter-spacing: 0.1em;
     }
 
-    @media (max-width: 900px) {
-      .stadium-row {
-        grid-template-columns: 120px 1fr;
-        grid-template-rows: auto auto auto;
+    @media (max-width: 768px) {
+      :host {
+        padding: 0 14px 32px;
       }
-      .row-img { grid-column: 1; grid-row: 1 / 4; }
-      .row-flag { display: none; }
-      .row-info { grid-column: 2; grid-row: 1; border-right: none; }
-      .row-meta { grid-column: 2; grid-row: 2; flex-direction: row; justify-content: space-between; border-right: none; border-top: 2px solid var(--ink); padding: 6px 12px; }
-      .row-phases { grid-column: 2; grid-row: 3; border-top: 2px solid var(--ink); padding: 6px 10px; }
-    }
-    @media (max-width: 600px) {
-      .hero-title { font-size: 30px; }
-      .stadium-row { grid-template-columns: 1fr; }
+      .stadiums-hero {
+        padding: 16px 18px;
+        margin-bottom: 12px;
+      }
+      .hero-title {
+        font-size: 28px;
+      }
+      .hero-stats {
+        gap: 8px;
+      }
+      .filters {
+        gap: 8px;
+        padding: 10px 10px;
+      }
+      .filter-group {
+        flex: 1 1 100%;
+      }
+      .map-strip {
+        display: none;
+      }
+      .stadium-row {
+        grid-template-columns: 1fr;
+      }
       .row-img { grid-column: 1; grid-row: 1; min-height: 140px; border-right: none; border-bottom: 2px solid var(--ink); }
-      .row-info, .row-meta, .row-phases { grid-column: 1; }
-      .row-info { grid-row: 2; }
-      .row-meta { grid-row: 3; }
-      .row-phases { grid-row: 4; }
+      .row-flag { display: none; }
+      .row-info { grid-column: 1; grid-row: 2; border-right: none; }
+      .row-meta { grid-column: 1; grid-row: 3; flex-direction: row; justify-content: space-between; border-right: none; border-top: 2px solid var(--ink); padding: 6px 12px; }
+      .row-phases { grid-column: 1; grid-row: 4; border-top: 2px solid var(--ink); padding: 6px 10px; }
     }
   `;
 

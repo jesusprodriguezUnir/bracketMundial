@@ -188,6 +188,41 @@ export class LineupView extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    @media (max-width: 768px) {
+      .pitch {
+        max-width: 100%;
+        aspect-ratio: 3 / 4;
+        padding: 16px 0;
+      }
+
+      .player {
+        width: 52px;
+        gap: 3px;
+      }
+
+      .player-token {
+        width: 40px;
+        height: 40px;
+        font-size: 10px;
+      }
+
+      .number-sticker {
+        font-size: 9px;
+        padding: 1px 3px;
+      }
+
+      .captain-mark {
+        font-size: 7px;
+        padding: 1px 3px;
+      }
+
+      .player-name {
+        font-size: 8px;
+        max-width: 52px;
+        padding: 1px 3px;
+      }
+    }
   `;
 
   render() {

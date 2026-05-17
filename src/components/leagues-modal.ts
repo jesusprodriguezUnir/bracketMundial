@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useAuthStore } from '../store/auth-store';
+import { retroButton } from '../styles/retro-button';
 import { useLeaguesStore } from '../store/leagues-store';
 import type { League, LeaderboardEntry } from '../store/leagues-store';
 import { t, useLocaleStore } from '../i18n';
@@ -29,7 +30,7 @@ export class LeaguesModal extends LitElement {
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
 
-  static override styles = css`
+  static override styles = [retroButton, css`
     :host {
       position: fixed;
       inset: 0;
@@ -314,7 +315,7 @@ export class LeaguesModal extends LitElement {
     .lb-name { font-family: var(--font-var); font-size: 12px; color: var(--ink); }
     .lb-pts { font-weight: bold; color: var(--retro-orange); text-align: right; }
     .lb-gold { color: var(--retro-yellow, gold); font-weight: bold; }
-  `;
+  `];
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this._close();

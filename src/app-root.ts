@@ -253,9 +253,14 @@ export class AppRoot extends LitElement {
       .logo-sub {
         font-size: 8px;
       }
+      .header-actions {
+        flex-wrap: wrap;
+        max-height: none;
+      }
       .header-actions button {
         padding: 0 12px;
         font-size: 11px;
+        min-height: 44px;
       }
       .site-footer {
         flex-direction: column;
@@ -263,6 +268,20 @@ export class AppRoot extends LitElement {
         padding: 14px 16px;
         padding-bottom: calc(14px + env(safe-area-inset-bottom));
         gap: 12px;
+      }
+      .footer-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .footer-social {
+        flex-wrap: wrap;
+      }
+      .footer-sep {
+        display: none;
+      }
+      .footer-email {
+        word-break: break-word;
+        max-width: 100%;
       }
       .footer-copy {
         margin-left: 0;

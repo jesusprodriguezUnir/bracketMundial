@@ -4,6 +4,7 @@ import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
+import { retroButton } from '../styles/retro-button';
 
 
 @customElement('match-modal')
@@ -202,7 +203,7 @@ export class MatchModal extends LitElement {
     }));
   }
 
-  static readonly styles = css`
+  static readonly styles = [retroButton, css`
     /* Backdrop ink semitransparente */
     :host {
       position: fixed;
@@ -286,8 +287,8 @@ export class MatchModal extends LitElement {
       font-family: var(--font-var);
       font-size: 16px;
       line-height: 1;
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -555,11 +556,19 @@ export class MatchModal extends LitElement {
         font-size: 10px;
       }
       .showdown {
-        grid-template-columns: 1fr auto 1fr;
+        grid-template-columns: 1fr;
         gap: 8px;
         margin: 8px;
         padding: 12px 8px;
         border-width: 3px;
+      }
+      .sticker-side-left,
+      .sticker-side-right {
+        justify-content: center;
+      }
+      .sticker.left,
+      .sticker.right {
+        transform: none;
       }
       .sticker {
         min-width: 0;
@@ -598,7 +607,7 @@ export class MatchModal extends LitElement {
         padding: 8px 12px;
       }
       .modal-footer {
-        padding: 0 10px 12px;
+        padding: 0 10px calc(12px + env(safe-area-inset-bottom));
         flex-direction: column-reverse;
         position: sticky;
         bottom: 0;
@@ -606,9 +615,10 @@ export class MatchModal extends LitElement {
       .modal-footer .btn,
       .limpiar-btn {
         width: 100%;
+        margin-left: 0;
       }
     }
-  `;
+  `];
 
   private renderFlag(team?: any, size: 'small' | 'big' = 'small') {
     if (!team) return '';

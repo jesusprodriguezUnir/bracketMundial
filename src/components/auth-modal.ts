@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { useAuthStore } from '../store/auth-store';
 import type { AuthStatus } from '../store/auth-store';
 import { t, useLocaleStore } from '../i18n';
+import { retroButton } from '../styles/retro-button';
 
 const RESEND_COOLDOWN = 60;
 
@@ -17,7 +18,7 @@ export class AuthModal extends LitElement {
   private _unsubLocale?: () => void;
   private _resendTimer?: ReturnType<typeof setInterval>;
 
-  static override styles = css`
+  static override styles = [retroButton, css`
     :host {
       position: fixed;
       inset: 0;
@@ -180,7 +181,7 @@ export class AuthModal extends LitElement {
       letter-spacing: 0.2em;
       text-transform: uppercase;
     }
-  `;
+  `];
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this._close();

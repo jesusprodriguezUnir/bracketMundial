@@ -724,6 +724,27 @@ export class SquadsView extends LitElement {
         flex-direction: column;
         align-items: flex-start;
       }
+
+      table {
+        min-width: 0;
+        width: 100%;
+      }
+
+      th:nth-child(3),
+      td:nth-child(3) {
+        display: none;
+      }
+
+      .panel-header-row {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .view-toggle button {
+        min-height: 44px;
+        padding: 6px 14px;
+        touch-action: manipulation;
+      }
     }
   `;
 

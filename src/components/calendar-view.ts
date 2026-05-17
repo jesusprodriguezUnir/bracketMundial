@@ -311,6 +311,50 @@ export class CalendarView extends LitElement {
         min-width: 110px;
       }
     }
+
+    @media (max-width: 768px) {
+      .filters {
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .chips {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+      }
+
+      .chip {
+        flex-shrink: 0;
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+
+      .day-strip {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .day-title {
+        font-size: 20px;
+      }
+
+      .match-row {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .score {
+        justify-self: stretch;
+        min-height: 48px;
+        font-size: 22px;
+      }
+
+      .gcal-btn {
+        white-space: normal;
+        text-align: center;
+      }
+    }
   `;
 
   private unsubscribeLocale?: () => void;
