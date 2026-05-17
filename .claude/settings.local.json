@@ -73,7 +73,10 @@
       "Bash(node scripts/fetch-squad-assets.mjs --report)",
       "Skill(fetch-squads)",
       "Skill(fetch-squads:*)",
-      "WebFetch(domain:commons.wikimedia.org)"
+      "WebFetch(domain:commons.wikimedia.org)",
+      "Edit(/.claude/skills/player-photos/**)",
+      "Edit(/.claude/skills/coach-photos/**)",
+      "Edit(/.claude/skills/news/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

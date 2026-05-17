@@ -1,10 +1,10 @@
 ---
 name: fetch-squads
 description: >
-  Completa fotos y datos de jugadores/entrenadores del Mundial 2026.
-  Úsala cuando el usuario pregunte por: fotos faltantes, completar plantillas,
-  entrenadores que faltan, buscar fotos de jugadores, assets de squads, or anything
-  related to player/coach photos or missing squad data for bracketMundial.
+  Atajo combinado para descargar jugadores Y entrenadores a la vez en bracketMundial.
+  Úsala cuando el usuario quiera completar AMBOS tipos de fotos de un equipo en un
+  solo paso, o hacer una pasada masiva de varios equipos. Para solo jugadores usa
+  /player-photos; para solo entrenadores usa /coach-photos.
 ---
 
 # Skill: fetch-squads
