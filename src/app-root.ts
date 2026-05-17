@@ -516,6 +516,9 @@ export class AppRoot extends LitElement {
               <a href="https://www.instagram.com/bracketmundial/" target="_blank" rel="noopener noreferrer" aria-label="Instagram @bracketmundial">
                 📸 @bracketmundial
               </a>
+              <a href="https://t.me/bracketmundial" target="_blank" rel="noopener noreferrer" aria-label="Telegram @bracketmundial">
+                ✈ @bracketmundial
+              </a>
             </div>
           </div>
 
