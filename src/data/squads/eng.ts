@@ -29,9 +29,11 @@ export const squad: Player[] = [
   { number: 22, name: 'Ollie Watkins', position: 'FW', age: 31, club: 'Aston Villa' },
   { number: 31, name: 'Noni Madueke', position: 'FW', age: 23, club: 'Chelsea' },
   { number: 32, name: 'Marcus Rashford', position: 'FW', age: 29, club: 'Barcelona' },
+  { number: 12, name: 'Reece James', position: 'DF', age: 26, club: 'Chelsea' },
+  { number: 17, name: 'Nico O\'Reilly', position: 'DF', age: 21, club: 'Manchester City' },
 ];
 
 export const lineup = {
   formation: '4-2-3-1',
-  startingXI: [1, 2, 4, 5, 3, 8, 28, 7, 10, 30, 9]
+  startingXI: [1, 12, 4, 5, 17, 8, 28, 7, 10, 32, 9]
 };
