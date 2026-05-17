@@ -81,7 +81,8 @@
       "Bash(mkdir -p extracted)",
       "Bash(tar -tzf webfetch-1779026018211-11oz6u.bin)",
       "Bash(tar -xzf webfetch-1779026018211-11oz6u.bin -C extracted)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(node --experimental-vm-modules node_modules/.bin/tsx scripts/generate-odds.mjs --write-seed)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

@@ -1,0 +1,509 @@
+{
+  "updatedAt": "2026-05-17T21:27:08.448Z",
+  "matches": {
+    "M1": {
+      "home": 62,
+      "draw": 19,
+      "away": 19,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M2": {
+      "home": 49,
+      "draw": 25,
+      "away": 26,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M3": {
+      "home": 64,
+      "draw": 19,
+      "away": 17,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M4": {
+      "home": 63,
+      "draw": 19,
+      "away": 18,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M5": {
+      "home": 19,
+      "draw": 20,
+      "away": 61,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M6": {
+      "home": 29,
+      "draw": 27,
+      "away": 44,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M7": {
+      "home": 53,
+      "draw": 23,
+      "away": 24,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M8": {
+      "home": 15,
+      "draw": 17,
+      "away": 68,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M9": {
+      "home": 31,
+      "draw": 28,
+      "away": 41,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M10": {
+      "home": 85,
+      "draw": 12,
+      "away": 3,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M11": {
+      "home": 57,
+      "draw": 22,
+      "away": 21,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M12": {
+      "home": 41,
+      "draw": 28,
+      "away": 31,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M13": {
+      "home": 12,
+      "draw": 14,
+      "away": 74,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M14": {
+      "home": 84,
+      "draw": 12,
+      "away": 4,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M15": {
+      "home": 51,
+      "draw": 24,
+      "away": 25,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M16": {
+      "home": 75,
+      "draw": 14,
+      "away": 11,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M17": {
+      "home": 66,
+      "draw": 18,
+      "away": 16,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M18": {
+      "home": 15,
+      "draw": 17,
+      "away": 68,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M19": {
+      "home": 83,
+      "draw": 12,
+      "away": 5,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M20": {
+      "home": 72,
+      "draw": 15,
+      "away": 13,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M21": {
+      "home": 66,
+      "draw": 18,
+      "away": 16,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M22": {
+      "home": 60,
+      "draw": 20,
+      "away": 20,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M23": {
+      "home": 84,
+      "draw": 12,
+      "away": 4,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M24": {
+      "home": 10,
+      "draw": 12,
+      "away": 78,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M25": {
+      "home": 40,
+      "draw": 28,
+      "away": 32,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M26": {
+      "home": 64,
+      "draw": 19,
+      "away": 17,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M27": {
+      "home": 68,
+      "draw": 17,
+      "away": 15,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M28": {
+      "home": 43,
+      "draw": 27,
+      "away": 30,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M29": {
+      "home": 86,
+      "draw": 12,
+      "away": 2,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M30": {
+      "home": 14,
+      "draw": 16,
+      "away": 70,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M31": {
+      "home": 52,
+      "draw": 23,
+      "away": 25,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M32": {
+      "home": 56,
+      "draw": 22,
+      "away": 22,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M33": {
+      "home": 70,
+      "draw": 16,
+      "away": 14,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M34": {
+      "home": 75,
+      "draw": 14,
+      "away": 11,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M35": {
+      "home": 71,
+      "draw": 16,
+      "away": 13,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M36": {
+      "home": 21,
+      "draw": 22,
+      "away": 57,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M37": {
+      "home": 82,
+      "draw": 12,
+      "away": 6,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M38": {
+      "home": 80,
+      "draw": 12,
+      "away": 8,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M39": {
+      "home": 79,
+      "draw": 12,
+      "away": 9,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M40": {
+      "home": 21,
+      "draw": 22,
+      "away": 57,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M41": {
+      "home": 29,
+      "draw": 27,
+      "away": 44,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M42": {
+      "home": 85,
+      "draw": 12,
+      "away": 3,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M43": {
+      "home": 77,
+      "draw": 13,
+      "away": 10,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M44": {
+      "home": 21,
+      "draw": 22,
+      "away": 57,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M45": {
+      "home": 75,
+      "draw": 14,
+      "away": 11,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M46": {
+      "home": 9,
+      "draw": 12,
+      "away": 79,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M47": {
+      "home": 84,
+      "draw": 12,
+      "away": 4,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M48": {
+      "home": 79,
+      "draw": 12,
+      "away": 9,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M49": {
+      "home": 7,
+      "draw": 12,
+      "away": 81,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M50": {
+      "home": 83,
+      "draw": 12,
+      "away": 5,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M51": {
+      "home": 35,
+      "draw": 30,
+      "away": 35,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M52": {
+      "home": 39,
+      "draw": 28,
+      "away": 33,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M53": {
+      "home": 21,
+      "draw": 22,
+      "away": 57,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M54": {
+      "home": 23,
+      "draw": 22,
+      "away": 55,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M55": {
+      "home": 14,
+      "draw": 16,
+      "away": 70,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M56": {
+      "home": 17,
+      "draw": 19,
+      "away": 64,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M57": {
+      "home": 51,
+      "draw": 24,
+      "away": 25,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M58": {
+      "home": 11,
+      "draw": 13,
+      "away": 76,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M59": {
+      "home": 28,
+      "draw": 25,
+      "away": 47,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M60": {
+      "home": 30,
+      "draw": 27,
+      "away": 43,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M61": {
+      "home": 12,
+      "draw": 15,
+      "away": 73,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M62": {
+      "home": 75,
+      "draw": 14,
+      "away": 11,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M63": {
+      "home": 41,
+      "draw": 28,
+      "away": 31,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M64": {
+      "home": 5,
+      "draw": 12,
+      "away": 83,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M65": {
+      "home": 25,
+      "draw": 24,
+      "away": 51,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M66": {
+      "home": 28,
+      "draw": 25,
+      "away": 47,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M67": {
+      "home": 3,
+      "draw": 12,
+      "away": 85,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M68": {
+      "home": 53,
+      "draw": 23,
+      "away": 24,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M69": {
+      "home": 25,
+      "draw": 23,
+      "away": 52,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M70": {
+      "home": 2,
+      "draw": 12,
+      "away": 86,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M71": {
+      "home": 21,
+      "draw": 21,
+      "away": 58,
+      "bookmakers": 0,
+      "source": "model"
+    },
+    "M72": {
+      "home": 34,
+      "draw": 30,
+      "away": 36,
+      "bookmakers": 0,
+      "source": "model"
+    }
+  }
+}

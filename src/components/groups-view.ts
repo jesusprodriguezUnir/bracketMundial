@@ -374,12 +374,24 @@ export class GroupsView extends LitElement {
       color: var(--dim);
     }
 
-    /* Probabilidad 1X2 de casas de apuestas */
+    /* Probabilidad 1X2 */
+    .odds-wrap { margin-top: 6px; }
+    .odds-legend {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      margin-bottom: 2px;
+    }
+    .odds-legend .odds-home { color: var(--retro-blue); }
+    .odds-legend .odds-away { color: var(--retro-red); }
     .odds-bar {
       display: flex;
       height: 6px;
       border: 2px solid var(--ink);
-      margin-top: 5px;
       overflow: hidden;
     }
     .odds-seg { height: 100%; }
@@ -435,12 +447,12 @@ export class GroupsView extends LitElement {
       .groups-grid { grid-template-columns: 1fr; }
       .group-card { box-shadow: var(--shadow-hard-sm); }
       .inline-stepper button {
-        padding: 8px 12px;
-        font-size: 16px;
-        min-width: 44px;
-        min-height: 44px;
+        padding: 4px 8px;
+        font-size: 14px;
+        min-width: 36px;
+        min-height: 36px;
       }
-      .inline-val { font-size: 20px; padding: 2px 8px; }
+      .inline-val { font-size: 18px; padding: 2px 6px; }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -638,8 +650,17 @@ export class GroupsView extends LitElement {
 
                       ${(() => {
                         const o = this._odds[m.matchId];
-                        return o ? html`
-                          <div title="${t('groups.oddsSource', { n: o.bookmakers })}">
+                        if (!o) return '';
+                        const srcLabel = o.source === 'market'
+                          ? `${o.bookmakers} casas de apuestas`
+                          : 'estimación del modelo';
+                        return html`
+                          <div class="odds-wrap" title="Probabilidad 1X2 — ${srcLabel}">
+                            <div class="odds-legend">
+                              <span class="odds-home">1</span>
+                              <span>X</span>
+                              <span class="odds-away">2</span>
+                            </div>
                             <div class="odds-bar">
                               <div class="odds-seg" style="width:${o.home}%;background:var(--retro-blue)"></div>
                               <div class="odds-seg" style="width:${o.draw}%;background:var(--dim)"></div>
@@ -651,7 +672,7 @@ export class GroupsView extends LitElement {
                               <span class="odds-away">${o.away}%</span>
                             </div>
                           </div>
-                        ` : '';
+                        `;
                       })()}
                       <div class="match-meta">
                         <span class="jornada">J${m.matchDay}</span>

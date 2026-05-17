@@ -4,6 +4,9 @@ import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { calculateBestThirds, syncKnockoutBracket } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
+import { TEAM_STRENGTH } from '../data/team-strength';
+import { expectedProbabilities, sampleResult } from '../lib/odds-model';
+import { ODDS_SEED } from '../data/odds/seed';
 
 
 export interface GroupStanding {
@@ -322,11 +325,26 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       autoSimulateGroups: () => {
         set(state => {
-          const matches = state.groupMatches.map(m => ({
-            ...m,
-            scoreA: Math.floor(Math.random() * 5),
-            scoreB: Math.floor(Math.random() * 5),
-          }));
+          // Prefer cached feed from localStorage (6h), fall back to bundled seed
+          let feedMatches: Record<string, { home: number; draw: number; away: number }> = {};
+          try {
+            const raw = localStorage.getItem('odds:feed:v2');
+            if (raw) {
+              const entry = JSON.parse(raw) as { data: { matches: Record<string, { home: number; draw: number; away: number }> }; ts: number };
+              if (Date.now() - entry.ts < 6 * 60 * 60 * 1000) feedMatches = entry.data.matches;
+            }
+          } catch { /* ignore */ }
+          if (Object.keys(feedMatches).length === 0) feedMatches = ODDS_SEED.matches;
+
+          const matches = state.groupMatches.map(m => {
+            const odds = feedMatches[m.matchId];
+            const prob = odds ?? expectedProbabilities(
+              TEAM_STRENGTH[m.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,
+              TEAM_STRENGTH[m.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
+            );
+            const result = sampleResult(prob);
+            return { ...m, scoreA: result.scoreA, scoreB: result.scoreB };
+          });
           const standings = recalculateStandings(matches, state.groupStandings);
           return {
             groupMatches: matches,
@@ -343,17 +361,20 @@ export const useTournamentStore = createStore<TournamentState>()(
           for (const matchId of getKnockoutMatchOrder()) {
             const match = updated[matchId];
             if (match?.teamA && match.teamB && !match.isPlayed) {
-              let scoreA = Math.floor(Math.random() * 4);
-              let scoreB = Math.floor(Math.random() * 4);
+              const prob = expectedProbabilities(
+                TEAM_STRENGTH[match.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,
+                TEAM_STRENGTH[match.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
+              );
+              const result = sampleResult(prob, Math.random, true);
+              const scoreA = result.scoreA;
+              const scoreB = result.scoreB;
               let penaltyScoreA: number | null = null;
               let penaltyScoreB: number | null = null;
 
-              if (scoreA === scoreB) {
+              if (result.penaltiesNeeded) {
                 penaltyScoreA = 3 + Math.floor(Math.random() * 3);
                 penaltyScoreB = 3 + Math.floor(Math.random() * 3);
-                if (penaltyScoreA === penaltyScoreB) {
-                  penaltyScoreB += 1;
-                }
+                if (penaltyScoreA === penaltyScoreB) penaltyScoreB += 1;
               }
 
               updated = resolveKnockoutMatches(state.groupStandings, {

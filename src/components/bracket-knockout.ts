@@ -8,6 +8,7 @@ import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
 import { isMatchPending } from '../lib/date-utils';
+import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -61,6 +62,8 @@ export class BracketKnockout extends LitElement {
 
   @state() private _pulseId: string | null = null;
   @state() private _isMobile = false;
+  @state() private _odds: Record<string, MatchOdds> = {};
+  private _oddsLoaded = false;
   @state() private _mobileMode: 'all' | 'path' = 'all';
   @state() private _mobileStage = 0;
   @state() private _pathTeamId: string | null = null;
@@ -366,6 +369,26 @@ export class BracketKnockout extends LitElement {
     }
     .ko-pen-label { font-family: var(--font-mono); font-size: 7px; letter-spacing: 0.1em; color: var(--dim); }
     .ko-pen-sep   { font-family: var(--font-mono); font-size: 10px; color: var(--dim); }
+
+    /* Barra 1X2 compacta dentro del match-box */
+    .ko-odds-bar {
+      display: flex;
+      height: 4px;
+      margin: 0 2px 2px;
+      border: 1px solid var(--ink);
+      overflow: hidden;
+    }
+    .ko-odds-seg { height: 100%; }
+    .ko-odds-figs {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px 2px;
+      font-family: var(--font-mono);
+      font-size: 7px;
+      color: var(--dim);
+    }
+    .ko-odds-figs .odds-home { color: var(--retro-blue); }
+    .ko-odds-figs .odds-away { color: var(--retro-red); }
 
     @media (prefers-reduced-motion: no-preference) {
       .match-box {
@@ -847,6 +870,11 @@ export class BracketKnockout extends LitElement {
     this._mql = window.matchMedia('(max-width: 768px)');
     this._isMobile = this._mql.matches;
     this._mql.addEventListener('change', this._onMqlChange);
+    if (!this._oddsLoaded) {
+      this._oddsLoaded = true;
+      // Preload group-stage odds; knockout odds are fetched on demand via _getOdds()
+      getAllOdds().then(o => { if (this.isConnected) this._odds = o; });
+    }
   }
 
   disconnectedCallback() {
@@ -1107,6 +1135,23 @@ export class BracketKnockout extends LitElement {
           </div>
         ` : (decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : '')}
 
+        ${(() => {
+          const o = this._getOdds(matchId, m?.teamA, m?.teamB);
+          if (!o || m?.isPlayed) return '';
+          return html`
+            <div class="ko-odds-bar" title="Probabilidad 1X2${o.source === 'market' ? ` · ${o.bookmakers} casas` : ' · estimado'}">
+              <div class="ko-odds-seg" style="width:${o.home}%;background:var(--retro-blue)"></div>
+              <div class="ko-odds-seg" style="width:${o.draw}%;background:var(--dim)"></div>
+              <div class="ko-odds-seg" style="width:${o.away}%;background:var(--retro-red)"></div>
+            </div>
+            <div class="ko-odds-figs">
+              <span class="odds-home">${o.home}%</span>
+              <span>${o.draw}%</span>
+              <span class="odds-away">${o.away}%</span>
+            </div>
+          `;
+        })()}
+
         ${(m as any)?.venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
             ${(() => {
@@ -1120,6 +1165,16 @@ export class BracketKnockout extends LitElement {
         ` : ''}
       </div>
     `;
+  }
+
+  /** Returns odds synchronously from cache; if missing, triggers async load and re-render. */
+  private _getOdds(matchId: string, teamA: string | null | undefined, teamB: string | null | undefined): MatchOdds | null {
+    if (this._odds[matchId]) return this._odds[matchId];
+    if (!teamA || !teamB) return null;
+    getOddsForMatch(matchId, teamA, teamB).then(o => {
+      if (o && this.isConnected) this._odds = { ...this._odds, [matchId]: o };
+    });
+    return null;
   }
 
   private handleSimulate() {
@@ -1214,6 +1269,7 @@ export class BracketKnockout extends LitElement {
       </div>
     `;
 
+    const mobOdds = this._getOdds(matchId, m.teamA, m.teamB);
     return html`
       <div class="mob-match-card" @click="${() => this.openMatch(matchId)}">
         ${row(tA, m.scoreA, winA, winB)}
@@ -1222,6 +1278,13 @@ export class BracketKnockout extends LitElement {
           ? html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`
           : ''
         }
+        ${mobOdds && !m.isPlayed ? html`
+          <div class="ko-odds-bar" style="margin:2px 4px 3px;" title="Probabilidad 1X2">
+            <div class="ko-odds-seg" style="width:${mobOdds.home}%;background:var(--retro-blue)"></div>
+            <div class="ko-odds-seg" style="width:${mobOdds.draw}%;background:var(--dim)"></div>
+            <div class="ko-odds-seg" style="width:${mobOdds.away}%;background:var(--retro-red)"></div>
+          </div>
+        ` : ''}
       </div>
     `;
   }

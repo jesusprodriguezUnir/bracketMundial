@@ -5,6 +5,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
 import { retroButton } from '../styles/retro-button';
+import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 
 
 @customElement('match-modal')
@@ -26,6 +27,7 @@ export class MatchModal extends LitElement {
   @state() private _scoreB: number | null = null;
   @state() private _penaltyScoreA: number | null = null;
   @state() private _penaltyScoreB: number | null = null;
+  @state() private _odds: MatchOdds | null = null;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -35,6 +37,13 @@ export class MatchModal extends LitElement {
     if (changedProps.has('initialScoreB')) this._scoreB = this.initialScoreB;
     if (changedProps.has('initialPenaltyScoreA')) this._penaltyScoreA = this.initialPenaltyScoreA;
     if (changedProps.has('initialPenaltyScoreB')) this._penaltyScoreB = this.initialPenaltyScoreB;
+    if (changedProps.has('matchId') || changedProps.has('teamA') || changedProps.has('teamB')) {
+      if (this.matchId && this.teamA && this.teamB) {
+        getOddsForMatch(this.matchId, this.teamA, this.teamB).then(o => {
+          if (this.isConnected) this._odds = o;
+        });
+      }
+    }
   }
 
   override firstUpdated() {
@@ -544,6 +553,55 @@ export class MatchModal extends LitElement {
       box-shadow: var(--shadow-hard-sm);
     }
 
+    /* Barra de probabilidad 1X2 */
+    .odds-block {
+      padding: 10px 16px 0;
+    }
+    .odds-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .odds-label .odds-src {
+      font-size: 7px;
+      opacity: 0.7;
+    }
+    .odds-legend {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      margin-bottom: 2px;
+    }
+    .odds-legend .odds-home { color: var(--retro-blue); }
+    .odds-legend .odds-away { color: var(--retro-red); }
+    .odds-bar {
+      display: flex;
+      height: 8px;
+      border: 2px solid var(--ink);
+      overflow: hidden;
+    }
+    .odds-seg { height: 100%; }
+    .odds-figs {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+    }
+    .odds-figs .odds-home { color: var(--retro-blue); font-weight: 700; }
+    .odds-figs .odds-away { color: var(--retro-red); font-weight: 700; }
+
     @media (max-width: 768px) {
       :host {
         align-items: center;
@@ -603,17 +661,18 @@ export class MatchModal extends LitElement {
         gap: 10px;
       }
       .score-input {
-        flex: 1 1 120px;
+        flex: 1 1 90px;
         justify-content: space-between;
       }
       .score-input button {
-        padding: 10px 16px;
-        min-width: 48px;
-        min-height: 48px;
-        font-size: 22px;
+        padding: 6px 10px;
+        min-width: 38px;
+        min-height: 40px;
+        font-size: 16px;
       }
       .score-display {
-        padding: 8px 12px;
+        font-size: 22px;
+        padding: 4px 10px;
       }
       .modal-footer {
         padding: 0 10px calc(12px + env(safe-area-inset-bottom));
@@ -715,6 +774,33 @@ export class MatchModal extends LitElement {
           </div>
         </div>
 
+
+        <!-- Barra 1X2 -->
+        ${this._odds ? html`
+          <div class="odds-block">
+            <div class="odds-label">
+              ${t('modal.odds') ?? 'Probabilidad 1X2'}
+              <span class="odds-src">${this._odds.source === 'market'
+                ? `(${this._odds.bookmakers} casas)`
+                : '(estimado)'}</span>
+            </div>
+            <div class="odds-legend">
+              <span class="odds-home">1</span>
+              <span>X</span>
+              <span class="odds-away">2</span>
+            </div>
+            <div class="odds-bar">
+              <div class="odds-seg" style="width:${this._odds.home}%;background:var(--retro-blue)"></div>
+              <div class="odds-seg" style="width:${this._odds.draw}%;background:var(--dim)"></div>
+              <div class="odds-seg" style="width:${this._odds.away}%;background:var(--retro-red)"></div>
+            </div>
+            <div class="odds-figs">
+              <span class="odds-home">${this._odds.home}%</span>
+              <span>${this._odds.draw}%</span>
+              <span class="odds-away">${this._odds.away}%</span>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Editor de marcador -->
         <div class="editor-section">
