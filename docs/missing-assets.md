@@ -2,7 +2,7 @@
 
 > Generado el 17/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 129 fotos faltantes en 27 equipos (1043/1172 cubiertos)  
+**Jugadores:** 111 fotos faltantes en 27 equipos (1061/1172 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,28 +12,28 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| JOR | 23 | 0 | ❌ 23 | ✅ |
+| JOR | 23 | 10 | ❌ 13 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
 | CUW | 22 | 12 | ❌ 10 | ✅ |
 | EGY | 23 | 16 | ❌ 7 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
-| PAN | 23 | 17 | ❌ 6 | ✅ |
 | QAT | 26 | 20 | ❌ 6 | ✅ |
-| CPV | 23 | 18 | ❌ 5 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
 | COD | 23 | 19 | ❌ 4 | ✅ |
-| IRN | 23 | 19 | ❌ 4 | ✅ |
+| CPV | 23 | 19 | ❌ 4 | ✅ |
 | KOR | 26 | 22 | ❌ 4 | ✅ |
+| PAN | 23 | 19 | ❌ 4 | ✅ |
 | RSA | 26 | 22 | ❌ 4 | ✅ |
-| TUR | 23 | 19 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
-| ECU | 23 | 20 | ❌ 3 | ✅ |
 | MEX | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
 | BRA | 26 | 24 | ❌ 2 | ✅ |
 | CAN | 26 | 24 | ❌ 2 | ✅ |
+| ECU | 23 | 21 | ❌ 2 | ✅ |
+| IRN | 23 | 21 | ❌ 2 | ✅ |
 | JPN | 26 | 24 | ❌ 2 | ✅ |
+| TUR | 23 | 21 | ❌ 2 | ✅ |
 | AUS | 23 | 22 | ❌ 1 | ✅ |
 | CIV | 26 | 25 | ❌ 1 | ✅ |
 | COL | 23 | 22 | ❌ 1 | ✅ |
@@ -61,29 +61,19 @@
 | URU | 23 | 23 | ✅ 0 | ✅ |
 | USA | 24 | 24 | ✅ 0 | ✅ |
 
-### JOR — faltan 23 fotos
+### JOR — faltan 13 fotos
 
-- `#1` Yazeed Abulaila
 - `#2` Ehsan Haddad
-- `#3` Abdallah Nasib
-- `#4` Yazan Al-Arab
 - `#5` Mohannad Abu Taha
-- `#6` Nizar Al-Rashdan
-- `#7` Yazan Al-Naimat
-- `#8` Noor Al-Rawabdeh
 - `#9` Hamza Al-Dardour
 - `#10` Mousa Al-Taamari
-- `#11` Anas Al-Awadat
 - `#12` Abdullah Al-Fakhouri
 - `#13` Salem Al-Ajalin
 - `#14` Bara Marei
 - `#15` Abu Jalboush Nour Al-Rawabdeh
-- `#16` Mahmoud Al-Mardi
 - `#17` Ibrahim Sadeh
-- `#18` Ali Olwan
 - `#19` Mahmoud Ereimat
 - `#20` Baha Faisal
-- `#21` Mohammad Abu Zrayq
 - `#22` Sharara
 - `#23` Ahmed Abdel Sattar
 
@@ -135,15 +125,6 @@
 - `#18` Ibrahim Bayesh
 - `#22` Ahmed Yasin
 
-### PAN — faltan 6 fotos
-
-- `#4` Fidel Escobar
-- `#10` Édgar Bárcenas
-- `#17` José Luis Rodríguez
-- `#19` Eduardo Guerrero
-- `#22` Kahiser Lenis
-- `#23` César Samudio
-
 ### QAT — faltan 6 fotos
 
 - `#2` Pedro Miguel
@@ -152,14 +133,6 @@
 - `#17` Ahmed Al Janhi
 - `#22` Mahmoud Abunada
 - `#25` Youssef Abdelrisaq
-
-### CPV — faltan 5 fotos
-
-- `#9` Ryan Mendes
-- `#11` Benchimol
-- `#15` Jeffry Fortes
-- `#16` Dérick Poloni
-- `#23` Dylan Silva
 
 ### KSA — faltan 5 fotos
 
@@ -184,12 +157,12 @@
 - `#22` Ngalayel Mukau
 - `#23` Siadi Baggio
 
-### IRN — faltan 4 fotos
+### CPV — faltan 4 fotos
 
-- `#4` Shoja Khalilzadeh
-- `#11` Mohammad Mohebi
-- `#16` Mohammad Karimi
-- `#17` Mehdi Ghayedi
+- `#11` Benchimol
+- `#15` Jeffry Fortes
+- `#16` Dérick Poloni
+- `#23` Dylan Silva
 
 ### KOR — faltan 4 fotos
 
@@ -198,6 +171,13 @@
 - `#14` Kim Tae-hyeon
 - `#20` Park Jin-seob
 
+### PAN — faltan 4 fotos
+
+- `#10` Édgar Bárcenas
+- `#17` José Luis Rodríguez
+- `#19` Eduardo Guerrero
+- `#23` César Samudio
+
 ### RSA — faltan 4 fotos
 
 - `#13` Samukele Kabini
@@ -205,24 +185,11 @@
 - `#18` Sphephelo Sithole
 - `#25` Shandre Campbell
 
-### TUR — faltan 4 fotos
-
-- `#4` Samet Akaydın
-- `#12` Uğurcan Çakır
-- `#15` Abdülkerim Bardakcı
-- `#20` Baris Alper Yilmaz
-
 ### ALG — faltan 3 fotos
 
 - `#5` Kévin Guitoun
 - `#20` Mohamed El Amine Amoura
 - `#23` Moustapha Zeghba
-
-### ECU — faltan 3 fotos
-
-- `#11` Michael Estrada
-- `#19` Kevin Rodríguez
-- `#20` Lolo Rodríguez
 
 ### MEX — faltan 3 fotos
 
@@ -246,10 +213,25 @@
 - `#15` Niko Sigur
 - `#20` Ali Ahmed
 
+### ECU — faltan 2 fotos
+
+- `#19` Kevin Rodríguez
+- `#20` Lolo Rodríguez
+
+### IRN — faltan 2 fotos
+
+- `#4` Shoja Khalilzadeh
+- `#11` Mohammad Mohebi
+
 ### JPN — faltan 2 fotos
 
 - `#1` Keisuke Osako
 - `#23` Tomoki Hayakawa
+
+### TUR — faltan 2 fotos
+
+- `#4` Samet Akaydın
+- `#20` Baris Alper Yilmaz
 
 ### AUS — faltan 1 foto
 
