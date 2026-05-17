@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import './bracket-view';
 import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
@@ -16,6 +16,7 @@ export class AppRoot extends LitElement {
   private unsubscribeLocale?: () => void;
   private unsubscribeAuth?: () => void;
   private _authEmail: string | null = null;
+  @state() private _isOffline = !navigator.onLine;
 
   static styles = css`
     :host {
@@ -152,6 +153,21 @@ export class AppRoot extends LitElement {
       max-width: 1600px;
       margin: 0 auto;
       padding: 24px 40px;
+    }
+
+    /* Offline banner */
+    .offline-banner {
+      background: var(--retro-yellow);
+      color: var(--ink);
+      text-align: center;
+      padding: 6px 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--ink);
+      position: sticky;
+      top: 61px;
+      z-index: 89;
     }
 
     /* Tournament progress bar */
@@ -307,6 +323,8 @@ export class AppRoot extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    window.addEventListener('online', this._onOnline);
+    window.addEventListener('offline', this._onOffline);
     this.unsubscribeStore = subscribeSlice(
       useTournamentStore,
       s => {
@@ -339,11 +357,16 @@ export class AppRoot extends LitElement {
   }
 
   disconnectedCallback() {
+    window.removeEventListener('online', this._onOnline);
+    window.removeEventListener('offline', this._onOffline);
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
     this.unsubscribeAuth?.();
     super.disconnectedCallback();
   }
+
+  private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
+  private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
 
   private get _isDark() {
     return document.documentElement.dataset.theme === 'dark';
@@ -459,6 +482,13 @@ export class AppRoot extends LitElement {
         <div class="progress-bar">
           <div class="progress-fill" style="width: ${Math.round((totalPlayed / 104) * 100)}%"></div>
         </div>
+
+        <!-- Offline banner -->
+        ${this._isOffline ? html`
+          <div class="offline-banner">
+            <span>📡 Sin conexión — los cambios se guardan localmente</span>
+          </div>
+        ` : ''}
 
         <!-- AdSense — debajo del topbar, visible en todas las vistas -->
         <div class="ad-strip">

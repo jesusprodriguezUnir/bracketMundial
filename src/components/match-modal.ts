@@ -484,8 +484,14 @@ export class MatchModal extends LitElement {
       background: var(--ink);
       display: flex;
       align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .score-input button:hover { background: var(--retro-red); }
+    .score-input button:active { background: var(--retro-orange); }
     .score-display {
       font-family: var(--font-var);
       font-size: 28px;
@@ -601,7 +607,10 @@ export class MatchModal extends LitElement {
         justify-content: space-between;
       }
       .score-input button {
-        padding: 8px 14px;
+        padding: 10px 16px;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 22px;
       }
       .score-display {
         padding: 8px 12px;

@@ -78,7 +78,9 @@ export class BracketKnockout extends LitElement {
       user-select: none;
       background: var(--paper);
       background-image: var(--paper-texture);
-      scroll-snap-type: x proximity;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
     }
     .bracket-scroll.is-dragging { cursor: grabbing; }
 
@@ -281,8 +283,18 @@ export class BracketKnockout extends LitElement {
     }
 
     @media (max-width: 768px) {
-      .bracket-scroll { padding: 20px 0; }
-      .round-col { min-width: 175px; }
+      .bracket-scroll {
+        padding: 20px 0;
+        scroll-snap-type: x mandatory;
+      }
+      .round-col {
+        min-width: 175px;
+        scroll-snap-align: start;
+      }
+      .bracket-container {
+        gap: 32px;
+        padding: 0 16px;
+      }
 
       .swipe-hint {
         display: flex;

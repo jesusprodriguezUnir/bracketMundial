@@ -33,6 +33,9 @@ import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => 
   if (isNativePlatform()) initNativeDeepLinks();
 });
 
+// Configuración nativa para Android/Capacitor
+import('./lib/native-setup').then(m => m.initNative());
+
 // Detecta enlace de invitación a liga (?join=CODE) y guarda en sessionStorage
 const joinCode = extractJoinCode();
 if (joinCode) sessionStorage.setItem('bm-join-code', joinCode);

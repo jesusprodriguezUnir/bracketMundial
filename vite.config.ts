@@ -28,6 +28,10 @@ export default defineConfig({
         theme_color: '#1a1933',
         background_color: '#ecdfc0',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait',
+        categories: ['sports', 'games', 'entertainment'],
         icons: [
           {
             src: 'favicon.svg',

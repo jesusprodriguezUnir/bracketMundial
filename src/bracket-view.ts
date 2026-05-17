@@ -47,16 +47,38 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   coaches:  'tabs.coaches',
 };
 
+const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches'];
+
+/** Orden de tabs para swipe */
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+
 @customElement('bracket-view')
 export class BracketView extends LitElement {
   @state() private _activeTab: PhaseTab = 'hero';
   @state() private _loadedViews = new Set<LazyView>();
+  @state() private _moreOpen = false;
+
+  private _swipeStartX = 0;
+  private _swipeStartY = 0;
+  private _isSwiping = false;
 
 
   static readonly styles = css`
     :host { display: block; }
 
-    /* Barra de phase tabs — estética retro, botones Bowlby One */
+    @media (max-width: 768px) {
+      :host {
+        padding-bottom: 72px;
+      }
+    }
+
+    /* Contenedor con touch area para swipe */
+    .view-container {
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    /* Barra de phase tabs — estética retro, botones Bowlby One (desktop) */
     .phase-tabs {
       display: flex;
       background: var(--paper-2);
@@ -89,6 +111,123 @@ export class BracketView extends LitElement {
     .phase-tab.active {
       background: var(--retro-orange);
       color: var(--paper);
+    }
+
+    /* ─── Bottom Navigation (mobile) ─── */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      background: var(--ink);
+      border-top: 4px solid var(--retro-yellow);
+      padding: 6px 0;
+      padding-bottom: calc(6px + env(safe-area-inset-bottom));
+      justify-content: space-around;
+      align-items: stretch;
+      box-shadow: 0 -4px 0 0 rgba(0,0,0,0.15);
+    }
+    .bottom-nav-btn {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 6px;
+      min-width: 48px;
+      min-height: 44px;
+      border-radius: 0;
+      transition: opacity 0.1s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-nav-btn:active {
+      opacity: 0.7;
+    }
+    .bottom-nav-btn .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+      color: rgba(236,223,192,0.5);
+      transition: color 0.15s;
+    }
+    .bottom-nav-btn .nav-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      color: rgba(236,223,192,0.5);
+      text-transform: uppercase;
+      transition: color 0.15s;
+    }
+    .bottom-nav-btn.active .nav-icon,
+    .bottom-nav-btn.active .nav-label {
+      color: var(--retro-yellow);
+    }
+    .bottom-nav-btn.active::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 3px;
+      background: var(--retro-yellow);
+      border-radius: 0;
+    }
+
+    /* ─── More Overlay ─── */
+    .more-overlay {
+      display: none;
+      position: fixed;
+      bottom: calc(68px + env(safe-area-inset-bottom));
+      right: 12px;
+      z-index: 199;
+      background: var(--paper-2);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      min-width: 180px;
+    }
+    .more-overlay.open {
+      display: block;
+    }
+    .more-overlay-item {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 18px;
+      font-family: var(--font-var);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      border-bottom: 1px solid var(--ink);
+      transition: background 0.1s;
+      min-height: 44px;
+      box-sizing: border-box;
+    }
+    .more-overlay-item:last-child {
+      border-bottom: none;
+    }
+    .more-overlay-item:hover {
+      background: var(--retro-yellow);
+    }
+    .more-overlay-item .mo-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .more-overlay-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 198;
+      background: transparent;
+    }
+    .more-overlay-backdrop.open {
+      display: block;
     }
 
     /* Títulos de sección */
@@ -183,9 +322,11 @@ export class BracketView extends LitElement {
       .section-tv.visible {
         display: block;
       }
-      .phase-tab {
-        padding: 12px 16px;
-        font-size: 13px;
+      .phase-tabs {
+        display: none;
+      }
+      .bottom-nav {
+        display: flex;
       }
       .seo-info {
         grid-template-columns: 1fr;
@@ -195,6 +336,23 @@ export class BracketView extends LitElement {
       .ad-inline {
         margin: 20px 0;
         min-height: 60px;
+      }
+    }
+
+    @media (max-width: 375px) {
+      .bottom-nav-btn {
+        min-width: 40px;
+        padding: 4px 3px;
+      }
+      .bottom-nav-btn .nav-icon {
+        font-size: 17px;
+      }
+      .bottom-nav-btn .nav-label {
+        font-size: 7px;
+      }
+      .more-overlay {
+        right: 6px;
+        min-width: 160px;
       }
     }
   `;
@@ -207,11 +365,18 @@ export class BracketView extends LitElement {
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     // Pre-cargar groups en idle (el tab más visitado tras hero)
     this._ensureView('groups');
+    this.addEventListener('touchstart', this._onSwipeStart, { passive: true });
+    this.addEventListener('touchmove', this._onSwipeMove, { passive: false });
+    this.addEventListener('touchend', this._onSwipeEnd, { passive: true });
+    this.addEventListener('close-more', () => { this._moreOpen = false; this.requestUpdate(); });
   }
 
   disconnectedCallback() {
     this.unsubscribeLocale?.();
     super.disconnectedCallback();
+    this.removeEventListener('touchstart', this._onSwipeStart);
+    this.removeEventListener('touchmove', this._onSwipeMove);
+    this.removeEventListener('touchend', this._onSwipeEnd);
   }
 
   /** Carga el módulo de una vista si aún no se cargó */
@@ -228,6 +393,7 @@ export class BracketView extends LitElement {
       await this._ensureView(view);
     }
     this._activeTab = tab;
+    this._moreOpen = false;
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';
@@ -239,6 +405,49 @@ export class BracketView extends LitElement {
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  }
+
+  private get _isMoreTab() {
+    return MORE_TABS.includes(this._activeTab);
+  }
+
+  private _closeMore() {
+    this._moreOpen = false;
+  }
+
+  private _toggleMore() {
+    this._moreOpen = !this._moreOpen;
+  }
+
+  private _onSwipeStart(e: TouchEvent) {
+    this._swipeStartX = e.touches[0].clientX;
+    this._swipeStartY = e.touches[0].clientY;
+    this._isSwiping = false;
+  }
+
+  private _onSwipeMove(e: TouchEvent) {
+    if (!this._isSwiping) {
+      const dx = Math.abs(e.touches[0].clientX - this._swipeStartX);
+      const dy = Math.abs(e.touches[0].clientY - this._swipeStartY);
+      if (dx > 20 && dx > dy * 1.5) {
+        this._isSwiping = true;
+      }
+      return;
+    }
+    if (e.cancelable) e.preventDefault();
+  }
+
+  private _onSwipeEnd(e: TouchEvent) {
+    if (!this._isSwiping) return;
+    this._isSwiping = false;
+    const dx = e.changedTouches[0].clientX - this._swipeStartX;
+    if (Math.abs(dx) < 50) return;
+    const idx = TAB_ORDER.indexOf(this._activeTab);
+    if (idx === -1) return;
+    const nextIdx = dx < 0 ? idx + 1 : idx - 1;
+    if (nextIdx < 0 || nextIdx >= TAB_ORDER.length) return;
+    this._moreOpen = false;
+    this._selectTab(TAB_ORDER[nextIdx]);
   }
 
   private openMatchFromGroups(e: CustomEvent) {
@@ -272,12 +481,20 @@ export class BracketView extends LitElement {
 
   render() {
     const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+    const mainTabs: Array<{ tab: PhaseTab; icon: string; label: string }> = [
+      { tab: 'hero',     icon: '🏠', label: t('tabs.hero') },
+      { tab: 'groups',   icon: '⚽', label: t('tabs.groups') },
+      { tab: 'knockout', icon: '🏆', label: t('tabs.knockout') },
+      { tab: 'squads',   icon: '👥', label: t('tabs.squads') },
+    ];
     const at = this._activeTab;
     const loaded = this._loadedViews;
     const isKnockoutTab = at === 'knockout';
+    const isMore = this._isMoreTab;
 
     return html`
-      <div @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
+      <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
+        <!-- Desktop: phase-tabs -->
         <nav class="phase-tabs" aria-label="${t('tabs.label')}">
           ${tabs.map(tab => html`
             <button
@@ -289,6 +506,48 @@ export class BracketView extends LitElement {
             </button>
           `)}
         </nav>
+
+        <!-- Mobile: bottom navigation -->
+        <nav class="bottom-nav" aria-label="${t('tabs.label')}">
+          ${mainTabs.map(item => html`
+            <button
+              class="bottom-nav-btn ${at === item.tab ? 'active' : ''}"
+              aria-label="${t('tabs.view', { tab: item.label })}"
+              aria-current="${at === item.tab ? 'page' : undefined}"
+              @click="${() => this._selectTab(item.tab)}">
+              <span class="nav-icon">${item.icon}</span>
+              <span class="nav-label">${item.label}</span>
+            </button>
+          `)}
+          <button
+            class="bottom-nav-btn ${isMore ? 'active' : ''}"
+            aria-label="${t('tabs.more')}"
+            aria-expanded="${this._moreOpen}"
+            aria-haspopup="menu"
+            @click="${this._toggleMore}">
+            <span class="nav-icon">${isMore ? '●' : '⋯'}</span>
+            <span class="nav-label">${t('tabs.more')}</span>
+          </button>
+        </nav>
+
+        <!-- More overlay backdrop -->
+        <div
+          class="more-overlay-backdrop ${this._moreOpen ? 'open' : ''}"
+          @click="${this._closeMore}"
+          @touchstart="${this._closeMore}"></div>
+
+        <!-- More overlay menu -->
+        <div class="more-overlay ${this._moreOpen ? 'open' : ''}" role="menu">
+          ${MORE_TABS.map(tab => html`
+            <button
+              class="more-overlay-item"
+              role="menuitem"
+              @click="${() => this._selectTab(tab)}">
+              <span class="mo-icon">${tab === 'calendar' ? '🗓️' : tab === 'stadiums' ? '🏟️' : '📋'}</span>
+              ${t(PHASE_TAB_KEYS[tab])}
+            </button>
+          `)}
+        </div>
 
         <!-- Hero / Inicio -->
         <div class="section-groups ${at === 'hero' ? 'visible' : ''}">

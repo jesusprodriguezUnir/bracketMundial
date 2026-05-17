@@ -29,6 +29,7 @@ export const en: Record<TranslationKey, string> = {
   'tabs.stadiums': 'Stadiums',
   'tabs.coaches': 'Coaches',
   'tabs.tv': 'Where to Watch',
+  'tabs.more': 'More',
 
   'section.groups.eyebrow': '⚽ GROUP STAGE',
   'section.groups.title': '12 GROUPS · 48 TEAMS',

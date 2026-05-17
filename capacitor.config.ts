@@ -6,7 +6,28 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https'
-  }
+  },
+  android: {
+    allowMixedContent: false,
+  },
+  ios: {
+    contentInset: 'always',
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 500,
+      launchAutoHide: true,
+      backgroundColor: '#1a1933',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+    },
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'light',
+      backgroundColor: '#1a1933',
+    },
+  },
 };
 
 export default config;

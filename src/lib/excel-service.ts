@@ -5,8 +5,6 @@ import type { TranslationKey } from '../i18n/es';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
-import { COACHES } from '../data/coaches/index';
-import { coachAge } from '../lib/date-utils';
 
 // ─── Typed import errors ──────────────────────────────────────────────────────
 
@@ -359,9 +357,7 @@ export class ExcelService {
 
     const groupsName   = lbl('excel.sheetGroups',   locale);
     const knockoutName = lbl('excel.sheetKnockout', locale);
-    const coachesName  = lbl('excel.sheetCoaches',  locale);
 
-    this.createCoachesSheet(wb, locale, coachesName);
     const drawInfos    = this.createGroupsSheet(wb, groupMatches, locale, groupsName, flagImages);
     this.createCalcSheet(wb, drawInfos, groupsName);
     this.fillStandingsFormulas(wb, drawInfos, groupsName);

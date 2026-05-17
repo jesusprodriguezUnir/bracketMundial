@@ -26,6 +26,7 @@ export class GroupsView extends LitElement {
   private _oddsLoaded = false;
 
   @state() private _odds: Record<string, MatchOdds> = {};
+  @state() private _filterGroup: string | null = null;
 
   static styles = css`
     :host { display: block; }
@@ -393,11 +394,53 @@ export class GroupsView extends LitElement {
     .odds-figs .odds-home { color: var(--retro-blue); }
     .odds-figs .odds-away { color: var(--retro-red); }
 
+    /* Group filter chips para móvil */
+    .group-chips {
+      display: none;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 0 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .group-chips::-webkit-scrollbar { display: none; }
+    .group-chip {
+      all: unset;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 6px 14px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      color: var(--ink);
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      transition: background 0.1s, color 0.1s;
+      touch-action: manipulation;
+    }
+    .group-chip:active { opacity: 0.7; }
+    .group-chip.active {
+      background: var(--retro-orange);
+      color: var(--paper);
+      box-shadow: var(--shadow-hard-sm);
+    }
+
     @media (max-width: 768px) {
+      .group-chips {
+        display: flex;
+      }
       .groups-grid { grid-template-columns: 1fr; }
       .group-card { box-shadow: var(--shadow-hard-sm); }
-      .inline-stepper button { padding: 2px 6px; font-size: 14px; }
-      .inline-val { font-size: 18px; padding: 2px 6px; }
+      .inline-stepper button {
+        padding: 8px 12px;
+        font-size: 16px;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      .inline-val { font-size: 20px; padding: 2px 8px; }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -467,6 +510,19 @@ export class GroupsView extends LitElement {
     useTournamentStore.getState().resetTournament();
   }
 
+  private _scrollToGroup(g: string) {
+    if (this._filterGroup === g) {
+      this._filterGroup = null;
+      this.shadowRoot?.querySelector('.group-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    this._filterGroup = g;
+    this.updateComplete.then(() => {
+      const el = this.shadowRoot?.getElementById(`group-${g}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   private renderFlag(team?: any) {
     if (!team) return '';
     if (team.flagUrl) {
@@ -487,6 +543,15 @@ export class GroupsView extends LitElement {
       <div class="group-actions">
         <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
         <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
+      </div>
+
+      <div class="group-chips">
+        ${'ABCDEFGHIJKL'.split('').map(g => html`
+          <button
+            class="group-chip ${this._filterGroup === g ? 'active' : ''}"
+            @click="${() => this._scrollToGroup(g)}"
+            aria-label="${t('groups.group', { letter: g })}">${g}</button>
+        `)}
       </div>
 
       <div class="groups-grid">

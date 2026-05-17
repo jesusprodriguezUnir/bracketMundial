@@ -29,6 +29,7 @@ export const es = {
   'tabs.stadiums': 'Estadios',
   'tabs.coaches': 'Entrenadores',
   'tabs.tv': 'Dónde ver',
+  'tabs.more': 'Más',
 
   // Section headings
   'section.groups.eyebrow': '⚽ FASE DE GRUPOS',
