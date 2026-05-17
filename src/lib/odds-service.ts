@@ -19,6 +19,7 @@ export interface MatchOdds {
   away: number;       // % probability team B wins
   bookmakers: number; // number of bookmakers in the consensus (0 = synthetic estimate)
   source: 'market' | 'model'; // 'market' = real bookmaker data, 'model' = synthetic estimate
+  bet365?: { home: number; draw: number; away: number }; // Bet365-specific 1X2 probabilities (available when market source)
 }
 
 export interface OddsFeed {

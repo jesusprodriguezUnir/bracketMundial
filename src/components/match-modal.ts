@@ -779,7 +779,7 @@ export class MatchModal extends LitElement {
         ${this._odds ? html`
           <div class="odds-block">
             <div class="odds-label">
-              ${t('modal.odds') ?? 'Probabilidad 1X2'}
+              Probabilidad 1X2
               <span class="odds-src">${this._odds.source === 'market'
                 ? `(${this._odds.bookmakers} casas)`
                 : '(estimado)'}</span>

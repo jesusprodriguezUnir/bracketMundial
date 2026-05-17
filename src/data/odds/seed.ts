@@ -3,7 +3,7 @@
 import type { OddsFeed } from '../../lib/odds-service';
 
 export const ODDS_SEED: OddsFeed = {
-  updatedAt: "2026-05-17T21:27:08.448Z",
+  updatedAt: "2026-05-17T21:42:58.669Z",
   matches: {
   "M1": { home: 62, draw: 19, away: 19, bookmakers: 0, source: 'model' as const },
   "M2": { home: 49, draw: 25, away: 26, bookmakers: 0, source: 'model' as const },

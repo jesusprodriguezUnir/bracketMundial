@@ -138,34 +138,49 @@ Luego crear/actualizar la rama `news-data` (ver CLAUDE.md de commits anteriores 
 
 ## Sistema de Probabilidad 1X2 (Odds de Casas de Apuestas)
 
-Probabilidad por partido (gana A / empate / gana B) derivada del consenso de casas de apuestas, visible en cada partido de fase de grupos.
+Probabilidad por partido (gana A / empate / gana B) para los 72 partidos de grupos (de mercado) y para todo el torneo (modelo Elo de respaldo). Visible en grupos, modal de partido y bracket eliminatorio.
 
 ### Flujo de odds
 
 1. **GitHub Actions cron** (2×/día: 06:00 y 18:00 UTC) ejecuta [scripts/generate-odds.mjs](scripts/generate-odds.mjs)
-2. El script llama a The Odds API (`soccer_fifa_world_cup`, mercado `h2h`), convierte odds decimales a probabilidades normalizadas y promedia entre casas
-3. Genera [odds-feed.json](odds-feed.json) y lo pushea a la rama `odds-data`
+2. El script llama a The Odds API; para los partidos sin cuotas de mercado calcula estimaciones con el modelo Elo ([src/data/team-strength.ts](src/data/team-strength.ts) + [src/lib/odds-model.ts](src/lib/odds-model.ts))
+3. Genera [odds-feed.json](odds-feed.json) con los 72 partidos (`source:'market'` o `source:'model'`) y lo pushea a la rama `odds-data`
 4. En tiempo de ejecución, [src/lib/odds-service.ts](src/lib/odds-service.ts) fetch el archivo desde raw.githubusercontent.com
-5. Cache en localStorage por 6 horas; si falla el fetch la UI simplemente oculta el bloque (sin seed de respaldo)
+5. Cache en localStorage por 6 horas; si falla el fetch, usa el seed bundleado [src/data/odds/seed.ts](src/data/odds/seed.ts)
+6. Para partidos de knockout (no en el feed), `getOddsForMatch` deriva odds on-the-fly desde los ratings de equipo
+
+### Simulación basada en cuotas
+
+`autoSimulateGroups` y `autoSimulateKnockout` ya no usan `Math.random()` uniforme: leen el seed/feed y usan `sampleResult` de [src/lib/odds-model.ts](src/lib/odds-model.ts) para sesgar resultados según la fuerza de cada equipo. Los favoritos ganan con mayor frecuencia.
 
 ### Operación de odds
 
 - **Feed URL**: `https://raw.githubusercontent.com/jesusprodriguezUnir/bracketMundial/odds-data/odds-feed.json`
 - **Rama remota**: `odds-data` (orfana, solo contiene el JSON)
-- **Sin odds**: si no hay `ODDS_API_KEY` o el fetch falla, `_odds` queda vacío y no se renderiza nada en cada partido
+- **Seed bundleado**: [src/data/odds/seed.ts](src/data/odds/seed.ts) — fallback offline, siempre con los 72 partidos
+- **Sin ODDS_API_KEY**: el feed se rellena solo con estimaciones del modelo (igualmente útil)
 
 ### Mantenimiento de odds
 
 ```bash
-npm run odds   # = npx tsx scripts/generate-odds.mjs (requiere ODDS_API_KEY en .env)
+npm run odds                              # Genera odds-feed.json (modelo si no hay ODDS_API_KEY)
+npx tsx scripts/generate-odds.mjs --write-seed  # Regenera seed.ts
 ```
+
+La skill `/odds` de Claude Code orquesta el flujo completo (ver [`.claude/skills/odds/SKILL.md`](.claude/skills/odds/SKILL.md)).
+
+### Surfaces de UI
+
+- **Vista de grupos**: barra 1X2 con leyenda 1/X/2 y tooltip indicando la fuente
+- **Modal de partido** (`match-modal.ts`): barra + cifras para grupos y knockout
+- **Bracket eliminatorio** (`bracket-knockout.ts`): barra compacta en cada match-box y tarjeta móvil (solo partidos no jugados)
 
 ### Notas de odds
 
-- Las odds de fase de grupos aparecen solo días antes del torneo (junio 2026) — es normal que el feed esté casi vacío hasta entonces.
+- Las odds de mercado aparecen solo días antes de cada partido (junio 2026) — hasta entonces todo el feed usa estimaciones del modelo.
 - Secreto GitHub: `ODDS_API_KEY` → Settings → Secrets → Actions.
 - Plan free de The Odds API: ~500 req/mes. El cron usa 1 req/ejecución ≈ 60 req/mes.
-- `odds-service.ts` no tiene seed bundleado (a diferencia de `news-service.ts`); en modo offline simplemente no muestra el bloque.
+- No editar `src/data/odds/seed.ts` a mano; regenerar con `--write-seed`.
 
 ## Areas fragiles
 
