@@ -2,7 +2,7 @@
 
 > Generado el 17/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 157 fotos faltantes en 33 equipos (1047/1204 cubiertos)  
+**Jugadores:** 115 fotos faltantes en 27 equipos (1090/1205 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -15,42 +15,42 @@
 | JOR | 23 | 10 | ❌ 13 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
 | CUW | 22 | 12 | ❌ 10 | ✅ |
-| AUS | 27 | 18 | ❌ 9 | ✅ |
-| BRA | 27 | 19 | ❌ 8 | ✅ |
-| USA | 32 | 24 | ❌ 8 | ✅ |
 | EGY | 23 | 16 | ❌ 7 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
 | QAT | 26 | 20 | ❌ 6 | ✅ |
-| GER | 27 | 22 | ❌ 5 | ✅ |
-| JPN | 28 | 23 | ❌ 5 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
-| MAR | 32 | 27 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
-| ARG | 28 | 24 | ❌ 4 | ✅ |
-| CAN | 27 | 23 | ❌ 4 | ✅ |
+| BRA | 27 | 23 | ❌ 4 | ✅ |
 | COD | 23 | 19 | ❌ 4 | ✅ |
 | CPV | 23 | 19 | ❌ 4 | ✅ |
 | KOR | 26 | 22 | ❌ 4 | ✅ |
+| MAR | 32 | 28 | ❌ 4 | ✅ |
 | PAN | 23 | 19 | ❌ 4 | ✅ |
 | RSA | 26 | 22 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
-| BEL | 29 | 26 | ❌ 3 | ✅ |
 | MEX | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
+| CAN | 27 | 25 | ❌ 2 | ✅ |
 | ECU | 23 | 21 | ❌ 2 | ✅ |
-| FRA | 27 | 25 | ❌ 2 | ✅ |
 | IRN | 23 | 21 | ❌ 2 | ✅ |
 | TUR | 23 | 21 | ❌ 2 | ✅ |
+| AUS | 27 | 26 | ❌ 1 | ✅ |
 | CIV | 26 | 25 | ❌ 1 | ✅ |
 | COL | 23 | 22 | ❌ 1 | ✅ |
-| CRO | 23 | 22 | ❌ 1 | ✅ |
 | SWE | 26 | 25 | ❌ 1 | ✅ |
+| USA | 32 | 31 | ❌ 1 | ✅ |
+| ARG | 28 | 28 | ✅ 0 | ✅ |
 | AUT | 23 | 23 | ✅ 0 | ✅ |
+| BEL | 29 | 29 | ✅ 0 | ✅ |
 | BIH | 26 | 26 | ✅ 0 | ✅ |
+| CRO | 24 | 24 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
 | ENG | 26 | 26 | ✅ 0 | ✅ |
 | ESP | 26 | 26 | ✅ 0 | ✅ |
+| FRA | 27 | 27 | ✅ 0 | ✅ |
+| GER | 27 | 27 | ✅ 0 | ✅ |
 | GHA | 23 | 23 | ✅ 0 | ✅ |
+| JPN | 28 | 28 | ✅ 0 | ✅ |
 | NED | 25 | 25 | ✅ 0 | ✅ |
 | NOR | 23 | 23 | ✅ 0 | ✅ |
 | NZL | 26 | 26 | ✅ 0 | ✅ |
@@ -105,40 +105,6 @@
 - `#19` Federico Munnink
 - `#23` Sander Sno
 
-### AUS — faltan 9 fotos
-
-- `#24` Kye Rowles
-- `#25` Kai Trewin
-- `#26` Paul Izzo
-- `#27` Patrick Beach
-- `#28` Jason Geria
-- `#29` Paul Okon-Engstler
-- `#30` Patrick Yazbek
-- `#31` Nishan Velupillay
-- `#32` Deni Juric
-
-### BRA — faltan 8 fotos
-
-- `#15` Carlos Augusto
-- `#25` Douglas Santos
-- `#27` Leo Pereira
-- `#28` Wesley
-- `#29` Fabinho
-- `#30` Danilo Santos
-- `#31` João Pedro
-- `#32` Matheus Cunha
-
-### USA — faltan 8 fotos
-
-- `#25` Alex Freeman
-- `#26` Mark McKenzie
-- `#27` Auston Trusty
-- `#28` Max Arfsten
-- `#29` Aiden Morris
-- `#30` Cristian Roldan
-- `#31` Sebastian Berhalter
-- `#32` Haji Wright
-
 ### EGY — faltan 7 fotos
 
 - `#6` Ahmed Fattouh
@@ -168,22 +134,6 @@
 - `#22` Mahmoud Abunada
 - `#25` Youssef Abdelrisaq
 
-### GER — faltan 5 fotos
-
-- `#26` Maxi Mittelstädt
-- `#27` Josha Vagnoman
-- `#28` Felix Nmecha
-- `#29` Angelo Stiller
-- `#30` Chris Führich
-
-### JPN — faltan 5 fotos
-
-- `#1` Keisuke Osako
-- `#23` Tomoki Hayakawa
-- `#27` Hidemasa Morita
-- `#28` Kodai Sano
-- `#29` Shuto Machino
-
 ### KSA — faltan 5 fotos
 
 - `#3` Hassan Kadesh
@@ -191,14 +141,6 @@
 - `#10` Mohammed Kanno
 - `#22` Turki Al-Ammar
 - `#23` Ahmed Al-Kassar
-
-### MAR — faltan 5 fotos
-
-- `#27` Ismael Baouf
-- `#28` Oussama Targhalline
-- `#29` Abde Ezzalzouli
-- `#30` Chemsidine Talbi
-- `#31` Yassir Zabiri
 
 ### UZB — faltan 5 fotos
 
@@ -208,19 +150,12 @@
 - `#22` Khusayin Norchaev
 - `#23` Dilshodbek Hamidov
 
-### ARG — faltan 4 fotos
+### BRA — faltan 4 fotos
 
-- `#27` Nico González
-- `#28` Thiago Almada
-- `#29` Nico Paz
-- `#30` José López
-
-### CAN — faltan 4 fotos
-
-- `#15` Niko Sigur
-- `#20` Ali Ahmed
-- `#27` Nathan Saliba
-- `#28` Daniel Jebbison
+- `#15` Carlos Augusto
+- `#28` Wesley
+- `#30` Danilo Santos
+- `#31` João Pedro
 
 ### COD — faltan 4 fotos
 
@@ -243,6 +178,13 @@
 - `#14` Kim Tae-hyeon
 - `#20` Park Jin-seob
 
+### MAR — faltan 4 fotos
+
+- `#27` Ismael Baouf
+- `#29` Abde Ezzalzouli
+- `#30` Chemsidine Talbi
+- `#31` Yassir Zabiri
+
 ### PAN — faltan 4 fotos
 
 - `#10` Édgar Bárcenas
@@ -263,12 +205,6 @@
 - `#20` Mohamed El Amine Amoura
 - `#23` Moustapha Zeghba
 
-### BEL — faltan 3 fotos
-
-- `#27` Nathan De Cat
-- `#28` Leandro Trossard
-- `#29` Lois Openda
-
 ### MEX — faltan 3 fotos
 
 - `#14` Erik Lira
@@ -281,15 +217,15 @@
 - `#21` Alberto Espínola
 - `#23` Diego Melgarejo
 
+### CAN — faltan 2 fotos
+
+- `#15` Niko Sigur
+- `#20` Ali Ahmed
+
 ### ECU — faltan 2 fotos
 
 - `#19` Kevin Rodríguez
 - `#20` Lolo Rodríguez
-
-### FRA — faltan 2 fotos
-
-- `#26` Maghnes Akliouche
-- `#27` Randal Kolo Muani
 
 ### IRN — faltan 2 fotos
 
@@ -301,6 +237,10 @@
 - `#4` Samet Akaydın
 - `#20` Baris Alper Yilmaz
 
+### AUS — faltan 1 foto
+
+- `#32` Deni Juric
+
 ### CIV — faltan 1 foto
 
 - `#18` Christ Inao Oulai
@@ -309,11 +249,11 @@
 
 - `#23` Kevin Mier
 
-### CRO — faltan 1 foto
-
-- `#21` Dion Drena Beljo
-
 ### SWE — faltan 1 foto
 
 - `#7` Emil Holm
+
+### USA — faltan 1 foto
+
+- `#29` Aiden Morris
 

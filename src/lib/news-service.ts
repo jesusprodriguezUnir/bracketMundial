@@ -11,8 +11,11 @@ import { NEWS_SEED } from '../data/news/seed';
 
 export interface NewsItem {
   title: string;
+  description?: string;
   url: string;
+  image?: string;
   source: string;
+  sourceUrl?: string;
   date: string; // YYYY-MM-DD
 }
 

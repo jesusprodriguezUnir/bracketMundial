@@ -25,7 +25,9 @@ jobs:
         run: npm ci
 
       - name: Generate news feed
-        run: node scripts/generate-news.mjs
+        run: node scripts/generate-news-gnews.mjs
+        env:
+          GNEWS_DATA_KEY: ${{ secrets.GNEWS_DATA_KEY }}
 
       - name: Publish to news-data branch
         run: |

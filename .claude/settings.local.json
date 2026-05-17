@@ -77,7 +77,10 @@
       "Edit(/.claude/skills/player-photos/**)",
       "Edit(/.claude/skills/coach-photos/**)",
       "Edit(/.claude/skills/news/**)",
-      "WebFetch(domain:fifa-wc-bracket.com)"
+      "WebFetch(domain:fifa-wc-bracket.com)",
+      "Bash(mkdir -p extracted)",
+      "Bash(tar -tzf webfetch-1779026018211-11oz6u.bin)",
+      "Bash(tar -xzf webfetch-1779026018211-11oz6u.bin -C extracted)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
