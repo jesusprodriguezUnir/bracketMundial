@@ -59,7 +59,6 @@ export function canShareImage(): boolean {
 
 export function buildShareText(
   knockoutMatches: Record<string, KnockoutMatchResult>,
-  url?: string,
 ): string {
   const fin = knockoutMatches['FIN-01'];
   const tp  = knockoutMatches['TP-01'];
@@ -71,17 +70,14 @@ export function buildShareText(
   const runnerUp  = runnerUpId ? getTeamName(runnerUpId) : null;
   const third     = tp?.winnerId ? getTeamName(tp.winnerId) : null;
 
-  let text: string;
   if (!champion) {
-    text = '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
-  } else {
-    text = `🏆 Mi bracket del Mundial 2026:\n🥇 Campeón: ${champion}`;
-    if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
-    if (third)    text += `\n🥉 3º: ${third}`;
-    text += '\n#Mundial2026 #FIFAWorldCup';
+    return '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
   }
 
-  if (url) text += `\n${url}`;
+  let text = `🏆 Mi bracket del Mundial 2026:\n🥇 Campeón: ${champion}`;
+  if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
+  if (third)    text += `\n🥉 3º: ${third}`;
+  text += '\n#Mundial2026 #FIFAWorldCup';
   return text;
 }
 
@@ -104,21 +100,6 @@ export async function shareToInstagram(blob: Blob, text: string): Promise<'share
   return 'downloaded';
 }
 
-export function openTwitterIntent(text: string, url?: string): void {
-  const params = new URLSearchParams({ text });
-  if (url) params.set('url', url);
-  window.open(`https://twitter.com/intent/tweet?${params}`, '_blank', 'noopener');
-}
-
-export function openWhatsAppIntent(text: string): void {
-  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank', 'noopener');
-}
-
-export function openFacebookShare(url: string): void {
-  const params = new URLSearchParams({ u: url });
-  window.open(`https://www.facebook.com/sharer/sharer.php?${params}`, '_blank', 'noopener');
-}
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);

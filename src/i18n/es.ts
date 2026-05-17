@@ -139,8 +139,6 @@ export const es = {
   'share.whatsapp': '✉ WHATSAPP',
   'share.copyText': '⎘ COPIAR TEXTO',
   'share.copied': '✓ COPIADO',
-  'share.copyLink': '⊕ COPIAR ENLACE',
-  'share.linkCopied': '✓ ENLACE COPIADO',
   'share.igHint': '📸 Instagram no permite publicar desde la web: usa el botón Instagram (móvil) o descarga el PNG.',
   'share.instagram': '📸 INSTAGRAM',
   'share.instagramLabel': 'Compartir en Instagram',
@@ -148,7 +146,6 @@ export const es = {
   'share.closeLabel': 'Cerrar',
   'share.nativeShareLabel': 'Compartir con app del sistema',
   'share.copyTextLabel': 'Copiar texto al portapapeles',
-  'share.copyLinkLabel': 'Copiar enlace del bracket',
   'share.downloadLabel': 'Descargar imagen PNG',
   'share.twitterLabel': 'Compartir en Twitter',
   'share.whatsappLabel': 'Compartir en WhatsApp',
@@ -159,7 +156,7 @@ export const es = {
   'share.tiktok': '▶ TIKTOK',
   'share.tiktokLabel': 'Compartir en TikTok',
   'share.desktopHint': '💡 En escritorio: descarga la imagen y adjúntala manualmente en la red social.',
-  'share.networksLabel': 'COMPARTIR ENLACE + TEXTO',
+  'share.networksLabel': 'COMPARTIR IMAGEN EN REDES',
 
   // Share card
   'card.title': 'BRACKET MUNDIAL',

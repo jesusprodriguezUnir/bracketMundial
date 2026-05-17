@@ -7,11 +7,7 @@ import {
   generateBracketImage,
   buildShareText,
   canShareImage,
-  shareImageNative,
   shareToInstagram,
-  openTwitterIntent,
-  openWhatsAppIntent,
-  openFacebookShare,
   downloadBlob,
 } from '../lib/share-image';
 import './share-card';
@@ -21,12 +17,10 @@ export class ShareModal extends LitElement {
   @state() private _status: 'generating' | 'ready' | 'error' = 'generating';
   @state() private _previewUrl = '';
   @state() private _copied = false;
-  @state() private _copiedLink = false;
   @state() private _igDownloaded = false;
 
   private _blob: Blob | null = null;
   private _shareText = '';
-  private _shareUrl = '';
   private _unsubscribeLocale?: () => void;
 
   static override styles = [retroButton, css`
@@ -307,14 +301,12 @@ export class ShareModal extends LitElement {
       if (!card) throw new Error('share-card not found');
 
       const state = useTournamentStore.getState();
-      const { buildShareUrl } = await import('../lib/bracket-codec');
-      this._shareUrl = buildShareUrl(state.groupMatches, state.knockoutMatches);
 
       const blob = await generateBracketImage(card);
       this._blob = blob;
       if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);
       this._previewUrl = URL.createObjectURL(blob);
-      this._shareText = buildShareText(state.knockoutMatches, this._shareUrl);
+      this._shareText = buildShareText(state.knockoutMatches);
       this._status = 'ready';
     } catch (_err) {
       this._status = 'error';
@@ -331,21 +323,28 @@ export class ShareModal extends LitElement {
     downloadBlob(this._blob, 'bracket-mundial-2026.png');
   }
 
-  private async _nativeShare() {
+  private async _shareImage() {
     if (!this._blob) return;
-    await shareImageNative(this._blob, this._shareText);
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
   }
 
-  private _twitter() {
-    openTwitterIntent(this._shareText, this._shareUrl || undefined);
+  private async _twitter() {
+    if (!this._blob) return;
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
   }
 
-  private _whatsapp() {
-    openWhatsAppIntent(this._shareText);
+  private async _whatsapp() {
+    if (!this._blob) return;
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
   }
 
-  private _facebook() {
-    if (this._shareUrl) openFacebookShare(this._shareUrl);
+  private async _facebook() {
+    if (!this._blob) return;
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
   }
 
   private async _instagram() {
@@ -356,8 +355,8 @@ export class ShareModal extends LitElement {
 
   private async _tiktok() {
     if (!this._blob) return;
-    downloadBlob(this._blob, 'bracket-mundial-2026.png');
-    this._igDownloaded = true; // Reutilizamos el flag de descarga para mostrar el hint
+    const result = await shareToInstagram(this._blob, this._shareText);
+    if (result === 'downloaded') this._igDownloaded = true;
   }
 
   private async _copyText() {
@@ -365,20 +364,6 @@ export class ShareModal extends LitElement {
       await navigator.clipboard.writeText(this._shareText);
       this._copied = true;
       setTimeout(() => { this._copied = false; }, 2000);
-    } catch { /* clipboard unavailable */ }
-  }
-
-  private async _copyLink() {
-    try {
-      let url = this._shareUrl;
-      if (!url) {
-        const { buildShareUrl } = await import('../lib/bracket-codec');
-        const state = useTournamentStore.getState();
-        url = buildShareUrl(state.groupMatches, state.knockoutMatches);
-      }
-      await navigator.clipboard.writeText(url);
-      this._copiedLink = true;
-      setTimeout(() => { this._copiedLink = false; }, 2000);
     } catch { /* clipboard unavailable */ }
   }
 
@@ -428,7 +413,7 @@ export class ShareModal extends LitElement {
           ${hasNativeImageShare
             ? html`
               <!-- Móvil: compartir imagen real por el share sheet del sistema -->
-              <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._nativeShare}" aria-label="${t('share.shareImageLabel')}">
+              <button class="btn-share primary" ?disabled="${!isReady}" @click="${this._shareImage}" aria-label="${t('share.shareImageLabel')}">
                 ${t('share.shareImage')}
               </button>
               <button class="btn-share" ?disabled="${!isReady}" @click="${this._download}" aria-label="${t('share.downloadLabel')}">
@@ -443,9 +428,6 @@ export class ShareModal extends LitElement {
           <button class="btn-share ${this._copied ? 'copied' : ''}" ?disabled="${!isReady}" @click="${this._copyText}" aria-label="${t('share.copyTextLabel')}">
             ${this._copied ? t('share.copied') : t('share.copyText')}
           </button>
-          <button class="btn-share ${this._copiedLink ? 'copied' : ''}" @click="${this._copyLink}" aria-label="${t('share.copyLinkLabel')}">
-            ${this._copiedLink ? t('share.linkCopied') : t('share.copyLink')}
-          </button>
         </div>
 
         ${!hasNativeImageShare ? html`
@@ -456,6 +438,7 @@ export class ShareModal extends LitElement {
           <div style="width:100%; font-family:var(--font-mono); font-size:9px; color:var(--dim); letter-spacing:0.18em; text-transform:uppercase; padding-bottom:4px;">
             ${t('share.networksLabel')}
           </div>
+
           <button class="btn-share twitter" ?disabled="${!isReady}" @click="${this._twitter}" aria-label="${t('share.twitterLabel')}">
             ${t('share.twitter')}
           </button>
