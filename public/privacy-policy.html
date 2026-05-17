@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Política de Privacidad - Bracket Mundial</title>
+  
+  <!-- Google Fonts matching the app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Paleta Panini retro */
+      --paper:         #ecdfc0;
+      --paper-2:       #e6d6b1;
+      --paper-3:       #fff9ec;
+      --ink:           #1a1933;
+      --retro-orange:  #e8541f;
+      --retro-red:     #c41e2c;
+      --retro-green:   #1f6b3a;
+      --retro-blue:    #22418c;
+      --retro-yellow:  #f0b021;
+      --dim:           #7a6f54;
+
+      /* Sombras duras offset */
+      --shadow-hard-md: 4px 4px 0 0 var(--ink);
+      --shadow-hard-lg: 6px 6px 0 0 var(--ink);
+
+      --font-head: 'Archivo Black', 'Bowlby One', Impact, sans-serif;
+      --font-body: 'Archivo', system-ui, sans-serif;
+
+      /* Halftone texture background */
+      --halftone: radial-gradient(circle, rgba(26,25,51,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+      --paper-texture:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3C/g%3E%3C/svg%3E"),
+        var(--halftone),
+        repeating-linear-gradient(45deg, rgba(26,25,51,0.02) 0 2px, transparent 2px 32px);
+    }
+
+    /* Soporte automático para Tema Oscuro */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper:         #1a1933;
+        --paper-2:       #231d3e;
+        --paper-3:       #2e2750;
+        --ink:           #ecdfc0;
+        --retro-orange:  #f0713d;
+        --retro-red:     #e83345;
+        --retro-green:   #2d9c56;
+        --retro-blue:    #4570d4;
+        --retro-yellow:  #f5c040;
+        --dim:           #8a8070;
+
+        --halftone: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+        --paper-texture:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.2'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
+          var(--halftone),
+          repeating-linear-gradient(45deg, rgba(236,223,192,0.02) 0 2px, transparent 2px 32px);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      background-image: var(--paper-texture);
+      background-size: 240px 240px, 6px 6px, auto;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    /* Contenedor tipo cromo / álbum Panini */
+    .container {
+      background-color: var(--paper-3);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    /* Sello decorativo retro */
+    .badge-stamp {
+      background-color: var(--retro-orange);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      position: absolute;
+      top: -15px;
+      right: 20px;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transform: rotate(2deg);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pestañas de idioma */
+    .lang-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background-color: var(--paper-2);
+      border: 2px solid var(--ink);
+      color: var(--ink);
+      padding: 8px 16px;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transition: all 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--retro-yellow);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+
+    /* Encabezados */
+    h1 {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      line-height: 1.1;
+      margin-bottom: 25px;
+      color: var(--ink);
+      text-transform: uppercase;
+      border-bottom: 6px double var(--ink);
+      padding-bottom: 15px;
+    }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      color: var(--retro-blue);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Soporte dark mode para color de subtítulo */
+    @media (prefers-color-scheme: dark) {
+      h2 {
+        color: var(--retro-yellow);
+      }
+    }
+
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: var(--retro-red);
+      border: 2px solid var(--ink);
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      text-align: justify;
+    }
+
+    ul {
+      margin-bottom: 20px;
+      padding-left: 20px;
+      list-style-type: square;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background-color: rgba(240, 176, 33, 0.15);
+      border-left: 4px solid var(--retro-yellow);
+      padding: 10px 15px;
+      margin: 20px 0;
+    }
+
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 3px dashed var(--ink);
+      font-size: 0.9rem;
+      color: var(--dim);
+      text-align: center;
+    }
+
+    /* Botón Volver */
+    .back-button {
+      background-color: var(--retro-green);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      padding: 12px 24px;
+      font-family: var(--font-head);
+      font-size: 1rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: var(--shadow-hard-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--ink);
+    }
+
+    .back-button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+
+    /* Secciones de idioma */
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón Volver a la App -->
+  <a href="/" class="back-button">
+    ← Volver a la App / Back to App
+  </a>
+
+  <div class="container">
+    <div class="badge-stamp">🔒 100% Segura</div>
+    
+    <!-- Pestañas para alternar idioma -->
+    <div class="lang-tabs">
+      <button class="tab-btn active" onclick="switchLanguage('es')">Español</button>
+      <button class="tab-btn" onclick="switchLanguage('en')">English</button>
+    </div>
+
+    <!-- SECCIÓN EN ESPAÑOL -->
+    <div id="lang-es" class="lang-section active">
+      <h1>Política de Privacidad</h1>
+      <p><strong>Última actualización:</strong> 18 de mayo de 2026</p>
+      
+      <p>Esta Política de Privacidad describe cómo se maneja la información en la aplicación móvil <strong>Bracket Mundial</strong> (en adelante, "la Aplicación").</p>
+
+      <div class="highlight">
+        <strong>Resumen Ejecutivo:</strong> Diseñamos esta aplicación pensando en la absoluta privacidad. <strong>No recopilamos, no almacenamos y no transmitimos ningún dato personal.</strong> Toda tu información se queda exclusivamente en tu dispositivo.
+      </div>
+
+      <h2>1. Recopilación de Información</h2>
+      <p>La Aplicación está desarrollada bajo la filosofía de "cero registro" y protección total de datos:</p>
+      <ul>
+        <li><strong>Datos Personales:</strong> La Aplicación no recopila, no almacena ni solicita ningún tipo de dato personal identificable (como tu nombre, correo electrónico, número de teléfono, ubicación o identificadores únicos del dispositivo).</li>
+        <li><strong>Datos de Uso y Comportamiento:</strong> No utilizamos herramientas de análisis de comportamiento (como Google Analytics, Mixpanel, Firebase Analytics, etc.) para rastrear lo que haces dentro de la aplicación.</li>
+      </ul>
+
+      <h2>2. Almacenamiento Local de Datos</h2>
+      <p>Para poder recordar tus pronósticos, selecciones del bracket y configuraciones preferidas, la Aplicación utiliza el almacenamiento local de tu propio dispositivo web (a través de `localStorage` y la persistencia cliente del estado de Zustand):</p>
+      <ul>
+        <li>Toda configuración y pronóstico se guarda localmente en tu terminal.</li>
+        <li><strong>Sin sincronización externa:</strong> Estos datos nunca se envían a servidores externos de nuestra propiedad ni de terceros.</li>
+        <li><strong>Control absoluto:</strong> Puedes borrar todos tus pronósticos y datos de la app en cualquier momento simplemente limpiando los datos de navegación de la app o desinstalándola.</li>
+      </ul>
+
+      <h2>3. Servicios de Terceros</h2>
+      <p>La Aplicación se aloja y distribuye mediante plataformas estáticas web seguras y tiendas oficiales:</p>
+      <ul>
+        <li><strong>Hosting (Vercel):</strong> La app se sirve como un sitio estático a través de Vercel. Vercel puede recopilar registros de servidor estándar (como direcciones IP del navegador y tiempos de petición) únicamente con fines de operación técnica y seguridad, sin asociarlos a perfiles de usuario.</li>
+        <li><strong>Sin anuncios ni rastreadores:</strong> No integramos redes publicitarias de terceros (como AdMob) ni SDKs de rastreo que puedan perfilar tus intereses.</li>
+      </ul>
+
+      <h2>4. Privacidad Infantil</h2>
+      <p>La Aplicación es apta para todo público (PEGI 3 / ESRB Everyone) y es plenamente segura para niños. Dado que no recopilamos ningún tipo de información personal, cumplimos de forma estricta con las normativas internacionales de protección de la privacidad infantil en línea (como la ley COPPA en EE.UU. y el RGPD en Europa).</p>
+
+      <h2>5. Cambios a esta Política de Privacidad</h2>
+      <p>Podemos actualizar esta política en un futuro para reflejar mejoras en la aplicación. Sin embargo, nuestro compromiso fundamental de no recolectar datos de usuario permanecerá inalterable. Cualquier modificación se publicará en esta misma dirección web.</p>
+
+      <h2>6. Contacto</h2>
+      <p>Si tienes cualquier duda o comentario sobre esta política de privacidad, puedes ponerte en contacto directamente con el desarrollador:</p>
+      <p style="font-weight: bold; font-family: var(--font-head); font-size: 1.1rem; color: var(--retro-orange);">
+        📧 jesusprodriguez@gmail.com
+      </p>
+
+      <div class="footer-note">
+        Bracket Mundial 2026 • Creado con amor por el fútbol y la privacidad.
+      </div>
+    </div>
+
+    <!-- SECCIÓN EN INGLÉS -->
+    <div id="lang-en" class="lang-section">
+      <h1>Privacy Policy</h1>
+      <p><strong>Last Updated:</strong> May 18, 2026</p>
+      
+      <p>This Privacy Policy describes how information is handled in the <strong>Bracket Mundial</strong> mobile application (hereinafter referred to as "the Application").</p>
+
+      <div class="highlight">
+        <strong>Executive Summary:</strong> We designed this application with absolute privacy in mind. <strong>We do not collect, store, or transmit any personal data.</strong> All your information remains exclusively on your device.
+      </div>
+
+      <h2>1. Information Collection</h2>
+      <p>The Application is developed under a "zero registration" and total data protection philosophy:</p>
+      <ul>
+        <li><strong>Personal Data:</strong> The Application does not collect, store, or request any type of personally identifiable information (such as your name, email, phone number, location, or unique device identifiers).</li>
+        <li><strong>Usage and Behavior Data:</strong> We do not use behavioral analytics tools (such as Google Analytics, Mixpanel, Firebase Analytics, etc.) to track your actions inside the application.</li>
+      </ul>
+
+      <h2>2. Local Data Storage</h2>
+      <p>To remember your tournament predictions, bracket choices, and user settings, the Application uses your device's local web storage (via `localStorage` and client-side Zustand state persistence):</p>
+      <ul>
+        <li>All settings and predictions are stored locally on your own device.</li>
+        <li><strong>No External Syncing:</strong> This data is never sent to external servers owned by us or any third parties.</li>
+        <li><strong>Absolute Control:</strong> You can wipe all your predictions and app data at any time simply by clearing your app data or uninstalling the app.</li>
+      </ul>
+
+      <h2>3. Third-Party Services</h2>
+      <p>The Application is hosted and distributed through secure static web platforms and official app stores:</p>
+      <ul>
+        <li><strong>Hosting (Vercel):</strong> The app is served as a static site via Vercel. Vercel may collect standard server logs (such as browser IP addresses and request timestamps) solely for technical operation and security, without linking them to user profiles.</li>
+        <li><strong>No Ads or Trackers:</strong> We do not integrate third-party ad networks (like AdMob) or tracking SDKs that profile your interests.</li>
+      </ul>
+
+      <h2>4. Children's Privacy</h2>
+      <p>The Application is suitable for all audiences (PEGI 3 / ESRB Everyone) and is completely safe for children. Since we do not collect any personal information, we strictly comply with international children's online privacy protection regulations (such as COPPA in the US and GDPR in Europe).</p>
+
+      <h2>5. Changes to this Privacy Policy</h2>
+      <p>We may update this policy in the future to reflect improvements in the application. However, our core commitment to not collecting user data will remain unchanged. Any modifications will be posted directly on this web page.</p>
+
+      <h2>6. Contact</h2>
+      <p>If you have any questions or feedback regarding this privacy policy, please contact the developer directly at:</p>
+      <p style="font-weight: bold; font-family: var(--font-head); font-size: 1.1rem; color: var(--retro-orange);">
+        📧 jesusprodriguez@gmail.com
+      </p>
+
+      <div class="footer-note">
+        Bracket Mundial 2026 • Created with passion for football and privacy.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchLanguage(lang) {
+      // Alternar clases activas en los botones de pestañas
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(lang === 'es' ? 'español' : 'english')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Alternar secciones visibles
+      const sections = document.querySelectorAll('.lang-section');
+      sections.forEach(sec => {
+        if (sec.id === 'lang-' + lang) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Actualizar título de la página
+      document.title = lang === 'es' 
+        ? 'Política de Privacidad - Bracket Mundial' 
+        : 'Privacy Policy - Bracket Mundial';
+    }
+  </script>
+</body>
+</html>
