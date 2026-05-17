@@ -13,9 +13,14 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function normalize(str: string): string {
+  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+
 @customElement('coaches-view')
 export class CoachesView extends LitElement {
   @state() private selectedTeamId: string | null = null;
+  @state() private searchQuery = '';
 
   static styles = css`
     :host {
@@ -363,6 +368,37 @@ export class CoachesView extends LitElement {
       font-style: italic;
     }
 
+    /* ── Buscador ── */
+    .search-bar {
+      margin-bottom: 18px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      outline: none;
+      box-sizing: border-box;
+    }
+    .search-input:focus {
+      box-shadow: var(--shadow-hard-md);
+    }
+    .no-results {
+      padding: 20px;
+      border: 3px dashed var(--ink);
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--dim);
+      text-align: center;
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+    }
+
     @media (max-width: 768px) {
       .detail-title {
         font-size: 26px;
@@ -418,6 +454,19 @@ export class CoachesView extends LitElement {
     super.disconnectedCallback();
   }
 
+  private _teamMatchesQuery(teamId: string): boolean {
+    const q = normalize(this.searchQuery.trim());
+    if (q.length < 2) return true;
+    const team = TEAMS_2026.find(t => t.id === teamId);
+    if (!team) return false;
+    const coach = COACHES[teamId];
+    return (
+      normalize(team.name).includes(q) ||
+      normalize(team.shortName).includes(q) ||
+      (coach ? normalize(coach.name).includes(q) || normalize(coach.nationality).includes(q) : false)
+    );
+  }
+
   private selectTeam(id: string) {
     this.selectedTeamId = id;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -429,10 +478,31 @@ export class CoachesView extends LitElement {
 
   private renderGroupsList() {
     const groups = 'ABCDEFGHIJKL'.split('');
+    const q = this.searchQuery.trim();
+    const isFiltering = q.length >= 2;
+
+    const groupsWithMatch = isFiltering
+      ? groups.filter(group => TEAMS_2026.filter(t => t.group === group).some(t => this._teamMatchesQuery(t.id)))
+      : groups;
+
+    const showNoResults = isFiltering && groupsWithMatch.length === 0;
 
     return html`
+      <div class="search-bar">
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Buscar selección o entrenador…"
+          aria-label="Buscar selección o entrenador"
+          .value=${this.searchQuery}
+          @input=${(e: InputEvent) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
+        >
+      </div>
+
+      ${showNoResults ? html`<div class="no-results">SIN RESULTADOS · Prueba con otro nombre</div>` : ''}
+
       <div class="groups-stack">
-        ${groups.map(group => {
+        ${groupsWithMatch.map(group => {
           const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
           return html`
             <section class="group-block">
@@ -443,8 +513,12 @@ export class CoachesView extends LitElement {
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {
                   const coach = COACHES[team.id];
+                  const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
                   return html`
-                    <button class="coach-card-btn" @click=${() => this.selectTeam(team.id)}>
+                    <button
+                      class="coach-card-btn"
+                      style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
+                      @click=${() => this.selectTeam(team.id)}>
                       <div class="card-photo">
                         ${hasCoachPhoto(team.id)
                           ? html`<img src="${coachPhotoSrc(team.id)}" alt="${coach?.name ?? team.name}" loading="lazy">`
