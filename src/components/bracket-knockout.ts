@@ -67,120 +67,141 @@ export class BracketKnockout extends LitElement {
   @state() private _showTeamPicker = false;
 
   public static readonly styles = css`
-    :host { display: block; width: 100%; overflow: hidden; }
+    /* Host ocupa exactamente el espacio disponible bajo topbar + phase-tabs */
+    :host {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      overflow: hidden;
+    }
+    @media (min-width: 769px) {
+      :host {
+        height: calc(100dvh - 113px); /* topbar 61px + phase-tabs 52px */
+      }
+    }
 
     /* ── Acciones desktop (barra compacta sobre el poster) ── */
     .bracket-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding: 8px 12px;
-      border: 2.5px solid var(--ink);
+      margin-bottom: 6px;
+      padding: 5px 10px;
+      border: 2px solid var(--ink);
       background: var(--paper-3);
-      box-shadow: 3px 3px 0 0 var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      flex-shrink: 0;
     }
     .bracket-actions-label {
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: 8px;
       color: var(--dim);
       letter-spacing: 0.2em;
       text-transform: uppercase;
     }
-    .bracket-actions-btns { display: flex; gap: 10px; }
+    .bracket-actions-btns { display: flex; gap: 8px; }
 
-    /* ── Poster header V3 ── */
+    /* ── Poster header V3 (compacto) ── */
     .poster-header {
       text-align: center;
-      margin-bottom: 16px;
-      padding: 16px 20px;
-      border: 4px solid var(--ink);
+      margin-bottom: 6px;
+      padding: 6px 16px;
+      border: 3px solid var(--ink);
       background: var(--ink);
       color: var(--retro-yellow);
       position: relative;
-      box-shadow: 6px 6px 0 0 var(--retro-orange);
+      box-shadow: 4px 4px 0 0 var(--retro-orange);
+      flex-shrink: 0;
     }
     .poster-eyebrow {
       font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.35em;
+      font-size: 9px;
+      letter-spacing: 0.3em;
       color: var(--retro-yellow);
-      margin-bottom: 6px;
+      margin-bottom: 2px;
     }
     .poster-h1 {
       font-family: var(--font-var);
-      font-size: clamp(24px, 3vw, 40px);
+      font-size: clamp(14px, 1.8vw, 22px);
       margin: 0;
-      line-height: 0.95;
+      line-height: 1;
       color: var(--paper);
       letter-spacing: -0.02em;
     }
     .poster-h1 .gloria { color: var(--retro-orange); }
     .poster-corner {
       position: absolute;
-      top: 8px;
+      top: 6px;
       font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      color: rgba(236,223,192,0.55);
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      color: rgba(236,223,192,0.5);
     }
-    .poster-corner.left  { left: 12px; }
-    .poster-corner.right { right: 12px; }
+    .poster-corner.left  { left: 10px; }
+    .poster-corner.right { right: 10px; }
 
-    /* ── Scroll del bracket ── */
+    /* ── Scroll del bracket — ocupa el espacio restante ── */
     .bracket-scroll {
+      flex: 1;
+      min-height: 0;
       overflow-x: auto;
-      padding: 32px 0 40px;
+      overflow-y: hidden;
+      padding: 8px 0 10px;
       cursor: grab;
       user-select: none;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
+      scrollbar-width: none;
     }
+    .bracket-scroll::-webkit-scrollbar { display: none; }
     .bracket-scroll.is-dragging { cursor: grabbing; }
 
     .bracket-container {
       display: flex;
-      gap: 56px;
-      padding: 0 32px;
+      gap: 14px;
+      padding: 0 12px;
       min-width: fit-content;
       align-items: center;
       position: relative;
+      height: 100%;
     }
 
     .round-col {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 3px;
       justify-content: space-around;
-      min-width: 220px;
+      min-width: 148px;
       scroll-snap-align: start;
+      height: 100%;
     }
 
     /* Header coloreado con halftone + sombra doble V3 */
     .round-title {
-      padding: 6px 10px;
+      padding: 3px 7px;
       text-align: center;
       font-family: var(--font-var);
-      font-size: 14px;
-      letter-spacing: 0.1em;
-      border: 2px solid var(--ink);
-      box-shadow: 4px 4px 0 0 var(--retro-orange), 4px 4px 0 2px var(--ink);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      border: 1.5px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--retro-orange), 2px 2px 0 1px var(--ink);
       color: var(--paper);
       background-image: radial-gradient(circle, rgba(0,0,0,0.18) 1.2px, transparent 1.4px);
       background-size: 6px 6px;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
     }
     .round-title.is-final { color: var(--retro-yellow); }
 
     /* Match box */
     .match-box {
       background: var(--paper-2);
-      border: 2px solid var(--ink);
-      border-left-width: 6px;
+      border: 1.5px solid var(--ink);
+      border-left-width: 4px;
       box-shadow: var(--shadow-hard-sm);
       overflow: hidden;
       cursor: pointer;
@@ -192,7 +213,7 @@ export class BracketKnockout extends LitElement {
     @media (hover: hover) {
       .match-box:hover {
         transform: translate(-2px, -2px);
-        box-shadow: 4px 4px 0 0 var(--retro-orange), 4px 4px 0 2px var(--ink);
+        box-shadow: 3px 3px 0 0 var(--retro-orange), 3px 3px 0 1.5px var(--ink);
       }
     }
     .match-box:active {
@@ -200,52 +221,52 @@ export class BracketKnockout extends LitElement {
       box-shadow: 1px 1px 0 0 var(--ink);
     }
     .match-box.pulse {
-      box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-sm);
+      box-shadow: 0 0 0 3px var(--retro-yellow), var(--shadow-hard-sm);
     }
     .match-box.right-side {
-      border-left-width: 2px;
-      border-right-width: 6px;
+      border-left-width: 1.5px;
+      border-right-width: 4px;
     }
 
     .team-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 8px;
-      min-height: 42px;
+      padding: 3px 6px;
+      min-height: 30px;
     }
     .team-row.winner-row { color: var(--paper); }
     .team-row.loser-row  { opacity: 0.5; }
-    .team-separator { height: 2px; background: var(--ink); margin: 0 8px; }
+    .team-separator { height: 1px; background: var(--ink); margin: 0 5px; }
 
     .team-info {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       font-family: var(--font-body);
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       overflow: hidden;
     }
-    .team-flag { font-size: 14px; flex-shrink: 0; }
+    .team-flag { font-size: 11px; flex-shrink: 0; }
     .flag-img {
-      width: 20px;
-      height: 13px;
+      width: 17px;
+      height: 11px;
       object-fit: cover;
       border: 1px solid var(--ink);
       flex-shrink: 0;
     }
     .team-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .score { font-family: var(--font-var); font-size: 16px; flex-shrink: 0; }
-    .score.pending { color: var(--dim); opacity: 0.4; font-size: 13px; }
+    .score { font-family: var(--font-var); font-size: 13px; flex-shrink: 0; }
+    .score.pending { color: var(--dim); opacity: 0.4; font-size: 11px; }
 
     .match-note {
-      padding: 4px 8px;
+      padding: 2px 5px;
       border-top: 1px solid var(--ink);
       background: rgba(0,0,0,0.05);
       font-family: var(--font-mono);
-      font-size: 8px;
+      font-size: 7px;
       color: var(--dim);
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -254,11 +275,11 @@ export class BracketKnockout extends LitElement {
     /* Champion box — V3 double shadow + halftone overlay in template */
     .champion-box {
       background: var(--retro-yellow);
-      border: 4px solid var(--ink);
-      box-shadow: 6px 6px 0 0 var(--retro-orange), 6px 6px 0 4px var(--ink);
-      padding: 20px 16px;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 0 var(--retro-orange), 4px 4px 0 3px var(--ink);
+      padding: 8px 10px;
       text-align: center;
-      min-width: 220px;
+      min-width: 148px;
       position: relative;
       overflow: hidden;
     }
@@ -272,32 +293,32 @@ export class BracketKnockout extends LitElement {
     .champion-inner { position: relative; }
     .champion-title {
       font-family: var(--font-mono);
-      font-size: 9px;
+      font-size: 7px;
       color: var(--ink);
-      letter-spacing: 0.25em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
     .flag-img-champion {
-      width: 28px;
-      height: 18px;
+      width: 20px;
+      height: 13px;
       object-fit: cover;
-      border: 2px solid var(--ink);
-      margin-right: 6px;
+      border: 1.5px solid var(--ink);
+      margin-right: 4px;
       vertical-align: middle;
     }
-    .champion-team { font-family: var(--font-var); font-size: 22px; color: var(--ink); line-height: 1.1; }
-    .champion-team.tbd { opacity: 0.35; font-size: 18px; }
-    .champion-trophy { font-size: 36px; line-height: 1; margin-bottom: 6px; }
+    .champion-team { font-family: var(--font-var); font-size: 15px; color: var(--ink); line-height: 1.1; }
+    .champion-team.tbd { opacity: 0.35; font-size: 13px; }
+    .champion-trophy { font-size: 22px; line-height: 1; margin-bottom: 2px; }
 
     .third-place-title {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 8px;
       color: var(--dim);
-      letter-spacing: 0.2em;
+      letter-spacing: 0.18em;
       text-align: center;
-      margin-top: 18px;
-      margin-bottom: 6px;
+      margin-top: 8px;
+      margin-bottom: 3px;
       text-transform: uppercase;
     }
 
@@ -312,17 +333,17 @@ export class BracketKnockout extends LitElement {
     .ko-stepper {
       display: inline-flex;
       align-items: center;
-      border: 2px solid var(--ink);
+      border: 1.5px solid var(--ink);
       background: var(--paper-2);
-      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      box-shadow: 1px 1px 0 0 var(--retro-orange);
       flex-shrink: 0;
     }
     .ko-stepper button {
       all: unset;
       cursor: pointer;
-      padding: 1px 5px;
+      padding: 0px 4px;
       font-family: var(--font-var);
-      font-size: 13px;
+      font-size: 12px;
       color: var(--paper);
       background: var(--ink);
       line-height: 1.4;
@@ -330,9 +351,9 @@ export class BracketKnockout extends LitElement {
     .ko-stepper button:hover { background: var(--retro-red); }
     .ko-val {
       font-family: var(--font-var);
-      font-size: 16px;
-      padding: 1px 6px;
-      min-width: 18px;
+      font-size: 13px;
+      padding: 0 4px;
+      min-width: 14px;
       text-align: center;
       color: var(--ink);
     }
@@ -340,13 +361,13 @@ export class BracketKnockout extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      padding: 4px 6px;
+      gap: 4px;
+      padding: 2px 4px;
       border-top: 1px dashed var(--ink);
       background: var(--paper);
     }
-    .ko-pen-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; color: var(--dim); }
-    .ko-pen-sep   { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+    .ko-pen-label { font-family: var(--font-mono); font-size: 7px; letter-spacing: 0.1em; color: var(--dim); }
+    .ko-pen-sep   { font-family: var(--font-mono); font-size: 10px; color: var(--dim); }
 
     @media (prefers-reduced-motion: no-preference) {
       .match-box {

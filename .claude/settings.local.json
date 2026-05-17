@@ -80,7 +80,8 @@
       "WebFetch(domain:fifa-wc-bracket.com)",
       "Bash(mkdir -p extracted)",
       "Bash(tar -tzf webfetch-1779026018211-11oz6u.bin)",
-      "Bash(tar -xzf webfetch-1779026018211-11oz6u.bin -C extracted)"
+      "Bash(tar -xzf webfetch-1779026018211-11oz6u.bin -C extracted)",
+      "Bash(npx vite *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
