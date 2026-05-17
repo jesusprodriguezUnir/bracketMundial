@@ -148,6 +148,10 @@ export class BracketKnockout extends LitElement {
     .match-box.pulse {
       box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-sm);
     }
+    .match-box.right-side {
+      border-left-width: 2px;
+      border-right-width: 6px;
+    }
 
     /* Row de equipo dentro del match box */
     .team-row {
@@ -437,12 +441,20 @@ export class BracketKnockout extends LitElement {
       const d = getBox(dst);
       if (!s || !d) continue;
 
-      const midX = (s.right + d.left) / 2;
       const isPlayed = !!(km[src]?.isPlayed);
       const isChampPath = champion !== null && km[src]?.winnerId === champion;
       const opacity = isPlayed ? '1' : '0.3';
       const dash = isPlayed ? '' : ' stroke-dasharray="6 4"';
-      const pathD = `M ${s.right},${s.cy} H ${midX} V ${d.cy} H ${d.left}`;
+
+      const isRightToLeft = s.left > d.right;
+      let pathD = '';
+      if (isRightToLeft) {
+        const midX = (s.left + d.right) / 2;
+        pathD = `M ${s.left},${s.cy} H ${midX} V ${d.cy} H ${d.right}`;
+      } else {
+        const midX = (s.right + d.left) / 2;
+        pathD = `M ${s.right},${s.cy} H ${midX} V ${d.cy} H ${d.left}`;
+      }
 
       if (isChampPath) {
         champ += `<path d="${pathD}" stroke="var(--retro-yellow)" stroke-width="5" fill="none" stroke-linejoin="miter" opacity="1"/>`;
@@ -553,7 +565,7 @@ export class BracketKnockout extends LitElement {
     );
   }
 
-  private renderMatch(matchId: string, accentColor: string, idx = 0) {
+  private renderMatch(matchId: string, accentColor: string, idx = 0, isRightSide = false) {
     const m = useTournamentStore.getState().knockoutMatches[matchId];
     const tA = this.getTeam(m?.teamA ?? null);
     const tB = this.getTeam(m?.teamB ?? null);
@@ -599,8 +611,8 @@ export class BracketKnockout extends LitElement {
     return html`
       <div
         data-mid="${matchId}"
-        class="match-box ${this._pulseId === matchId ? 'pulse' : ''}"
-        style="--i:${idx}; border-left-color: ${accentColor};"
+        class="match-box ${this._pulseId === matchId ? 'pulse' : ''} ${isRightSide ? 'right-side' : ''}"
+        style="--i:${idx}; ${isRightSide ? `border-right-color: ${accentColor};` : `border-left-color: ${accentColor};`}"
         role="button"
         tabindex="0"
         aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}${decidedOnPenalties ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}` : ''}` : ', click para editar'}"
@@ -656,11 +668,14 @@ export class BracketKnockout extends LitElement {
     const championId = km['FIN-01']?.winnerId;
     const champion = this.getTeam(championId ?? null);
 
-    const r32Ids = ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08',
-                    'R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'];
-    const r16Ids = ['R16-01','R16-02','R16-03','R16-04','R16-05','R16-06','R16-07','R16-08'];
-    const qfIds  = ['QF-01','QF-02','QF-03','QF-04'];
-    const sfIds  = ['SF-01','SF-02'];
+    const r32LeftIds = ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08'];
+    const r32RightIds = ['R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'];
+    const r16LeftIds = ['R16-01','R16-02','R16-03','R16-04'];
+    const r16RightIds = ['R16-05','R16-06','R16-07','R16-08'];
+    const qfLeftIds  = ['QF-01','QF-02'];
+    const qfRightIds  = ['QF-03','QF-04'];
+    const sfLeftIds  = ['SF-01'];
+    const sfRightIds  = ['SF-02'];
 
     return html`
       <div class="bracket-actions">
@@ -682,7 +697,7 @@ export class BracketKnockout extends LitElement {
         display: flex; justify-content: space-between; align-items: center;
         border: 3px solid var(--ink);
       ">
-        <span style="color: var(--paper)">◀ 1/16 · OCTAVOS · CUARTOS · SEMIFINALES</span>
+        <span style="color: var(--paper)">◀ 1/16 · OCTAVOS · CUARTOS · SEMIS ▶</span>
         <span>★ DOM 19 JUL · METLIFE STADIUM ★</span>
         <span style="color: var(--retro-orange)">TOCA PARA PREDECIR</span>
       </div>
@@ -691,49 +706,50 @@ export class BracketKnockout extends LitElement {
         <div class="bracket-container">
           <svg class="connectors" aria-hidden="true"></svg>
 
-          <!-- Dieciséis avos -->
-          <div class="round-col" id="col-r32">
+          <!-- LEFT SIDE -->
+          <!-- Dieciséis avos Left -->
+          <div class="round-col" id="col-r32-left">
             <div class="round-title" style="background-color: ${ROUND_COLORS['col-r32']}">
-              <span>1/16 · DIECISÉIS AVOS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[16]</span>
-            </div>
-            ${r32Ids.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r32'], i))}
-          </div>
-
-          <!-- Octavos -->
-          <div class="round-col" id="col-r16">
-            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r16']}">
-              <span>OCTAVOS</span>
+              <span>1/16</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
-            ${r16Ids.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r16'], i))}
+            ${r32LeftIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r32'], i, false))}
           </div>
 
-          <!-- Cuartos -->
-          <div class="round-col" id="col-qf">
-            <div class="round-title" style="background-color: ${ROUND_COLORS['col-qf']}">
-              <span>CUARTOS</span>
+          <!-- Octavos Left -->
+          <div class="round-col" id="col-r16-left">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r16']}">
+              <span>OCTAVOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
-            ${qfIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-qf'], i))}
+            ${r16LeftIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r16'], i, false))}
           </div>
 
-          <!-- Semifinales -->
-          <div class="round-col" id="col-sf">
-            <div class="round-title" style="background-color: ${ROUND_COLORS['col-sf']}">
-              <span>SEMIFINALES</span>
+          <!-- Cuartos Left -->
+          <div class="round-col" id="col-qf-left">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-qf']}">
+              <span>CUARTOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
-            ${sfIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-sf'], i))}
+            ${qfLeftIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-qf'], i, false))}
           </div>
 
-          <!-- Final + Campeón + 3er puesto -->
+          <!-- Semifinales Left -->
+          <div class="round-col" id="col-sf-left">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-sf']}">
+              <span>SEMIS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+            </div>
+            ${sfLeftIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-sf'], i, false))}
+          </div>
+
+          <!-- CENTER: Final + Campeón + 3er puesto -->
           <div class="round-col" id="col-final">
             <div class="round-title is-final" style="background-color: ${ROUND_COLORS['col-final']}">
               <span>FINAL</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
-            ${this.renderMatch('FIN-01', ROUND_COLORS['col-final'], 0)}
+            ${this.renderMatch('FIN-01', ROUND_COLORS['col-final'], 0, false)}
 
             <div class="champion-box">
               <div class="champion-title">🏆 CAMPEÓN</div>
@@ -744,7 +760,44 @@ export class BracketKnockout extends LitElement {
             </div>
 
             <div class="third-place-title">TERCER PUESTO</div>
-            ${this.renderMatch('TP-01', ROUND_COLORS['col-sf'], 1)}
+            ${this.renderMatch('TP-01', ROUND_COLORS['col-sf'], 1, false)}
+          </div>
+
+          <!-- RIGHT SIDE -->
+          <!-- Semifinales Right -->
+          <div class="round-col" id="col-sf-right">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-sf']}">
+              <span>SEMIS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+            </div>
+            ${sfRightIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-sf'], i, true))}
+          </div>
+
+          <!-- Cuartos Right -->
+          <div class="round-col" id="col-qf-right">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-qf']}">
+              <span>CUARTOS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
+            </div>
+            ${qfRightIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-qf'], i, true))}
+          </div>
+
+          <!-- Octavos Right -->
+          <div class="round-col" id="col-r16-right">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r16']}">
+              <span>OCTAVOS</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
+            </div>
+            ${r16RightIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r16'], i, true))}
+          </div>
+
+          <!-- Dieciséis avos Right -->
+          <div class="round-col" id="col-r32-right">
+            <div class="round-title" style="background-color: ${ROUND_COLORS['col-r32']}">
+              <span>1/16</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
+            </div>
+            ${r32RightIds.map((id, i) => this.renderMatch(id, ROUND_COLORS['col-r32'], i, true))}
           </div>
         </div>
       </div>

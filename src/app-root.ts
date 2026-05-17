@@ -344,10 +344,8 @@ export class AppRoot extends LitElement {
   }
 
   private async _loadSharedBracketIfPresent() {
-    const { extractHashPayload, decodeBracket } = await import('./lib/bracket-codec');
-    const payload = extractHashPayload();
-    if (!payload) return;
-    const data = decodeBracket(payload);
+    const { readSharedBracketFromHash } = await import('./lib/bracket-codec');
+    const data = readSharedBracketFromHash();
     if (!data) return;
     const ok = window.confirm('¿Cargar el bracket compartido? Esto sobrescribirá tu predicción actual.');
     if (ok) {
