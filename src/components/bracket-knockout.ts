@@ -164,17 +164,15 @@ export class BracketKnockout extends LitElement {
       min-width: fit-content;
       align-items: center;
       position: relative;
-      height: 100%;
     }
 
     .round-col {
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      justify-content: space-around;
+      gap: 5px;
+      justify-content: flex-start;
       min-width: 148px;
       scroll-snap-align: start;
-      height: 100%;
     }
 
     /* Header coloreado con halftone + sombra doble V3 */
