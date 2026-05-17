@@ -212,6 +212,7 @@ ${matchRows}
               availability: 'https://schema.org/InStock',
               price: '0',
               priceCurrency: 'USD',
+              validFrom: '2024-01-01T00:00:00Z',
             },
           },
         })),
