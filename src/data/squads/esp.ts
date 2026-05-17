@@ -10,7 +10,7 @@ export const squad: Player[] = [
   { number: 14, name: 'Aymeric Laporte', position: 'DF', age: 32, club: 'Athletic Club' },
   { number: 5, name: 'Robin Le Normand', position: 'DF', age: 30, club: 'Atlético de Madrid' },
   { number: 4, name: 'Pau Cubarsí', position: 'DF', age: 19, club: 'FC Barcelona' },
-  { number: 24, name: 'Dani Vivian', position: 'DF', age: 26, club: 'Athletic Club' },
+  { number: 24, name: 'Marc Pubill', position: 'DF', age: 22, club: 'Atlético de Madrid' },
   { number: 22, name: 'Marc Cucurella', position: 'DF', age: 28, club: 'Chelsea' },
   { number: 3, name: 'Alejandro Grimaldo', position: 'DF', age: 31, club: 'Bayer Leverkusen' },
   { number: 16, name: 'Rodri Hernández', position: 'MF', age: 30, club: 'Manchester City', captain: true },
@@ -32,5 +32,5 @@ export const squad: Player[] = [
 
 export const lineup = {
   formation: '4-3-3',
-  startingXI: [1, 2, 5, 14, 22, 16, 15, 8, 7, 9, 11]
+  startingXI: [1, 12, 24, 4, 22, 16, 15, 8, 11, 9, 7]
 };

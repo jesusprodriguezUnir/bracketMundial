@@ -69,7 +69,7 @@ export const en: Record<TranslationKey, string> = {
   'groups.group': 'GROUP {letter}',
   'groups.played': '{n}/6 PLAYED',
   'groups.edit': 'EDIT',
-  'groups.badgePlayed': 'PLAYED',
+  'groups.badgePlayed': 'PREDICTED',
   'groups.badgeNext': 'UPCOMING',
   'groups.statGD': 'GD',
   'groups.statPTS': 'PTS',

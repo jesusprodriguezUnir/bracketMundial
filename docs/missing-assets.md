@@ -2,7 +2,7 @@
 
 > Generado el 17/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 119 fotos faltantes en 27 equipos (1053/1172 cubiertos)  
+**Jugadores:** 129 fotos faltantes en 27 equipos (1043/1172 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,7 +12,7 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| JOR | 23 | 10 | ❌ 13 | ✅ |
+| JOR | 23 | 0 | ❌ 23 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
 | CUW | 22 | 12 | ❌ 10 | ✅ |
 | EGY | 23 | 16 | ❌ 7 | ✅ |
@@ -61,19 +61,29 @@
 | URU | 23 | 23 | ✅ 0 | ✅ |
 | USA | 24 | 24 | ✅ 0 | ✅ |
 
-### JOR — faltan 13 fotos
+### JOR — faltan 23 fotos
 
+- `#1` Yazeed Abulaila
 - `#2` Ehsan Haddad
+- `#3` Abdallah Nasib
+- `#4` Yazan Al-Arab
 - `#5` Mohannad Abu Taha
+- `#6` Nizar Al-Rashdan
+- `#7` Yazan Al-Naimat
+- `#8` Noor Al-Rawabdeh
 - `#9` Hamza Al-Dardour
 - `#10` Mousa Al-Taamari
+- `#11` Anas Al-Awadat
 - `#12` Abdullah Al-Fakhouri
 - `#13` Salem Al-Ajalin
 - `#14` Bara Marei
 - `#15` Abu Jalboush Nour Al-Rawabdeh
+- `#16` Mahmoud Al-Mardi
 - `#17` Ibrahim Sadeh
+- `#18` Ali Olwan
 - `#19` Mahmoud Ereimat
 - `#20` Baha Faisal
+- `#21` Mohammad Abu Zrayq
 - `#22` Sharara
 - `#23` Ahmed Abdel Sattar
 

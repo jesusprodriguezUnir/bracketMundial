@@ -1,0 +1,33 @@
+name: Update Live Scores
+
+on:
+  schedule:
+    # Se ejecuta en el minuto 0 de cada hora (ej. 14:00, 15:00, etc.)
+    - cron: '0 * * * *'
+  # Permite ejecutarlo manualmente desde la pestaña Actions en GitHub
+  workflow_dispatch: 
+
+jobs:
+  update-scores:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Instalar dependencias
+        run: npm ci
+        
+      - name: Ejecutar script de actualización
+        env:
+          # Estas variables deben configurarse en los Settings del repositorio de GitHub
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run scores:update

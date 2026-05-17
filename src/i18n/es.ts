@@ -72,7 +72,7 @@ export const es = {
   'groups.group': 'GRUPO {letter}',
   'groups.played': '{n}/6 JUGADOS',
   'groups.edit': 'EDITAR',
-  'groups.badgePlayed': 'JUGADO',
+  'groups.badgePlayed': 'PRONÓSTICO',
   'groups.badgeNext': 'PRÓXIMO',
   'groups.statGD': 'DG',
   'groups.statPTS': 'PTS',
