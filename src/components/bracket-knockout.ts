@@ -129,6 +129,9 @@ export class BracketKnockout extends LitElement {
       overflow: hidden;
       cursor: pointer;
       transition: transform 0.1s, box-shadow 0.1s;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
     @media (hover: hover) {
       .match-box:hover {

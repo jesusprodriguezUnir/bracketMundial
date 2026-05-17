@@ -47,7 +47,13 @@ export function isMatchPending(date: string, timeSpain: string): boolean {
   if (!date) return true;
   try {
     const kickoff = new Date(`${date}T${timeSpain || '00:00'}:00+02:00`);
-    return kickoff.getTime() > Date.now();
+    const time = kickoff.getTime();
+    if (isNaN(time)) {
+      // Fallback for older Safari that might fail ISO parsing
+      const today = new Date().toISOString().split('T')[0];
+      return date >= today;
+    }
+    return time > Date.now();
   } catch {
     return true;
   }

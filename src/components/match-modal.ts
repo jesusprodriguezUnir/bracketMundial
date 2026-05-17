@@ -67,16 +67,67 @@ export class MatchModal extends LitElement {
 
   private _unsubscribeLocale?: () => void;
 
+  private _startY = 0;
+  private _currentY = 0;
+  private _isDragging = false;
+
+  private readonly _handleTouchStart = (e: TouchEvent) => {
+    if (this.scrollTop > 0) return;
+    this._startY = e.touches[0].clientY;
+    this._currentY = this._startY;
+    this._isDragging = true;
+    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+    if (modal) modal.style.transition = 'none';
+  };
+
+  private readonly _handleTouchMove = (e: TouchEvent) => {
+    if (!this._isDragging) return;
+    this._currentY = e.touches[0].clientY;
+    const deltaY = this._currentY - this._startY;
+    if (deltaY > 0) {
+      // Evitar scroll nativo al deslizar hacia abajo
+      if (e.cancelable) e.preventDefault();
+      const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+      if (modal) modal.style.transform = `translateY(${deltaY}px)`;
+    } else {
+      this._isDragging = false;
+    }
+  };
+
+  private readonly _handleTouchEnd = () => {
+    if (!this._isDragging) return;
+    this._isDragging = false;
+    const deltaY = this._currentY - this._startY;
+    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+    if (modal) {
+      modal.style.transition = 'transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1)';
+      if (deltaY > 120) {
+        modal.style.transform = `translateY(100vh)`;
+        setTimeout(() => this.close(), 200);
+      } else {
+        modal.style.transform = '';
+      }
+    }
+  };
+
   override connectedCallback() {
     super.connectedCallback();
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
+    this.addEventListener('touchstart', this._handleTouchStart, { passive: false });
+    this.addEventListener('touchmove', this._handleTouchMove, { passive: false });
+    this.addEventListener('touchend', this._handleTouchEnd);
+    this.addEventListener('touchcancel', this._handleTouchEnd);
     this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   override disconnectedCallback() {
     document.removeEventListener('keydown', this._handleKeydown);
     this.removeEventListener('click', this._handleHostClick);
+    this.removeEventListener('touchstart', this._handleTouchStart);
+    this.removeEventListener('touchmove', this._handleTouchMove);
+    this.removeEventListener('touchend', this._handleTouchEnd);
+    this.removeEventListener('touchcancel', this._handleTouchEnd);
     this._unsubscribeLocale?.();
     super.disconnectedCallback();
   }
@@ -488,7 +539,7 @@ export class MatchModal extends LitElement {
 
     @media (max-width: 768px) {
       :host {
-        align-items: flex-start;
+        align-items: center;
         padding: 10px;
       }
       .modal {
@@ -496,26 +547,41 @@ export class MatchModal extends LitElement {
       }
       .ticket-header {
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
+        padding: 10px 12px;
       }
       .ticket-info {
         white-space: normal;
+        font-size: 10px;
       }
       .showdown {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        margin: 10px;
-        padding: 16px;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 8px;
+        margin: 8px;
+        padding: 12px 8px;
+        border-width: 3px;
       }
-      .sticker-side-left,
-      .sticker-side-right {
-        justify-content: center;
+      .sticker {
+        min-width: 0;
+        padding: 6px;
+        border-width: 2px;
+        box-shadow: 2px 2px 0 0 var(--ink);
       }
-      .sticker.left,
-      .sticker.right {
-        transform: none;
+      .sticker-flag { font-size: 32px; }
+      .flag-img-big {
+        width: 44px;
+        height: 30px;
+        border-width: 2px;
+        box-shadow: 1px 1px 0 0 var(--ink);
       }
-      .score-big { font-size: 60px; }
+      .sticker-name {
+        font-size: 10px;
+        margin-top: 4px;
+        letter-spacing: 0;
+      }
+      .score-big { font-size: 44px; gap: 8px; }
+      .score-sep { font-size: 24px; }
+      .score-tbd { font-size: 24px; }
       .editor-section { padding: 12px 10px 12px; }
       .editor-row,
       .penalties-row {
