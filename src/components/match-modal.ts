@@ -6,6 +6,7 @@ import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
 import { retroButton } from '../styles/retro-button';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
+import { showToast, lightTap, mediumTap } from '../lib/interaction';
 
 
 @customElement('match-modal')
@@ -47,6 +48,7 @@ export class MatchModal extends LitElement {
   }
 
   override firstUpdated() {
+    this._addDragListeners();
     const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
     addBtn?.focus();
   }
@@ -79,44 +81,56 @@ export class MatchModal extends LitElement {
 
   private _startY = 0;
   private _currentY = 0;
+  private _startTime = 0;
   private _isDragging = false;
+  private _dragEl: HTMLElement | null = null;
 
   private readonly _handleTouchStart = (e: TouchEvent) => {
-    if (this.scrollTop > 0) return;
+    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+    if (!modal || modal.scrollTop > 5) return;
+    this._dragEl = modal;
     this._startY = e.touches[0].clientY;
     this._currentY = this._startY;
+    this._startTime = Date.now();
     this._isDragging = true;
-    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-    if (modal) modal.style.transition = 'none';
+    this._dragEl.style.transition = 'none';
   };
 
   private readonly _handleTouchMove = (e: TouchEvent) => {
-    if (!this._isDragging) return;
+    if (!this._isDragging || !this._dragEl) return;
     this._currentY = e.touches[0].clientY;
     const deltaY = this._currentY - this._startY;
     if (deltaY > 0) {
-      // Evitar scroll nativo al deslizar hacia abajo
       if (e.cancelable) e.preventDefault();
-      const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-      if (modal) modal.style.transform = `translateY(${deltaY}px)`;
+      this._dragEl.style.transform = `translateY(${deltaY}px)`;
+      const progress = Math.min(deltaY / 200, 1);
+      this.style.background = `rgba(26,25,51,${0.65 * (1 - progress)})`;
     } else {
       this._isDragging = false;
     }
   };
 
   private readonly _handleTouchEnd = () => {
-    if (!this._isDragging) return;
+    if (!this._isDragging || !this._dragEl) return;
     this._isDragging = false;
     const deltaY = this._currentY - this._startY;
-    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-    if (modal) {
-      modal.style.transition = 'transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1)';
-      if (deltaY > 120) {
-        modal.style.transform = `translateY(100vh)`;
-        setTimeout(() => this.close(), 200);
-      } else {
-        modal.style.transform = '';
-      }
+    const velocity = deltaY / Math.max(Date.now() - this._startTime, 1);
+    const modal = this._dragEl;
+    this._dragEl = null;
+
+    modal.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+
+    if (deltaY > 100 || velocity > 0.5) {
+      modal.style.transform = `translateY(110vh)`;
+      this.style.background = 'rgba(26,25,51,0)';
+      this.style.transition = 'background 0.25s ease';
+      setTimeout(() => this.close(), 250);
+    } else {
+      modal.style.transform = '';
+      this.style.background = '';
+      modal.addEventListener('transitionend', () => {
+        modal.style.transition = '';
+      }, { once: true });
     }
   };
 
@@ -124,22 +138,33 @@ export class MatchModal extends LitElement {
     super.connectedCallback();
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
-    this.addEventListener('touchstart', this._handleTouchStart, { passive: false });
-    this.addEventListener('touchmove', this._handleTouchMove, { passive: false });
-    this.addEventListener('touchend', this._handleTouchEnd);
-    this.addEventListener('touchcancel', this._handleTouchEnd);
     this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
   override disconnectedCallback() {
     document.removeEventListener('keydown', this._handleKeydown);
     this.removeEventListener('click', this._handleHostClick);
-    this.removeEventListener('touchstart', this._handleTouchStart);
-    this.removeEventListener('touchmove', this._handleTouchMove);
-    this.removeEventListener('touchend', this._handleTouchEnd);
-    this.removeEventListener('touchcancel', this._handleTouchEnd);
+    this._removeDragListeners();
     this._unsubscribeLocale?.();
     super.disconnectedCallback();
+  }
+
+  private _addDragListeners() {
+    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+    if (!modal) return;
+    modal.addEventListener('touchstart', this._handleTouchStart, { passive: false });
+    modal.addEventListener('touchmove', this._handleTouchMove, { passive: false });
+    modal.addEventListener('touchend', this._handleTouchEnd);
+    modal.addEventListener('touchcancel', this._handleTouchEnd);
+  }
+
+  private _removeDragListeners() {
+    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+    if (!modal) return;
+    modal.removeEventListener('touchstart', this._handleTouchStart);
+    modal.removeEventListener('touchmove', this._handleTouchMove);
+    modal.removeEventListener('touchend', this._handleTouchEnd);
+    modal.removeEventListener('touchcancel', this._handleTouchEnd);
   }
 
   private close() {
@@ -162,9 +187,12 @@ export class MatchModal extends LitElement {
       bubbles: true,
       composed: true,
     }));
+    showToast(t('modal.cleared'));
+    lightTap();
   }
 
   private adjustScore(team: 'A' | 'B', delta: number) {
+    lightTap();
     const nextScoreA = team === 'A'
       ? Math.max(0, (this._scoreA ?? 0) + delta)
       : (this._scoreA ?? 0);
@@ -179,9 +207,12 @@ export class MatchModal extends LitElement {
       this._penaltyScoreA = null;
       this._penaltyScoreB = null;
     }
+
+    this._popScoreElement(team);
   }
 
   private adjustPenalty(team: 'A' | 'B', delta: number) {
+    lightTap();
     const nextPenaltyA = team === 'A'
       ? Math.max(0, (this._penaltyScoreA ?? 0) + delta)
       : (this._penaltyScoreA ?? 0);
@@ -191,6 +222,24 @@ export class MatchModal extends LitElement {
 
     this._penaltyScoreA = nextPenaltyA;
     this._penaltyScoreB = nextPenaltyB;
+
+    this._popScoreElement(team, true);
+  }
+
+  private _popScoreElement(team: 'A' | 'B', penalty = false) {
+    this.updateComplete.then(() => {
+      const sel = penalty ? '.penalties-block' : '.editor-row';
+      const row = this.shadowRoot?.querySelector(sel);
+      const displays = row?.querySelectorAll<HTMLElement>('.score-display');
+      if (!displays) return;
+      const el = team === 'A' ? displays[0] : displays[1];
+      if (!el) return;
+      el.classList.remove('pop');
+      requestAnimationFrame(() => {
+        el.classList.add('pop');
+        el.addEventListener('animationend', () => el.classList.remove('pop'), { once: true });
+      });
+    });
   }
 
   private save() {
@@ -210,10 +259,13 @@ export class MatchModal extends LitElement {
       },
       bubbles: true, composed: true,
     }));
+    showToast(t('modal.saved'));
+    mediumTap();
+    requestAnimationFrame(() => this.close());
   }
 
   static readonly styles = [retroButton, css`
-    /* Backdrop ink semitransparente */
+    /* ─── Backdrop ─── */
     :host {
       position: fixed;
       inset: 0;
@@ -224,9 +276,14 @@ export class MatchModal extends LitElement {
       background: rgba(26, 25, 51, 0.75);
       padding: 20px;
       overflow: auto;
+      animation: mmFadeIn 0.2s ease both;
+    }
+    @keyframes mmFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
 
-    /* Panel modal — grande, Panini retro */
+    /* ─── Modal panel ─── */
     .modal {
       background: var(--paper);
       border: 4px solid var(--ink);
@@ -237,6 +294,18 @@ export class MatchModal extends LitElement {
       flex-direction: column;
       overflow: hidden;
       max-height: calc(100dvh - 40px);
+    }
+
+    /* ─── Drag handle (mobile) ─── */
+    .drag-handle {
+      display: none;
+      width: 40px;
+      height: 5px;
+      background: var(--dim);
+      opacity: 0.45;
+      border-radius: 0;
+      margin: 8px auto 4px;
+      flex-shrink: 0;
     }
 
     /* ─── Ticket header ─── */
@@ -294,10 +363,12 @@ export class MatchModal extends LitElement {
       border: 2px solid var(--paper);
       color: var(--paper);
       font-family: var(--font-var);
-      font-size: 16px;
+      font-size: 20px;
       line-height: 1;
       width: 44px;
       height: 44px;
+      min-width: 44px;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -511,6 +582,14 @@ export class MatchModal extends LitElement {
       align-self: center;
       color: var(--ink);
     }
+    .score-display.pop {
+      animation: scorePop 0.15s ease both;
+    }
+    @keyframes scorePop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
 
     .vs-sep {
       font-family: var(--font-var);
@@ -604,11 +683,25 @@ export class MatchModal extends LitElement {
 
     @media (max-width: 768px) {
       :host {
-        align-items: center;
-        padding: 10px;
+        align-items: flex-end;
+        padding: 0;
+        background: rgba(26, 25, 51, 0.65);
+        animation: mmFadeIn 0.22s ease both;
+      }
+      @keyframes mmSlideUp {
+        from { transform: translateY(100%); }
+        to   { transform: translateY(0); }
       }
       .modal {
-        max-height: calc(100dvh - 20px);
+        max-height: calc(90dvh);
+        max-width: 100%;
+        border-width: 3px;
+        border-bottom: none;
+        animation: mmSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+        will-change: transform;
+      }
+      .drag-handle {
+        display: block;
       }
       .ticket-header {
         flex-wrap: wrap;
@@ -619,12 +712,21 @@ export class MatchModal extends LitElement {
         white-space: normal;
         font-size: 10px;
       }
+      .ticket-close {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 22px;
+      }
       .showdown {
         grid-template-columns: 1fr;
-        gap: 8px;
-        margin: 8px;
-        padding: 12px 8px;
+        gap: 6px;
+        margin: 0;
+        padding: 14px 10px;
         border-width: 3px;
+        border-left: none;
+        border-right: none;
       }
       .sticker-side-left,
       .sticker-side-right {
@@ -636,54 +738,93 @@ export class MatchModal extends LitElement {
       }
       .sticker {
         min-width: 0;
-        padding: 6px;
+        padding: 8px 10px;
         border-width: 2px;
         box-shadow: 2px 2px 0 0 var(--ink);
       }
       .sticker-flag { font-size: 32px; }
       .flag-img-big {
-        width: 44px;
-        height: 30px;
+        width: 56px;
+        height: 37px;
         border-width: 2px;
         box-shadow: 1px 1px 0 0 var(--ink);
       }
       .sticker-name {
-        font-size: 10px;
+        font-size: 11px;
         margin-top: 4px;
         letter-spacing: 0;
       }
-      .score-big { font-size: 44px; gap: 8px; }
-      .score-sep { font-size: 24px; }
+      .score-big { font-size: 48px; gap: 8px; }
+      .score-sep { font-size: 26px; }
       .score-tbd { font-size: 24px; }
-      .editor-section { padding: 12px 10px 12px; }
+      .score-final-badge { font-size: 9px; padding: 3px 8px; }
+      .editor-section {
+        padding: 14px 10px 12px;
+        border-top-width: 2px;
+      }
+      .editor-label {
+        margin-bottom: 8px;
+      }
       .editor-row,
       .penalties-row {
         gap: 10px;
       }
       .score-input {
-        flex: 1 1 90px;
+        flex: 1 1 0;
+        min-width: 0;
         justify-content: space-between;
       }
       .score-input button {
-        padding: 6px 10px;
-        min-width: 38px;
-        min-height: 40px;
-        font-size: 16px;
+        padding: 6px 14px;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 18px;
       }
       .score-display {
         font-size: 22px;
-        padding: 4px 10px;
+        padding: 4px 12px;
+        min-width: 28px;
+      }
+      .vs-sep {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .penalties-block {
+        padding-top: 10px;
+        margin-top: 10px;
+        gap: 8px;
+      }
+      .penalties-badge {
+        font-size: 9px;
+        padding: 4px 8px;
+        flex-shrink: 0;
       }
       .modal-footer {
-        padding: 0 10px calc(12px + env(safe-area-inset-bottom));
-        flex-direction: column-reverse;
         position: sticky;
         bottom: 0;
+        padding: 0 10px calc(16px + env(safe-area-inset-bottom));
+        flex-direction: column-reverse;
+        gap: 8px;
+        z-index: 1;
       }
-      .modal-footer .btn,
-      .limpiar-btn {
+      .modal-footer .btn {
         width: 100%;
+        min-height: 52px;
+        font-size: 15px;
+      }
+      .modal-footer .btn.btn-primary {
+        order: -1;
+      }
+      .limpiar-btn {
+        width: auto;
+        min-width: 60px;
+        min-height: 48px;
         margin-left: 0;
+        font-size: 11px;
+        padding: 4px 12px;
+      }
+      .odds-block {
+        padding: 10px 10px 0;
       }
     }
   `];
@@ -724,6 +865,7 @@ export class MatchModal extends LitElement {
 
     return html`
       <div class="modal" @click="${(e: MouseEvent) => e.stopPropagation()}">
+        <div class="drag-handle"></div>
 
         <!-- Ticket header -->
         <div class="ticket-header">

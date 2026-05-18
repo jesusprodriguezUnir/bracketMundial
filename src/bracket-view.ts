@@ -136,14 +136,17 @@ export class BracketView extends LitElement {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      padding: 4px 6px;
-      min-width: 48px;
-      min-height: 44px;
-      border-radius: 0;
-      transition: opacity 0.1s;
+      gap: 4px;
+      flex: 1;
+      padding: 8px 4px;
+      min-width: 0;
+      color: var(--paper);
+      font-family: var(--font-var);
+      font-size: 10px;
       position: relative;
+      transition: color 0.15s;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .bottom-nav-btn:active {
       opacity: 0.7;

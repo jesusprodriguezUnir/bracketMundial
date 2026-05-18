@@ -5,6 +5,7 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
+import { onToast, type ToastEventDetail } from './lib/interaction';
 import { useAuthStore } from './store/auth-store';
 import { isSupabaseConfigured } from './lib/supabase-client';
 import { isAdmin, saveOfficialResults } from './lib/official-results';
@@ -17,6 +18,9 @@ export class AppRoot extends LitElement {
   private unsubscribeAuth?: () => void;
   private _authEmail: string | null = null;
   @state() private _isOffline = !navigator.onLine;
+  @state() private _toastMessage = '';
+  private _toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private _unsubscribeToast?: () => void;
 
   static styles = css`
     :host {
@@ -341,6 +345,17 @@ export class AppRoot extends LitElement {
     });
     this._authEmail = useAuthStore.getState().email;
     this._loadSharedBracketIfPresent();
+    this._unsubscribeToast = onToast(this._onToast.bind(this));
+  }
+
+  override firstUpdated() {
+    const splash = document.getElementById('app-splash');
+    if (splash) {
+      requestAnimationFrame(() => {
+        splash.classList.add('fade-out');
+        splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+      });
+    }
   }
 
   private async _loadSharedBracketIfPresent() {
@@ -360,11 +375,28 @@ export class AppRoot extends LitElement {
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
     this.unsubscribeAuth?.();
+    this._unsubscribeToast?.();
     super.disconnectedCallback();
   }
 
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
+
+  private _onToast(e: CustomEvent<ToastEventDetail>) {
+    this._toastMessage = e.detail.message;
+    requestAnimationFrame(() => {
+      const el = this.shadowRoot?.querySelector('.toast-bar');
+      el?.classList.add('show');
+    });
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      const el = this.shadowRoot?.querySelector('.toast-bar');
+      el?.classList.remove('show');
+      this._toastTimer = setTimeout(() => {
+        this._toastMessage = '';
+      }, 300);
+    }, e.detail.duration ?? 2200);
+  }
 
   private get _isDark() {
     return document.documentElement.dataset.theme === 'dark';
@@ -534,6 +566,8 @@ export class AppRoot extends LitElement {
 
           <span class="footer-copy">© BRACKET MUNDIAL 2026</span>
         </footer>
+
+        ${this._toastMessage ? html`<div class="toast-bar">${this._toastMessage}</div>` : ''}
       </div>
     `;
   }

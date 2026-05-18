@@ -62,6 +62,8 @@ export const en: Record<TranslationKey, string> = {
   'modal.addGoal': 'Add goal {team}',
   'modal.subtractPen': 'Subtract penalty {team}',
   'modal.addPen': 'Add penalty {team}',
+  'modal.saved': 'Score saved!',
+  'modal.cleared': 'Score cleared',
   'modal.timeLabel': 'ESP',
   'modal.stadium': 'Stadium',
 

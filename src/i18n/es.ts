@@ -64,6 +64,8 @@ export const es = {
   'modal.addGoal': 'Añadir gol {team}',
   'modal.subtractPen': 'Restar penalti {team}',
   'modal.addPen': 'Añadir penalti {team}',
+  'modal.saved': '¡Marcador guardado!',
+  'modal.cleared': 'Marcador borrado',
   'modal.timeLabel': 'ESP',
   'modal.stadium': 'Estadio',
 

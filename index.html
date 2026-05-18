@@ -11,6 +11,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-startup-image" href="/apple-launch.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#1a1933" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -153,48 +154,10 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div id="root">
-      <!-- SEO Pre-render: visible to crawlers, replaced by Lit app on mount -->
-      <div id="seo-landing" style="max-width:900px;margin:0 auto;padding:2rem 1rem;font-family:system-ui,sans-serif;color:#1a1933;">
-        <h1>Bracket Mundial 2026 — Simulador Interactivo de la Copa del Mundo FIFA</h1>
-        <p>Predice los resultados de los <strong>104 partidos</strong> del Mundial FIFA 2026 con nuestro simulador gratuito. Completa la fase de grupos, clasifica a las 48 selecciones y avanza por las eliminatorias hasta coronar a tu campeón. Guarda tu pronóstico y compártelo.</p>
-
-        <h2>Grupos del Mundial 2026 — Las 48 selecciones</h2>
-        <p>Los 12 grupos del FIFA World Cup 2026 según el sorteo oficial del 5 de diciembre de 2025 en Washington D.C. Fase de grupos: 11–27 de junio de 2026.</p>
-        <ul>
-          <li><strong>Grupo A:</strong> México, Sudáfrica, Corea del Sur, Chequia — Partido inaugural: México vs Sudáfrica (11 jun, Estadio Azteca)</li>
-          <li><strong>Grupo B:</strong> Canadá, Suiza, Qatar, Bosnia y Herzegovina</li>
-          <li><strong>Grupo C:</strong> Brasil, Marruecos, Haití, Escocia</li>
-          <li><strong>Grupo D:</strong> Estados Unidos, Paraguay, Australia, Turquía</li>
-          <li><strong>Grupo E:</strong> Alemania, Curazao, Costa de Marfil, Ecuador</li>
-          <li><strong>Grupo F:</strong> Países Bajos, Japón, Túnez, Suecia</li>
-          <li><strong>Grupo G:</strong> Bélgica, Egipto, Irán, Nueva Zelanda</li>
-          <li><strong>Grupo H:</strong> España, Cabo Verde, Arabia Saudita, Uruguay</li>
-          <li><strong>Grupo I:</strong> Francia, Senegal, Noruega, Iraq</li>
-          <li><strong>Grupo J:</strong> Argentina, Argelia, Austria, Jordania — «El grupo de la muerte»</li>
-          <li><strong>Grupo K:</strong> Portugal, Colombia, Uzbekistán, R.D. Congo</li>
-          <li><strong>Grupo L:</strong> Inglaterra, Croacia, Ghana, Panamá</li>
-        </ul>
-
-        <h2>Bracket de eliminatorias — De 32avos a la final</h2>
-        <p>Clasifican los 2 primeros de cada grupo más los 8 mejores terceros (32 equipos en total). El cuadro eliminatorio incluye treintaidosavos de final, dieciseisavos, octavos de final, cuartos de final, semifinales y la gran final el 19 de julio en el MetLife Stadium.</p>
-
-        <h2>Sedes y estadios del Mundial 2026</h2>
-        <p>16 estadios en 3 países anfitriones: <strong>Estados Unidos</strong> (MetLife Stadium, AT&amp;T Stadium, SoFi Stadium, Hard Rock Stadium, NRG Stadium, Lincoln Financial Field, Lumen Field, Levi's Stadium, Gillette Stadium, Mercedes-Benz Stadium, Philadelphia), <strong>México</strong> (Estadio Azteca, Estadio BBVA, Estadio Akron) y <strong>Canadá</strong> (BMO Field, BC Place).</p>
-
-        <h2>Calendario del Mundial 2026</h2>
-        <p>104 partidos del 11 de junio al 19 de julio de 2026. Fase de grupos (72 partidos): 11–27 junio. Fase eliminatoria (32 partidos): 28 junio–19 julio. Consulta nuestro simulador para ver todos los horarios y sedes.</p>
-
-        <h2>Plantillas y alineaciones de las 48 selecciones</h2>
-        <p>Consulta las convocatorias oficiales, formaciones tácticas y datos de los jugadores de cada una de las 48 selecciones clasificadas al Mundial 2026.</p>
-
-        <h2>Preguntas frecuentes sobre el Mundial 2026</h2>
-        <details><summary><strong>¿Cuántos equipos participan en el Mundial 2026?</strong></summary><p>48 selecciones nacionales participan en el FIFA World Cup 2026, distribuidas en 12 grupos de 4 equipos. Es la primera vez que el torneo se amplía de 32 a 48 equipos.</p></details>
-        <details><summary><strong>¿Cuándo empieza el Mundial 2026?</strong></summary><p>La Copa Mundial de la FIFA 2026 comienza el 11 de junio de 2026 con el partido inaugural México vs Sudáfrica en el Estadio Azteca. La final se juega el 19 de julio en el MetLife Stadium de Nueva Jersey.</p></details>
-        <details><summary><strong>¿Dónde se juega el Mundial 2026?</strong></summary><p>El Mundial 2026 se celebra en tres países: Estados Unidos (11 estadios), México (3 estadios) y Canadá (2 estadios). Es la primera Copa del Mundo con tres países anfitriones y 16 sedes.</p></details>
-        <details><summary><strong>¿Cómo funciona el bracket del Mundial 2026?</strong></summary><p>Clasifican los 2 primeros de cada grupo (24 equipos) más los 8 mejores terceros, para un total de 32 equipos en la fase eliminatoria. El bracket incluye treintaidosavos, dieciseisavos, octavos, cuartos, semifinales y la final.</p></details>
-        <details><summary><strong>¿Cómo usar el simulador?</strong></summary><p>Ingresa los marcadores de cada partido de la fase de grupos. La clasificación se calcula automáticamente. Luego simula las eliminatorias hasta la final y comparte tu pronóstico con amigos.</p></details>
-
-        <p><small>Datos basados en el sorteo oficial de la <a href="https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026">FIFA</a> (diciembre 2025). Este sitio no tiene afiliación oficial con la FIFA.</small></p>
+      <!-- App splash: visible until Lit renders, then fades out -->
+      <div id="app-splash" class="app-splash">
+        <div class="splash-emblem"><span>⚽</span></div>
+        <div class="splash-label">BRACKET MUNDIAL 2026</div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

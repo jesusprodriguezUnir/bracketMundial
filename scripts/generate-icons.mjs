@@ -59,6 +59,23 @@ const appleBuf = await iconWithBg(faviconSvg, 180);
 await sharp(appleBuf).toFile(join(publicDir, 'apple-touch-icon.png'));
 console.log('✓ apple-touch-icon.png');
 
+// iOS splash / launch image (1242×2688, iPhone 15 Pro Max portrait)
+// Centered emblem on brand background — used by apple-touch-startup-image
+const splashBg = await sharp({
+  create: { width: 1242, height: 2688, channels: 4, background: BG },
+}).png().toBuffer();
+
+const splashIcon = await sharp(faviconSvg)
+  .resize(320, 320, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .png()
+  .toBuffer();
+
+await sharp(splashBg)
+  .composite([{ input: splashIcon, gravity: 'centre' }])
+  .png()
+  .toFile(join(publicDir, 'apple-launch.png'));
+console.log('✓ apple-launch.png (1242×2688)');
+
 // OG image: SVG → PNG 1200×630
 const ogSvg = join(assetsDir, 'og-image.svg');
 try {

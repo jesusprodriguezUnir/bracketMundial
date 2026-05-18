@@ -170,4 +170,121 @@ h1, h2, h3 {
     50%  { box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-md); }
     100% { box-shadow: var(--shadow-hard-md); }
   }
+
+  @keyframes skeletonShimmer {
+    from { background-position: -300px 0; }
+    to   { background-position: calc(300px + 100%) 0; }
+  }
 }
+
+/* ─── Skeleton placeholders ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 0px,
+    var(--paper-3) 40px,
+    var(--paper-2) 80px
+  );
+  background-size: 300px 100%;
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.skeleton-card {
+  height: 72px;
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-hard-sm);
+  margin-bottom: 12px;
+}
+
+.skeleton-img {
+  background: var(--paper-2);
+  display: inline-flex;
+}
+
+/* ─── View loading placeholder ─── */
+.view-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 16px;
+  min-height: 200px;
+}
+
+/* ─── Full-screen branded splash (shown before Lit mounts) ─── */
+.app-splash {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size, 5px 5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: var(--font-var);
+  padding-top: env(safe-area-inset-top);
+}
+.app-splash.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.splash-emblem {
+  width: 80px;
+  height: 80px;
+  background: var(--ink);
+  border: 3px solid var(--retro-yellow);
+  box-shadow: 4px 4px 0 0 var(--retro-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.splash-emblem span {
+  font-size: 36px;
+}
+.splash-label {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+
+/* ─── Toast notifications ─── */
+.toast-bar {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--retro-yellow);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border: 2px solid var(--retro-yellow);
+  box-shadow: var(--shadow-hard-md);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast-bar.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+@media (max-width: 768px) {
+  .toast-bar {
+    bottom: 100px;
+    font-size: 11px;
+    padding: 10px 16px;
+  }
+}
+
