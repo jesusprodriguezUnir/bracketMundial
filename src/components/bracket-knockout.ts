@@ -68,6 +68,7 @@ export class BracketKnockout extends LitElement {
   @state() private _mobileStage = 0;
   @state() private _pathTeamId: string | null = null;
   @state() private _showTeamPicker = false;
+  @state() private _pickerSearch = '';
 
   public static readonly styles = css`
     /* Host ocupa exactamente el espacio disponible bajo topbar + phase-tabs */
@@ -496,6 +497,7 @@ export class BracketKnockout extends LitElement {
       gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
       padding: 10px 16px 12px;
       border-bottom: 2px solid var(--ink);
       background: var(--paper);
@@ -616,6 +618,70 @@ export class BracketKnockout extends LitElement {
       color: var(--dim);
       letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+
+    .mob-stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      flex-shrink: 0;
+    }
+    .mob-stepper button {
+      all: unset;
+      cursor: pointer;
+      padding: 2px 8px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.4;
+      min-width: 28px;
+      min-height: 28px;
+      text-align: center;
+      touch-action: manipulation;
+    }
+    .mob-stepper button:active { background: var(--retro-red); }
+    .mob-stepper-val {
+      font-family: var(--font-var);
+      font-size: 16px;
+      padding: 0 6px;
+      min-width: 22px;
+      text-align: center;
+      color: var(--ink);
+    }
+    .mob-pen-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-top: 1.5px dashed var(--ink);
+      background: var(--paper);
+    }
+    .mob-pen-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; color: var(--dim); }
+    .mob-pen-sep   { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+    .mob-match-venue {
+      padding: 5px 12px;
+      border-top: 1.5px solid var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.03);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mob-venue-img {
+      width: 20px;
+      height: 13px;
+      object-fit: cover;
+      border: 1px solid var(--ink);
+      flex-shrink: 0;
     }
 
     .mob-champion-card {
@@ -827,14 +893,6 @@ export class BracketKnockout extends LitElement {
       font-size: 11px;
       letter-spacing: 0.1em;
     }
-    .mob-picker-list {
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      -webkit-overflow-scrolling: touch;
-    }
     .mob-team-chip {
       all: unset;
       cursor: pointer;
@@ -857,6 +915,77 @@ export class BracketKnockout extends LitElement {
       color: var(--retro-yellow);
     }
     .mob-team-chip:active { opacity: 0.7; }
+
+    .mob-picker-search {
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .mob-picker-input {
+      flex: 1;
+      all: unset;
+      padding: 8px 12px;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 rgba(26,25,51,0.15);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink);
+      min-height: 44px;
+      box-sizing: border-box;
+    }
+    .mob-picker-input::placeholder {
+      color: var(--dim);
+      opacity: 0.6;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .mob-picker-clear {
+      all: unset;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+    .mob-picker-empty {
+      padding: 24px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.15em;
+    }
+    .mob-picker-group {
+      margin-bottom: 14px;
+    }
+    .mob-picker-group-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    .mob-picker-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .mob-picker-list {
+      overflow-y: auto;
+      padding: 12px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
   `;
 
   connectedCallback() {
@@ -1252,37 +1381,89 @@ export class BracketKnockout extends LitElement {
     const winA = m.winnerId !== null && m.winnerId === m.teamA;
     const winB = m.winnerId !== null && m.winnerId === m.teamB;
     const isPending = !m.isPlayed;
+    const canEdit = !!(m.teamA && m.teamB && isMatchPending(m.date ?? '', m.timeSpain ?? ''));
+    const isDraw = canEdit && m.scoreA !== null && m.scoreB !== null && m.scoreA === m.scoreB;
+    const penAVal = m.penaltyScoreA ?? 0;
+    const penBVal = m.penaltyScoreB ?? 0;
 
-    const row = (team: ReturnType<typeof this.getTeam>, score: number | null, isWin: boolean, isLose: boolean) => html`
-      <div
-        class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
-        style="${isWin ? `background: ${roundColor};` : ''}">
-        <div class="mob-team-info">
-          ${team?.flagUrl
-            ? html`<img src="${team.flagUrl}" alt="${team.name ?? ''}" class="flag-img">`
-            : html`<span class="flag">${(team as any)?.flag ?? '?'}</span>`
+    const renderFlagTag = (team: ReturnType<typeof this.getTeam>) => {
+      if (!team) return html`<span class="flag">?</span>`;
+      if (team.flagUrl) return html`<img src="${team.flagUrl}" alt="${team.name}" class="flag-img">`;
+      return html`<span class="flag">${(team as any).flag}</span>`;
+    };
+
+    const row = (team: ReturnType<typeof this.getTeam>, score: number | null, teamAB: 'A' | 'B', isWin: boolean, isLose: boolean) => {
+      const stepVal = teamAB === 'A' ? (m.scoreA ?? 0) : (m.scoreB ?? 0);
+      return html`
+        <div
+          class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
+          style="${isWin ? `background: ${roundColor};` : ''}">
+          <div class="mob-team-info">
+            ${renderFlagTag(team)}
+            <span class="code">${team?.shortName ?? 'TBD'}</span>
+            <span class="name">${team?.name ?? ''}</span>
+          </div>
+          ${canEdit
+            ? html`<div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
+                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, -1)}" aria-label="−">−</button>
+                <span class="mob-stepper-val">${stepVal}</span>
+                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, 1)}" aria-label="+">+</button>
+              </div>`
+            : html`<div class="mob-score ${isPending && score === null ? 'pending' : ''}">${m.isPlayed ? score : '—'}</div>`
           }
-          <span class="code">${team?.shortName ?? 'TBD'}</span>
-          <span class="name">${team?.name ?? ''}</span>
         </div>
-        <div class="mob-score ${isPending && score === null ? 'pending' : ''}">${m.isPlayed ? score : '—'}</div>
-      </div>
-    `;
+      `;
+    };
 
     const mobOdds = this._getOdds(matchId, m.teamA, m.teamB);
+    const venueName = (m as any).venue;
+    const cityName = (m as any).city;
+    const matchDate = (m as any).date;
+    const matchTime = (m as any).timeSpain;
+
     return html`
-      <div class="mob-match-card" @click="${() => this.openMatch(matchId)}">
-        ${row(tA, m.scoreA, winA, winB)}
-        ${row(tB, m.scoreB, winB, winA)}
-        ${m.penaltyScoreA !== null && m.penaltyScoreB !== null
+      <div class="mob-match-card" @click="${() => this.openMatch(matchId)}" role="button" tabindex="0"
+           @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
+        ${row(tA, m.scoreA, 'A', winA, winB)}
+        ${row(tB, m.scoreB, 'B', winB, winA)}
+        ${isDraw ? html`
+          <div class="mob-pen-row">
+            <span class="mob-pen-label">PEN</span>
+            <div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', -1)}">−</button>
+              <span class="mob-stepper-val">${penAVal}</span>
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', 1)}">+</button>
+            </div>
+            <span class="mob-pen-sep">·</span>
+            <div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', -1)}">−</button>
+              <span class="mob-stepper-val">${penBVal}</span>
+              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', 1)}">+</button>
+            </div>
+          </div>
+        ` : (m.penaltyScoreA !== null && m.penaltyScoreB !== null
           ? html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`
-          : ''
+          : '')
         }
         ${mobOdds && !m.isPlayed ? html`
-          <div class="ko-odds-bar" style="margin:2px 4px 3px;" title="Probabilidad 1X2">
+          <div class="ko-odds-bar" style="margin:2px 4px 3px;" title="Probabilidad 1X2${mobOdds.source === 'market' ? ` · ${mobOdds.bookmakers} casas` : ' · estimado'}">
             <div class="ko-odds-seg" style="width:${mobOdds.home}%;background:var(--retro-blue)"></div>
             <div class="ko-odds-seg" style="width:${mobOdds.draw}%;background:var(--dim)"></div>
             <div class="ko-odds-seg" style="width:${mobOdds.away}%;background:var(--retro-red)"></div>
+          </div>
+          <div class="ko-odds-figs" style="margin:0 6px 3px;">
+            <span class="odds-home">${mobOdds.home}%</span>
+            <span>${mobOdds.draw}%</span>
+            <span class="odds-away">${mobOdds.away}%</span>
+          </div>
+        ` : ''}
+        ${venueName ? html`
+          <div class="mob-match-venue">
+            ${(() => {
+              const st = STADIUMS.find(s => s.name === venueName);
+              return st ? html`<img src="${st.image}" class="mob-venue-img" alt="">` : '';
+            })()}
+            <span>${venueName} · ${cityName}${matchDate ? ` · ${matchDate}` : ''}${matchTime ? ` · ${matchTime} ESP` : ''}</span>
           </div>
         ` : ''}
       </div>
@@ -1497,11 +1678,11 @@ export class BracketKnockout extends LitElement {
                 <div style="position:relative;text-align:center;">
                   <div style="font-size:40px;line-height:1;margin-bottom:4px;">🏆</div>
                   <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.3em;font-weight:700;color:var(--ink);margin-bottom:8px;">★ CAMPEÓN MUNDIAL 26 ★</div>
-                  ${champion
-                    ? html`
-                      <div style="font-size:40px;line-height:1;margin-bottom:4px;">${(champion as any).flag}</div>
-                      <div style="font-family:var(--font-var);font-size:26px;color:var(--ink);">${champion.name.toUpperCase()}</div>
-                    `
+              ${champion
+                ? html`
+                  <div style="margin-bottom:6px;">${champion.flagUrl ? html`<img src="${champion.flagUrl}" alt="${champion.name}" style="width:48px;height:32px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);">` : html`<span style="font-size:40px">${(champion as any).flag}</span>`}</div>
+                  <div style="font-family:var(--font-var);font-size:26px;color:var(--ink);">${champion.name.toUpperCase()}</div>
+                `
                     : html`<div style="font-family:var(--font-var);font-size:18px;color:var(--ink);opacity:0.4;">POR DEFINIR</div>`
                   }
                 </div>
@@ -1536,8 +1717,8 @@ export class BracketKnockout extends LitElement {
           <div class="mob-hero-halftone"></div>
           <div class="hero-flag-box">
             ${team?.flagUrl
-              ? html`<img src="${team.flagUrl}" alt="${team.name}">`
-              : html`<span style="font-size:36px">${(team as any)?.flag ?? '?'}</span>`
+              ? html`<img src="${team.flagUrl}" alt="${team.name}" style="width:100%;height:100%;object-fit:cover;">`
+              : html`<span style="font-size:36px">?</span>`
             }
           </div>
           <div class="hero-info">
@@ -1573,7 +1754,7 @@ export class BracketKnockout extends LitElement {
                       <div class="mob-item-opponent">
                         ${opp?.flagUrl
                           ? html`<img src="${opp.flagUrl}" alt="${opp.name}" style="width:24px;height:16px;object-fit:cover;border:1px solid var(--ink);flex-shrink:0;">`
-                          : html`<span style="font-size:22px;flex-shrink:0;">${(opp as any)?.flag ?? '?'}</span>`
+                          : html`<span style="font-size:22px;flex-shrink:0;">?</span>`
                         }
                         <div>
                           <div style="font-family:var(--font-var);font-size:14px;line-height:1;">vs ${opp?.shortName ?? 'TBD'}</div>
@@ -1604,31 +1785,74 @@ export class BracketKnockout extends LitElement {
   private _renderTeamPicker() {
     const teams = this._getTeamsInBracket();
     const currentId = this._effectivePathTeamId();
+    const q = this._pickerSearch.trim().toLowerCase();
+    const filtered = q.length > 0
+      ? teams.filter(id => {
+          const t = this.getTeam(id);
+          return t && (t.name.toLowerCase().includes(q) || t.shortName.toLowerCase().includes(q) || id.toLowerCase().includes(q));
+        })
+      : teams;
+
+    const groups = 'ABCDEFGHIJKL'.split('');
+    const teamsByGroup = new Map<string, string[]>();
+    if (q.length > 0) {
+      teamsByGroup.set('RESULTS', filtered);
+    } else {
+      for (const group of groups) {
+        const groupTeams = filtered.filter(id => {
+          const t = this.getTeam(id);
+          return t?.group === group;
+        });
+        if (groupTeams.length > 0) teamsByGroup.set(group, groupTeams);
+      }
+    }
+
     return html`
       <div class="mob-picker-backdrop" @click="${(e: Event) => {
-        if (e.target === e.currentTarget) this._showTeamPicker = false;
+        if (e.target === e.currentTarget) { this._showTeamPicker = false; this._pickerSearch = ''; }
       }}">
         <div class="mob-picker-sheet">
           <div class="mob-picker-header">
             <span class="mob-picker-title">SELECCIONAR EQUIPO</span>
-            <button class="mob-picker-close" @click="${() => { this._showTeamPicker = false; }}">CERRAR</button>
+            <button class="mob-picker-close" @click="${() => { this._showTeamPicker = false; this._pickerSearch = ''; }}">CERRAR</button>
+          </div>
+          <div class="mob-picker-search">
+            <input
+              type="search"
+              class="mob-picker-input"
+              placeholder="Buscar equipo..."
+              .value="${this._pickerSearch}"
+              @input="${(e: InputEvent) => { this._pickerSearch = (e.target as HTMLInputElement).value; }}"
+            >
+            ${this._pickerSearch.length > 0 ? html`
+              <button class="mob-picker-clear" @click="${() => { this._pickerSearch = ''; }}">✕</button>
+            ` : ''}
           </div>
           <div class="mob-picker-list">
-            ${teams.map(id => {
-              const team = this.getTeam(id);
-              if (!team) return '';
-              return html`
-                <button
-                  class="mob-team-chip ${id === currentId ? 'selected' : ''}"
-                  @click="${() => { this._pathTeamId = id; this._showTeamPicker = false; }}">
-                  ${team.flagUrl
-                    ? html`<img src="${team.flagUrl}" alt="${team.name}" style="width:20px;height:13px;object-fit:cover;border:1px solid var(--ink);">`
-                    : html`<span>${(team as any).flag}</span>`
-                  }
-                  ${team.shortName}
-                </button>
-              `;
-            })}
+            ${q.length > 0 && filtered.length === 0 ? html`
+              <div class="mob-picker-empty">SIN RESULTADOS</div>
+            ` : [...teamsByGroup.entries()].map(([groupLabel, groupTeams]) => html`
+              <div class="mob-picker-group">
+                <div class="mob-picker-group-title">${q.length > 0 ? 'RESULTADOS' : `GRUPO ${groupLabel}`}</div>
+                <div class="mob-picker-chips">
+                  ${groupTeams.map(id => {
+                    const team = this.getTeam(id);
+                    if (!team) return '';
+                    return html`
+                      <button
+                        class="mob-team-chip ${id === currentId ? 'selected' : ''}"
+                        @click="${() => { this._pathTeamId = id; this._showTeamPicker = false; this._pickerSearch = ''; }}">
+                        ${team.flagUrl
+                          ? html`<img src="${team.flagUrl}" alt="${team.name}" style="width:20px;height:13px;object-fit:cover;border:1px solid var(--ink);">`
+                          : html`<span>?</span>`
+                        }
+                        ${team.shortName}
+                      </button>
+                    `;
+                  })}
+                </div>
+              </div>
+            `)}
           </div>
         </div>
       </div>

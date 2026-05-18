@@ -54,6 +54,9 @@ export class SquadsView extends LitElement {
   @state() private _newsKey: string | null = null;
 
   private unsubscribeStore?: () => void;
+  private _swipeStartX = 0;
+  private _swipeStartY = 0;
+  private _isSwiping = false;
 
   override updated(changedProps: PropertyValues) {
     if (changedProps.has('targetTeamId') && this.targetTeamId) {
@@ -135,11 +138,25 @@ export class SquadsView extends LitElement {
       cursor: pointer;
       display: grid;
       gap: 8px;
-      padding: 14px;
+      padding: 16px;
       border: 3px solid var(--ink);
       background: var(--paper);
       box-shadow: var(--shadow-hard-sm);
       min-height: 92px;
+      touch-action: manipulation;
+    }
+
+    .team-card:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+
+    .team-flag-img {
+      width: 48px;
+      height: 32px;
+      object-fit: cover;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
     }
 
     .team-card:hover {
@@ -499,6 +516,10 @@ export class SquadsView extends LitElement {
       background: var(--paper-2);
     }
 
+    .mob-player-cards {
+      display: none;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -758,16 +779,19 @@ export class SquadsView extends LitElement {
 
       .tabs {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
       }
+      .tabs::-webkit-scrollbar { display: none; }
 
       .tabs button {
-        flex: 1 1 calc(50% - 1px);
+        flex: 0 0 auto;
+        white-space: nowrap;
+        min-height: 44px;
         border-bottom: 3px solid var(--ink);
-      }
-
-      .tabs button:nth-child(odd):last-child {
-        flex: 1 1 100%;
+        padding: 12px 16px;
       }
 
       .coach-card {
@@ -775,14 +799,14 @@ export class SquadsView extends LitElement {
         align-items: flex-start;
       }
 
-      table {
-        min-width: 0;
-        width: 100%;
+      .table-wrap {
+        display: none;
       }
 
-      th:nth-child(3),
-      td:nth-child(3) {
-        display: none;
+      .mob-player-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
 
       .panel-header-row {
@@ -794,6 +818,100 @@ export class SquadsView extends LitElement {
         min-height: 44px;
         padding: 6px 14px;
         touch-action: manipulation;
+      }
+
+      .mob-player-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 2px solid var(--ink);
+        box-shadow: var(--shadow-hard-sm);
+        background: var(--paper-2);
+        cursor: pointer;
+        min-height: 56px;
+        transition: transform 0.1s, box-shadow 0.1s;
+        touch-action: manipulation;
+      }
+      .mob-player-card:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 0 var(--ink);
+      }
+      .mob-player-avatar {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 2px solid var(--ink);
+        background: var(--retro-blue);
+        color: var(--paper);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .mob-player-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+      }
+      .mob-player-info {
+        min-width: 0;
+        flex: 1;
+      }
+      .mob-player-primary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .mob-player-number {
+        font-family: var(--font-var);
+        font-size: 16px;
+        color: var(--retro-orange);
+        min-width: 24px;
+        text-align: center;
+      }
+      .mob-player-name {
+        font-family: var(--font-display);
+        font-size: 14px;
+        color: var(--ink);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .mob-player-secondary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-left: 32px;
+      }
+      .mob-player-pos-badge {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        padding: 1px 5px;
+        border: 1.5px solid var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+        letter-spacing: 0.06em;
+        flex-shrink: 0;
+      }
+      .mob-player-age {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--dim);
+      }
+      .mob-player-club {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--dim);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   `;
@@ -813,13 +931,56 @@ export class SquadsView extends LitElement {
         this._loadNewsForTeam(this.selectedTeamId, useLocaleStore.getState().locale);
       }
     });
+    this.addEventListener('touchstart', this._onSwipeStart, { passive: true });
+    this.addEventListener('touchmove', this._onSwipeMove, { passive: false });
+    this.addEventListener('touchend', this._onSwipeEnd, { passive: true });
   }
 
   disconnectedCallback() {
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
+    this.removeEventListener('touchstart', this._onSwipeStart);
+    this.removeEventListener('touchmove', this._onSwipeMove);
+    this.removeEventListener('touchend', this._onSwipeEnd);
     super.disconnectedCallback();
   }
+
+  private readonly _onSwipeStart = (e: TouchEvent) => {
+    if (!this.selectedTeamId) return;
+    this._swipeStartX = e.touches[0].clientX;
+    this._swipeStartY = e.touches[0].clientY;
+    this._isSwiping = false;
+  };
+
+  private readonly _onSwipeMove = (e: TouchEvent) => {
+    if (!this.selectedTeamId) return;
+    if (!this._isSwiping) {
+      const dx = Math.abs(e.touches[0].clientX - this._swipeStartX);
+      const dy = Math.abs(e.touches[0].clientY - this._swipeStartY);
+      if (dx > 20 && dx > dy * 1.5) {
+        this._isSwiping = true;
+      }
+      return;
+    }
+    if (e.cancelable) e.preventDefault();
+  };
+
+  private readonly _onSwipeEnd = (e: TouchEvent) => {
+    if (!this.selectedTeamId || !this._isSwiping) return;
+    this._isSwiping = false;
+    const dx = e.changedTouches[0].clientX - this._swipeStartX;
+    if (Math.abs(dx) < 60) return;
+
+    const currentTeam = TEAMS_2026.find(t => t.id === this.selectedTeamId);
+    if (!currentTeam) return;
+    const groupTeams = TEAMS_2026.filter(t => t.group === currentTeam.group);
+    const currentIdx = groupTeams.findIndex(t => t.id === this.selectedTeamId);
+    if (currentIdx === -1) return;
+
+    const nextIdx = dx < 0 ? currentIdx + 1 : currentIdx - 1;
+    if (nextIdx < 0 || nextIdx >= groupTeams.length) return;
+    this.selectTeam(groupTeams[nextIdx].id);
+  };
 
   private getTeam(teamId: string | null) {
     return TEAMS_2026.find(team => team.id === teamId);
@@ -904,7 +1065,12 @@ export class SquadsView extends LitElement {
       <section class="detail-panel">
         <div class="detail-header">
           <div>
-            <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
+            <div class="detail-title">
+              ${selectedTeam.flagUrl
+                ? html`<img src="${selectedTeam.flagUrl}" alt="${selectedTeam.name}" style="width:36px;height:24px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);flex-shrink:0;">`
+                : html`<span style="font-size:24px">${(selectedTeam as any).flag ?? '?'}</span>`
+              }
+              ${selectedTeam.name}</div>
             <div class="detail-sub">
               ${isOfficial ? html`<span class="official-badge">${t('squads.official')}</span>` : ''}
               Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${t('squads.matches.pending', { n: String(teamMatches.length) })}
@@ -987,6 +1153,32 @@ export class SquadsView extends LitElement {
                   `)}
                 </tbody>
               </table>
+            </div>
+            <div class="mob-player-cards">
+              ${squad.map(player => html`
+                <div
+                  class="mob-player-card"
+                  @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
+                >
+                  <div class="mob-player-avatar">
+                    ${hasPlayerPhoto(selectedTeam.id, player.number)
+                      ? html`<img src="${playerPhotoSrc(selectedTeam.id, player.number)}" alt="${player.name}" loading="lazy">`
+                      : getInitials(player.name)}
+                  </div>
+                  <div class="mob-player-info">
+                    <div class="mob-player-primary">
+                      <span class="mob-player-number">${player.number}</span>
+                      <span class="mob-player-name">${player.name}</span>
+                      ${player.captain ? html`<span class="captain">CAP</span>` : ''}
+                    </div>
+                    <div class="mob-player-secondary">
+                      <span class="mob-player-pos-badge">${player.position}</span>
+                      <span class="mob-player-age">${player.age} años</span>
+                      <span class="mob-player-club">${player.club}</span>
+                    </div>
+                  </div>
+                </div>
+              `)}
             </div>
             `}
           </div>
@@ -1156,7 +1348,10 @@ export class SquadsView extends LitElement {
                       class="team-card"
                       style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
                       @click=${() => this.selectTeam(team.id)}>
-                      ${renderFlag(team, 'md')}
+                      ${team.flagUrl
+                        ? html`<img src="${team.flagUrl}" alt="${team.name}" class="team-flag-img">`
+                        : html`<span style="font-size:32px">${(team as any).flag ?? '?'}</span>`
+                      }
                       <div class="team-name">${team.name}</div>
                       <div class="team-meta">
                         ${isOfficialSquad(team.id) 

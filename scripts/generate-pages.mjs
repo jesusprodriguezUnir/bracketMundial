@@ -15,6 +15,50 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 const TODAY = new Date().toISOString().slice(0, 10);
 
+function xmlEscape(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function normalizeAbsoluteUrl(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const u = new URL(raw);
+  u.hash = '';
+  u.search = '';
+  return u.toString();
+}
+
+function ensureCanonicalSitemapEntries(entries) {
+  const byLoc = new Map();
+  for (const entry of entries) {
+    const loc = normalizeAbsoluteUrl(entry.loc);
+    const altEs = normalizeAbsoluteUrl(entry.altEs);
+    const altEn = normalizeAbsoluteUrl(entry.altEn);
+
+    if (!loc.startsWith(`${SITE_URL}/`)) {
+      throw new Error(`Sitemap URL fuera de dominio canónico: ${loc}`);
+    }
+
+    if (!altEs.startsWith(`${SITE_URL}/`) || !altEn.startsWith(`${SITE_URL}/`)) {
+      throw new Error(`Hreflang fuera de dominio canónico en: ${loc}`);
+    }
+
+    byLoc.set(loc, {
+      ...entry,
+      loc,
+      altEs,
+      altEn,
+    });
+  }
+
+  return Array.from(byLoc.values()).sort((a, b) => a.loc.localeCompare(b.loc));
+}
+
 // Carpetas generadas (se limpian en cada build para evitar páginas huérfanas).
 const MANAGED_DIRS = ['grupos', 'calendario', 'estadios', 'plantillas', 'seleccion', 'en'];
 
@@ -73,25 +117,33 @@ function buildSitemap(pages) {
     });
   }
 
-  const urls = entries
+  const canonicalEntries = ensureCanonicalSitemapEntries(entries);
+
+  const urls = canonicalEntries
     .map(
       (e) => `  <url>
-    <loc>${e.loc}</loc>
+    <loc>${xmlEscape(e.loc)}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>${e.changefreq}</changefreq>
     <priority>${e.priority}</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="${e.altEs}" />
-    <xhtml:link rel="alternate" hreflang="en" href="${e.altEn}" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${e.altEs}" />
+    <xhtml:link rel="alternate" hreflang="es" href="${xmlEscape(e.altEs)}" />
+    <xhtml:link rel="alternate" hreflang="en" href="${xmlEscape(e.altEn)}" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${xmlEscape(e.altEs)}" />
   </url>`,
     )
     .join('\n');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls}
 </urlset>
 `;
+
+  if (!sitemap.includes('<urlset') || canonicalEntries.length === 0) {
+    throw new Error('Sitemap inválido: sin urlset o sin URLs canónicas.');
+  }
+
+  return sitemap;
 }
 
 async function main() {
