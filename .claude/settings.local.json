@@ -97,7 +97,8 @@
       "Bash(python -)",
       "Bash(python scripts/extract-panini-photos.py)",
       "Bash(node scripts/fetch-squad-assets.mjs --help)",
-      "Bash(Remove-Item -Recurse -Force \"d:\\\\Personal\\\\bracketMundial\\\\docs\\\\preview_test\")"
+      "Bash(Remove-Item -Recurse -Force \"d:\\\\Personal\\\\bracketMundial\\\\docs\\\\preview_test\")",
+      "Bash(python -c ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

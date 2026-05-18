@@ -392,6 +392,7 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'ECU-16',
   'ECU-17',
   'ECU-18',
+  'ECU-19',
   'ECU-2',
   'ECU-21',
   'ECU-22',

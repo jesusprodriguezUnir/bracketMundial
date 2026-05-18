@@ -134,6 +134,106 @@ MAPPINGS = {
         ((1, 0, 3), 3),      # Jhon Lucumí
         ((1, 1, 0), None),   # foto equipo
     ],
+    "CRO": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Dominik Livaković
+        ((0, 0, 3), None),   # Franjo Ivanović (no está en el squad)
+        ((0, 1, 0), None),   # Marco Pašalić Orlando City (no está en el squad)
+        ((0, 1, 1), 9),      # Ante Budimir
+        ((0, 1, 2), 7),      # Andrej Kramarić
+        ((0, 1, 3), 10),     # Luka Modrić
+        ((0, 2, 0), 8),      # Mateo Kovačić
+        ((0, 2, 1), 17),     # Martin Baturina
+        ((0, 2, 2), 19),     # Mario Pašalić
+        ((0, 2, 3), 20),     # Petar Sučić
+        ((0, 3, 0), 3),      # Ivan Perišić
+        ((0, 3, 1), 13),     # Kristijan Jakić
+        ((0, 3, 2), 5),      # Duje Ćaleta-Car
+        ((0, 3, 3), 2),      # Josip Stanišić
+        # Página 2
+        ((1, 0, 0), 25),     # Luka Vušković
+        ((1, 0, 1), 6),      # Josip Šutalo
+        ((1, 0, 2), 18),     # Lovro Majer
+        ((1, 0, 3), 4),      # Joško Gvardiol
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "ECU": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Hernán Galíndez
+        ((0, 0, 3), None),   # Gonzalo Valle (no está en el squad)
+        ((0, 1, 0), 9),      # Enner Valencia
+        ((0, 1, 1), 19),     # Kevin Rodríguez
+        ((0, 1, 2), 16),     # Alán Minda
+        ((0, 1, 3), None),   # Nilson Angulo (no está en el squad)
+        ((0, 2, 0), 10),     # Gonzalo Plata
+        ((0, 2, 1), None),   # Leonardo Campana (no está en el squad)
+        ((0, 2, 2), None),   # Pedro Vite (no está en el squad)
+        ((0, 2, 3), None),   # Kendry Páez (no está en el squad)
+        ((0, 3, 0), None),   # Alan Franco (no está en el squad)
+        ((0, 3, 1), 6),      # Moisés Caicedo
+        ((0, 3, 2), None),   # Joel Ordóñez (no está en el squad)
+        ((0, 3, 3), None),   # John Yeboah (no está en el squad)
+        # Página 2
+        ((1, 0, 0), 7),      # Pervis Estupiñán
+        ((1, 0, 1), None),   # Willian Pacho (no está en el squad)
+        ((1, 0, 2), 3),      # Piero Hincapié
+        ((1, 0, 3), 2),      # Ángelo Preciado
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "FRA": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 16),     # Mike Maignan
+        ((0, 0, 3), 9),      # Kylian Mbappé
+        ((0, 1, 0), None),   # Hugo Ekitiké (no está en el squad)
+        ((0, 1, 1), None),   # Kingsley Coman (no está en el squad)
+        ((0, 1, 2), 13),     # Désiré Doué
+        ((0, 1, 3), 11),     # Bradley Barcola
+        ((0, 2, 0), 7),      # Ousmane Dembélé
+        ((0, 2, 1), 17),     # Adrien Rabiot
+        ((0, 2, 2), 8),      # Manu Koné
+        ((0, 2, 3), 24),     # Eduardo Camavinga
+        ((0, 3, 0), 6),      # Aurélien Tchouaméni
+        ((0, 3, 1), 25),     # Michael Olise
+        ((0, 3, 2), None),   # Lucas Digne (no está en el squad)
+        ((0, 3, 3), 3),      # Dayot Upamecano
+        # Página 2
+        ((1, 0, 0), 12),     # Ibrahima Konaté
+        ((1, 0, 1), 5),      # Jules Koundé
+        ((1, 0, 2), 4),      # William Saliba
+        ((1, 0, 3), 19),     # Théo Hernández
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "NED": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Bart Verbruggen
+        ((0, 0, 3), 10),     # Memphis Depay
+        ((0, 1, 0), 20),     # Donyell Malen
+        ((0, 1, 1), 9),      # Wout Weghorst
+        ((0, 1, 2), 7),      # Justin Kluivert
+        ((0, 1, 3), 17),     # Xavi Simons
+        ((0, 2, 0), 8),      # Ryan Gravenberch
+        ((0, 2, 1), 16),     # Tijjani Reijnders
+        ((0, 2, 2), 6),      # Teun Koopmeiners
+        ((0, 2, 3), 21),     # Frenkie de Jong
+        ((0, 3, 0), 2),      # Denzel Dumfries
+        ((0, 3, 1), 25),     # Jan Paul van Hecke
+        ((0, 3, 2), 4),      # Virgil van Dijk
+        ((0, 3, 3), 15),     # Micky van de Ven
+        # Página 2
+        ((1, 0, 0), 22),     # Jeremie Frimpong
+        ((1, 0, 1), 12),     # Jurriën Timber
+        ((1, 0, 2), 5),      # Nathan Aké
+        ((1, 0, 3), 11),     # Cody Gakpo
+        ((1, 1, 0), None),   # foto equipo
+    ],
 }
 
 PDF_FILES = {
@@ -141,6 +241,10 @@ PDF_FILES = {
     "GER": "docs/ALEMANHA.pdf",
     "BRA": "docs/BRASIL.pdf",
     "COL": "docs/COLOMBIA.pdf",
+    "CRO": "docs/CROACIA.pdf",
+    "ECU": "docs/EQUADOR.pdf",
+    "FRA": "docs/FRANÇA.pdf",
+    "NED": "docs/HOLANDA.pdf",
 }
 
 
@@ -228,10 +332,10 @@ def process_team(team: str, verbose: bool = True):
 
 def main():
     total = 0
-    for team in ["ARG", "GER", "BRA", "COL"]:
+    for team in ["ARG", "GER", "BRA", "COL", "CRO", "ECU", "FRA", "NED"]:
         print(f"\n--- {team} ---")
         total += process_team(team)
-    print(f"\nTotal: {total} fotos extraídas y guardadas")
+    print(f"\nTotal: {total} fotos extraidas y guardadas")
 
 
 if __name__ == "__main__":
