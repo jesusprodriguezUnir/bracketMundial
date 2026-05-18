@@ -1,54 +1,130 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">Bracket Mundial 2026</title>
-  <desc id="desc">Predice, simula y comparte tu bracket del Mundial 2026.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="ogtitle ogdesc">
+  <title id="ogtitle">Bracket Mundial 2026</title>
+  <desc id="ogdesc">Predice, simula y comparte tu bracket del Mundial 2026.</desc>
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f4ebd5" />
-      <stop offset="100%" stop-color="#ecdfc0" />
-    </linearGradient>
-    <pattern id="grain" width="12" height="12" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#d5c19a" opacity="0.18" />
-      <circle cx="9" cy="6" r="1" fill="#bda37c" opacity="0.15" />
-      <circle cx="5" cy="10" r="1" fill="#c7ae85" opacity="0.14" />
+    <!-- Patrón de rayas para el cuerpo del escudo -->
+    <pattern id="og-cst" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="4" height="8" fill="#c41e2c" opacity="0.08"/>
     </pattern>
-    <filter id="hardShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="8" dy="8" stdDeviation="0" flood-color="#111111" flood-opacity="0.33" />
-    </filter>
+    <clipPath id="og-ccc">
+      <circle cx="100" cy="100" r="92"/>
+    </clipPath>
   </defs>
 
-  <rect width="1200" height="630" fill="url(#paper)" />
-  <rect width="1200" height="630" fill="url(#grain)" />
+  <!-- ── FONDO ── -->
+  <rect width="1200" height="630" fill="#1a1933"/>
 
-  <rect x="44" y="44" width="1112" height="542" fill="none" stroke="#111111" stroke-width="8" />
-  <rect x="60" y="60" width="1080" height="510" fill="none" stroke="#111111" stroke-width="2" />
+  <!-- Barras de acento retro (naranja) top/bottom -->
+  <rect x="0" y="0" width="1200" height="6" fill="#e8541f"/>
+  <rect x="0" y="624" width="1200" height="6" fill="#e8541f"/>
 
-  <rect x="82" y="82" width="420" height="84" fill="#ff7a00" stroke="#111111" stroke-width="6" filter="url(#hardShadow)" />
-  <text x="104" y="138" fill="#111111" font-family="'Bowlby One', 'Archivo Black', sans-serif" font-size="58" letter-spacing="1">BRACKET</text>
+  <!-- Marco interior crema -->
+  <rect x="24" y="22" width="1152" height="582" fill="none" stroke="#ecdfc0" stroke-width="1.5" opacity="0.22"/>
 
-  <rect x="82" y="188" width="700" height="96" fill="#e63b2e" stroke="#111111" stroke-width="6" filter="url(#hardShadow)" />
-  <text x="108" y="254" fill="#fdf7ea" font-family="'Bowlby One', 'Archivo Black', sans-serif" font-size="72" letter-spacing="1.5">MUNDIAL 2026</text>
+  <!-- Separador vertical entre texto y escudo -->
+  <line x1="720" y1="60" x2="720" y2="570" stroke="#ecdfc0" stroke-width="1" opacity="0.1"/>
 
-  <rect x="82" y="312" width="580" height="66" fill="#1a8f5a" stroke="#111111" stroke-width="5" filter="url(#hardShadow)" />
-  <text x="108" y="358" fill="#fdf7ea" font-family="'Archivo', 'Space Mono', sans-serif" font-size="38" font-weight="800" letter-spacing="0.6">PREDICE. SIMULA. COMPARTE.</text>
+  <!-- ── WORDMARK (zona izquierda) ── -->
 
-  <g transform="translate(846,132)" filter="url(#hardShadow)">
-    <path d="M106 24h56l-12 76h-32z" fill="#f6bf44" stroke="#111" stroke-width="5" />
-    <path d="M72 106h124l-10 90H82z" fill="#ffda66" stroke="#111" stroke-width="6" />
-    <rect x="42" y="198" width="184" height="34" fill="#e63b2e" stroke="#111" stroke-width="6" />
-    <rect x="22" y="236" width="224" height="38" fill="#3d9de8" stroke="#111" stroke-width="6" />
-    <path d="M72 106c-34 0-52-20-52-46 0-18 14-36 32-36 9 0 16 4 20 10 4-6 11-10 20-10 17 0 30 18 30 36 0 26-18 46-50 46z" fill="#f6bf44" stroke="#111" stroke-width="6" />
-    <path d="M196 106c34 0 52-20 52-46 0-18-14-36-32-36-9 0-16 4-20 10-4-6-11-10-20-10-17 0-30 18-30 36 0 26 18 46 50 46z" fill="#f6bf44" stroke="#111" stroke-width="6" />
-  </g>
+  <!-- Bloque naranja detrás de BRACKET (retro panini) -->
+  <rect x="72" y="146" width="540" height="98" fill="#e8541f"/>
+  <rect x="76" y="150" width="540" height="98" fill="#e8541f" opacity="0.3"/>
 
-  <g transform="translate(820,420)" filter="url(#hardShadow)">
-    <circle cx="140" cy="90" r="86" fill="#f7f2e6" stroke="#111" stroke-width="7" />
-    <polygon points="140,32 166,52 156,82 124,82 114,52" fill="#111" />
-    <polygon points="86,82 114,82 122,108 102,128 76,112" fill="#111" />
-    <polygon points="194,82 166,82 158,108 178,128 204,112" fill="#111" />
-    <path d="M58 140l26-18 22 12-4 30-28 10z" fill="#111" />
-    <path d="M222 140l-26-18-22 12 4 30 28 10z" fill="#111" />
-    <path d="M114 154h52l8 30-34 20-34-20z" fill="#111" />
-  </g>
+  <!-- BRACKET -->
+  <text x="88" y="226"
+        font-family="'Bowlby One',Impact,'Arial Black',sans-serif"
+        font-size="88" fill="#1a1933" letter-spacing="1">BRACKET</text>
 
-  <text x="84" y="522" fill="#111111" font-family="'Space Mono', 'Archivo', sans-serif" font-size="28" font-weight="700">bracketmundial.com</text>
+  <!-- ★ MUNDIAL · 2026 ★ -->
+  <text x="88" y="298"
+        font-family="'Bowlby One',Impact,'Arial Black',sans-serif"
+        font-size="44" fill="#f0b021" letter-spacing="3">&#9733; MUNDIAL &#xb7; 2026 &#9733;</text>
+
+  <!-- Línea divisoria naranja -->
+  <rect x="72" y="322" width="490" height="3" fill="#e8541f" opacity="0.7"/>
+
+  <!-- Tagline -->
+  <text x="76" y="384"
+        font-family="'Bowlby One',Impact,'Arial Black',sans-serif"
+        font-size="28" fill="#ecdfc0" letter-spacing="1.5" opacity="0.75">PREDICE &#xb7; SIMULA &#xb7; COMPARTE</text>
+
+  <!-- URL -->
+  <text x="78" y="566"
+        font-family="'Space Mono','Courier New',Courier,monospace"
+        font-size="22" fill="#f0b021" opacity="0.8" letter-spacing="0.5">bracketmundial.com</text>
+
+  <!-- ── ESCUDO (zona derecha, 440×440 centrado verticalmente) ── -->
+  <!-- viewBox 0 0 200 200 escalado a 440px, posicionado en x=738, y=95 -->
+  <svg x="738" y="95" width="440" height="440" viewBox="0 0 200 200">
+
+    <!-- Perforaciones (36 puntos crema en radio 96) -->
+    <circle cx="196.0" cy="100.0" r="4" fill="#fff9ec"/>
+    <circle cx="194.5" cy="116.7" r="4" fill="#fff9ec"/>
+    <circle cx="190.2" cy="132.8" r="4" fill="#fff9ec"/>
+    <circle cx="183.1" cy="148.0" r="4" fill="#fff9ec"/>
+    <circle cx="173.5" cy="161.7" r="4" fill="#fff9ec"/>
+    <circle cx="161.7" cy="173.5" r="4" fill="#fff9ec"/>
+    <circle cx="148.0" cy="183.1" r="4" fill="#fff9ec"/>
+    <circle cx="132.8" cy="190.2" r="4" fill="#fff9ec"/>
+    <circle cx="116.7" cy="194.5" r="4" fill="#fff9ec"/>
+    <circle cx="100.0" cy="196.0" r="4" fill="#fff9ec"/>
+    <circle cx="83.3"  cy="194.5" r="4" fill="#fff9ec"/>
+    <circle cx="67.2"  cy="190.2" r="4" fill="#fff9ec"/>
+    <circle cx="52.0"  cy="183.1" r="4" fill="#fff9ec"/>
+    <circle cx="38.3"  cy="173.5" r="4" fill="#fff9ec"/>
+    <circle cx="26.5"  cy="161.7" r="4" fill="#fff9ec"/>
+    <circle cx="16.9"  cy="148.0" r="4" fill="#fff9ec"/>
+    <circle cx="9.8"   cy="132.8" r="4" fill="#fff9ec"/>
+    <circle cx="5.5"   cy="116.7" r="4" fill="#fff9ec"/>
+    <circle cx="4.0"   cy="100.0" r="4" fill="#fff9ec"/>
+    <circle cx="5.5"   cy="83.3"  r="4" fill="#fff9ec"/>
+    <circle cx="9.8"   cy="67.2"  r="4" fill="#fff9ec"/>
+    <circle cx="16.9"  cy="52.0"  r="4" fill="#fff9ec"/>
+    <circle cx="26.5"  cy="38.3"  r="4" fill="#fff9ec"/>
+    <circle cx="38.3"  cy="26.5"  r="4" fill="#fff9ec"/>
+    <circle cx="52.0"  cy="16.9"  r="4" fill="#fff9ec"/>
+    <circle cx="67.2"  cy="9.8"   r="4" fill="#fff9ec"/>
+    <circle cx="83.3"  cy="5.5"   r="4" fill="#fff9ec"/>
+    <circle cx="100.0" cy="4.0"   r="4" fill="#fff9ec"/>
+    <circle cx="116.7" cy="5.5"   r="4" fill="#fff9ec"/>
+    <circle cx="132.8" cy="9.8"   r="4" fill="#fff9ec"/>
+    <circle cx="148.0" cy="16.9"  r="4" fill="#fff9ec"/>
+    <circle cx="161.7" cy="26.5"  r="4" fill="#fff9ec"/>
+    <circle cx="173.5" cy="38.3"  r="4" fill="#fff9ec"/>
+    <circle cx="183.1" cy="52.0"  r="4" fill="#fff9ec"/>
+    <circle cx="190.2" cy="67.2"  r="4" fill="#fff9ec"/>
+    <circle cx="194.5" cy="83.3"  r="4" fill="#fff9ec"/>
+
+    <!-- Cuerpo principal naranja -->
+    <circle cx="100" cy="100" r="92" fill="#e8541f" stroke="#1a1933" stroke-width="3"/>
+    <!-- Rayas diagonales -->
+    <rect x="8" y="8" width="184" height="184" fill="url(#og-cst)" clip-path="url(#og-ccc)"/>
+
+    <!-- Anillos interiores -->
+    <circle cx="100" cy="100" r="82" fill="none" stroke="#f0b021" stroke-width="1.5"/>
+    <circle cx="100" cy="100" r="78" fill="none" stroke="#1a1933" stroke-width="2.5"/>
+
+    <!-- Estrellas (6, amarillo) -->
+    <polygon points="100,31.5 101.06,34.54 104.28,34.61 101.71,36.56 102.65,39.64 100,37.8 97.36,39.64 98.29,36.56 95.72,34.61 98.94,34.54" fill="#f0b021"/>
+    <polygon points="56,59.5 57.06,62.54 60.28,62.61 57.71,64.56 58.65,67.64 56,65.8 53.36,67.64 54.29,64.56 51.72,62.61 54.94,62.54" fill="#f0b021"/>
+    <polygon points="144,59.5 145.06,62.54 148.28,62.61 145.71,64.56 146.65,67.64 144,65.8 141.36,67.64 142.29,64.56 139.72,62.61 142.94,62.54" fill="#f0b021"/>
+    <polygon points="56,127.5 57.06,130.54 60.28,130.61 57.71,132.56 58.65,135.64 56,133.8 53.36,135.64 54.29,132.56 51.72,130.61 54.94,130.54" fill="#f0b021"/>
+    <polygon points="144,127.5 145.06,130.54 148.28,130.61 145.71,132.56 146.65,135.64 144,133.8 141.36,135.64 142.29,132.56 139.72,130.61 142.94,130.54" fill="#f0b021"/>
+    <polygon points="100,155.5 101.06,158.54 104.28,158.61 101.71,160.56 102.65,163.64 100,161.8 97.36,163.64 98.29,160.56 95.72,158.61 98.94,158.54" fill="#f0b021"/>
+
+    <!-- Balón en (100, 96) r=36 -->
+    <circle cx="100" cy="96" r="36" fill="#fff9ec" stroke="#1a1933" stroke-width="2.2"/>
+    <polygon points="100,78 117,90 111,110 89,110 83,90" fill="#1a1933"/>
+    <line x1="100" y1="78" x2="100" y2="60" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="117" y1="90" x2="134" y2="84" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="111" y1="110" x2="122" y2="124" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="89"  y1="110" x2="78"  y2="124" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="83"  y1="90"  x2="66"  y2="84"  stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Cinta "MUNDIAL · 2026" -->
+    <g transform="translate(100 158)">
+      <path d="M-64,0 L-56,-10 L56,-10 L64,0 L56,10 L-56,10 Z" fill="#1a1933" stroke="#fff9ec" stroke-width="2"/>
+      <text x="0" y="4" text-anchor="middle" font-family="'Bowlby One',Impact,sans-serif" font-size="13" fill="#f0b021" letter-spacing="0.06em">MUNDIAL &#xb7; 2026</text>
+    </g>
+  </svg>
 </svg>
