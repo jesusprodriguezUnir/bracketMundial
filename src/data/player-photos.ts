@@ -720,6 +720,8 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'MEX-11',
   'MEX-12',
   'MEX-13',
+  'MEX-14',
+  'MEX-25',
   'MEX-15',
   'MEX-16',
   'MEX-18',
