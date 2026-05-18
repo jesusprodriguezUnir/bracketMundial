@@ -191,13 +191,13 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   CUW: {
-    name: 'Fred Rutten',
-    born: '1962-12-05',
+    name: 'Dick Advocaat',
+    born: '1947-09-27',
     nationality: 'Países Bajos',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Fredrutten.jpg',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Dick_Advocaat_2021.jpg',
     bio: {
-      es: 'Exdefensa del Twente con una dilatada carrera en los banquillos de la Eredivisie (PSV, Feyeynoord, Vitesse) y el Schalke 04. Tomó el mando de Curazao en 2026 para liderar su histórica primera participación mundialista.',
-      en: 'Former Twente defender with an extensive coaching career in the Eredivisie (PSV, Feyenoord, Vitesse) and Schalke 04. He took charge of Curaçao in 2026 to lead their historic first World Cup appearance.',
+      es: 'El veterano estratega neerlandés, el entrenador de mayor edad en la historia de la Copa del Mundo (78 años en 2026). Tras lograr la clasificación histórica de Curazao, regresó en mayo de 2026 para liderar el debut mundialista del equipo tras la dimisión de Fred Rutten.',
+      en: 'The veteran Dutch manager, the oldest head coach in World Cup history (78 years old in 2026). After securing Curaçao\'s historic World Cup qualification, he returned in May 2026 to lead the team\'s World Cup debut following Fred Rutten\'s resignation.',
     },
   },
   CIV: {
