@@ -234,6 +234,56 @@ MAPPINGS = {
         ((1, 0, 3), 11),     # Cody Gakpo
         ((1, 1, 0), None),   # foto equipo
     ],
+    "ENG": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Jordan Pickford
+        ((0, 0, 3), 9),      # Harry Kane
+        ((0, 1, 0), None),   # Marcus Rashford (no está en el squad)
+        ((0, 1, 1), 25),     # Phil Foden
+        ((0, 1, 2), 22),     # Ollie Watkins
+        ((0, 1, 3), 7),      # Bukayo Saka
+        ((0, 2, 0), 20),     # Anthony Gordon
+        ((0, 2, 1), None),   # Morgan Rogers (no está en el squad)
+        ((0, 2, 2), 10),     # Jude Bellingham
+        ((0, 2, 3), None),   # Jordan Henderson (no está en el squad)
+        ((0, 3, 0), 19),     # Cole Palmer
+        ((0, 3, 1), 8),      # Declan Rice
+        ((0, 3, 2), None),   # Dan Burn (no está en el squad)
+        ((0, 3, 3), 4),      # John Stones
+        # Página 2
+        ((1, 0, 0), 12),     # Reece James
+        ((1, 0, 1), 5),      # Marc Guéhi
+        ((1, 0, 2), 14),     # Ezri Konsa
+        ((1, 0, 3), 11),     # Trent Alexander-Arnold
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "MAR": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Yassine Bounou
+        ((0, 0, 3), 21),     # Youssef En-Nesyri
+        ((0, 1, 0), 26),     # Abde Ezzalzouli
+        ((0, 1, 1), 25),     # Soufiane Rahimi
+        ((0, 1, 2), 15),     # Brahim Díaz
+        ((0, 1, 3), 24),     # Ayoub El Kaabi
+        ((0, 2, 0), 13),     # Sofyan Amrabat
+        ((0, 2, 1), 14),     # Azzedine Ounahi
+        ((0, 2, 2), 23),     # Eliesse Ben Seghir
+        ((0, 2, 3), 17),     # Bilal El Khannouss
+        ((0, 3, 0), None),   # Ismael Saibari (no está en el squad)
+        ((0, 3, 1), 4),      # Achraf Hakimi
+        ((0, 3, 2), None),   # Romain Saïss (no está en el squad)
+        ((0, 3, 3), None),   # Jawad El Yamiq (no está en el squad)
+        # Página 2
+        ((1, 0, 0), 2),      # Munir El Kajoui (= Munir Mohamedi)
+        ((1, 0, 1), 6),      # Nayef Aguerd
+        ((1, 0, 2), None),   # Adam Masina (no está en el squad)
+        ((1, 0, 3), 5),      # Noussair Mazraoui
+        ((1, 1, 0), None),   # foto equipo
+    ],
 }
 
 PDF_FILES = {
@@ -245,6 +295,8 @@ PDF_FILES = {
     "ECU": "docs/EQUADOR.pdf",
     "FRA": "docs/FRANÇA.pdf",
     "NED": "docs/HOLANDA.pdf",
+    "ENG": "docs/INGLATERRA.pdf",
+    "MAR": "docs/MARROCOS.pdf",
 }
 
 
@@ -332,7 +384,7 @@ def process_team(team: str, verbose: bool = True):
 
 def main():
     total = 0
-    for team in ["ARG", "GER", "BRA", "COL", "CRO", "ECU", "FRA", "NED"]:
+    for team in ["ENG", "MAR"]:
         print(f"\n--- {team} ---")
         total += process_team(team)
     print(f"\nTotal: {total} fotos extraidas y guardadas")
