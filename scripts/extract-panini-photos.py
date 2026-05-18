@@ -284,6 +284,106 @@ MAPPINGS = {
         ((1, 0, 3), 5),      # Noussair Mazraoui
         ((1, 1, 0), None),   # foto equipo
     ],
+    "MEX": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), None),   # Luis Malagón (no está en el squad; portero #1 es Raúl Rangel)
+        ((0, 0, 3), 23),     # Jesús Gallardo
+        ((0, 1, 0), 5),      # Johan Vásquez
+        ((0, 1, 1), 3),      # César Montes
+        ((0, 1, 2), 15),     # Israel Reyes
+        ((0, 1, 3), 2),      # Jorge Sánchez
+        ((0, 2, 0), 16),     # Orbelín Pineda
+        ((0, 2, 1), None),   # Diego Lainez (no está en el squad)
+        ((0, 2, 2), 4),      # Edson Álvarez
+        ((0, 2, 3), None),   # Érick Sánchez (no está en el squad)
+        ((0, 3, 0), None),   # Carlos Rodríguez (no está en el squad)
+        ((0, 3, 1), None),   # Marcel Ruiz (no está en el squad)
+        ((0, 3, 2), 9),      # Raúl Jiménez
+        ((0, 3, 3), 11),     # Santiago Giménez
+        # Página 2
+        ((1, 0, 0), None),   # Hirving Lozano (no está en el squad)
+        ((1, 0, 1), 10),     # Alexis Vega
+        ((1, 0, 2), 20),     # César Huerta
+        ((1, 0, 3), 19),     # Roberto Alvarado
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "NOR": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Ørjan Nyland
+        ((0, 0, 3), 9),      # Erling Haaland
+        ((0, 1, 0), 11),     # Jørgen Strand Larsen
+        ((0, 1, 1), 7),      # Alexander Sørloth
+        ((0, 1, 2), 18),     # Antonio Nusa
+        ((0, 1, 3), 17),     # Oscar Bobb
+        ((0, 2, 0), 20),     # Aron Dønnum
+        ((0, 2, 1), 10),     # Martin Ødegaard
+        ((0, 2, 2), 16),     # Morten Thorsby
+        ((0, 2, 3), 6),      # Patrick Berg
+        ((0, 3, 0), 8),      # Sander Berge
+        ((0, 3, 1), 19),     # Andreas Schjelderup
+        ((0, 3, 2), None),   # Torbjørn Heggem (no está en el squad)
+        ((0, 3, 3), 13),     # Kristoffer Vassbakk Ajer
+        # Página 2
+        ((1, 0, 0), 4),      # Leo Østigård
+        ((1, 0, 1), 3),      # David Møller Wolfe
+        ((1, 0, 2), 15),     # Marcus Holmgren Pedersen
+        ((1, 0, 3), 2),      # Julian Ryerson
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "POR": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Diogo Costa
+        ((0, 0, 3), 20),     # Cristiano Ronaldo
+        ((0, 1, 0), 19),     # João Félix
+        ((0, 1, 1), None),   # Francisco Trincão (no está en el squad)
+        ((0, 1, 2), 18),     # João Neves
+        ((0, 1, 3), 15),     # Vitinha
+        ((0, 2, 0), None),   # Rúben Neves (no está en el squad)
+        ((0, 2, 1), 8),      # Bruno Fernandes
+        ((0, 2, 2), 10),     # Bernardo Silva
+        ((0, 2, 3), 5),      # Gonçalo Inácio
+        ((0, 3, 0), 3),      # Nuno Mendes
+        ((0, 3, 1), 2),      # Diogo Dalot
+        ((0, 3, 2), 22),     # João Cancelo
+        ((0, 3, 3), 4),      # Rúben Dias
+        # Página 2
+        ((1, 0, 0), 12),     # José Sá
+        ((1, 0, 1), 7),      # Rafael Leão
+        ((1, 0, 2), 11),     # Pedro Neto
+        ((1, 0, 3), 9),      # Gonçalo Ramos
+        ((1, 1, 0), None),   # foto equipo
+    ],
+    "URU": [
+        # Página 1
+        ((0, 0, 0), None),   # escudo
+        ((0, 0, 1), None),   # foto equipo
+        ((0, 0, 2), 1),      # Sergio Rochet
+        ((0, 0, 3), 9),      # Darwin Núñez
+        ((0, 1, 0), None),   # Rodrigo Aguirre (no está en el squad)
+        ((0, 1, 1), 17),     # Facundo Pellistri
+        ((0, 1, 2), None),   # Federico Viñas (no está en el squad)
+        ((0, 1, 3), 15),     # Giorgian De Arrascaeta
+        ((0, 2, 0), 7),      # Maxi Araújo
+        ((0, 2, 1), 10),     # Nicolás De La Cruz
+        ((0, 2, 2), 6),      # Rodrigo Bentancur
+        ((0, 2, 3), 5),      # Manuel Ugarte
+        ((0, 3, 0), 8),      # Federico Valverde
+        ((0, 3, 1), 16),     # Sebastián Cáceres
+        ((0, 3, 2), 4),      # Ronald Araújo
+        ((0, 3, 3), None),   # Nahitan Nández (no está en el squad)
+        # Página 2
+        ((1, 0, 0), 13),     # Guillermo Varela
+        ((1, 0, 1), 22),     # Mathías Olivera
+        ((1, 0, 2), 2),      # José María Giménez
+        ((1, 0, 3), 12),     # Santiago Mele
+        ((1, 1, 0), None),   # foto equipo
+    ],
 }
 
 PDF_FILES = {
@@ -297,6 +397,10 @@ PDF_FILES = {
     "NED": "docs/HOLANDA.pdf",
     "ENG": "docs/INGLATERRA.pdf",
     "MAR": "docs/MARROCOS.pdf",
+    "MEX": "docs/MEXICO.pdf",
+    "NOR": "docs/NORUEGA.pdf",
+    "POR": "docs/PORTUGAL.pdf",
+    "URU": "docs/URUGUAI.pdf",
 }
 
 
@@ -384,7 +488,7 @@ def process_team(team: str, verbose: bool = True):
 
 def main():
     total = 0
-    for team in ["ENG", "MAR"]:
+    for team in ["MEX", "NOR", "POR", "URU"]:
         print(f"\n--- {team} ---")
         total += process_team(team)
     print(f"\nTotal: {total} fotos extraidas y guardadas")
