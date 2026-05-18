@@ -9,7 +9,8 @@
   },
   "redirects": [
     { "source": "/sitemap.xml/", "destination": "/sitemap.xml", "statusCode": 308 },
-    { "source": "/robots.txt/", "destination": "/robots.txt", "statusCode": 308 }
+    { "source": "/robots.txt/", "destination": "/robots.txt", "statusCode": 308 },
+    { "source": "/privacy", "destination": "/privacy-policy", "statusCode": 301 }
   ],
   "headers": [
     {
