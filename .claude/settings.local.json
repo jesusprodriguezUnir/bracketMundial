@@ -86,7 +86,18 @@
       "Bash(New-Item -ItemType Directory -Force -Path \"d:\\\\Personal\\\\bracketMundial\\\\.claude\\\\skills\\\\odds\")",
       "Bash(Out-Null)",
       "Bash(mkdir -p \"d:/Personal/bracketMundial/.claude/skills/odds\")",
-      "Edit(/.claude/skills/odds/**)"
+      "Edit(/.claude/skills/odds/**)",
+      "Bash(python -c \"import fitz; print\\('PyMuPDF ok'\\)\")",
+      "Bash(python -c \"from PIL import Image; print\\('Pillow ok'\\)\")",
+      "Skill(news)",
+      "Skill(news:*)",
+      "Bash(pip install *)",
+      "Bash(node scripts/generate-news.mjs URU)",
+      "Bash(node scripts/generate-news.mjs URU --write-seed)",
+      "Bash(python -)",
+      "Bash(python scripts/extract-panini-photos.py)",
+      "Bash(node scripts/fetch-squad-assets.mjs --help)",
+      "Bash(Remove-Item -Recurse -Force \"d:\\\\Personal\\\\bracketMundial\\\\docs\\\\preview_test\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

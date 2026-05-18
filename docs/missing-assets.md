@@ -2,7 +2,7 @@
 
 > Generado el 18/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 118 fotos faltantes en 26 equipos (1091/1209 cubiertos)  
+**Jugadores:** 98 fotos faltantes en 25 equipos (1111/1209 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,23 +12,22 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| CUW | 26 | 12 | ❌ 14 | ✅ |
 | JOR | 23 | 10 | ❌ 13 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
-| COD | 26 | 19 | ❌ 7 | ✅ |
 | EGY | 23 | 16 | ❌ 7 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
 | QAT | 26 | 20 | ❌ 6 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
-| BRA | 27 | 23 | ❌ 4 | ✅ |
 | CPV | 23 | 19 | ❌ 4 | ✅ |
 | KOR | 26 | 22 | ❌ 4 | ✅ |
 | PAN | 23 | 19 | ❌ 4 | ✅ |
 | RSA | 26 | 22 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
+| COD | 26 | 23 | ❌ 3 | ✅ |
 | MEX | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
+| BRA | 27 | 25 | ❌ 2 | ✅ |
 | CAN | 27 | 25 | ❌ 2 | ✅ |
 | ECU | 23 | 21 | ❌ 2 | ✅ |
 | IRN | 23 | 21 | ❌ 2 | ✅ |
@@ -43,6 +42,7 @@
 | BEL | 29 | 29 | ✅ 0 | ✅ |
 | BIH | 26 | 26 | ✅ 0 | ✅ |
 | CRO | 24 | 24 | ✅ 0 | ✅ |
+| CUW | 26 | 26 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
 | ENG | 26 | 26 | ✅ 0 | ✅ |
 | ESP | 26 | 26 | ✅ 0 | ✅ |
@@ -60,23 +60,6 @@
 | SUI | 26 | 26 | ✅ 0 | ✅ |
 | TUN | 26 | 26 | ✅ 0 | ✅ |
 | URU | 23 | 23 | ✅ 0 | ✅ |
-
-### CUW — faltan 14 fotos
-
-- `#3` Eloy Room
-- `#5` Juriën Gaari
-- `#7` Deveron Fonville
-- `#10` Joshua Brenet
-- `#11` Roshon van Eijma
-- `#12` Juninho Bacuna
-- `#13` Leandro Bacuna
-- `#15` Tyrese Noslin
-- `#19` Brandley Kuwas
-- `#22` Jeremy Antonisse
-- `#23` Gervane Kastaneer
-- `#24` Kenji Gorré
-- `#25` Jearl Margaritha
-- `#26` Sontje Hansen
 
 ### JOR — faltan 13 fotos
 
@@ -108,16 +91,6 @@
 - `#20` Dominique Simon
 - `#23` Josué Duverger
 - `#25` Yassin Fortune
-
-### COD — faltan 7 fotos
-
-- `#15` Steve Kapuadi
-- `#17` Meschack Elia
-- `#22` Ngalayel Mukau
-- `#23` Timothy Fayulu
-- `#24` Axel Tuanzebe
-- `#25` Aaron Wan-Bissaka
-- `#26` Noah Sadiki
 
 ### EGY — faltan 7 fotos
 
@@ -164,13 +137,6 @@
 - `#22` Khusayin Norchaev
 - `#23` Dilshodbek Hamidov
 
-### BRA — faltan 4 fotos
-
-- `#15` Carlos Augusto
-- `#28` Wesley
-- `#30` Danilo Santos
-- `#31` João Pedro
-
 ### CPV — faltan 4 fotos
 
 - `#11` Benchimol
@@ -205,6 +171,12 @@
 - `#20` Mohamed El Amine Amoura
 - `#23` Moustapha Zeghba
 
+### COD — faltan 3 fotos
+
+- `#17` Meschack Elia
+- `#22` Ngalayel Mukau
+- `#23` Timothy Fayulu
+
 ### MEX — faltan 3 fotos
 
 - `#14` Erik Lira
@@ -216,6 +188,11 @@
 - `#14` Marcelo Palencia
 - `#21` Alberto Espínola
 - `#23` Diego Melgarejo
+
+### BRA — faltan 2 fotos
+
+- `#15` Carlos Augusto
+- `#30` Danilo Santos
 
 ### CAN — faltan 2 fotos
 
