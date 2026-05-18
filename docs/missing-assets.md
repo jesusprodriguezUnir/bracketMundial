@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 17/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 18/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 115 fotos faltantes en 27 equipos (1090/1205 cubiertos)  
+**Jugadores:** 118 fotos faltantes en 26 equipos (1091/1209 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,19 +12,18 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
+| CUW | 26 | 12 | ❌ 14 | ✅ |
 | JOR | 23 | 10 | ❌ 13 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
-| CUW | 22 | 12 | ❌ 10 | ✅ |
+| COD | 26 | 19 | ❌ 7 | ✅ |
 | EGY | 23 | 16 | ❌ 7 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
 | QAT | 26 | 20 | ❌ 6 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
 | BRA | 27 | 23 | ❌ 4 | ✅ |
-| COD | 23 | 19 | ❌ 4 | ✅ |
 | CPV | 23 | 19 | ❌ 4 | ✅ |
 | KOR | 26 | 22 | ❌ 4 | ✅ |
-| MAR | 32 | 28 | ❌ 4 | ✅ |
 | PAN | 23 | 19 | ❌ 4 | ✅ |
 | RSA | 26 | 22 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
@@ -40,7 +39,7 @@
 | SWE | 26 | 25 | ❌ 1 | ✅ |
 | USA | 32 | 31 | ❌ 1 | ✅ |
 | ARG | 28 | 28 | ✅ 0 | ✅ |
-| AUT | 23 | 23 | ✅ 0 | ✅ |
+| AUT | 26 | 26 | ✅ 0 | ✅ |
 | BEL | 29 | 29 | ✅ 0 | ✅ |
 | BIH | 26 | 26 | ✅ 0 | ✅ |
 | CRO | 24 | 24 | ✅ 0 | ✅ |
@@ -51,6 +50,7 @@
 | GER | 27 | 27 | ✅ 0 | ✅ |
 | GHA | 23 | 23 | ✅ 0 | ✅ |
 | JPN | 28 | 28 | ✅ 0 | ✅ |
+| MAR | 26 | 26 | ✅ 0 | ✅ |
 | NED | 25 | 25 | ✅ 0 | ✅ |
 | NOR | 23 | 23 | ✅ 0 | ✅ |
 | NZL | 26 | 26 | ✅ 0 | ✅ |
@@ -60,6 +60,23 @@
 | SUI | 26 | 26 | ✅ 0 | ✅ |
 | TUN | 26 | 26 | ✅ 0 | ✅ |
 | URU | 23 | 23 | ✅ 0 | ✅ |
+
+### CUW — faltan 14 fotos
+
+- `#3` Eloy Room
+- `#5` Juriën Gaari
+- `#7` Deveron Fonville
+- `#10` Joshua Brenet
+- `#11` Roshon van Eijma
+- `#12` Juninho Bacuna
+- `#13` Leandro Bacuna
+- `#15` Tyrese Noslin
+- `#19` Brandley Kuwas
+- `#22` Jeremy Antonisse
+- `#23` Gervane Kastaneer
+- `#24` Kenji Gorré
+- `#25` Jearl Margaritha
+- `#26` Sontje Hansen
 
 ### JOR — faltan 13 fotos
 
@@ -92,18 +109,15 @@
 - `#23` Josué Duverger
 - `#25` Yassin Fortune
 
-### CUW — faltan 10 fotos
+### COD — faltan 7 fotos
 
-- `#3` Rurickson Liberia
-- `#5` Juriën Timber
-- `#7` Jafar Arias
-- `#10` Quiñy Sardjoe
-- `#11` Juniño
-- `#12` Nandor Bihari
-- `#13` Etienne Reijnen
-- `#15` Richie Poulain
-- `#19` Federico Munnink
-- `#23` Sander Sno
+- `#15` Steve Kapuadi
+- `#17` Meschack Elia
+- `#22` Ngalayel Mukau
+- `#23` Timothy Fayulu
+- `#24` Axel Tuanzebe
+- `#25` Aaron Wan-Bissaka
+- `#26` Noah Sadiki
 
 ### EGY — faltan 7 fotos
 
@@ -157,13 +171,6 @@
 - `#30` Danilo Santos
 - `#31` João Pedro
 
-### COD — faltan 4 fotos
-
-- `#15` Henock Inonga
-- `#17` Meschack Elia
-- `#22` Ngalayel Mukau
-- `#23` Siadi Baggio
-
 ### CPV — faltan 4 fotos
 
 - `#11` Benchimol
@@ -177,13 +184,6 @@
 - `#8` Kim Jin-kyu
 - `#14` Kim Tae-hyeon
 - `#20` Park Jin-seob
-
-### MAR — faltan 4 fotos
-
-- `#27` Ismael Baouf
-- `#29` Abde Ezzalzouli
-- `#30` Chemsidine Talbi
-- `#31` Yassir Zabiri
 
 ### PAN — faltan 4 fotos
 
