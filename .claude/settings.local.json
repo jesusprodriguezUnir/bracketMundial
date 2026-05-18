@@ -100,7 +100,10 @@
       "Bash(Remove-Item -Recurse -Force \"d:\\\\Personal\\\\bracketMundial\\\\docs\\\\preview_test\")",
       "Bash(python -c ' *)",
       "WebFetch(domain:www.marca.com)",
-      "WebFetch(domain:www.beinsports.com)"
+      "WebFetch(domain:www.beinsports.com)",
+      "Bash(pdfinfo \"TODAS LAS FIGURITAS EN PDF.pdf\")",
+      "Bash(which pdfimages *)",
+      "Bash(node -e \"try{require.resolve\\('pdfjs-dist'\\);console.log\\('pdfjs-dist OK'\\)}catch{console.log\\('no pdfjs-dist'\\)}; try{require.resolve\\('sharp'\\);console.log\\('sharp OK'\\)}catch{console.log\\('no sharp'\\)}; try{require.resolve\\('pdf-lib'\\);console.log\\('pdf-lib OK'\\)}catch{console.log\\('no pdf-lib'\\)}\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
