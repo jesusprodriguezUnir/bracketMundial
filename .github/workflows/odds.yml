@@ -52,7 +52,14 @@ jobs:
           git checkout --orphan odds-data-tmp
           git rm -rf . --quiet
           cp /tmp/odds-feed.json odds-feed.json
-          echo '{"ignoreCommand":"exit 0"}' > vercel.json
+          cat > vercel.json <<'EOF'
+          {
+            "$schema": "https://openapi.vercel.sh/vercel.json",
+            "installCommand": "echo 'No install step for odds-data'",
+            "buildCommand": "echo 'No build step for odds-data'",
+            "outputDirectory": "."
+          }
+          EOF
           git add odds-feed.json vercel.json
           git commit -m "chore: update odds feed $(date -u +%Y-%m-%d)"
           git push origin odds-data-tmp:odds-data --force
