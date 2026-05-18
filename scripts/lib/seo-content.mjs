@@ -540,7 +540,7 @@ ${groupList}
         applicationCategory: 'SportsApplication',
         operatingSystem: 'Any',
         inLanguage: 'en',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', validFrom: '2024-01-01T00:00:00Z' },
       },
       {
         '@type': 'FAQPage',
