@@ -28,8 +28,8 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const API_FOOTBALL_KEY = ENV.API_FOOTBALL_KEY;
-const FOOTBALL_DATA_KEY = ENV.FOOTBALL_DATA_KEY; // reservado para verify-data extendido
+const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY ?? ENV.API_FOOTBALL_KEY;
+const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY ?? ENV.FOOTBALL_DATA_KEY; // reservado para verify-data extendido
 
 // ── args ──────────────────────────────────────────────────────────────────────
 // Uso: node script.mjs [TEAM...] [--type player|coach|all] [--force] [--report] [--verify-data]

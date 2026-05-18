@@ -32,7 +32,7 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const GNEWS_API_KEY = ENV.GNEWS_DATA_KEY;
+const GNEWS_API_KEY = process.env.GNEWS_DATA_KEY ?? ENV.GNEWS_DATA_KEY;
 const GNEWS_BASE = 'https://gnews.io/api/v4/search';
 
 // ─── Arguments ───────────────────────────────────────────────────────────────
