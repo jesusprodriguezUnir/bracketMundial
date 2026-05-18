@@ -2,7 +2,7 @@
   "hash": "35fee1b1",
   "configHash": "ab83f534",
   "lockfileHash": "cb4460c6",
-  "browserHash": "b66caf4f",
+  "browserHash": "fc485342",
   "optimized": {
     "@capacitor/app": {
       "src": "../../node_modules/@capacitor/app/dist/esm/index.js",
