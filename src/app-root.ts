@@ -6,7 +6,7 @@ import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 import { onToast, type ToastEventDetail } from './lib/interaction';
-import { useAuthStore } from './store/auth-store';
+
 import { isSupabaseConfigured } from './lib/supabase-client';
 import { isAdmin, saveOfficialResults } from './lib/official-results';
 import './components/ad-block';
@@ -15,8 +15,7 @@ import './components/ad-block';
 export class AppRoot extends LitElement {
   private unsubscribeStore?: () => void;
   private unsubscribeLocale?: () => void;
-  private unsubscribeAuth?: () => void;
-  private _authEmail: string | null = null;
+
   @state() private _isOffline = !navigator.onLine;
   @state() private _toastMessage = '';
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -339,11 +338,7 @@ export class AppRoot extends LitElement {
       () => this.requestUpdate(),
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
-    this.unsubscribeAuth = useAuthStore.subscribe(() => {
-      this._authEmail = useAuthStore.getState().email;
-      this.requestUpdate();
-    });
-    this._authEmail = useAuthStore.getState().email;
+
     this._loadSharedBracketIfPresent();
     this._unsubscribeToast = onToast(this._onToast.bind(this));
   }
@@ -374,7 +369,7 @@ export class AppRoot extends LitElement {
     window.removeEventListener('offline', this._onOffline);
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
-    this.unsubscribeAuth?.();
+
     this._unsubscribeToast?.();
     super.disconnectedCallback();
   }
@@ -424,10 +419,6 @@ export class AppRoot extends LitElement {
     openShareModal();
   }
 
-  private async handleAccount() {
-    const { openAuthModal } = await import('./components/auth-modal');
-    openAuthModal();
-  }
 
   private async handlePublishResults() {
     const ok = await saveOfficialResults();
@@ -499,11 +490,8 @@ export class AppRoot extends LitElement {
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
-            ${isSupabaseConfigured ? html`
-              ${isAdmin() ? html`<button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
-              <button class="account-btn" @click="${this.handleAccount}" title="${t('account.title')}">
-                ${this._authEmail ?? t('account.signIn')}
-              </button>` : ''}
+            ${isSupabaseConfigured && isAdmin() ? html`
+              <button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
             <button @click="${this.handleShare}">${t('header.share')}</button>
           </div>
         </header>
