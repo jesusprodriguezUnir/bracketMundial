@@ -61,6 +61,7 @@ export class BracketView extends LitElement {
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
+  private _tabHistory: PhaseTab[] = ['hero'];
 
 
   static readonly styles = css`
@@ -152,6 +153,14 @@ export class BracketView extends LitElement {
       line-height: 1;
       color: rgba(236,223,192,0.5);
       transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bottom-nav-btn .nav-icon svg {
+      display: block;
+      width: 20px;
+      height: 20px;
     }
     .bottom-nav-btn .nav-label {
       font-family: var(--font-mono);
@@ -177,57 +186,100 @@ export class BracketView extends LitElement {
       border-radius: 0;
     }
 
-    /* ─── More Overlay ─── */
-    .more-overlay {
-      display: none;
-      position: fixed;
-      bottom: calc(68px + env(safe-area-inset-bottom));
-      right: 12px;
-      z-index: 199;
-      background: var(--paper-2);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
-      min-width: 180px;
-    }
-    .more-overlay.open {
-      display: block;
-    }
-    .more-overlay-item {
-      all: unset;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      padding: 14px 18px;
-      font-family: var(--font-var);
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      color: var(--ink);
-      border-bottom: 1px solid var(--ink);
-      transition: background 0.1s;
-      min-height: 44px;
-      box-sizing: border-box;
-    }
-    .more-overlay-item:last-child {
-      border-bottom: none;
-    }
-    .more-overlay-item:hover {
-      background: var(--retro-yellow);
-    }
-    .more-overlay-item .mo-icon {
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    .more-overlay-backdrop {
+    /* ─── More Bottom Sheet (mobile) ─── */
+    .more-sheet-backdrop {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 198;
-      background: transparent;
+      background: rgba(26,25,51,0.55);
     }
-    .more-overlay-backdrop.open {
+    .more-sheet-backdrop.open {
       display: block;
+    }
+    .more-sheet {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 199;
+      background: var(--paper-3);
+      border-top: 4px solid var(--ink);
+      box-shadow: 0 -6px 0 0 var(--retro-orange);
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      max-height: 50vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .more-sheet.open {
+      display: block;
+      animation: sheetSlideUp 0.25s ease both;
+    }
+    @keyframes sheetSlideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .more-sheet-header {
+      padding: 14px 18px;
+      border-bottom: 2px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .more-sheet-title {
+      font-family: var(--font-var);
+      font-size: 16px;
+      color: var(--ink);
+      letter-spacing: 0.04em;
+    }
+    .more-sheet-close {
+      all: unset;
+      cursor: pointer;
+      padding: 6px 12px;
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      min-height: 32px;
+    }
+    .more-sheet-item {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 16px 18px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      border-bottom: 1px solid rgba(26,25,51,0.12);
+      min-height: 52px;
+      box-sizing: border-box;
+      transition: background 0.1s;
+    }
+    .more-sheet-item:last-child {
+      border-bottom: none;
+    }
+    .more-sheet-item:active {
+      background: var(--retro-yellow);
+    }
+    .more-sheet-item .ms-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (max-width: 375px) {
+      .more-sheet-item {
+        padding: 14px 16px;
+        font-size: 13px;
+      }
     }
 
     /* Títulos de sección */
@@ -259,6 +311,7 @@ export class BracketView extends LitElement {
     .section-stadiums,
     .section-squads,
     .section-calendar,
+    .section-coaches,
     .section-tv {
       display: none;
       scroll-margin-top: 120px;
@@ -268,8 +321,14 @@ export class BracketView extends LitElement {
     .section-stadiums.visible,
     .section-squads.visible,
     .section-calendar.visible,
+    .section-coaches.visible,
     .section-tv.visible {
       display: block;
+      animation: viewFadeIn 0.2s ease both;
+    }
+    @keyframes viewFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     /* SEO Info Section - solo en hero */
@@ -308,19 +367,24 @@ export class BracketView extends LitElement {
     @media (max-width: 768px) {
       .section-groups,
       .knockout-section,
+      .knockout-sections,
       .section-stadiums,
       .section-squads,
       .section-calendar,
+      .section-coaches,
       .section-tv {
         display: none;
       }
       .section-groups.visible,
       .knockout-section.visible,
+      .knockout-sections.visible,
       .section-stadiums.visible,
       .section-squads.visible,
       .section-calendar.visible,
+      .section-coaches.visible,
       .section-tv.visible {
         display: block;
+        animation: viewFadeIn 0.2s ease both;
       }
       .phase-tabs {
         display: none;
@@ -347,12 +411,12 @@ export class BracketView extends LitElement {
       .bottom-nav-btn .nav-icon {
         font-size: 17px;
       }
+      .bottom-nav-btn .nav-icon svg {
+        width: 17px;
+        height: 17px;
+      }
       .bottom-nav-btn .nav-label {
         font-size: 7px;
-      }
-      .more-overlay {
-        right: 6px;
-        min-width: 160px;
       }
     }
   `;
@@ -391,6 +455,9 @@ export class BracketView extends LitElement {
     const view = tabToView(tab);
     if (view) {
       await this._ensureView(view);
+    }
+    if (this._activeTab !== tab && this._tabHistory[this._tabHistory.length - 1] !== tab) {
+      this._tabHistory = [...this._tabHistory.slice(-9), tab];
     }
     this._activeTab = tab;
     this._moreOpen = false;
@@ -442,6 +509,20 @@ export class BracketView extends LitElement {
     this._isSwiping = false;
     const dx = e.changedTouches[0].clientX - this._swipeStartX;
     if (Math.abs(dx) < 50) return;
+
+    // Swipe from left edge (iOS back gesture): always go to previous tab
+    if (this._swipeStartX < 32 && dx > 0) {
+      const prevIdx = this._tabHistory.length - 2;
+      if (prevIdx >= 0) {
+        const prev = this._tabHistory[prevIdx];
+        this._tabHistory = this._tabHistory.slice(0, -1);
+        this._moreOpen = false;
+        this._selectTab(prev);
+        return;
+      }
+    }
+
+    // Horizontal swipe between adjacent tabs
     const idx = TAB_ORDER.indexOf(this._activeTab);
     if (idx === -1) return;
     const nextIdx = dx < 0 ? idx + 1 : idx - 1;
@@ -481,11 +562,11 @@ export class BracketView extends LitElement {
 
   render() {
     const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
-    const mainTabs: Array<{ tab: PhaseTab; icon: string; label: string }> = [
-      { tab: 'hero',     icon: '🏠', label: t('tabs.hero') },
-      { tab: 'groups',   icon: '⚽', label: t('tabs.groups') },
-      { tab: 'knockout', icon: '🏆', label: t('tabs.knockout') },
-      { tab: 'squads',   icon: '👥', label: t('tabs.squads') },
+    const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
+      { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
+      { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.groups') },
+      { tab: 'knockout', icon: '🏆', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2Z"/></svg>`, label: t('tabs.knockout') },
+      { tab: 'squads',   icon: '👥', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>`, label: t('tabs.squads') },
     ];
     const at = this._activeTab;
     const loaded = this._loadedViews;
@@ -515,7 +596,7 @@ export class BracketView extends LitElement {
               aria-label="${t('tabs.view', { tab: item.label })}"
               aria-current="${at === item.tab ? 'page' : undefined}"
               @click="${() => this._selectTab(item.tab)}">
-              <span class="nav-icon">${item.icon}</span>
+              <span class="nav-icon">${item.svg}</span>
               <span class="nav-label">${item.label}</span>
             </button>
           `)}
@@ -525,25 +606,36 @@ export class BracketView extends LitElement {
             aria-expanded="${this._moreOpen}"
             aria-haspopup="menu"
             @click="${this._toggleMore}">
-            <span class="nav-icon">${isMore ? '●' : '⋯'}</span>
+            <span class="nav-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            </span>
             <span class="nav-label">${t('tabs.more')}</span>
           </button>
         </nav>
 
-        <!-- More overlay backdrop -->
+        <!-- More bottom sheet backdrop -->
         <div
-          class="more-overlay-backdrop ${this._moreOpen ? 'open' : ''}"
+          class="more-sheet-backdrop ${this._moreOpen ? 'open' : ''}"
           @click="${this._closeMore}"
           @touchstart="${this._closeMore}"></div>
 
-        <!-- More overlay menu -->
-        <div class="more-overlay ${this._moreOpen ? 'open' : ''}" role="menu">
+        <!-- More bottom sheet -->
+        <div class="more-sheet ${this._moreOpen ? 'open' : ''}" role="menu">
+          <div class="more-sheet-header">
+            <span class="more-sheet-title">${t('tabs.more')}</span>
+            <button class="more-sheet-close" @click="${this._closeMore}">${t('modal.close')}</button>
+          </div>
           ${MORE_TABS.map(tab => html`
             <button
-              class="more-overlay-item"
+              class="more-sheet-item"
               role="menuitem"
               @click="${() => this._selectTab(tab)}">
-              <span class="mo-icon">${tab === 'calendar' ? '🗓️' : tab === 'stadiums' ? '🏟️' : '📋'}</span>
+              <span class="ms-icon">${tab === 'calendar'
+                ? html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+                : tab === 'stadiums'
+                  ? html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2Z"/><path d="M12 10l-2 6h4l-2-6Z"/></svg>`
+                  : html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg>`
+              }</span>
               ${t(PHASE_TAB_KEYS[tab])}
             </button>
           `)}
