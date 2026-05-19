@@ -3,6 +3,7 @@ export const squad: Player[] = [
   { number: 1, name: 'Diogo Costa', position: 'GK', age: 26, club: 'Porto' },
   { number: 12, name: 'José Sá', position: 'GK', age: 33, club: 'Wolverhampton' },
   { number: 22, name: 'Rui Silva', position: 'GK', age: 32, club: 'Real Betis' },
+  { number: 27, name: 'Ricardo Velho', position: 'GK', age: 27, club: 'Farense' },
 
   { number: 2, name: 'Diogo Dalot', position: 'DF', age: 27, club: 'Manchester United' },
   { number: 3, name: 'Nuno Mendes', position: 'DF', age: 24, club: 'Paris Saint-Germain' },
