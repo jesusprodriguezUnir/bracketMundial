@@ -141,7 +141,9 @@ describe('bracket-codec compacto', () => {
     const order = getKnockoutMatchOrder();
     const knockout = makeKnockoutMatches({ [order[0]]: [2, 1] });
     const encoded = encodeBracketCompact(initialGroupMatches, knockout);
-    const bytes = atob(encoded.replace(/-/g, '+').replace(/_/g, '/') + '==');
+    const pad = (4 - (encoded.length % 4)) % 4;
+    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat(pad);
+    const bytes = atob(base64);
     const tampered = btoa(String.fromCharCode(0x01) + bytes.slice(1))
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     expect(decodeBracketCompact(tampered)).toBeNull();
