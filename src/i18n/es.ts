@@ -90,12 +90,14 @@ export const es = {
 
   // Stadiums
   'stadiums.title': 'SEDES Y ESTADIOS',
+  'stadiums.back': '← Volver a estadios',
 
   // Squads
   'squads.official': 'OFICIAL',
   'squads.officials.one': 'oficial',
   'squads.officials.many': 'oficiales',
   'squads.back': '← Volver a equipos',
+  'coaches.back': '← Volver a entrenadores',
   'squads.tab.squad': 'Plantilla',
   'squads.tab.matches': 'Partidos',
   'squads.tab.venues': 'Sedes',

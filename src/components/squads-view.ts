@@ -1023,7 +1023,7 @@ export class SquadsView extends LitElement {
     this._loadNewsForTeam(id, useLocaleStore.getState().locale);
   }
 
-  private goBack() {
+  goBack() {
     this.selectedTeamId = null;
     this.activeTab = 'squad';
     this._newsKey = null;

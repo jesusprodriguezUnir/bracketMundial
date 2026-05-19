@@ -2,8 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { STADIUMS } from '../data/stadiums';
 import type { Stadium } from '../data/stadiums';
-import { t } from '../i18n';
-import './stadium-modal';
+import { GROUP_MATCHES, KNOCKOUT_SCHEDULE } from '../data/match-schedule';
+import { t, useLocaleStore } from '../i18n';
 
 // ─────────────────────────────────────────────────────────────
 // Helpers: derivar fases del torneo desde matchesSummary
@@ -43,6 +43,18 @@ export class StadiumsView extends LitElement {
   @state() private _selectedStadium: Stadium | null = null;
   @state() private _country: 'ALL' | 'USA' | 'MEX' | 'CAN' = 'ALL';
   @state() private _phase: 'ALL' | Phase = 'ALL';
+
+  private unsubscribeLocale?: () => void;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+  }
+
+  disconnectedCallback() {
+    this.unsubscribeLocale?.();
+    super.disconnectedCallback();
+  }
 
   static styles = css`
     :host {
@@ -361,6 +373,248 @@ export class StadiumsView extends LitElement {
       letter-spacing: 0.1em;
     }
 
+    /* ── Detail view ── */
+    .back-btn {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .back-btn:hover {
+      background: var(--retro-yellow);
+    }
+
+    .detail-panel {
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      background: var(--paper);
+      overflow: hidden;
+    }
+
+    .detail-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 22px;
+      border-bottom: 4px solid var(--ink);
+      background: var(--retro-green);
+      color: var(--paper);
+    }
+
+    .detail-title {
+      font-family: var(--font-var);
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .detail-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    .detail-body {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 0;
+    }
+
+    .detail-photo-col {
+      border-right: 4px solid var(--ink);
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .detail-photo-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ink);
+    }
+
+    .detail-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .detail-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .detail-name-block {
+      padding: 18px 20px 14px;
+      border-bottom: 3px solid var(--ink);
+      background: var(--paper-2);
+    }
+
+    .detail-stadium-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+    }
+
+    .detail-stadium-name {
+      font-family: var(--font-display);
+      font-size: 26px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .detail-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    .stat-cell {
+      padding: 14px 18px;
+      border-right: 2px solid var(--paper-2);
+      border-bottom: 2px solid var(--paper-2);
+    }
+
+    .stat-cell:nth-child(even) {
+      border-right: none;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 15px;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .stat-value-large {
+      font-family: var(--font-var);
+      font-size: 36px;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .detail-description-block {
+      padding: 20px;
+      flex: 1;
+      background: var(--paper);
+    }
+
+    .detail-description-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 10px;
+    }
+
+    .detail-description-text {
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+      line-height: 1.7;
+    }
+
+    .detail-matches-block {
+      padding: 0 20px 20px;
+      background: var(--paper);
+    }
+
+    .detail-matches-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+
+    .matches-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .match-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      background: white;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      gap: 12px;
+    }
+
+    .match-row.knockout {
+      background: var(--paper-3);
+    }
+
+    .match-id {
+      background: var(--ink);
+      color: white;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .match-row.knockout .match-id {
+      background: var(--retro-orange);
+    }
+
+    .match-teams {
+      flex-grow: 1;
+      font-weight: bold;
+    }
+
+    .match-date {
+      color: var(--dim);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .match-time {
+      color: var(--dim);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 768px) {
       :host {
         padding: 0 14px 32px;
@@ -393,10 +647,42 @@ export class StadiumsView extends LitElement {
       .row-info { grid-column: 1; grid-row: 2; border-right: none; }
       .row-meta { grid-column: 1; grid-row: 3; flex-direction: row; justify-content: space-between; border-right: none; border-top: 2px solid var(--ink); padding: 6px 12px; }
       .row-phases { grid-column: 1; grid-row: 4; border-top: 2px solid var(--ink); padding: 6px 10px; }
+
+      .detail-title {
+        font-size: 26px;
+      }
+      .detail-body {
+        grid-template-columns: 1fr;
+      }
+      .detail-photo-col {
+        border-right: none;
+        border-bottom: 4px solid var(--ink);
+      }
+      .detail-photo-wrap {
+        aspect-ratio: 2 / 1;
+        max-height: 200px;
+      }
+      .detail-stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .stat-value-large {
+        font-size: 28px;
+      }
+      .detail-stadium-name {
+        font-size: 22px;
+      }
+      .match-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
     }
   `;
 
   render() {
+    if (this._selectedStadium) {
+      return this._renderDetail();
+    }
+
     const filtered = STADIUMS.filter(s => {
       if (this._country !== 'ALL' && countryCode(s.country) !== this._country) return false;
       if (this._phase !== 'ALL' && !getPhases(s).includes(this._phase)) return false;
@@ -421,13 +707,115 @@ export class StadiumsView extends LitElement {
             </div>
           `}
       </div>
-
-      <stadium-modal
-        .stadium="${this._selectedStadium}"
-        ?open="${!!this._selectedStadium}"
-        @close-stadium-modal="${() => this._selectStadium(null)}">
-      </stadium-modal>
     `;
+  }
+
+  goBack() {
+    this._selectedStadium = null;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private _renderDetail() {
+    const stadium = this._selectedStadium!;
+    const groupMatches = GROUP_MATCHES.filter(m => m.venueId === stadium.id);
+    const knockoutMatches = Object.values(KNOCKOUT_SCHEDULE).filter(m => m.venueId === stadium.id);
+    const cc = countryCode(stadium.country);
+    const phases = getPhases(stadium);
+
+    return html`
+      <div class="stadiums-container">
+        <button class="back-btn" @click=${() => this.goBack()}>${t('stadiums.back')}</button>
+
+        <section class="detail-panel">
+          <div class="detail-header">
+            <div>
+              <div class="detail-title">${stadium.name}</div>
+              <div class="detail-sub">
+                ${COUNTRY_FLAG[cc] || '🏟️'} ${stadium.city}, ${stadium.country} · ${phases.length} fases
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <div class="detail-photo-col">
+              <div class="detail-photo-wrap">
+                <img src="${stadium.image}" alt="${stadium.name}" loading="lazy">
+              </div>
+            </div>
+
+            <div class="detail-info-col">
+              <div class="detail-name-block">
+                <div class="detail-stadium-label">Estadio Mundialista</div>
+                <div class="detail-stadium-name">${stadium.name}</div>
+              </div>
+
+              <div class="detail-stats-grid">
+                <div class="stat-cell">
+                  <div class="stat-label">Capacidad</div>
+                  <div class="stat-value-large">${(stadium.capacity / 1000).toFixed(0)}K</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Espectadores</div>
+                  <div class="stat-value">${stadium.capacity.toLocaleString()}</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Zona Horaria</div>
+                  <div class="stat-value">${stadium.timezone}</div>
+                </div>
+                <div class="stat-cell">
+                  <div class="stat-label">Dato Clave</div>
+                  <div class="stat-value" style="color: var(--retro-red)">${stadium.highlight}</div>
+                </div>
+              </div>
+
+              <div class="detail-description-block">
+                <div class="detail-description-label">Historia y diseño</div>
+                <div class="detail-description-text">${stadium.description}</div>
+              </div>
+
+              <div class="detail-description-block" style="padding-bottom: 0;">
+                <div class="detail-description-label" style="margin-bottom: 6px;">Resumen de partidos</div>
+                <div class="detail-description-text" style="font-style: italic; font-size: 14px;">${stadium.matchesSummary}</div>
+              </div>
+
+              ${groupMatches.length > 0 || knockoutMatches.length > 0 ? html`
+                <div class="detail-matches-block">
+                  <div class="detail-matches-label">Partidos programados</div>
+                  <div class="matches-list">
+                    ${groupMatches.map(m => html`
+                      <div class="match-row">
+                        <span class="match-id">${m.matchId}</span>
+                        <span class="match-teams">${m.teamA} vs ${m.teamB}</span>
+                        <span class="match-date">📅 ${m.date}</span>
+                        <span class="match-time">${m.timeSpain}</span>
+                      </div>
+                    `)}
+                    ${knockoutMatches.map(m => html`
+                      <div class="match-row knockout">
+                        <span class="match-id">${m.matchId}</span>
+                        <span class="match-teams">${this._getKnockoutLabel(m.matchId)}</span>
+                        <span class="match-date">📅 ${m.date}</span>
+                        <span class="match-time">${m.timeSpain}</span>
+                      </div>
+                    `)}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  private _getKnockoutLabel(id: string) {
+    if (id.startsWith('R32')) return 'Dieciseisavos de Final';
+    if (id.startsWith('R16')) return 'Octavos de Final';
+    if (id.startsWith('QF')) return 'Cuartos de Final';
+    if (id.startsWith('SF')) return 'Semifinal';
+    if (id.startsWith('TP')) return 'Tercer Puesto';
+    if (id.startsWith('FIN')) return 'GRAN FINAL';
+    return 'Fase Eliminatoria';
   }
 
   private _renderHero() {

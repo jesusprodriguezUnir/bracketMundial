@@ -85,11 +85,13 @@ export const en: Record<TranslationKey, string> = {
   'knockout.swipeHint': 'Swipe to see the full bracket',
 
   'stadiums.title': 'VENUES & STADIUMS',
+  'stadiums.back': '← Back to stadiums',
 
   'squads.official': 'OFFICIAL',
   'squads.officials.one': 'official',
   'squads.officials.many': 'officials',
   'squads.back': '← Back to teams',
+  'coaches.back': '← Back to coaches',
   'squads.tab.squad': 'Squad',
   'squads.tab.matches': 'Fixtures',
   'squads.tab.venues': 'Venues',

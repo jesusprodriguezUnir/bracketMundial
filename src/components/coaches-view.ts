@@ -472,7 +472,7 @@ export class CoachesView extends LitElement {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  private goBack() {
+  goBack() {
     this.selectedTeamId = null;
   }
 
@@ -561,7 +561,7 @@ export class CoachesView extends LitElement {
     const locale = useLocaleStore.getState().locale;
 
     return html`
-      <button class="back-btn" @click=${() => this.goBack()}>${t('squads.back')}</button>
+      <button class="back-btn" @click=${() => this.goBack()}>${t('coaches.back')}</button>
 
       <section class="detail-panel">
         <div class="detail-header">
