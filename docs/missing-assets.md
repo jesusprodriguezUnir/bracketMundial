@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 18/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 19/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 98 fotos faltantes en 25 equipos (1111/1209 cubiertos)  
+**Jugadores:** 78 fotos faltantes en 26 equipos (1133/1211 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,36 +12,36 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| JOR | 23 | 10 | ❌ 13 | ✅ |
-| HAI | 26 | 14 | ❌ 12 | ✅ |
-| EGY | 23 | 16 | ❌ 7 | ✅ |
-| IRQ | 23 | 16 | ❌ 7 | ✅ |
-| QAT | 26 | 20 | ❌ 6 | ✅ |
+| HAI | 26 | 17 | ❌ 9 | ✅ |
+| JOR | 23 | 14 | ❌ 9 | ✅ |
+| EGY | 23 | 18 | ❌ 5 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
+| QAT | 26 | 21 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
 | CPV | 23 | 19 | ❌ 4 | ✅ |
 | KOR | 26 | 22 | ❌ 4 | ✅ |
-| PAN | 23 | 19 | ❌ 4 | ✅ |
 | RSA | 26 | 22 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
-| COD | 26 | 23 | ❌ 3 | ✅ |
-| MEX | 26 | 23 | ❌ 3 | ✅ |
+| IRQ | 23 | 20 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
-| BRA | 27 | 25 | ❌ 2 | ✅ |
 | CAN | 27 | 25 | ❌ 2 | ✅ |
-| ECU | 23 | 21 | ❌ 2 | ✅ |
-| IRN | 23 | 21 | ❌ 2 | ✅ |
+| CRO | 26 | 24 | ❌ 2 | ✅ |
+| NED | 26 | 24 | ❌ 2 | ✅ |
+| PAN | 23 | 21 | ❌ 2 | ✅ |
 | TUR | 23 | 21 | ❌ 2 | ✅ |
 | AUS | 27 | 26 | ❌ 1 | ✅ |
+| BRA | 26 | 25 | ❌ 1 | ✅ |
 | CIV | 26 | 25 | ❌ 1 | ✅ |
+| COD | 26 | 25 | ❌ 1 | ✅ |
 | COL | 23 | 22 | ❌ 1 | ✅ |
+| ECU | 23 | 22 | ❌ 1 | ✅ |
+| MEX | 26 | 25 | ❌ 1 | ✅ |
 | SWE | 26 | 25 | ❌ 1 | ✅ |
 | USA | 32 | 31 | ❌ 1 | ✅ |
 | ARG | 28 | 28 | ✅ 0 | ✅ |
 | AUT | 26 | 26 | ✅ 0 | ✅ |
 | BEL | 29 | 29 | ✅ 0 | ✅ |
 | BIH | 26 | 26 | ✅ 0 | ✅ |
-| CRO | 24 | 24 | ✅ 0 | ✅ |
 | CUW | 26 | 26 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
 | ENG | 26 | 26 | ✅ 0 | ✅ |
@@ -49,9 +49,9 @@
 | FRA | 27 | 27 | ✅ 0 | ✅ |
 | GER | 27 | 27 | ✅ 0 | ✅ |
 | GHA | 23 | 23 | ✅ 0 | ✅ |
+| IRN | 23 | 23 | ✅ 0 | ✅ |
 | JPN | 28 | 28 | ✅ 0 | ✅ |
 | MAR | 26 | 26 | ✅ 0 | ✅ |
-| NED | 25 | 25 | ✅ 0 | ✅ |
 | NOR | 23 | 23 | ✅ 0 | ✅ |
 | NZL | 26 | 26 | ✅ 0 | ✅ |
 | POR | 23 | 23 | ✅ 0 | ✅ |
@@ -61,30 +61,11 @@
 | TUN | 26 | 26 | ✅ 0 | ✅ |
 | URU | 23 | 23 | ✅ 0 | ✅ |
 
-### JOR — faltan 13 fotos
-
-- `#2` Ehsan Haddad
-- `#5` Mohannad Abu Taha
-- `#9` Hamza Al-Dardour
-- `#10` Mousa Al-Taamari
-- `#12` Abdullah Al-Fakhouri
-- `#13` Salem Al-Ajalin
-- `#14` Bara Marei
-- `#15` Abu Jalboush Nour Al-Rawabdeh
-- `#17` Ibrahim Sadeh
-- `#19` Mahmoud Ereimat
-- `#20` Baha Faisal
-- `#22` Sharara
-- `#23` Ahmed Abdel Sattar
-
-### HAI — faltan 12 fotos
+### HAI — faltan 9 fotos
 
 - `#6` Wilguens Pauguaïn
-- `#8` Leverton Pierre
 - `#10` Frantzdy Pierrot
 - `#12` Alexandre Pierre
-- `#13` Duke Lacroix
-- `#14` Martin Expérience
 - `#15` Keeto Thermoncy
 - `#18` Carl-Fred Sainthe
 - `#19` Pierre Woodenski
@@ -92,34 +73,25 @@
 - `#23` Josué Duverger
 - `#25` Yassin Fortune
 
-### EGY — faltan 7 fotos
+### JOR — faltan 9 fotos
 
-- `#6` Ahmed Fattouh
+- `#9` Hamza Al-Dardour
+- `#12` Abdullah Al-Fakhouri
+- `#13` Salem Al-Ajalin
+- `#14` Bara Marei
+- `#15` Abu Jalboush Nour Al-Rawabdeh
+- `#19` Mahmoud Ereimat
+- `#20` Baha Faisal
+- `#22` Sharara
+- `#23` Ahmed Abdel Sattar
+
+### EGY — faltan 5 fotos
+
 - `#14` Mohamed Magdy Afsha
 - `#15` Osama Galal
-- `#16` Mohamed Sobhy
 - `#17` Ahmed Sayed Zizo
 - `#21` Mostafa Shalaby
 - `#23` Mahmoud Gad
-
-### IRQ — faltan 7 fotos
-
-- `#4` Frans Dhia Putros
-- `#5` Zaid Tahseen
-- `#6` Osama Rashid
-- `#10` Ali Jasim
-- `#12` Ahmed Basil
-- `#18` Ibrahim Bayesh
-- `#22` Ahmed Yasin
-
-### QAT — faltan 6 fotos
-
-- `#2` Pedro Miguel
-- `#14` Hommam Al-Amin
-- `#16` Al Hashemi Al Hussein
-- `#17` Ahmed Al Janhi
-- `#22` Mahmoud Abunada
-- `#25` Youssef Abdelrisaq
 
 ### KSA — faltan 5 fotos
 
@@ -128,6 +100,14 @@
 - `#10` Mohammed Kanno
 - `#22` Turki Al-Ammar
 - `#23` Ahmed Al-Kassar
+
+### QAT — faltan 5 fotos
+
+- `#14` Hommam Al-Amin
+- `#16` Al Hashemi Al Hussein
+- `#17` Ahmed Al Janhi
+- `#22` Mahmoud Abunada
+- `#25` Youssef Abdelrisaq
 
 ### UZB — faltan 5 fotos
 
@@ -151,13 +131,6 @@
 - `#14` Kim Tae-hyeon
 - `#20` Park Jin-seob
 
-### PAN — faltan 4 fotos
-
-- `#10` Édgar Bárcenas
-- `#17` José Luis Rodríguez
-- `#19` Eduardo Guerrero
-- `#23` César Samudio
-
 ### RSA — faltan 4 fotos
 
 - `#13` Samukele Kabini
@@ -171,17 +144,11 @@
 - `#20` Mohamed El Amine Amoura
 - `#23` Moustapha Zeghba
 
-### COD — faltan 3 fotos
+### IRQ — faltan 3 fotos
 
-- `#17` Meschack Elia
-- `#22` Ngalayel Mukau
-- `#23` Timothy Fayulu
-
-### MEX — faltan 3 fotos
-
-- `#14` Erik Lira
-- `#17` Armando González
-- `#25` Gilberto Mora
+- `#4` Frans Dhia Putros
+- `#12` Ahmed Basil
+- `#22` Ahmed Yasin
 
 ### PAR — faltan 3 fotos
 
@@ -189,25 +156,25 @@
 - `#21` Alberto Espínola
 - `#23` Diego Melgarejo
 
-### BRA — faltan 2 fotos
-
-- `#15` Carlos Augusto
-- `#30` Danilo Santos
-
 ### CAN — faltan 2 fotos
 
 - `#15` Niko Sigur
 - `#20` Ali Ahmed
 
-### ECU — faltan 2 fotos
+### CRO — faltan 2 fotos
 
-- `#19` Kevin Rodríguez
-- `#20` Lolo Rodríguez
+- `#14` Nikola Moro
+- `#15` Toni Fruk
 
-### IRN — faltan 2 fotos
+### NED — faltan 2 fotos
 
-- `#4` Shoja Khalilzadeh
-- `#11` Mohammad Mohebi
+- `#26` Jurriën Timber
+- `#26` Quinten Timber
+
+### PAN — faltan 2 fotos
+
+- `#19` Eduardo Guerrero
+- `#23` César Samudio
 
 ### TUR — faltan 2 fotos
 
@@ -218,13 +185,29 @@
 
 - `#32` Deni Juric
 
+### BRA — faltan 1 foto
+
+- `#15` Léo Pereira
+
 ### CIV — faltan 1 foto
 
 - `#18` Christ Inao Oulai
 
+### COD — faltan 1 foto
+
+- `#23` Timothy Fayulu
+
 ### COL — faltan 1 foto
 
 - `#23` Kevin Mier
+
+### ECU — faltan 1 foto
+
+- `#20` Lolo Rodríguez
+
+### MEX — faltan 1 foto
+
+- `#17` Armando González
 
 ### SWE — faltan 1 foto
 
