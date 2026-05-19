@@ -464,6 +464,18 @@ export class BracketView extends LitElement {
     }
     this._activeTab = tab;
     this._moreOpen = false;
+    if (tab === 'squads') {
+      const squadsEl = this.shadowRoot?.querySelector('squads-view') as HTMLElement & { goBack?: () => void } | null;
+      squadsEl?.goBack?.();
+    }
+    if (tab === 'coaches') {
+      const coachesEl = this.shadowRoot?.querySelector('coaches-view') as HTMLElement & { goBack?: () => void } | null;
+      coachesEl?.goBack?.();
+    }
+    if (tab === 'stadiums') {
+      const stadiumsEl = this.shadowRoot?.querySelector('stadiums-view') as HTMLElement & { goBack?: () => void } | null;
+      stadiumsEl?.goBack?.();
+    }
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';

@@ -18,7 +18,7 @@ export class ShareCard extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      width: 1200px;
+      width: 1580px;
       background: #ecdfc0;
       font-family: 'Bowlby One', 'Anton', Impact, sans-serif;
       color: #1a1933;
@@ -112,9 +112,9 @@ export class ShareCard extends LitElement {
     }
     .bracket-wrap {
       display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 12px 22px;
+      align-items: stretch;
+      gap: 10px;
+      padding: 12px 16px;
       min-width: 100%;
       position: relative;
     }
@@ -126,6 +126,12 @@ export class ShareCard extends LitElement {
       gap: 6px;
       flex: 1;
       min-width: 0;
+      justify-content: space-around;
+    }
+    .round-col.is-final {
+      flex: 1.18;
+      justify-content: center;
+      gap: 10px;
     }
     .round-title {
       padding: 4px 7px;
@@ -143,6 +149,15 @@ export class ShareCard extends LitElement {
       white-space: nowrap;
       overflow: hidden;
     }
+
+    .matches-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 6px;
+    }
     .round-title.is-final {
       color: #f0b021;
     }
@@ -157,9 +172,14 @@ export class ShareCard extends LitElement {
     .match-box {
       background: #e6d6b1;
       border: 2px solid #1a1933;
+      border-left-width: 4px;
       box-shadow: 2px 2px 0 0 #1a1933;
       overflow: hidden;
       flex-shrink: 0;
+    }
+    .match-box.right-side {
+      border-left-width: 2px;
+      border-right-width: 4px;
     }
     .team-row {
       display: flex;
@@ -220,6 +240,7 @@ export class ShareCard extends LitElement {
       padding: 10px 8px;
       text-align: center;
       flex-shrink: 0;
+      min-width: 0;
     }
     .champion-title {
       font-family: 'Space Mono', monospace;
@@ -337,7 +358,7 @@ export class ShareCard extends LitElement {
     return html`<span class="team-flag">${team.flag}</span>`;
   }
 
-  private renderMatch(km: Record<string, KnockoutMatchResult>, matchId: string, accentColor: string) {
+  private renderMatch(km: Record<string, KnockoutMatchResult>, matchId: string, accentColor: string, isRightSide = false) {
     const m = km[matchId];
     const isPlayed = m?.isPlayed ?? false;
     const winnerId = m?.winnerId ?? null;
@@ -361,7 +382,9 @@ export class ShareCard extends LitElement {
     };
 
     return html`
-      <div class="match-box">
+      <div
+        class="match-box ${isRightSide ? 'right-side' : ''}"
+        style="${isRightSide ? `border-right-color:${accentColor};` : `border-left-color:${accentColor};`}">
         ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
@@ -383,11 +406,12 @@ export class ShareCard extends LitElement {
     const runnerUp = this.getTeam(runnerUpId ?? null);
     const third    = this.getTeam(thirdId);
 
-    const r32 = ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08',
-                 'R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'];
-    const r16 = ['R16-01','R16-02','R16-03','R16-04','R16-05','R16-06','R16-07','R16-08'];
-    const qf  = ['QF-01','QF-02','QF-03','QF-04'];
-    const sf  = ['SF-01','SF-02'];
+    const r32L = ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08'];
+    const r32R = ['R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'];
+    const r16L = ['R16-01','R16-02','R16-03','R16-04'];
+    const r16R = ['R16-05','R16-06','R16-07','R16-08'];
+    const qfL  = ['QF-01','QF-02'];
+    const qfR  = ['QF-03','QF-04'];
 
     return html`
       <!-- HEADER -->
@@ -416,36 +440,39 @@ export class ShareCard extends LitElement {
       <!-- BODY: bracket -->
       <div class="card-body">
         <div class="bracket-wrap">
-          <!-- R32 -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.r32}">
-              <span>${t('card.r32')}</span><span class="round-count">[16]</span>
+              <span>${t('card.r32')}</span><span class="round-count">[8]</span>
             </div>
-            ${r32.map(id => this.renderMatch(km, id, ROUND_COLORS.r32))}
+            <div class="matches-wrap">
+              ${r32L.map(id => this.renderMatch(km, id, ROUND_COLORS.r32))}
+            </div>
           </div>
-          <!-- R16 -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.r16}">
-              <span>${t('card.r16')}</span><span class="round-count">[8]</span>
+              <span>${t('card.r16')}</span><span class="round-count">[4]</span>
             </div>
-            ${r16.map(id => this.renderMatch(km, id, ROUND_COLORS.r16))}
+            <div class="matches-wrap">
+              ${r16L.map(id => this.renderMatch(km, id, ROUND_COLORS.r16))}
+            </div>
           </div>
-          <!-- QF -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.qf}">
-              <span>${t('card.qf')}</span><span class="round-count">[4]</span>
+              <span>${t('card.qf')}</span><span class="round-count">[2]</span>
             </div>
-            ${qf.map(id => this.renderMatch(km, id, ROUND_COLORS.qf))}
+            <div class="matches-wrap">
+              ${qfL.map(id => this.renderMatch(km, id, ROUND_COLORS.qf))}
+            </div>
           </div>
-          <!-- SF -->
           <div class="round-col">
             <div class="round-title" style="background-color:${ROUND_COLORS.sf}">
-              <span>${t('card.sf')}</span><span class="round-count">[2]</span>
+              <span>${t('card.sf')}</span><span class="round-count">[1]</span>
             </div>
-            ${sf.map(id => this.renderMatch(km, id, ROUND_COLORS.sf))}
+            <div class="matches-wrap">
+              ${this.renderMatch(km, 'SF-01', ROUND_COLORS.sf)}
+            </div>
           </div>
-          <!-- FINAL + CHAMPION + 3P -->
-          <div class="round-col">
+          <div class="round-col is-final">
             <div class="round-title is-final" style="background-color:${ROUND_COLORS.final}">
               <span>${t('card.final')}</span><span class="round-count">[1]</span>
             </div>
@@ -460,6 +487,39 @@ export class ShareCard extends LitElement {
 
             <div class="third-place-label">${t('card.thirdPlace')}</div>
             ${this.renderMatch(km, 'TP-01', ROUND_COLORS.sf)}
+          </div>
+
+          <div class="round-col">
+            <div class="round-title" style="background-color:${ROUND_COLORS.sf}">
+              <span>${t('card.sf')}</span><span class="round-count">[1]</span>
+            </div>
+            <div class="matches-wrap">
+              ${this.renderMatch(km, 'SF-02', ROUND_COLORS.sf, true)}
+            </div>
+          </div>
+          <div class="round-col">
+            <div class="round-title" style="background-color:${ROUND_COLORS.qf}">
+              <span>${t('card.qf')}</span><span class="round-count">[2]</span>
+            </div>
+            <div class="matches-wrap">
+              ${qfR.map(id => this.renderMatch(km, id, ROUND_COLORS.qf, true))}
+            </div>
+          </div>
+          <div class="round-col">
+            <div class="round-title" style="background-color:${ROUND_COLORS.r16}">
+              <span>${t('card.r16')}</span><span class="round-count">[4]</span>
+            </div>
+            <div class="matches-wrap">
+              ${r16R.map(id => this.renderMatch(km, id, ROUND_COLORS.r16, true))}
+            </div>
+          </div>
+          <div class="round-col">
+            <div class="round-title" style="background-color:${ROUND_COLORS.r32}">
+              <span>${t('card.r32')}</span><span class="round-count">[8]</span>
+            </div>
+            <div class="matches-wrap">
+              ${r32R.map(id => this.renderMatch(km, id, ROUND_COLORS.r32, true))}
+            </div>
           </div>
         </div>
       </div>

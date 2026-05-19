@@ -56,6 +56,7 @@ export class BracketKnockout extends LitElement {
   private _ro?: ResizeObserver;
   private _mql?: MediaQueryList;
   private _desktopInited = false;
+  private _centerDone = false;
 
   private readonly _onResize = () => requestAnimationFrame(() => this._drawConnectors());
   private readonly _onMqlChange = (e: MediaQueryListEvent) => { this._isMobile = e.matches; };
@@ -166,7 +167,8 @@ export class BracketKnockout extends LitElement {
       gap: 14px;
       padding: 0 12px;
       min-width: fit-content;
-      align-items: center;
+      align-items: stretch;
+      height: 100%;
       position: relative;
     }
 
@@ -174,9 +176,20 @@ export class BracketKnockout extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 5px;
-      justify-content: flex-start;
+      justify-content: space-around;
       min-width: 148px;
       scroll-snap-align: start;
+    }
+    .round-col.is-final {
+      justify-content: center;
+      gap: 12px;
+    }
+    .matches-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
     }
 
     /* Header coloreado con halftone + sombra doble V3 */
@@ -259,6 +272,74 @@ export class BracketKnockout extends LitElement {
       flex-shrink: 0;
     }
     .team-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    @media (min-width: 769px) {
+      .bracket-scroll {
+        overflow-x: hidden;
+        padding: 8px 0 10px;
+      }
+
+      .bracket-container {
+        width: 100%;
+        min-width: 0;
+        gap: clamp(6px, 0.7vw, 12px);
+        padding: 0 8px;
+      }
+
+      .round-col {
+        min-width: 0;
+        flex: 1 1 0;
+      }
+
+      .round-col.is-final {
+        flex: 1.18 1 0;
+        min-width: 0;
+      }
+
+      .round-title {
+        padding: 3px 5px;
+        font-size: clamp(9px, 0.72vw, 11px);
+      }
+
+      .matches-wrap {
+        gap: clamp(4px, 0.45vw, 8px);
+      }
+
+      .match-box {
+        min-width: 0;
+      }
+
+      .team-row {
+        padding: 3px 5px;
+        min-height: 28px;
+      }
+
+      .team-info {
+        gap: 4px;
+        font-size: clamp(9px, 0.78vw, 11px);
+      }
+
+      .team-flag {
+        font-size: 10px;
+      }
+
+      .flag-img {
+        width: 15px;
+        height: 10px;
+      }
+
+      .score {
+        font-size: clamp(11px, 0.95vw, 13px);
+      }
+
+      .champion-box {
+        min-width: 0;
+      }
+
+      .champion-team {
+        font-size: clamp(13px, 0.95vw, 15px);
+      }
+    }
 
     .score { font-family: var(--font-var); font-size: 13px; flex-shrink: 0; }
     .score.pending { color: var(--dim); opacity: 0.4; font-size: 11px; }
@@ -1019,12 +1100,14 @@ export class BracketKnockout extends LitElement {
     if (this._isMobile) {
       if (this._desktopInited) {
         this._desktopInited = false;
+        this._centerDone = false;
         this._ro?.disconnect();
         this._ro = undefined;
       }
     } else {
       if (!this._desktopInited) {
         this._desktopInited = true;
+        this._centerDone = false;
         this._initDragScroll();
         const scrollEl = this.shadowRoot?.querySelector<HTMLElement>('.bracket-scroll');
         if (scrollEl) {
@@ -1033,7 +1116,17 @@ export class BracketKnockout extends LitElement {
         }
         window.addEventListener('resize', this._onResize);
       }
-      requestAnimationFrame(() => this._drawConnectors());
+      requestAnimationFrame(() => {
+        // En desktop intentamos mostrar toda la llave desde el inicio.
+        if (!this._centerDone) {
+          const scrollEl = this.shadowRoot?.querySelector<HTMLElement>('.bracket-scroll');
+          if (scrollEl && scrollEl.clientWidth > 0) {
+            scrollEl.scrollLeft = 0;
+            this._centerDone = true;
+          }
+        }
+        this._drawConnectors();
+      });
     }
   }
 
@@ -1523,32 +1616,40 @@ export class BracketKnockout extends LitElement {
               <span>1/16</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
-            ${r32L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, false))}
+            <div class="matches-wrap">
+              ${r32L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, false))}
+            </div>
           </div>
           <div class="round-col" id="col-r16-left">
             <div class="round-title" style="background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
-            ${r16L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, false))}
+            <div class="matches-wrap">
+              ${r16L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, false))}
+            </div>
           </div>
           <div class="round-col" id="col-qf-left">
             <div class="round-title" style="background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
-            ${qfL.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, false))}
+            <div class="matches-wrap">
+              ${qfL.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, false))}
+            </div>
           </div>
           <div class="round-col" id="col-sf-left">
             <div class="round-title" style="background-color: ${ROUND_COLORS.sf}">
               <span>SEMIS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
-            ${this.renderMatch('SF-01', ROUND_COLORS.sf, 0, false)}
+            <div class="matches-wrap">
+              ${this.renderMatch('SF-01', ROUND_COLORS.sf, 0, false)}
+            </div>
           </div>
 
           <!-- CENTRO: Final + Campeón + Tercer puesto -->
-          <div class="round-col" id="col-final">
+          <div class="round-col is-final" id="col-final">
             <div class="round-title is-final" style="background-color: ${ROUND_COLORS.final}">
               <span>FINAL</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
@@ -1578,28 +1679,36 @@ export class BracketKnockout extends LitElement {
               <span>SEMIS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
-            ${this.renderMatch('SF-02', ROUND_COLORS.sf, 0, true)}
+            <div class="matches-wrap">
+              ${this.renderMatch('SF-02', ROUND_COLORS.sf, 0, true)}
+            </div>
           </div>
           <div class="round-col" id="col-qf-right">
             <div class="round-title" style="background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
-            ${qfR.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, true))}
+            <div class="matches-wrap">
+              ${qfR.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, true))}
+            </div>
           </div>
           <div class="round-col" id="col-r16-right">
             <div class="round-title" style="background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
-            ${r16R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, true))}
+            <div class="matches-wrap">
+              ${r16R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, true))}
+            </div>
           </div>
           <div class="round-col" id="col-r32-right">
             <div class="round-title" style="background-color: ${ROUND_COLORS.r32}">
               <span>1/16</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
-            ${r32R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, true))}
+            <div class="matches-wrap">
+              ${r32R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, true))}
+            </div>
           </div>
         </div>
       </div>

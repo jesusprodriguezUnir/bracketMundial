@@ -103,7 +103,12 @@
       "WebFetch(domain:www.beinsports.com)",
       "Bash(pdfinfo \"TODAS LAS FIGURITAS EN PDF.pdf\")",
       "Bash(which pdfimages *)",
-      "Bash(node -e \"try{require.resolve\\('pdfjs-dist'\\);console.log\\('pdfjs-dist OK'\\)}catch{console.log\\('no pdfjs-dist'\\)}; try{require.resolve\\('sharp'\\);console.log\\('sharp OK'\\)}catch{console.log\\('no sharp'\\)}; try{require.resolve\\('pdf-lib'\\);console.log\\('pdf-lib OK'\\)}catch{console.log\\('no pdf-lib'\\)}\")"
+      "Bash(node -e \"try{require.resolve\\('pdfjs-dist'\\);console.log\\('pdfjs-dist OK'\\)}catch{console.log\\('no pdfjs-dist'\\)}; try{require.resolve\\('sharp'\\);console.log\\('sharp OK'\\)}catch{console.log\\('no sharp'\\)}; try{require.resolve\\('pdf-lib'\\);console.log\\('pdf-lib OK'\\)}catch{console.log\\('no pdf-lib'\\)}\")",
+      "Bash(timeout 5)",
+      "Bash(Start-Process \"npm\" -ArgumentList \"run\",\"dev\" -NoNewWindow)",
+      "Bash(Start-Sleep -Seconds 3)",
+      "Bash(Write-Output \"Server iniciado\")",
+      "PowerShell(\\(Get-Content \"d:\\\\Personal\\\\bracketMundial\\\\src\\\\components\\\\bracket-knockout.ts\" | Measure-Object -Line\\).Lines)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
