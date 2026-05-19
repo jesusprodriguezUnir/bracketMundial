@@ -23,6 +23,10 @@ docs/*.pdf
 # Artefactos de inspección de scripts (no versionar)
 scripts/preview_p*.png
 
+# Directorio temporal de extracción de figuritas
+tmp/
+scratch/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
