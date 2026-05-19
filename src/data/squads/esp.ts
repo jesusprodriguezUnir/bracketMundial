@@ -20,7 +20,7 @@ export const squad: Player[] = [
   { number: 10, name: 'Dani Olmo', position: 'MF', age: 28, club: 'FC Barcelona' },
   { number: 25, name: 'Mikel Merino', position: 'MF', age: 30, club: 'Arsenal' },
   { number: 18, name: 'Gavi', position: 'MF', age: 22, club: 'FC Barcelona' },
-  { number: 26, name: 'Fermín López', position: 'MF', age: 23, club: 'FC Barcelona' },
+  { number: 26, name: 'Pablo Barrios', position: 'MF', age: 22, club: 'Atlético de Madrid' },
   { number: 7, name: 'Lamine Yamal', position: 'FW', age: 19, club: 'FC Barcelona' },
   { number: 11, name: 'Nico Williams', position: 'FW', age: 24, club: 'Athletic Club' },
   { number: 9, name: 'Mikel Oyarzabal', position: 'FW', age: 29, club: 'Real Sociedad' },
