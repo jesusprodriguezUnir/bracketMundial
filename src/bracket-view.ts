@@ -10,10 +10,10 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:   () => import('./components/groups-view'),
@@ -23,6 +23,7 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   stadiums: () => import('./components/stadiums-view'),
   tv:       () => import('./components/broadcasting-view'),
   coaches:  () => import('./components/coaches-view'),
+  guide:    () => import('./components/guide-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -34,6 +35,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'calendar') return 'calendar';
   if (tab === 'stadiums') return 'stadiums';
   if (tab === 'coaches') return 'coaches';
+  if (tab === 'guide') return 'guide';
   return null;
 }
 
@@ -45,12 +47,13 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   calendar: 'tabs.calendar',
   stadiums: 'tabs.stadiums',
   coaches:  'tabs.coaches',
+  guide:    'tabs.guide',
 };
 
-const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches'];
+const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide'];
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide'];
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -315,6 +318,7 @@ export class BracketView extends LitElement {
     .section-squads,
     .section-calendar,
     .section-coaches,
+    .section-guide,
     .section-tv {
       display: none;
       scroll-margin-top: 120px;
@@ -325,6 +329,7 @@ export class BracketView extends LitElement {
     .section-squads.visible,
     .section-calendar.visible,
     .section-coaches.visible,
+    .section-guide.visible,
     .section-tv.visible {
       display: block;
       animation: viewFadeIn 0.2s ease both;
@@ -375,6 +380,7 @@ export class BracketView extends LitElement {
       .section-squads,
       .section-calendar,
       .section-coaches,
+      .section-guide,
       .section-tv {
         display: none;
       }
@@ -385,6 +391,7 @@ export class BracketView extends LitElement {
       .section-squads.visible,
       .section-calendar.visible,
       .section-coaches.visible,
+      .section-guide.visible,
       .section-tv.visible {
         display: block;
         animation: viewFadeIn 0.2s ease both;
@@ -472,6 +479,10 @@ export class BracketView extends LitElement {
       const coachesEl = this.shadowRoot?.querySelector('coaches-view') as HTMLElement & { goBack?: () => void } | null;
       coachesEl?.goBack?.();
     }
+    if (tab === 'guide') {
+      const guideEl = this.shadowRoot?.querySelector('guide-view') as HTMLElement & { goBack?: () => void } | null;
+      guideEl?.goBack?.();
+    }
     if (tab === 'stadiums') {
       const stadiumsEl = this.shadowRoot?.querySelector('stadiums-view') as HTMLElement & { goBack?: () => void } | null;
       stadiumsEl?.goBack?.();
@@ -483,7 +494,8 @@ export class BracketView extends LitElement {
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
       if (tab === 'coaches') targetId = 'section-coaches';
-      
+      if (tab === 'guide') targetId = 'section-guide';
+
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -759,6 +771,19 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.coaches.title')}</div>
             </div>
             <coaches-view></coaches-view>
+          ` : ''}
+        </div>
+
+        <!-- Guía del Mundial (lazy) -->
+        <div
+          id="section-guide"
+          class="section-guide ${at === 'guide' ? 'visible' : ''}">
+          ${at === 'guide' && loaded.has('guide') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.guide.eyebrow')}</div>
+              <div class="section-title">${t('section.guide.title')}</div>
+            </div>
+            <guide-view></guide-view>
           ` : ''}
         </div>
       </div>

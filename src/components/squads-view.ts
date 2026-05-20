@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
+import type { Stadium } from '../data/stadiums';
 import { GROUP_MATCHES } from '../data/match-schedule';
 import { getSquad, getLineup, SQUADS, isOfficialSquad } from '../data/squads';
 import type { Player } from '../data/squads';
@@ -19,6 +20,8 @@ import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
 import '../components/player-card';
 import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
+import { getOddsForMatch } from '../lib/odds-service';
+import type { MatchOdds } from '../lib/odds-service';
 
 function normalize(str: string): string {
   return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -32,12 +35,16 @@ function getInitials(name: string): string {
 
 interface TeamMatchSummary {
   id: string;
+  matchId: string;
   phase: string;
   date: string;
   timeSpain: string;
   venue: string;
+  venueId: string;
   city: string;
   opponentId: string | null;
+  matchDay: number;
+  teamId: string;
 }
 
 @customElement('squads-view')
@@ -52,6 +59,9 @@ export class SquadsView extends LitElement {
   @state() private _news: NewsItem[] | null = null;
   @state() private _newsLoading = false;
   @state() private _newsKey: string | null = null;
+  @state() private _openMatchId: string | null = null;
+  @state() private _openVenueId: string | null = null;
+  @state() private _matchOddsCache: Map<string, MatchOdds> = new Map();
 
   private unsubscribeStore?: () => void;
   private _swipeStartX = 0;
@@ -755,6 +765,425 @@ export class SquadsView extends LitElement {
       letter-spacing: 0.08em;
     }
 
+    /* ── Match expandable ── */
+
+    .match-card-expand {
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      overflow: hidden;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+
+    .match-card-expand.collapsed {
+      cursor: pointer;
+    }
+
+    .match-card-expand.collapsed:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-hard-md);
+    }
+
+    .match-card-header {
+      padding: 14px 18px;
+      cursor: pointer;
+    }
+
+    .match-card-expand.open .match-card-header {
+      border-bottom: 3px solid var(--ink);
+      background: var(--paper);
+    }
+
+    .match-card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .match-card-opponent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-display);
+      font-size: 26px;
+      color: var(--ink);
+    }
+
+    .match-card-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+    }
+
+    .match-toggle-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      padding: 3px 8px;
+      color: var(--ink);
+    }
+
+    .match-card-expand.open .match-toggle-pill {
+      background: var(--retro-orange);
+      color: var(--paper);
+      box-shadow: none;
+      transform: translate(2px, 2px);
+    }
+
+    /* ── Match detail (expanded) ── */
+
+    .match-detail {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .match-section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .match-section-num {
+      background: var(--retro-blue);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 6px;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .match-section-num.orange { background: var(--retro-orange); }
+    .match-section-num.green  { background: var(--retro-green);  }
+
+    .match-section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .match-section-dash {
+      flex: 1;
+      border-top: 1.5px dashed rgba(26, 25, 51, 0.3);
+    }
+
+    .match-cronica {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    /* Odds bar */
+    .odds-bar {
+      display: flex;
+      height: 44px;
+      border: 2.5px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
+      overflow: hidden;
+    }
+
+    .odds-bar-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 17px;
+      transition: width 0.3s ease;
+    }
+
+    .odds-bar-seg + .odds-bar-seg {
+      border-left: 2px solid var(--ink);
+    }
+
+    .odds-legend {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    /* Probable scorers */
+    .scorers-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 12px 0 8px;
+    }
+
+    .scorers-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .scorer-chip {
+      padding: 5px 10px;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .scorer-chip b {
+      font-family: var(--font-display);
+      font-size: 13px;
+    }
+
+    /* Pitch (match-detail) */
+    .match-pitch-wrap {
+      position: relative;
+      background: linear-gradient(to bottom, var(--retro-green) 0%, #2a8048 50%, var(--retro-green) 100%);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      height: 480px;
+      overflow: hidden;
+    }
+
+    .match-pitch-wrap svg.lines {
+      position: absolute;
+      inset: 0;
+    }
+
+    .pitch-tag {
+      position: absolute;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 4px 8px;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .pitch-dot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .pitch-dot .pdnum {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2.5px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--paper);
+    }
+
+    .pitch-dot .pdname {
+      background: rgba(26, 25, 51, 0.85);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 2px 5px;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    /* ── Venue detail (inline) ── */
+
+    .venue-detail-wrap {
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      background: var(--paper-2);
+      overflow: hidden;
+    }
+
+    .vd-photo {
+      height: 180px;
+      background-size: cover;
+      background-position: center;
+      border-bottom: 3px solid var(--ink);
+      position: relative;
+    }
+
+    .vd-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .vd-back {
+      all: unset;
+      cursor: pointer;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 6px 10px;
+      border: 2.5px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+    }
+
+    .vd-back:hover { background: var(--retro-yellow); }
+
+    .vd-body {
+      padding: 14px;
+    }
+
+    .vd-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .vd-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .vd-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 2px solid var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .vd-stat {
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .vd-stat + .vd-stat {
+      border-left: 2px solid var(--ink);
+    }
+
+    .vd-stat b {
+      font-family: var(--font-display);
+      font-size: 20px;
+      display: block;
+      color: var(--ink);
+    }
+
+    .vd-stat span {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      font-weight: 700;
+    }
+
+    .vd-desc {
+      font-family: var(--font-body);
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--ink);
+      margin: 0 0 12px;
+    }
+
+    .vd-matches-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .vd-match-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      margin-bottom: 5px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .vd-match-row b {
+      font-family: var(--font-display);
+      font-size: 13px;
+    }
+
+    .vd-phase-badge {
+      background: var(--retro-blue);
+      color: var(--paper);
+      padding: 2px 7px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .vd-goto-btn {
+      all: unset;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 10px 12px;
+      margin-top: 10px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 2.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+      box-sizing: border-box;
+    }
+
+    .vd-goto-btn:hover { background: var(--retro-yellow); }
+
     @media (max-width: 768px) {
       .detail-grid {
         grid-template-columns: 1fr;
@@ -996,12 +1425,16 @@ export class SquadsView extends LitElement {
         const stadium = STADIUMS.find(s => s.id === match.venueId);
         return {
           id: match.matchId,
+          matchId: match.matchId,
           phase: `Grupo ${match.group}`,
           date: match.date,
           timeSpain: match.timeSpain,
           venue: stadium?.name ?? match.venueId,
+          venueId: match.venueId,
           city: stadium?.city ?? '',
           opponentId: match.teamA === teamId ? match.teamB : match.teamA,
+          matchDay: match.matchDay,
+          teamId,
         };
       })
       .sort((a, b) => {
@@ -1009,6 +1442,21 @@ export class SquadsView extends LitElement {
         const bk = `${b.date}T${b.timeSpain}`;
         return ak.localeCompare(bk);
       });
+  }
+
+  private _toggleMatch(matchId: string, teamAId: string, opponentId: string | null) {
+    if (this._openMatchId === matchId) {
+      this._openMatchId = null;
+      return;
+    }
+    this._openMatchId = matchId;
+    if (!this._matchOddsCache.has(matchId)) {
+      getOddsForMatch(matchId, teamAId, opponentId ?? undefined).then(odds => {
+        if (odds) {
+          this._matchOddsCache = new Map(this._matchOddsCache).set(matchId, odds);
+        }
+      });
+    }
   }
 
   private formatDate(date: string, timeSpain: string) {
@@ -1191,17 +1639,111 @@ export class SquadsView extends LitElement {
                 <div class="matches-list">
                   ${teamMatches.map(match => {
                     const opponent = this.getTeam(match.opponentId);
+                    const isOpen = this._openMatchId === match.matchId;
+                    const odds = this._matchOddsCache.get(match.matchId);
+                    const lineup = getLineup(selectedTeam.id);
+                    const opponentLineup = match.opponentId ? getLineup(match.opponentId) : null;
                     return html`
-                      <article class="match-card">
-                        <div class="match-top">
-                          <span>${match.phase}</span>
-                          <span>${this.formatDate(match.date, match.timeSpain)}</span>
+                      <article class="match-card-expand ${isOpen ? 'open' : 'collapsed'}">
+                        <div
+                          class="match-card-header"
+                          @click=${() => this._toggleMatch(match.matchId, match.teamId, match.opponentId)}
+                        >
+                          <div class="match-card-meta">
+                            <span>${match.phase} · JORNADA ${match.matchDay}</span>
+                            <span>${this.formatDate(match.date, match.timeSpain)}</span>
+                          </div>
+                          <div class="match-card-opponent">
+                            ${renderFlag(opponent, 'sm')}
+                            <span>${opponent?.name ?? 'Rival por decidir'}</span>
+                          </div>
+                          <div class="match-card-footer">
+                            <span>${match.venue} · ${match.city}</span>
+                            <span class="match-toggle-pill">${isOpen ? 'CERRAR ▲' : 'VER DETALLE ▼'}</span>
+                          </div>
                         </div>
-                        <div class="match-opponent">
-                          ${renderFlag(opponent, 'sm')}
-                          <span>${opponent?.name ?? 'Rival por decidir'}</span>
-                        </div>
-                        <div class="match-venue">${match.venue} · ${match.city}</div>
+
+                        ${isOpen ? html`
+                          <div class="match-detail">
+                            <!-- Probabilidades -->
+                            ${odds ? html`
+                              <div>
+                                <div class="match-section-label">
+                                  <span class="match-section-num orange">01</span>
+                                  <span class="match-section-title">PROBABILIDADES</span>
+                                  <span class="match-section-dash"></span>
+                                </div>
+                                <div class="odds-bar">
+                                  <div class="odds-bar-seg"
+                                    style="width:${odds.home}%;background:var(--retro-orange);color:var(--paper)">
+                                    ${odds.home}%
+                                  </div>
+                                  <div class="odds-bar-seg"
+                                    style="width:${odds.draw}%;background:var(--paper-2);color:var(--ink)">
+                                    ${odds.draw}%
+                                  </div>
+                                  <div class="odds-bar-seg"
+                                    style="width:${odds.away}%;background:var(--retro-blue);color:var(--paper)">
+                                    ${odds.away}%
+                                  </div>
+                                </div>
+                                <div class="odds-legend">
+                                  <span>GANA ${selectedTeam.name.toUpperCase()}</span>
+                                  <span>EMPATE</span>
+                                  <span>GANA ${(opponent?.name ?? '').toUpperCase()}</span>
+                                </div>
+                              </div>
+                            ` : html`
+                              <div>
+                                <div class="match-section-label">
+                                  <span class="match-section-num orange">01</span>
+                                  <span class="match-section-title">PROBABILIDADES</span>
+                                  <span class="match-section-dash"></span>
+                                </div>
+                                <p style="font-family:var(--font-mono);font-size:11px;color:var(--dim);margin:0">Cargando cuotas…</p>
+                              </div>
+                            `}
+
+                            <!-- Alineaciones / cancha -->
+                            ${(lineup || opponentLineup) ? html`
+                              <div>
+                                <div class="match-section-label">
+                                  <span class="match-section-num green">02</span>
+                                  <span class="match-section-title">ALINEACIONES PROBABLES</span>
+                                  <span class="match-section-dash"></span>
+                                </div>
+                                <div class="match-pitch-wrap">
+                                  <svg class="lines" viewBox="0 0 400 560" preserveAspectRatio="none">
+                                    <rect x="5" y="5" width="390" height="550" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <line x1="5" y1="280" x2="395" y2="280" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <circle cx="200" cy="280" r="44" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <circle cx="200" cy="280" r="3" fill="rgba(255,255,255,0.45)"/>
+                                    <rect x="120" y="5"   width="160" height="68" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <rect x="120" y="487" width="160" height="68" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                  </svg>
+                                  ${lineup ? this._renderPitchTeam(squad, lineup, true, 'var(--retro-orange)') : ''}
+                                  ${opponentLineup && match.opponentId
+                                    ? this._renderPitchTeam(getSquad(match.opponentId), opponentLineup, false, 'var(--retro-blue)')
+                                    : ''}
+                                  <div class="pitch-tag" style="top:8px;left:8px">
+                                    ${selectedTeam.name} · ${lineup?.formation ?? ''}
+                                  </div>
+                                  ${match.opponentId ? html`
+                                    <div class="pitch-tag" style="bottom:8px;right:8px">
+                                      ${opponentLineup?.formation ?? ''} · ${opponent?.name ?? ''}
+                                    </div>
+                                  ` : ''}
+                                </div>
+                              </div>
+                            ` : ''}
+
+                            <!-- Atajo a la sede -->
+                            <button class="vd-goto-btn"
+                              @click=${(e: Event) => { e.stopPropagation(); this._openVenueId = match.venueId; }}>
+                              📍 VER FICHA DE ${match.venue.toUpperCase()} →
+                            </button>
+                          </div>
+                        ` : ''}
                       </article>
                     `;
                   })}
@@ -1211,21 +1753,30 @@ export class SquadsView extends LitElement {
 
           <div class="panel-block ${this.activeTab !== 'venues' ? 'tab-hidden' : ''}">
             <div class="panel-title">${t('squads.tab.venues')}</div>
-            ${venueMap.size === 0
-              ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>`
-              : html`
-                <div class="venues-grid">
-                  ${[...venueMap.values()].map(stadium => html`
-                    <article class="venue-card">
-                      <img src="${stadium.image}" alt="${stadium.name}">
-                      <div class="venue-copy">
-                        <div class="venue-name">${stadium.name}</div>
-                        <div class="venue-city">${stadium.city} · ${stadium.country}</div>
-                      </div>
-                    </article>
-                  `)}
-                </div>
-              `}
+            ${this._openVenueId
+              ? this._renderVenueDetail(STADIUMS.find(s => s.id === this._openVenueId)!, teamMatches)
+              : venueMap.size === 0
+                ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>`
+                : html`
+                  <div class="venues-grid">
+                    ${[...venueMap.values()].map(stadium => html`
+                      <article
+                        class="venue-card"
+                        style="cursor:pointer"
+                        @click=${() => { this._openVenueId = stadium.id; this.activeTab = 'venues'; }}
+                      >
+                        <img src="${stadium.image}" alt="${stadium.name}">
+                        <div class="venue-copy">
+                          <div class="venue-name">${stadium.name}</div>
+                          <div class="venue-city" style="display:flex;justify-content:space-between;align-items:center">
+                            <span>${stadium.city} · ${stadium.country}</span>
+                            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;background:var(--paper);border:2px solid var(--ink);padding:2px 6px">VER ▶</span>
+                          </div>
+                        </div>
+                      </article>
+                    `)}
+                  </div>
+                `}
           </div>
 
           <div class="panel-block ${this.activeTab !== 'news' ? 'tab-hidden' : ''}">
@@ -1263,6 +1814,82 @@ export class SquadsView extends LitElement {
           </div>
         </div>
       </section>
+    `;
+  }
+
+  private _renderPitchTeam(squad: Player[], lineup: { formation: string; startingXI: number[] }, isTop: boolean, color: string) {
+    const FORMATIONS: Record<string, number[][]> = {
+      '4-3-3':   [[50,8],[12,28],[38,26],[62,26],[88,28],[25,55],[50,50],[75,55],[18,88],[50,90],[82,88]],
+      '4-2-3-1': [[50,8],[12,28],[38,26],[62,26],[88,28],[32,45],[68,45],[22,72],[50,72],[78,72],[50,90]],
+      '4-4-2':   [[50,8],[12,28],[38,26],[62,26],[88,28],[15,55],[40,52],[60,52],[85,55],[30,88],[70,88]],
+      '3-5-2':   [[50,8],[22,26],[50,22],[78,26],[12,50],[35,55],[62,55],[88,50],[50,40],[30,88],[70,88]],
+      '5-3-2':   [[50,8],[8,26],[28,22],[50,18],[72,22],[92,26],[22,55],[50,50],[78,55],[32,88],[68,88]],
+    };
+    const slots = FORMATIONS[lineup.formation] ?? FORMATIONS['4-3-3'];
+    const starters = lineup.startingXI
+      .map(n => squad.find(p => p.number === n))
+      .filter((p): p is Player => !!p);
+
+    return starters.map((player, i) => {
+      const slot = slots[i];
+      if (!slot) return '';
+      const [sx, sy] = slot;
+      const x = sx;
+      const y = isTop ? sy / 2 : 50 + (100 - sy) / 2;
+      const lastName = player.name.trim().split(/\s+/).at(-1) ?? player.name;
+      return html`
+        <div class="pitch-dot" style="left:${x}%;top:${y}%">
+          <div class="pdnum" style="background:${color}">${player.number}</div>
+          <div class="pdname">${lastName}</div>
+        </div>
+      `;
+    });
+  }
+
+  private _renderVenueDetail(stadium: Stadium | undefined, teamMatches: TeamMatchSummary[]) {
+    if (!stadium) return html`<div class="empty">Sede no encontrada.</div>`;
+    const matchesHere = teamMatches.filter(m => m.venueId === stadium.id);
+    return html`
+      <div class="venue-detail-wrap">
+        <div class="vd-photo">
+          <img src="${stadium.image}" alt="${stadium.name}" loading="lazy">
+          <button class="vd-back" @click=${() => { this._openVenueId = null; }}>← VOLVER</button>
+        </div>
+        <div class="vd-body">
+          <div class="vd-sub">${stadium.country.toUpperCase()} · ${stadium.city.toUpperCase()}</div>
+          <div class="vd-name">${stadium.name}</div>
+          <div class="vd-stats">
+            <div class="vd-stat">
+              <b>${stadium.capacity.toLocaleString('es-ES')}</b>
+              <span>CAPACIDAD</span>
+            </div>
+            <div class="vd-stat">
+              <b>${matchesHere.length}</b>
+              <span>PARTIDOS AQUÍ</span>
+            </div>
+            <div class="vd-stat">
+              <b>${stadium.highlight.length > 0 ? '★' : '—'}</b>
+              <span>DESTACADO</span>
+            </div>
+          </div>
+          <p class="vd-desc">${stadium.description}</p>
+
+          ${matchesHere.length > 0 ? html`
+            <div class="vd-matches-title">PARTIDOS DE ESTA SELECCIÓN AQUÍ</div>
+            ${matchesHere.map(m => {
+              const opp = this.getTeam(m.opponentId);
+              return html`
+                <div class="vd-match-row">
+                  <span>${formatShortDate(m.date)} · <b>vs ${opp?.name ?? 'Por determinar'}</b></span>
+                  <span class="vd-phase-badge">${m.phase.toUpperCase()}</span>
+                </div>
+              `;
+            })}
+          ` : ''}
+
+          <div class="vd-matches-title" style="margin-top:12px">${stadium.matchesSummary}</div>
+        </div>
+      </div>
     `;
   }
 
