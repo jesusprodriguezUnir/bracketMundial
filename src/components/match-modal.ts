@@ -8,6 +8,7 @@ import { retroButton } from '../styles/retro-button';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { getLineup, getSquad } from '../data/squads';
 import { COACHES } from '../data/coaches';
+import { getPreview, type Preview } from '../data/previews';
 import { showToast, lightTap, mediumTap } from '../lib/interaction';
 
 
@@ -31,6 +32,8 @@ export class MatchModal extends LitElement {
   @state() private _penaltyScoreA: number | null = null;
   @state() private _penaltyScoreB: number | null = null;
   @state() private _odds: MatchOdds | null = null;
+  @state() private _preview: Preview | null = null;
+  @state() private _chronicleOpen = false;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -46,6 +49,10 @@ export class MatchModal extends LitElement {
           if (this.isConnected) this._odds = o;
         });
       }
+    }
+    if (changedProps.has('matchId')) {
+      this._preview = getPreview(this.matchId);
+      this._chronicleOpen = false;
     }
   }
 
@@ -904,6 +911,24 @@ export class MatchModal extends LitElement {
       font-weight: 700;
       text-decoration: underline;
     }
+    .cronica-headline {
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: var(--retro-blue);
+      margin-left: 6px;
+      text-transform: uppercase;
+    }
+    .cronica-full {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .cronica-full p { margin: 0 0 10px; }
+    .cronica-full strong { color: var(--retro-red); }
+    .cronica-full ul { padding-left: 20px; }
 
     /* ─── V2-Cancha: Probabilidades expandidas ─── */
     .prob-block {
@@ -1090,18 +1115,26 @@ export class MatchModal extends LitElement {
 
   private _renderCronica(tA: ReturnType<typeof TEAMS_2026.find>, tB: ReturnType<typeof TEAMS_2026.find>) {
     if (!tA || !tB) return '';
-    const coachA = COACHES[this.teamA]?.name;
-    const coachB = COACHES[this.teamB]?.name;
-    const preview = this._generatePreview(tA.name, tB.name, coachA, coachB);
+    const text = this._preview?.previewText
+      ?? this._generatePreview(tA.name, tB.name, COACHES[this.teamA]?.name, COACHES[this.teamB]?.name);
+    const hasChronicle = !!this._preview?.chronicleHtml;
     return html`
       <div class="cronica-block">
         <div class="section-label">
           <span class="section-num" style="background:var(--retro-blue)">01</span>
           <span class="section-title">CRÓNICA · PREVIA</span>
+          ${this._preview?.title ? html`<span class="cronica-headline">${this._preview.title}</span>` : ''}
           <div class="section-rule"></div>
         </div>
-        <p class="cronica-text">${preview}</p>
-        <button class="cronica-link">LEER CRÓNICA COMPLETA →</button>
+        <p class="cronica-text">${text}</p>
+        ${hasChronicle ? html`
+          <button class="cronica-link" @click="${() => { this._chronicleOpen = !this._chronicleOpen; }}">
+            ${this._chronicleOpen ? 'OCULTAR CRÓNICA ←' : 'LEER CRÓNICA COMPLETA →'}
+          </button>
+          ${this._chronicleOpen ? html`
+            <div class="cronica-full" .innerHTML="${this._preview!.chronicleHtml}"></div>
+          ` : ''}
+        ` : ''}
       </div>
     `;
   }

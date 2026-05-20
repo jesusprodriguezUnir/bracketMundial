@@ -112,7 +112,9 @@
       "Read(//c/Users/jesus/AppData/Local/Temp/design-ficha/**)",
       "Bash(npx playwright *)",
       "Bash(node /tmp/verify-modal.mjs)",
-      "Read(//c/tmp/**)"
+      "Read(//c/tmp/**)",
+      "Bash(git -C \"d:/Personal/bracketMundial\" ls-remote origin news-data)",
+      "Bash(git -C \"d:/Personal/bracketMundial\" log --oneline -5 origin/news-data)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
