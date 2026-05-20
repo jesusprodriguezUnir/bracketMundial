@@ -108,11 +108,16 @@
       "Bash(Start-Process \"npm\" -ArgumentList \"run\",\"dev\" -NoNewWindow)",
       "Bash(Start-Sleep -Seconds 3)",
       "Bash(Write-Output \"Server iniciado\")",
-      "PowerShell(\\(Get-Content \"d:\\\\Personal\\\\bracketMundial\\\\src\\\\components\\\\bracket-knockout.ts\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"d:\\\\Personal\\\\bracketMundial\\\\src\\\\components\\\\bracket-knockout.ts\" | Measure-Object -Line\\).Lines)",
+      "Read(//c/Users/jesus/AppData/Local/Temp/design-ficha/**)",
+      "Bash(npx playwright *)",
+      "Bash(node /tmp/verify-modal.mjs)",
+      "Read(//c/tmp/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
-      "d:\\Personal\\bracketMundial\\.claude\\skills"
+      "d:\\Personal\\bracketMundial\\.claude\\skills",
+      "C:\\Users\\jesus\\AppData\\Local\\Temp"
     ]
   }
 }

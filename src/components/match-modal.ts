@@ -6,6 +6,8 @@ import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
 import { retroButton } from '../styles/retro-button';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
+import { getLineup, getSquad } from '../data/squads';
+import { COACHES } from '../data/coaches';
 import { showToast, lightTap, mediumTap } from '../lib/interaction';
 
 
@@ -50,7 +52,7 @@ export class MatchModal extends LitElement {
   override firstUpdated() {
     this._addDragListeners();
     const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
-    addBtn?.focus();
+    addBtn?.focus({ preventScroll: true });
   }
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
@@ -87,7 +89,9 @@ export class MatchModal extends LitElement {
 
   private readonly _handleTouchStart = (e: TouchEvent) => {
     const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-    if (!modal || modal.scrollTop > 5) return;
+    const body = this.shadowRoot?.querySelector('.modal-body') as HTMLElement;
+    if (!modal) return;
+    if ((body ?? modal).scrollTop > 5) return;
     this._dragEl = modal;
     this._startY = e.touches[0].clientY;
     this._currentY = this._startY;
@@ -826,8 +830,364 @@ export class MatchModal extends LitElement {
       .odds-block {
         padding: 10px 10px 0;
       }
+      .cronica-block { padding: 14px 12px 16px; }
+      .cronica-text { font-size: 13px; }
+      .prob-block { padding: 12px 12px 14px; }
+      .prob-bar-large { height: 30px; }
+      .prob-seg-large { font-size: 12px; }
+      .pitch-block { padding: 12px 12px 16px; }
+      .pitch-field { height: 320px; }
+      .player-circle { width: 22px; height: 22px; font-size: 10px; }
+      .player-label { font-size: 7px; max-width: 55px; }
+      .pitch-dt { font-size: 8px; padding: 3px 5px; }
     }
+
+    /* ─── Modal body scrollable ─── */
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── V2-Cancha: Section labels ─── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .section-num {
+      font-family: var(--font-var);
+      font-size: 11px;
+      padding: 3px 7px;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      letter-spacing: 0.08em;
+      color: var(--paper-3);
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--ink);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .section-rule {
+      flex: 1;
+      height: 0;
+      border-top: 1.5px dashed rgba(26, 25, 51, 0.35);
+    }
+
+    /* ─── V2-Cancha: Crónica ─── */
+    .cronica-block {
+      padding: 18px 20px 16px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper-3);
+    }
+    .cronica-text {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink);
+      margin: 8px 0 8px;
+    }
+    .cronica-link {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--retro-blue);
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* ─── V2-Cancha: Probabilidades expandidas ─── */
+    .prob-block {
+      padding: 14px 20px 16px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper);
+    }
+    .prob-bar-large {
+      display: flex;
+      height: 36px;
+      border: 2.5px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .prob-seg-large {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-size: 14px;
+      color: var(--ink);
+      border-right: 2px solid var(--ink);
+      min-width: 0;
+      overflow: hidden;
+    }
+    .prob-seg-large:last-child { border-right: none; }
+    .prob-legend-large {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      margin-top: 5px;
+      font-weight: 700;
+    }
+
+    /* ─── V2-Cancha: Cancha con formaciones ─── */
+    .pitch-block {
+      padding: 14px 20px 20px;
+      border-top: 2px solid var(--ink);
+      background: var(--paper);
+    }
+    .pitch-field {
+      position: relative;
+      background: #1f6b3a;
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
+      height: 440px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .pitch-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .player-layer {
+      position: absolute;
+      left: 0; right: 0;
+      height: 50%;
+      pointer-events: none;
+    }
+    .player-layer.top { top: 0; }
+    .player-layer.bottom { top: 50%; }
+    .player-pin {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transform: translate(-50%, -50%);
+    }
+    .player-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2.5px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-var);
+      font-size: 12px;
+      line-height: 1;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .player-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: #fff;
+      background: rgba(26, 25, 51, 0.88);
+      padding: 1px 4px;
+      white-space: nowrap;
+      font-weight: 700;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pitch-dt {
+      position: absolute;
+      background: var(--paper-3);
+      color: var(--ink);
+      padding: 4px 7px;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.07em;
+      font-weight: 700;
+      z-index: 2;
+      white-space: nowrap;
+    }
+    .pitch-dt.home { top: 7px; left: 7px; }
+    .pitch-dt.away { bottom: 7px; right: 7px; }
   `];
+
+  // ─── V2-Cancha helpers ────────────────────────────────────────────
+
+  private _getFormationPositions(formation: string): { x: number; y: number }[] {
+    const parts = formation.split('-').map(Number).filter(n => !isNaN(n) && n > 0);
+    if (parts.length === 0) return [];
+    const rows = [1, ...parts];
+    const fieldRowCount = parts.length;
+    const positions: { x: number; y: number }[] = [];
+    rows.forEach((count, rowIdx) => {
+      const y = rowIdx === 0 ? 7 : 22 + ((rowIdx - 1) / Math.max(1, fieldRowCount - 1)) * 66;
+      for (let i = 0; i < count; i++) {
+        const x = count === 1 ? 50 : ((i + 1) / (count + 1)) * 100;
+        positions.push({ x, y });
+      }
+    });
+    return positions;
+  }
+
+  private _buildPitchPlayers(teamId: string): { n: number; name: string; x: number; y: number }[] {
+    const lineup = getLineup(teamId);
+    const squad = getSquad(teamId);
+    if (!lineup || squad.length === 0) return [];
+    const positions = this._getFormationPositions(lineup.formation);
+    return lineup.startingXI.slice(0, 11).map((num, i) => {
+      const player = squad.find(p => p.number === num);
+      const pos = positions[i] ?? { x: 50, y: 50 };
+      return { n: num, name: player?.name ?? `#${num}`, x: pos.x, y: pos.y };
+    });
+  }
+
+  private _shortPlayerName(name: string): string {
+    const parts = name.split(' ');
+    if (parts.length <= 1) return name;
+    const last = parts.at(-1) ?? name;
+    return last.length > 10 ? last.substring(0, 9) + '.' : last;
+  }
+
+  private _generatePreview(teamAName: string, teamBName: string, coachAName: string | undefined, coachBName: string | undefined): string {
+    const group = TEAMS_2026.find(t => t.name === teamAName)?.group;
+    const groupText = group ? `el Grupo ${group} del ` : '';
+    let text = `${teamAName} y ${teamBName} se miden en ${groupText}Mundial 2026`;
+    if (this.venue) text += ` en ${this.venue}`;
+    text += '. ';
+    if (coachAName) text += `El equipo de ${coachAName} busca arrancar con buen pie y sumar los primeros tres puntos. `;
+    if (coachBName) text += `${teamBName}, con ${coachBName} al mando, llega con la determinación de competir desde el primer minuto.`;
+    return text;
+  }
+
+  private _renderFieldSvg() {
+    return html`
+      <svg class="pitch-svg" viewBox="0 0 400 440" preserveAspectRatio="none">
+        <rect x="5" y="5" width="390" height="430" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <line x1="5" y1="220" x2="395" y2="220" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <circle cx="200" cy="220" r="40" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <circle cx="200" cy="220" r="3" fill="rgba(255,255,255,0.4)"/>
+        <rect x="120" y="5" width="160" height="52" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <rect x="158" y="5" width="84" height="18" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <circle cx="200" cy="48" r="2.5" fill="rgba(255,255,255,0.4)"/>
+        <rect x="120" y="383" width="160" height="52" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <rect x="158" y="417" width="84" height="18" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <circle cx="200" cy="392" r="2.5" fill="rgba(255,255,255,0.4)"/>
+      </svg>
+    `;
+  }
+
+  private _renderCronica(tA: ReturnType<typeof TEAMS_2026.find>, tB: ReturnType<typeof TEAMS_2026.find>) {
+    if (!tA || !tB) return '';
+    const coachA = COACHES[this.teamA]?.name;
+    const coachB = COACHES[this.teamB]?.name;
+    const preview = this._generatePreview(tA.name, tB.name, coachA, coachB);
+    return html`
+      <div class="cronica-block">
+        <div class="section-label">
+          <span class="section-num" style="background:var(--retro-blue)">01</span>
+          <span class="section-title">CRÓNICA · PREVIA</span>
+          <div class="section-rule"></div>
+        </div>
+        <p class="cronica-text">${preview}</p>
+        <button class="cronica-link">LEER CRÓNICA COMPLETA →</button>
+      </div>
+    `;
+  }
+
+  private _renderProbBlock(tA: ReturnType<typeof TEAMS_2026.find>, tB: ReturnType<typeof TEAMS_2026.find>) {
+    if (!this._odds || !tA || !tB) return '';
+    const { home, draw, away } = this._odds;
+    return html`
+      <div class="prob-block">
+        <div class="section-label">
+          <span class="section-num" style="background:var(--retro-orange)">02</span>
+          <span class="section-title">PROBABILIDADES</span>
+          <span style="font-family:var(--font-mono);font-size:8px;color:var(--dim);margin-left:4px">
+            ${this._odds.source === 'market' ? `(${this._odds.bookmakers} casas)` : '(estimado)'}
+          </span>
+          <div class="section-rule"></div>
+        </div>
+        <div class="prob-bar-large">
+          <div class="prob-seg-large" style="width:${home}%;background:var(--retro-blue);color:#fff">${home}%</div>
+          <div class="prob-seg-large" style="width:${draw}%;background:var(--paper-2)">${draw}%</div>
+          <div class="prob-seg-large" style="width:${away}%;background:var(--retro-red);color:#fff">${away}%</div>
+        </div>
+        <div class="prob-legend-large">
+          <span style="color:var(--retro-blue)">1 GANA ${tA.shortName}</span>
+          <span>X EMPATE</span>
+          <span style="color:var(--retro-red)">2 GANA ${tB.shortName}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderPitchBlock(tA: ReturnType<typeof TEAMS_2026.find>, tB: ReturnType<typeof TEAMS_2026.find>) {
+    if (!tA || !tB) return '';
+    const homePlayers = this._buildPitchPlayers(this.teamA);
+    const awayPlayers = this._buildPitchPlayers(this.teamB);
+    if (homePlayers.length === 0 && awayPlayers.length === 0) return '';
+    const homeLineup = getLineup(this.teamA);
+    const awayLineup = getLineup(this.teamB);
+    const homeCoach = COACHES[this.teamA];
+    const awayCoach = COACHES[this.teamB];
+    return html`
+      <div class="pitch-block">
+        <div class="section-label">
+          <span class="section-num" style="background:var(--retro-green)">03</span>
+          <span class="section-title">ALINEACIONES PROBABLES</span>
+          <div class="section-rule"></div>
+        </div>
+        <div class="pitch-field">
+          ${this._renderFieldSvg()}
+
+          <!-- Local (top) -->
+          <div class="player-layer top">
+            ${homePlayers.map(p => html`
+              <div class="player-pin" style="left:${p.x}%;top:${p.y}%">
+                <div class="player-circle" style="background:#fff9ec">${p.n}</div>
+                <div class="player-label">${this._shortPlayerName(p.name)}</div>
+              </div>
+            `)}
+          </div>
+
+          <!-- Visitante (bottom, invertido) -->
+          <div class="player-layer bottom">
+            ${awayPlayers.map(p => html`
+              <div class="player-pin" style="left:${p.x}%;top:${100 - p.y}%">
+                <div class="player-circle" style="background:#f0b021">${p.n}</div>
+                <div class="player-label">${this._shortPlayerName(p.name)}</div>
+              </div>
+            `)}
+          </div>
+
+          ${homeLineup || homeCoach ? html`
+            <div class="pitch-dt home">
+              ${tA.flag}&nbsp;${homeLineup?.formation ?? ''}${homeCoach ? ` · ${homeCoach.name}` : ''}
+            </div>
+          ` : ''}
+          ${awayLineup || awayCoach ? html`
+            <div class="pitch-dt away">
+              ${awayLineup?.formation ?? ''}${awayCoach ? ` · ${awayCoach.name}` : ''}&nbsp;${tB.flag}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // ─────────────────────────────────────────────────────────────────
 
   private renderFlag(team?: any, size: 'small' | 'big' = 'small') {
     if (!team) return '';
@@ -885,6 +1245,9 @@ export class MatchModal extends LitElement {
           <button class="ticket-close" @click="${this.close}" aria-label="${t('modal.close')}">✕</button>
         </div>
 
+        <!-- Scrollable body -->
+        <div class="modal-body">
+
         <!-- Showdown grande con stickers -->
         <div class="showdown">
           <div class="sticker-side-left">
@@ -916,33 +1279,10 @@ export class MatchModal extends LitElement {
           </div>
         </div>
 
-
-        <!-- Barra 1X2 -->
-        ${this._odds ? html`
-          <div class="odds-block">
-            <div class="odds-label">
-              Probabilidad 1X2
-              <span class="odds-src">${this._odds.source === 'market'
-                ? `(${this._odds.bookmakers} casas)`
-                : '(estimado)'}</span>
-            </div>
-            <div class="odds-legend">
-              <span class="odds-home">1</span>
-              <span>X</span>
-              <span class="odds-away">2</span>
-            </div>
-            <div class="odds-bar">
-              <div class="odds-seg" style="width:${this._odds.home}%;background:var(--retro-blue)"></div>
-              <div class="odds-seg" style="width:${this._odds.draw}%;background:var(--dim)"></div>
-              <div class="odds-seg" style="width:${this._odds.away}%;background:var(--retro-red)"></div>
-            </div>
-            <div class="odds-figs">
-              <span class="odds-home">${this._odds.home}%</span>
-              <span>${this._odds.draw}%</span>
-              <span class="odds-away">${this._odds.away}%</span>
-            </div>
-          </div>
-        ` : ''}
+        <!-- Crónica + probabilidades + cancha (V2-cancha) -->
+        ${this._renderCronica(tA, tB)}
+        ${this._renderProbBlock(tA, tB)}
+        ${this._renderPitchBlock(tA, tB)}
 
         <!-- Editor de marcador -->
         <div class="editor-section">
@@ -1010,6 +1350,8 @@ export class MatchModal extends LitElement {
             : ''
           }
         </div>
+
+        </div><!-- /modal-body -->
 
         <!-- Footer -->
         <div class="modal-footer">

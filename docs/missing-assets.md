@@ -230,7 +230,7 @@
 
 ### SWE — faltan 1 foto
 
-- `#7` Emil Holm
+- `#6` Emil Holm
 
 ### USA — faltan 1 foto
 
