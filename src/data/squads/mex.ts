@@ -32,7 +32,7 @@ export const squad: Player[] = [
   { number: 20, name: 'César Huerta', position: 'FW', age: 25, club: 'Anderlecht' },
   { number: 19, name: 'Roberto Alvarado', position: 'FW', age: 27, club: 'Chivas' },
   { number: 10, name: 'Alexis Vega', position: 'FW', age: 28, club: 'Toluca' },
-  { number: 17, name: 'Armando González', position: 'FW', age: 23, club: 'Chivas' },
+  { number: 17, name: 'Armando González Alba', position: 'FW', age: 23, club: 'Chivas' },
   { number: 26, name: 'Guillermo Martínez', position: 'FW', age: 31, club: 'Pumas' },
 ];
 
