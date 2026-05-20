@@ -19,7 +19,7 @@ export const squad: Player[] = [
   { number: 15, name: 'Exequiel Palacios', position: 'MF', age: 28, club: 'Bayer Leverkusen' },
   { number: 18, name: 'Giovani Lo Celso', position: 'MF', age: 30, club: 'Real Betis' },
   { number: 27, name: 'Nico González', position: 'MF', age: 28, club: 'Atlético de Madrid' },
-  { number: 28, name: 'Thiago Almada', position: 'MF', age: 25, club: 'Botafogo' },
+  { number: 28, name: 'Thiago Almada', position: 'MF', age: 25, club: 'Atlético de Madrid' },
   { number: 29, name: 'Nico Paz', position: 'MF', age: 22, club: 'Como 1907' },
   { number: 10, name: 'Lionel Messi', position: 'FW', age: 39, club: 'Inter Miami', captain: true },
   { number: 9, name: 'Julián Álvarez', position: 'FW', age: 26, club: 'Atlético de Madrid' },
