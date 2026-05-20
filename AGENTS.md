@@ -45,6 +45,8 @@ Este repositorio es una PWA de bracket para el Mundial 2026 construida con Lit, 
 - La PWA mantiene service worker activo en desarrollo; si los cambios visuales no aparecen, haz hard reload.
 - [src/lib/data-service.ts](src/lib/data-service.ts) y [src/my-element.ts](src/my-element.ts) no parecen parte del flujo principal; confirma uso antes de apoyarte en ellos.
 - Firebase Data Connect está configurado a nivel de proyecto, pero no está cableado al frontend actual; no supongas SDK generado ni autenticación activa.
+- Al realizar force-push manual a ramas de datos estáticos (`news-data`, `odds-data`), es MANDATORIO generar un `vercel.json` con formato válido de omisión de compilación. En PowerShell, usa here-strings (`@' ... '@`) para evitar que las comillas sean removidas o interpretadas de manera incorrecta por el intérprete de comandos, lo cual causaría errores de despliegue en Vercel ("Invalid vercel.json").
+
 
 ## Cómo trabajar aquí
 

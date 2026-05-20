@@ -77,7 +77,27 @@ git rm -rf . --quiet
 
 # 4. Copiar solo los archivos necesarios
 cp /tmp/news-feed.json news-feed.json   # PowerShell: Copy-Item $env:TEMP\news-feed.json news-feed.json
-echo '{"ignoreCommand":"exit 0"}' > vercel.json
+
+# Crear vercel.json válido para evitar instalar dependencias y compilar en la rama estática:
+# En Bash:
+cat > vercel.json <<'EOF'
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo 'No install step for news-data'",
+  "buildCommand": "echo 'No build step for news-data'",
+  "outputDirectory": "."
+}
+EOF
+
+# En PowerShell:
+@'
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo 'No install step for news-data'",
+  "buildCommand": "echo 'No build step for news-data'",
+  "outputDirectory": "."
+}
+'@ | Out-File -Encoding utf8 vercel.json
 
 # 5. Commitear
 git add news-feed.json vercel.json

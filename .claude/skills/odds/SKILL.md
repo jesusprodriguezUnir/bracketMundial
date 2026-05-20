@@ -81,7 +81,27 @@ git rm -rf . --quiet
 
 # 4. Copiar solo los archivos necesarios
 Copy-Item $env:TEMP\odds-feed.json odds-feed.json
-'{"ignoreCommand":"exit 0"}' | Out-File -Encoding utf8 vercel.json
+
+# Crear vercel.json válido para evitar instalar dependencias y compilar en la rama estática:
+# En Bash:
+cat > vercel.json <<'EOF'
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo 'No install step for odds-data'",
+  "buildCommand": "echo 'No build step for odds-data'",
+  "outputDirectory": "."
+}
+EOF
+
+# En PowerShell:
+@'
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo 'No install step for odds-data'",
+  "buildCommand": "echo 'No build step for odds-data'",
+  "outputDirectory": "."
+}
+'@ | Out-File -Encoding utf8 vercel.json
 
 # 5. Commitear
 git add odds-feed.json vercel.json
