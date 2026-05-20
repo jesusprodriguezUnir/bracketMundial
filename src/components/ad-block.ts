@@ -30,7 +30,7 @@ export class AdBlock extends LitElement {
       ins.className = 'adsbygoogle';
       ins.style.cssText = 'display:block;text-align:center;';
       ins.dataset['adClient'] = 'ca-pub-8196395794772309';
-      ins.dataset['adSlot'] = '5275853927';
+      ins.dataset['adSlot'] = '6177177526';
       ins.dataset['adFormat'] = 'auto';
       ins.dataset['fullWidthResponsive'] = 'true';
       this.appendChild(ins);
