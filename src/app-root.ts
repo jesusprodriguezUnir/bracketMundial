@@ -18,6 +18,7 @@ export class AppRoot extends LitElement {
 
   @state() private _isOffline = !navigator.onLine;
   @state() private _toastMessage = '';
+  @state() private _calendarMenuOpen = false;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
 
@@ -150,6 +151,57 @@ export class AppRoot extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    /* Calendar dropdown */
+    .dropdown-wrap {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+    }
+    .calendar-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      min-width: 220px;
+      background: #1a1933;
+      border: 3px solid #ecdfc0;
+      box-shadow: 4px 4px 0 0 rgba(26,25,51,0.5);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+    }
+    .dropdown-section {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid rgba(236,223,192,0.13);
+    }
+    .dropdown-section:last-child {
+      border-bottom: none;
+    }
+    .dropdown-section span {
+      padding: 8px 14px 4px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: rgba(240,176,33,0.8);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .calendar-dropdown button {
+      all: unset;
+      cursor: pointer;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #ecdfc0;
+      letter-spacing: 0.04em;
+      text-align: left;
+      transition: background 0.1s;
+    }
+    @media (hover: hover) {
+      .calendar-dropdown button:hover {
+        background: rgba(240,176,33,0.15);
+      }
     }
 
     .content {
@@ -328,6 +380,7 @@ export class AppRoot extends LitElement {
     super.connectedCallback();
     window.addEventListener('online', this._onOnline);
     window.addEventListener('offline', this._onOffline);
+    window.addEventListener('click', this._closeCalendarMenuOnOutsideClick);
     this.unsubscribeStore = subscribeSlice(
       useTournamentStore,
       s => {
@@ -367,6 +420,7 @@ export class AppRoot extends LitElement {
   disconnectedCallback() {
     window.removeEventListener('online', this._onOnline);
     window.removeEventListener('offline', this._onOffline);
+    window.removeEventListener('click', this._closeCalendarMenuOnOutsideClick);
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
 
@@ -376,6 +430,14 @@ export class AppRoot extends LitElement {
 
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
+  private _closeCalendarMenuOnOutsideClick = (e: MouseEvent) => {
+    if (!this._calendarMenuOpen) return;
+    const dropdown = this.shadowRoot?.querySelector('.dropdown-wrap');
+    if (dropdown && !e.composedPath().includes(dropdown)) {
+      this._calendarMenuOpen = false;
+      this.requestUpdate();
+    }
+  };
 
   private _onToast(e: CustomEvent<ToastEventDetail>) {
     this._toastMessage = e.detail.message;
@@ -412,6 +474,26 @@ export class AppRoot extends LitElement {
 
   private handleExcelExport() {
     useTournamentStore.getState().exportExcel();
+  }
+
+  private _toggleCalendarMenu() {
+    this._calendarMenuOpen = !this._calendarMenuOpen;
+  }
+
+  private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
+    this._calendarMenuOpen = false;
+    const {
+      exportCalendarExcel,
+      exportCalendarPdf,
+      fileNameBase,
+      triggerDownload,
+    } = await import('./lib/calendar-export-service');
+    const locale = useLocaleStore.getState().locale;
+    const ext = format === 'excel' ? 'xlsx' : 'pdf';
+    const blob = format === 'excel'
+      ? await exportCalendarExcel(phase, locale)
+      : await exportCalendarPdf(phase, locale);
+    triggerDownload(blob, `${fileNameBase(phase, locale)}.${ext}`);
   }
 
   private async handleShare() {
@@ -493,6 +575,25 @@ export class AppRoot extends LitElement {
             ${isSupabaseConfigured && isAdmin() ? html`
               <button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
             <button @click="${this.handleShare}">${t('header.share')}</button>
+            <div class="dropdown-wrap">
+              <button @click="${this._toggleCalendarMenu}" title="${t('calendar.exportTitle')}">${t('tabs.calendar')}</button>
+              ${this._calendarMenuOpen ? html`
+                <div class="calendar-dropdown">
+                  <div class="dropdown-section">
+                    <span>Excel</span>
+                    <button @click="${() => this._exportCalendar('all', 'excel')}">${t('calendar.exportAllExcel')}</button>
+                    <button @click="${() => this._exportCalendar('groups', 'excel')}">${t('calendar.exportGroupsExcel')}</button>
+                    <button @click="${() => this._exportCalendar('knockout', 'excel')}">${t('calendar.exportKnockoutExcel')}</button>
+                  </div>
+                  <div class="dropdown-section">
+                    <span>PDF</span>
+                    <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
+                    <button @click="${() => this._exportCalendar('groups', 'pdf')}">${t('calendar.exportGroupsPdf')}</button>
+                    <button @click="${() => this._exportCalendar('knockout', 'pdf')}">${t('calendar.exportKnockoutPdf')}</button>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
           </div>
         </header>
 
