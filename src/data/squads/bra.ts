@@ -8,7 +8,7 @@ export const squad: Player[] = [
   { number: 3, name: 'Marquinhos', position: 'DF', age: 32, club: 'PSG' },
   { number: 4, name: 'Gabriel Magalhães', position: 'DF', age: 28, club: 'Arsenal' },
   { number: 6, name: 'Alex Sandro', position: 'DF', age: 35, club: 'Flamengo' },
-  { number: 13, name: 'Ibañez', position: 'DF', age: 27, club: 'Al Ahli' },
+  { number: 13, name: 'Roger Ibañez', position: 'DF', age: 27, club: 'Al Ahli' },
   { number: 14, name: 'Bremer', position: 'DF', age: 29, club: 'Juventus' },
   { number: 15, name: 'Léo Pereira', position: 'DF', age: 29, club: 'Flamengo' },
   { number: 16, name: 'Douglas Santos', position: 'DF', age: 31, club: 'Zenit' },

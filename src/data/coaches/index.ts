@@ -95,13 +95,12 @@ export const COACHES: Record<string, Coach> = {
 
   // Group C
   BRA: {
-    name: 'Dorival Júnior',
-    born: '1961-09-08',
-    nationality: 'Brasil',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/y62b1q1717631545.jpg',
+    name: 'Carlo Ancelotti',
+    born: '1959-06-10',
+    nationality: 'Italia',
     bio: {
-      es: 'Técnico brasileño campeón de Copa Libertadores con Flamengo. Asumió la selección en 2024.',
-      en: 'Brazilian coach and Copa Libertadores winner with Flamengo. He took charge of the national team in 2024.',
+      es: 'Uno de los entrenadores más laureados de la historia. Asumió el banquillo de Brasil en 2025 tras su legendario paso por el Real Madrid.',
+      en: 'One of the most successful managers in football history. He took charge of Brazil in 2025 after a legendary tenure at Real Madrid.',
     },
   },
   MAR: {
@@ -115,12 +114,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   HAI: {
-    name: 'Marc Collat',
-    born: '1968-03-10',
+    name: 'Sébastien Migné',
+    born: '1972-12-11',
     nationality: 'Francia',
     bio: {
-      es: 'Técnico francés especializado en selecciones emergentes del Caribe. Trabaja en modernizar el sistema de Haití.',
-      en: 'French coach specializing in developing emerging Caribbean national teams.',
+      es: 'Técnico francés con amplia trayectoria en el fútbol africano y caribeño. Asumió la selección de Haití en 2024 logrando una destacada clasificación mundialista.',
+      en: 'French coach with an extensive career in African and Caribbean football. Took charge of Haiti in 2024, securing a remarkable World Cup spot.',
     },
   },
   SCO: {
@@ -146,13 +145,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   PAR: {
-    name: 'Daniel Garnero',
-    born: '1971-04-09',
+    name: 'Gustavo Alfaro',
+    born: '1962-08-14',
     nationality: 'Argentina',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/n0i3jz1767653510.jpg',
     bio: {
-      es: 'Técnico argentino con experiencia en el fútbol sudamericano y europeo. Asumió Paraguay con el propósito de clasificar al Mundial.',
-      en: 'Argentine coach with experience in South American and European football. He took charge of Paraguay for the World Cup qualifiers.',
+      es: 'Técnico argentino de amplia trayectoria, conocido por su orden táctico. Dirigió a Ecuador en el Mundial 2022 y asumió Paraguay en 2024 para guiarlos al Mundial 2026.',
+      en: 'Experienced Argentine manager known for tactical discipline. He coached Ecuador at the 2022 World Cup and took charge of Paraguay in 2024 to lead them to 2026.',
     },
   },
   AUS: {
@@ -187,13 +185,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   CUW: {
-    name: 'Patrick Kluivert',
-    born: '1976-07-01',
+    name: 'Dick Advocaat',
+    born: '1947-09-27',
     nationality: 'Países Bajos',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/c909vk1491481092.jpg',
     bio: {
-      es: 'Exgoleador del Ajax y el Barcelona. Ahora lidera el proyecto de Curazao como seleccionador nacional.',
-      en: 'Former Ajax and Barcelona striker. He now leads the Curaçao national project as head coach.',
+      es: 'Veterano y legendario entrenador neerlandés. Conocido como «El Pequeño General», asumió el mando de Curazao en 2024 para liderar su histórica primera clasificación mundialista.',
+      en: 'Veteran and legendary Dutch manager. Known as "The Little General", he took charge of Curaçao in 2024 to lead them to their historic first-ever World Cup.',
     },
   },
   CIV: {
@@ -248,12 +245,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   TUN: {
-    name: 'Faouzi Benzarti',
-    born: '1953-10-04',
-    nationality: 'Túnez',
+    name: 'Sabri Lamouchi',
+    born: '1971-11-09',
+    nationality: 'Francia',
     bio: {
-      es: 'Decano del banquillo tunecino, ha dirigido a la selección en varias etapas. Regresó para guiar a las Águilas de Cartago al Mundial 2026.',
-      en: 'The most experienced Tunisian coach, having managed the national team in several stints. He returned to guide the Eagles of Carthage to 2026.',
+      es: 'Exinternacional francés de origen tunecino. Con gran experiencia internacional dirigiendo a Costa de Marfil y diversos clubes europeos y asiáticos. Asumió Túnez en 2026.',
+      en: 'Former French international of Tunisian descent. Highly experienced manager who coached Ivory Coast and several European and Asian clubs. Took charge of Tunisia in 2026.',
     },
   },
 
@@ -269,12 +266,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   EGY: {
-    name: 'Hossam El-Badry',
-    born: '1957-08-01',
+    name: 'Hossam Hassan',
+    born: '1966-08-10',
     nationality: 'Egipto',
     bio: {
-      es: 'El entrenador más laureado del fútbol egipcio. Regresó como seleccionador para recuperar el protagonismo de los Faraones.',
-      en: 'The most decorated coach in Egyptian football. He returned as national team coach to restore the Pharaohs to prominence.',
+      es: 'Leyenda absoluta del fútbol egipcio y máximo goleador histórico de los Faraones. Asumió el cargo de seleccionador nacional en 2024 para liderar la renovación de Egipto de cara al Mundial 2026.',
+      en: 'Absolute legend of Egyptian football and all-time top goalscorer for the Pharaohs. He took charge of the national team in 2024 to lead Egypt into the 2026 World Cup.',
     },
   },
   IRN: {
@@ -287,12 +284,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   NZL: {
-    name: 'Danny Hay',
-    born: '1975-05-15',
-    nationality: 'Nueva Zelanda',
+    name: 'Darren Bazeley',
+    born: '1972-10-05',
+    nationality: 'Inglaterra',
     bio: {
-      es: 'Exdefensa central de los All Whites. Tomó la selección en 2020 apostando por el desarrollo de jóvenes neozelandeses.',
-      en: 'Former All Whites centre-back. He took charge in 2020, focusing on developing young New Zealanders playing abroad.',
+      es: 'Entrenador inglés con larga trayectoria en el fútbol formativo de Nueva Zelanda. Nombrado seleccionador de los All Whites en 2023 con el objetivo de clasificar y dirigir en el Mundial 2026.',
+      en: 'English manager with an extensive background in New Zealand youth development. Appointed head coach of the All Whites in 2023 to guide them to the 2026 World Cup.',
     },
   },
 
@@ -316,12 +313,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   KSA: {
-    name: 'Roberto Mancini',
-    born: '1964-11-27',
-    nationality: 'Italia',
+    name: 'Georgios Donis',
+    born: '1969-10-22',
+    nationality: 'Grecia',
     bio: {
-      es: 'Exfigura del Manchester City y del Inter, campeón de Europa con Italia en 2021. Asumió Arabia Saudí en 2023.',
-      en: 'Former Manchester City and Inter stalwart, European champion with Italy in 2021. Accepted the Saudi Arabia post in 2023.',
+      es: 'Exinternacional griego de amplia trayectoria en clubes europeos y de la Liga Profesional Saudí. Nombrado seleccionador de Arabia Saudita en abril de 2026 para el Mundial.',
+      en: 'Former Greek international with extensive experience in European football and the Saudi Pro League. Appointed head coach of Saudi Arabia in April 2026 for the World Cup.',
     },
   },
   URU: {
@@ -345,12 +342,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   SEN: {
-    name: 'Aliou Cissé',
-    born: '1975-03-24',
+    name: 'Pape Thiaw',
+    born: '1981-02-05',
     nationality: 'Senegal',
     bio: {
-      es: 'Como técnico llevó a Senegal a su primera Copa Africana en 2022 y al Mundial de Qatar.',
-      en: 'As coach he led Senegal to their first Africa Cup title in 2022 and to the Qatar World Cup.',
+      es: 'Exdelantero de la histórica selección senegalesa del Mundial 2002. Asumió la dirección técnica a finales de 2024 tras la salida de Aliou Cissé, logrando clasificar al equipo al Mundial 2026.',
+      en: 'Former striker of the historic 2002 Senegal World Cup squad. He took over as head coach in late 2024 following the exit of Aliou Cissé, guiding them to the 2026 World Cup.',
     },
   },
   IRQ: {
@@ -402,12 +399,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   JOR: {
-    name: 'Hussein Ammouta',
-    born: '1967-12-21',
+    name: 'Jamal Sellami',
+    born: '1970-10-06',
     nationality: 'Marruecos',
     bio: {
-      es: 'Logró con Jordania llegar a la final de la Copa Asiática 2023. Su trabajo táctico transformó a los Nashama.',
-      en: 'Achieved one of the greatest feats in Asian football: reaching the 2023 AFC Asian Cup final with Jordan.',
+      es: 'Exinternacional marroquí. Asumió la selección de Jordania en junio de 2024 tras la salida de Hussein Ammouta, guiándolos con éxito a su histórica primera clasificación mundialista.',
+      en: 'Former Moroccan international. Took charge of Jordan in June 2024 following the departure of Hussein Ammouta, successfully guiding them to their historic first-ever World Cup.',
     },
   },
 
