@@ -2,7 +2,7 @@
 
 > Generado el 20/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 103 fotos faltantes en 26 equipos (1119/1222 cubiertos)  
+**Jugadores:** 100 fotos faltantes en 25 equipos (1122/1222 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -26,7 +26,6 @@
 | RSA | 26 | 22 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
 | COD | 26 | 23 | ❌ 3 | ✅ |
-| KOR | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
 | CAN | 27 | 25 | ❌ 2 | ✅ |
 | CRO | 26 | 24 | ❌ 2 | ✅ |
@@ -51,6 +50,7 @@
 | GER | 27 | 27 | ✅ 0 | ✅ |
 | GHA | 23 | 23 | ✅ 0 | ✅ |
 | JPN | 28 | 28 | ✅ 0 | ✅ |
+| KOR | 26 | 26 | ✅ 0 | ✅ |
 | MAR | 26 | 26 | ✅ 0 | ✅ |
 | MEX | 26 | 26 | ✅ 0 | ✅ |
 | NOR | 23 | 23 | ✅ 0 | ✅ |
@@ -185,12 +185,6 @@
 - `#17` Meschack Elia
 - `#22` Ngalayel Mukau
 - `#23` Timothy Fayulu
-
-### KOR — faltan 3 fotos
-
-- `#5` Lee Gi-hyuk
-- `#8` Kim Jin-kyu
-- `#14` Kim Tae-hyeon
 
 ### PAR — faltan 3 fotos
 
