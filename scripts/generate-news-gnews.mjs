@@ -43,16 +43,120 @@ const teamFilter = args.filter(a => !a.startsWith('-')).map(t => t.toUpperCase()
 
 // ─── Reliable source whitelist (for Google News RSS fallback) ─────────────────
 const WHITELIST = [
-  'fifa.com', 'uefa.com', 'conmebol.com',
+  'fifa.com', 'uefa.com', 'conmebol.com', 'concacaf.com', 'cafonline.com', 'the-afc.com',
   'espn.com', 'espn.co.uk', 'espndeportes.espn.com',
   'marca.com', 'as.com', 'sport.es', 'mundodeportivo.com',
-  'bbc.com', 'bbc.co.uk',
+  'bbc.com', 'bbc.co.uk', 'bbc.co.uk/sport',
   'reuters.com', 'apnews.com',
   'theguardian.com', 'skysports.com',
   'goal.com', 'lequipe.fr',
-  'olympics.com', 'cbssports.com', 'theathletic.com',
+  'olympics.com', 'cbssports.com', 'theathletic.com', 'nytimes.com/athletic',
   'transfermarkt', 'sofoot.com', 'sportal',
+  'infobae.com', 'tudn.com', 'bolavip.com',
+  'gazzetta.it', 'kicker.de', 'francefootball.fr',
+  'ole.com.ar', 'clarin.com', 'tycsports.com',
+  'globoesporte.globo.com', 'uol.com.br',
+  'rpc.com.py', 'elcomercio.pe',
+  'dazn.com', 'football-espana.net', 'sportsmole.co.uk',
+  'aljazeera.com', 'moroccoworldnews.com',
 ];
+
+// ─── Federation official RSS feeds (complement, not replace, GNews) ─────────────
+// Populate with real URLs as they are verified. Blank entries are ignored.
+const FEDERATION_RSS = {
+  FIFA:    ['https://www.fifa.com/fifaplus/es/articles/rss.xml'],
+  UEFA:    ['https://www.uefa.com/rss'],
+  CONMEBOL: ['https://www.conmebol.com/rss'],
+  CONCACAF: ['https://www.concacaf.com/rss'],
+  MEX:     [],
+  RSA:     ['https://www.safa.net/rss'],
+  KOR:     [],
+  CZE:     [],
+  CAN:     ['https://canadasoccer.com/feed'],
+  SUI:     [],
+  QAT:     [],
+  BIH:     [],
+  BRA:     ['https://www.cbf.com.br/rss'],
+  MAR:     [],
+  SCO:     ['https://www.scottishfa.co.uk/rss'],
+  HAI:     [],
+  USA:     ['https://www.ussoccer.com/rss'],
+  PAR:     [],
+  AUS:     ['https://www.footballaustralia.com.au/rss'],
+  TUR:     [],
+  GER:     ['https://www.dfb.de/rss'],
+  CUW:     [],
+  CIV:     [],
+  ECU:     ['https://www.fef.ec/rss'],
+  NED:     ['https://www.knvb.nl/rss'],
+  JPN:     ['https://www.jfa.jp/rss'],
+  TUN:     [],
+  SWE:     ['https://www.svenskfotboll.se/rss'],
+  BEL:     ['https://www.rbfa.be/rss'],
+  EGY:     [],
+  IRN:     [],
+  NZL:     ['https://www.nzfootball.co.nz/rss'],
+  ESP:     ['https://rfef.es/es/rss/noticias'],
+  URU:     ['https://www.auf.org.uy/rss'],
+  KSA:     [],
+  CPV:     [],
+  FRA:     ['https://www.fff.fr/rss'],
+  SEN:     [],
+  NOR:     ['https://www.fotball.no/rss'],
+  IRQ:     [],
+  ARG:     ['https://www.afa.com.ar/rss'],
+  AUT:     ['https://www.oefb.at/rss'],
+  ALG:     [],
+  JOR:     [],
+  POR:     ['https://www.fpf.pt/rss'],
+  COL:     ['https://fcf.com.co/rss'],
+  UZB:     [],
+  COD:     [],
+  ENG:     ['https://www.thefa.com/rss'],
+  CRO:     ['https://hns-cff.hr/rss'],
+  GHA:     [],
+  PAN:     [],
+};
+
+// ─── URL resolution cache for Google News redirects ────────────────────────────
+const URL_CACHE_PATH = join(ROOT, 'scripts', '.url-cache.json');
+function loadUrlCache() {
+  try {
+    if (existsSync(URL_CACHE_PATH)) return JSON.parse(readFileSync(URL_CACHE_PATH, 'utf8'));
+  } catch { /* corrupt cache */ }
+  return {};
+}
+function saveUrlCache(cache) {
+  writeFileSync(URL_CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+}
+const _urlCache = loadUrlCache();
+const _newResolved = new Set();
+
+/** Resolve a Google News redirect URL to its canonical destination. Non-Google URLs pass through. */
+async function resolveCanonicalUrl(url) {
+  if (!url || !url.includes('news.google.com')) return url;
+  if (_urlCache[url]) return _urlCache[url];
+  try {
+    const resp = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; bracketMundial-news-bot/1.0)' },
+      signal: AbortSignal.timeout(5000),
+    });
+    const final = resp.url;
+    if (final && final !== url && !final.includes('news.google.com')) {
+      _urlCache[url] = final;
+      _newResolved.add(url);
+      return final;
+    }
+  } catch { /* timeout or network error, keep Google URL */ }
+  return url;
+}
+
+/** Persist URL cache at the end of the run (only if new entries were added) */
+function flushUrlCache() {
+  if (_newResolved.size > 0) saveUrlCache(_urlCache);
+}
 
 // ─── 48 teams ───────────────────────────────────────────────────────────────
 const TEAMS = [
@@ -243,13 +347,99 @@ async function fetchGoogleNews(query, hl, gl, ceid) {
   return [...preferred, ...rest];
 }
 
+// ─── Source 3: Federation RSS feeds ─────────────────────────────────────────
+
+async function fetchFederationRSS(teamId) {
+  const urls = FEDERATION_RSS[teamId] || [];
+  if (urls.length === 0) return [];
+  const results = [];
+  for (const feedUrl of urls) {
+    try {
+      const resp = await fetch(feedUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; bracketMundial-news-bot/1.0)' },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!resp.ok) continue;
+      const xml = await resp.text();
+      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map(m => m[1]);
+      for (const block of items) {
+        const rawTitle = extractTag(block, 'title');
+        const { title, source: titleSource } = splitTitleSource(rawTitle);
+        const link = extractTag(block, 'link') || extractAttr(block, 'link', 'href');
+        const pubDate = extractTag(block, 'pubDate');
+        const desc = extractTag(block, 'description') || '';
+        const imageUrl = extractAttr(block, 'enclosure', 'url') || '';
+        results.push({
+          title: title || rawTitle,
+          description: stripHtml(desc).slice(0, 200),
+          url: link,
+          image: imageUrl,
+          source: titleSource || `Federación ${teamId}`,
+          sourceUrl: feedUrl,
+          date: parseDate(pubDate),
+        });
+      }
+    } catch { /* skip broken feeds */ }
+  }
+  return results;
+}
+
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+}
+
+// ─── Resolve canonical URLs for all news items ──────────────────────────────
+
+async function resolveNewsItems(items) {
+  const resolved = [];
+  for (const item of items) {
+    if (item.url && item.url.includes('news.google.com')) {
+      const canonical = await resolveCanonicalUrl(item.url);
+      item.url = canonical;
+    }
+    resolved.push(item);
+    await sleep(100);
+  }
+  return resolved;
+}
+
+// ─── Tournament news (general, not team-specific) ────────────────────────────
+
+async function fetchTournamentNews(lang) {
+  const query = lang === 'es'
+    ? '("Mundial 2026" OR "Copa Mundial 2026")'
+    : '("World Cup 2026" OR "FIFA World Cup 2026")';
+  const gl = lang === 'es' ? 'ES' : 'US';
+  const hl = lang === 'es' ? 'es' : 'en';
+  const ceid = lang === 'es' ? 'ES:es' : 'US:en';
+
+  let results = [];
+  if (GNEWS_API_KEY) {
+    const gnews = await fetchGNews(query, hl, NEWS_PER_TEAM * 2);
+    for (const a of (gnews.articles || [])) {
+      results.push(gnewsToNewsItem(a));
+    }
+    await sleep(DELAY_MS);
+  }
+
+  if (results.length < NEWS_PER_TEAM) {
+    const rssResults = await fetchGoogleNews(query, hl, gl, ceid);
+    for (const item of rssResults) {
+      if (!results.some(r => r.url === item.url)) results.push(item);
+    }
+  }
+
+  const sortByDate = (a, b) => b.date.localeCompare(a.date);
+  results.sort(sortByDate);
+  return results.slice(0, 8); // more items for general tourney news
+}
+
 // ─── Main team news fetcher (1 GNews call per team, combined query) ──────────
 
 async function fetchTeamNewsCombined(team) {
   const gnewsResults = [];
 
   if (GNEWS_API_KEY) {
-    // Combine ES+EN keywords in a single query to halve API calls (48 vs 96 per run)
     const combinedQuery = `("${team.es}" Mundial 2026) OR ("${team.en}" "World Cup 2026")`;
     const gnews = await fetchGNews(combinedQuery, 'en', NEWS_PER_TEAM * 2);
     for (const a of (gnews.articles || [])) {
@@ -262,38 +452,58 @@ async function fetchTeamNewsCombined(team) {
   const esFromGNews = gnewsResults.filter(r => isSpanishText(r.title + ' ' + r.description)).slice(0, NEWS_PER_TEAM);
   const enFromGNews = gnewsResults.filter(r => !isSpanishText(r.title + ' ' + r.description)).slice(0, NEWS_PER_TEAM);
 
+  // Federation RSS — highest priority, merge first
+  let fedResults = [];
+  try {
+    fedResults = await fetchFederationRSS(team.id);
+    await sleep(DELAY_MS);
+  } catch { /* skip if fed RSS fails */ }
+  const fedES = fedResults.filter(r => isSpanishText(r.title + ' ' + r.description));
+  const fedEN = fedResults.filter(r => !isSpanishText(r.title + ' ' + r.description));
+
   // Fallback to Google News RSS for gaps
   let esFallback = [], enFallback = [];
   if (!noFallback) {
-    // Only call RSS if GNews didn't return enough for that locale
-    if (esFromGNews.length < NEWS_PER_TEAM) {
+    if (esFromGNews.length + fedES.length < NEWS_PER_TEAM) {
       const esQuery = `"${team.es}" Mundial 2026`;
       esFallback = await fetchGoogleNews(esQuery, 'es', 'ES', 'ES:es');
       await sleep(DELAY_MS);
     }
 
-    if (enFromGNews.length < NEWS_PER_TEAM) {
+    if (enFromGNews.length + fedEN.length < NEWS_PER_TEAM) {
       const enQuery = `"${team.en}" "World Cup 2026"`;
       enFallback = await fetchGoogleNews(enQuery, 'en-US', 'US', 'US:en');
     }
   }
 
-  // Merge: GNews results first (better quality), then fill gaps with RSS
+  // Merge: Federation first (official), then GNews, then RSS fallback
   const sortByDate = (a, b) => b.date.localeCompare(a.date);
 
-  let finalES = [...esFromGNews];
+  let finalES = [...fedES];
+  for (const item of esFromGNews) {
+    if (finalES.length >= NEWS_PER_TEAM) break;
+    if (!finalES.some(e => e.url === item.url)) finalES.push(item);
+  }
   for (const item of esFallback) {
     if (finalES.length >= NEWS_PER_TEAM) break;
     if (!finalES.some(e => e.url === item.url)) finalES.push(item);
   }
   finalES.sort(sortByDate);
 
-  let finalEN = [...enFromGNews];
+  let finalEN = [...fedEN];
+  for (const item of enFromGNews) {
+    if (finalEN.length >= NEWS_PER_TEAM) break;
+    if (!finalEN.some(e => e.url === item.url)) finalEN.push(item);
+  }
   for (const item of enFallback) {
     if (finalEN.length >= NEWS_PER_TEAM) break;
     if (!finalEN.some(e => e.url === item.url)) finalEN.push(item);
   }
   finalEN.sort(sortByDate);
+
+  // Resolve Google News URLs to canonical URLs
+  finalES = await resolveNewsItems(finalES);
+  finalEN = await resolveNewsItems(finalEN);
 
   return {
     es: finalES.slice(0, NEWS_PER_TEAM),
@@ -327,6 +537,19 @@ async function main() {
     console.warn('  ⚠ Could not read existing news-feed.json, starting fresh.');
   }
 
+  // ── Tournament news (general, not team-specific) ─────────────────────────
+  process.stdout.write('  TOURNAMENT ...');
+  const [tournamentES, tournamentEN] = await Promise.all([
+    fetchTournamentNews('es'),
+    fetchTournamentNews('en'),
+  ]);
+  const resolvedES = await resolveNewsItems(tournamentES);
+  const resolvedEN = await resolveNewsItems(tournamentEN);
+  items['_tournament'] = { es: resolvedES, en: resolvedEN };
+  const tGES = resolvedES.filter(i => i.image).length;
+  const tGEN = resolvedEN.filter(i => i.image).length;
+  console.log(` es:${resolvedES.length}(${tGES}📷) en:${resolvedEN.length}(${tGEN}📷)`);
+
   for (const team of teamsToProcess) {
     process.stdout.write(`  ${team.id} ...`);
     const news = await fetchTeamNewsCombined(team);
@@ -340,6 +563,7 @@ async function main() {
   const feed = { updatedAt: today, items };
   writeFileSync(feedPath, JSON.stringify(feed, null, 2) + '\n', 'utf8');
   console.log(`\n✅ news-feed.json updated (${feedPath})`);
+  flushUrlCache();
 
   // ─── Optionally regenerate seed.ts ─────────────────────────────────────────
   if (writeSeed) {

@@ -24,6 +24,7 @@ export const es = {
   'tabs.hero': 'Inicio',
   'tabs.groups': 'Grupos',
   'tabs.squads': 'Equipos',
+  'tabs.news': 'Noticias',
   'tabs.calendar': 'Calendario',
   'tabs.knockout': 'Cruces',
   'tabs.stadiums': 'Estadios',
@@ -44,6 +45,10 @@ export const es = {
   'section.stadiums.title': '16 ESTADIOS · 3 PAÍSES',
   'section.tv.eyebrow': '📺 DÓNDE VER (ESPAÑA)',
   'section.tv.title': 'DERECHOS Y CALENDARIO RTVE',
+  'section.news.eyebrow': '📰 ACTUALIDAD',
+  'section.news.title': 'NOTICIAS DEL MUNDIAL 2026',
+  'news.loading': 'Cargando noticias…',
+  'news.empty': 'Sin noticias recientes del torneo.',
   'section.coaches.eyebrow': '📋 CUERPO TÉCNICO',
   'section.coaches.title': 'ENTRENADORES DE LAS 48 SELECCIONES',
 

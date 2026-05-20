@@ -35,7 +35,7 @@ const FEED_URL =
   'https://raw.githubusercontent.com/jesusprodriguezUnir/bracketMundial/news-data/news-feed.json';
 
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 h — aligns with daily cron
-const CACHE_KEY = 'news:feed:v2'; // v2 invalidates old { title:{es,en} } entries
+const CACHE_KEY = 'news:feed:v3'; // v3 adds _tournament key for general news
 
 let _inFlight: Promise<NewsFeed> | null = null;
 
@@ -86,4 +86,11 @@ export async function getTeamNews(teamId: string, locale: 'es' | 'en'): Promise<
   const cached = _fromCache();
   const feed = cached ?? await _fetchFeed();
   return feed.items[teamId]?.[locale] ?? [];
+}
+
+/** Returns cached or fetched general tournament news for a given locale. */
+export async function getTournamentNews(locale: 'es' | 'en'): Promise<NewsItem[]> {
+  const cached = _fromCache();
+  const feed = cached ?? await _fetchFeed();
+  return feed.items['_tournament']?.[locale] ?? [];
 }

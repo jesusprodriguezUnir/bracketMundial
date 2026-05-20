@@ -24,6 +24,7 @@ export const en: Record<TranslationKey, string> = {
   'tabs.hero': 'Home',
   'tabs.groups': 'Groups',
   'tabs.squads': 'Teams',
+  'tabs.news': 'News',
   'tabs.calendar': 'Schedule',
   'tabs.knockout': 'Knockout',
   'tabs.stadiums': 'Stadiums',
@@ -43,6 +44,10 @@ export const en: Record<TranslationKey, string> = {
   'section.stadiums.title': '16 STADIUMS · 3 COUNTRIES',
   'section.tv.eyebrow': '📺 WHERE TO WATCH (SPAIN)',
   'section.tv.title': 'RTVE RIGHTS & SCHEDULE',
+  'section.news.eyebrow': '📰 LATEST',
+  'section.news.title': 'WORLD CUP 2026 NEWS',
+  'news.loading': 'Loading news…',
+  'news.empty': 'No recent tournament news.',
   'section.coaches.eyebrow': '📋 COACHING STAFF',
   'section.coaches.title': 'COACHES OF THE 48 NATIONAL TEAMS',
 

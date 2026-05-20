@@ -10,15 +10,16 @@ import { STADIUMS } from './data/stadiums';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'news' | 'calendar' | 'stadiums' | 'coaches';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'news' | 'calendar' | 'stadiums' | 'tv' | 'coaches';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:   () => import('./components/groups-view'),
   knockout: () => import('./components/bracket-knockout'),
   squads:   () => import('./components/squads-view'),
+  news:     () => import('./components/news-view'),
   calendar: () => import('./components/calendar-view'),
   stadiums: () => import('./components/stadiums-view'),
   tv:       () => import('./components/broadcasting-view'),
@@ -31,6 +32,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'groups') return 'groups';
   if (tab === 'knockout') return 'knockout';
   if (tab === 'squads') return 'squads';
+  if (tab === 'news') return 'news';
   if (tab === 'calendar') return 'calendar';
   if (tab === 'stadiums') return 'stadiums';
   if (tab === 'coaches') return 'coaches';
@@ -42,6 +44,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   groups:   'tabs.groups',
   knockout: 'tabs.knockout',
   squads:   'tabs.squads',
+  news:     'tabs.news',
   calendar: 'tabs.calendar',
   stadiums: 'tabs.stadiums',
   coaches:  'tabs.coaches',
@@ -50,7 +53,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
 const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches'];
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'news', 'calendar', 'stadiums', 'coaches'];
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -313,6 +316,7 @@ export class BracketView extends LitElement {
     .knockout-sections,
     .section-stadiums,
     .section-squads,
+    .section-news,
     .section-calendar,
     .section-coaches,
     .section-tv {
@@ -323,6 +327,7 @@ export class BracketView extends LitElement {
     .knockout-sections.visible,
     .section-stadiums.visible,
     .section-squads.visible,
+    .section-news.visible,
     .section-calendar.visible,
     .section-coaches.visible,
     .section-tv.visible {
@@ -373,6 +378,7 @@ export class BracketView extends LitElement {
       .knockout-sections,
       .section-stadiums,
       .section-squads,
+      .section-news,
       .section-calendar,
       .section-coaches,
       .section-tv {
@@ -383,6 +389,7 @@ export class BracketView extends LitElement {
       .knockout-sections.visible,
       .section-stadiums.visible,
       .section-squads.visible,
+      .section-news.visible,
       .section-calendar.visible,
       .section-coaches.visible,
       .section-tv.visible {
@@ -479,6 +486,7 @@ export class BracketView extends LitElement {
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';
+      if (tab === 'news') targetId = 'section-news';
       if (tab === 'stadiums') targetId = 'section-stadiums';
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
@@ -576,12 +584,13 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'news', 'calendar', 'stadiums', 'coaches'];
     const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
       { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
       { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.groups') },
       { tab: 'knockout', icon: '🏆', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2Z"/></svg>`, label: t('tabs.knockout') },
       { tab: 'squads',   icon: '👥', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>`, label: t('tabs.squads') },
+      { tab: 'news',     icon: '📰', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/><path d="M4 4l1.8 5.2L11 8.4"/></svg>`, label: t('tabs.news') },
     ];
     const at = this._activeTab;
     const loaded = this._loadedViews;
@@ -697,6 +706,17 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.squads.title')}</div>
             </div>
             <squads-view></squads-view>
+          ` : ''}
+        </div>
+
+        <!-- Noticias (lazy) -->
+        <div id="section-news" class="section-news ${at === 'news' ? 'visible' : ''}">
+          ${at === 'news' && loaded.has('news') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.news.eyebrow')}</div>
+              <div class="section-title">${t('section.news.title')}</div>
+            </div>
+            <news-view></news-view>
           ` : ''}
         </div>
 
