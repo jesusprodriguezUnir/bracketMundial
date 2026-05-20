@@ -3,7 +3,6 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
-import type { Stadium } from '../data/stadiums';
 import { GROUP_MATCHES } from '../data/match-schedule';
 import { getSquad, getLineup, SQUADS, isOfficialSquad } from '../data/squads';
 import type { Player } from '../data/squads';
@@ -52,7 +51,7 @@ export class SquadsView extends LitElement {
   @property() targetTeamId: string | null = null;
 
   @state() private selectedTeamId: string | null = null;
-  @state() private activeTab: 'squad' | 'matches' | 'venues' | 'news' = 'squad';
+  @state() private activeTab: 'squad' | 'matches' | 'news' = 'squad';
   @state() private squadViewMode: 'list' | 'pitch' = 'list';
   @state() private searchQuery = '';
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
@@ -60,7 +59,6 @@ export class SquadsView extends LitElement {
   @state() private _newsLoading = false;
   @state() private _newsKey: string | null = null;
   @state() private _openMatchId: string | null = null;
-  @state() private _openVenueId: string | null = null;
   @state() private _matchOddsCache: Map<string, MatchOdds> = new Map();
 
   private unsubscribeStore?: () => void;
@@ -462,11 +460,11 @@ export class SquadsView extends LitElement {
       color: var(--dim);
     }
 
-    /* ── Detail grid: 4 columns ── */
+    /* ── Detail grid: 3 columns ── */
 
     .detail-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr) minmax(0, 1fr);
     }
 
     .panel-block {
@@ -968,7 +966,7 @@ export class SquadsView extends LitElement {
       background: linear-gradient(to bottom, var(--retro-green) 0%, #2a8048 50%, var(--retro-green) 100%);
       border: 3px solid var(--ink);
       box-shadow: var(--shadow-hard-sm);
-      height: 480px;
+      height: 640px;
       overflow: hidden;
     }
 
@@ -1493,11 +1491,6 @@ export class SquadsView extends LitElement {
     const teamMatches = this.getTeamMatches(selectedTeam.id);
     const coach: Coach | null = getCoach(selectedTeam.id);
     const locale = useLocaleStore.getState().locale;
-    const venueMap = teamMatches.reduce<Map<string, (typeof STADIUMS)[number]>>((map, match) => {
-      const stadium = STADIUMS.find(item => item.name === match.venue);
-      if (stadium) map.set(stadium.id, stadium);
-      return map;
-    }, new Map());
 
     return html`
       ${this._openPlayer ? html`
@@ -1547,7 +1540,6 @@ export class SquadsView extends LitElement {
         <nav class="tabs" role="tablist">
           <button class=${this.activeTab === 'squad' ? 'active' : ''} @click=${() => { this.activeTab = 'squad'; }}>${t('squads.tab.squad')}</button>
           <button class=${this.activeTab === 'matches' ? 'active' : ''} @click=${() => { this.activeTab = 'matches'; }}>${t('squads.tab.matches')}</button>
-          <button class=${this.activeTab === 'venues' ? 'active' : ''} @click=${() => { this.activeTab = 'venues'; }}>${t('squads.tab.venues')}</button>
           <button class=${this.activeTab === 'news' ? 'active' : ''} @click=${() => { this.activeTab = 'news'; }}>${t('squads.tab.news')}</button>
         </nav>
 
@@ -1713,13 +1705,13 @@ export class SquadsView extends LitElement {
                                   <span class="match-section-dash"></span>
                                 </div>
                                 <div class="match-pitch-wrap">
-                                  <svg class="lines" viewBox="0 0 400 560" preserveAspectRatio="none">
-                                    <rect x="5" y="5" width="390" height="550" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
-                                    <line x1="5" y1="280" x2="395" y2="280" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
-                                    <circle cx="200" cy="280" r="44" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
-                                    <circle cx="200" cy="280" r="3" fill="rgba(255,255,255,0.45)"/>
-                                    <rect x="120" y="5"   width="160" height="68" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
-                                    <rect x="120" y="487" width="160" height="68" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                  <svg class="lines" viewBox="0 0 400 640" preserveAspectRatio="none">
+                                    <rect x="5" y="5" width="390" height="630" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <line x1="5" y1="320" x2="395" y2="320" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <circle cx="200" cy="320" r="48" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <circle cx="200" cy="320" r="3" fill="rgba(255,255,255,0.45)"/>
+                                    <rect x="120" y="5"   width="160" height="78" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
+                                    <rect x="120" y="557" width="160" height="78" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
                                   </svg>
                                   ${lineup ? this._renderPitchTeam(squad, lineup, true, 'var(--retro-orange)') : ''}
                                   ${opponentLineup && match.opponentId
@@ -1737,11 +1729,6 @@ export class SquadsView extends LitElement {
                               </div>
                             ` : ''}
 
-                            <!-- Atajo a la sede -->
-                            <button class="vd-goto-btn"
-                              @click=${(e: Event) => { e.stopPropagation(); this._openVenueId = match.venueId; }}>
-                              📍 VER FICHA DE ${match.venue.toUpperCase()} →
-                            </button>
                           </div>
                         ` : ''}
                       </article>
@@ -1749,34 +1736,6 @@ export class SquadsView extends LitElement {
                   })}
                 </div>
               `}
-          </div>
-
-          <div class="panel-block ${this.activeTab !== 'venues' ? 'tab-hidden' : ''}">
-            <div class="panel-title">${t('squads.tab.venues')}</div>
-            ${this._openVenueId
-              ? this._renderVenueDetail(STADIUMS.find(s => s.id === this._openVenueId)!, teamMatches)
-              : venueMap.size === 0
-                ? html`<div class="empty">Todavía no hay sedes confirmadas para esta selección.</div>`
-                : html`
-                  <div class="venues-grid">
-                    ${[...venueMap.values()].map(stadium => html`
-                      <article
-                        class="venue-card"
-                        style="cursor:pointer"
-                        @click=${() => { this._openVenueId = stadium.id; this.activeTab = 'venues'; }}
-                      >
-                        <img src="${stadium.image}" alt="${stadium.name}">
-                        <div class="venue-copy">
-                          <div class="venue-name">${stadium.name}</div>
-                          <div class="venue-city" style="display:flex;justify-content:space-between;align-items:center">
-                            <span>${stadium.city} · ${stadium.country}</span>
-                            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;background:var(--paper);border:2px solid var(--ink);padding:2px 6px">VER ▶</span>
-                          </div>
-                        </div>
-                      </article>
-                    `)}
-                  </div>
-                `}
           </div>
 
           <div class="panel-block ${this.activeTab !== 'news' ? 'tab-hidden' : ''}">
@@ -1835,7 +1794,8 @@ export class SquadsView extends LitElement {
       if (!slot) return '';
       const [sx, sy] = slot;
       const x = sx;
-      const y = isTop ? sy / 2 : 50 + (100 - sy) / 2;
+      // cada equipo ocupa 3%–47% (arriba) o 53%–97% (abajo), dejando margen en el centro
+      const y = isTop ? 3 + sy * 0.44 : 97 - sy * 0.44;
       const lastName = player.name.trim().split(/\s+/).at(-1) ?? player.name;
       return html`
         <div class="pitch-dot" style="left:${x}%;top:${y}%">
@@ -1846,52 +1806,6 @@ export class SquadsView extends LitElement {
     });
   }
 
-  private _renderVenueDetail(stadium: Stadium | undefined, teamMatches: TeamMatchSummary[]) {
-    if (!stadium) return html`<div class="empty">Sede no encontrada.</div>`;
-    const matchesHere = teamMatches.filter(m => m.venueId === stadium.id);
-    return html`
-      <div class="venue-detail-wrap">
-        <div class="vd-photo">
-          <img src="${stadium.image}" alt="${stadium.name}" loading="lazy">
-          <button class="vd-back" @click=${() => { this._openVenueId = null; }}>← VOLVER</button>
-        </div>
-        <div class="vd-body">
-          <div class="vd-sub">${stadium.country.toUpperCase()} · ${stadium.city.toUpperCase()}</div>
-          <div class="vd-name">${stadium.name}</div>
-          <div class="vd-stats">
-            <div class="vd-stat">
-              <b>${stadium.capacity.toLocaleString('es-ES')}</b>
-              <span>CAPACIDAD</span>
-            </div>
-            <div class="vd-stat">
-              <b>${matchesHere.length}</b>
-              <span>PARTIDOS AQUÍ</span>
-            </div>
-            <div class="vd-stat">
-              <b>${stadium.highlight.length > 0 ? '★' : '—'}</b>
-              <span>DESTACADO</span>
-            </div>
-          </div>
-          <p class="vd-desc">${stadium.description}</p>
-
-          ${matchesHere.length > 0 ? html`
-            <div class="vd-matches-title">PARTIDOS DE ESTA SELECCIÓN AQUÍ</div>
-            ${matchesHere.map(m => {
-              const opp = this.getTeam(m.opponentId);
-              return html`
-                <div class="vd-match-row">
-                  <span>${formatShortDate(m.date)} · <b>vs ${opp?.name ?? 'Por determinar'}</b></span>
-                  <span class="vd-phase-badge">${m.phase.toUpperCase()}</span>
-                </div>
-              `;
-            })}
-          ` : ''}
-
-          <div class="vd-matches-title" style="margin-top:12px">${stadium.matchesSummary}</div>
-        </div>
-      </div>
-    `;
-  }
 
   private _getPlayerResults() {
     const q = normalize(this.searchQuery.trim());

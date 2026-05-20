@@ -114,7 +114,9 @@
       "Bash(node /tmp/verify-modal.mjs)",
       "Read(//c/tmp/**)",
       "Bash(git -C \"d:/Personal/bracketMundial\" ls-remote origin news-data)",
-      "Bash(git -C \"d:/Personal/bracketMundial\" log --oneline -5 origin/news-data)"
+      "Bash(git -C \"d:/Personal/bracketMundial\" log --oneline -5 origin/news-data)",
+      "Bash(find \"/mnt/c/Users/jesus/.claude/projects/d--Personal-bracketMundial/871a3252-a892-4e85-b6f4-816c2329cd03/tool-results/design-extracted\" -type f | sort)",
+      "Read(//mnt/c/Users/jesus/.claude/projects/d--Personal-bracketMundial/871a3252-a892-4e85-b6f4-816c2329cd03/tool-results/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
