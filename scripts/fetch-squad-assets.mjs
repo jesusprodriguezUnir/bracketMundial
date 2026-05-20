@@ -32,14 +32,17 @@ const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY ?? ENV.API_FOOTBALL_KEY;
 const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY ?? ENV.FOOTBALL_DATA_KEY; // reservado para verify-data extendido
 
 // ── args ──────────────────────────────────────────────────────────────────────
-// Uso: node script.mjs [TEAM...] [--type player|coach|all] [--force] [--report] [--verify-data]
+// Uso: node script.mjs [TEAM...] [--type player|coach|all] [--force] [--report] [--verify-data] [--player <n>]
 const args = process.argv.slice(2);
-const teamFilter = args.filter(a => !a.startsWith('--')).map(t => t.toUpperCase());
+const teamFilter = args.filter(a => !a.startsWith('--') && !/^\d+$/.test(a)).map(t => t.toUpperCase());
 const isForce = args.includes('--force');
 const isReport = args.includes('--report');
 const isVerifyData = args.includes('--verify-data');
 const assetTypeArg = args.find(a => a.startsWith('--type='))?.split('=')[1]
   ?? (args.includes('--type') ? args[args.indexOf('--type') + 1] : 'all');
+const playerFilterRaw = args.find(a => a.startsWith('--player='))?.split('=')[1]
+  ?? (args.includes('--player') ? args[args.indexOf('--player') + 1] : null);
+const playerFilter = playerFilterRaw ? +playerFilterRaw : null;
 
 // ── throttle ──────────────────────────────────────────────────────────────────
 const THROTTLE_MS = 1500;
@@ -405,9 +408,15 @@ async function run() {
     const players = parseSquadFile(content);
 
     if (doPlayer) {
-      console.log(`\n▶ ${code} jugadores (${players.length})`);
+      const filteredPlayers = playerFilter != null
+        ? players.filter(p => p.number === playerFilter)
+        : players;
+      if (playerFilter != null && filteredPlayers.length === 0) {
+        console.log(`\n⚠ ${code}: no se encontró jugador #${playerFilter}`);
+      }
+      console.log(`\n▶ ${code} jugadores (${filteredPlayers.length}${playerFilter != null ? ` · filtro #${playerFilter}` : ''})`);
       mkdirSync(join(PUBLIC_PLAYERS, code), { recursive: true });
-      for (const { number, name } of players) {
+      for (const { number, name } of filteredPlayers) {
         const dest = join(PUBLIC_PLAYERS, code, `${number}.webp`);
         if (existsSync(dest) && !isForce) { stats.skipped++; continue; }
         try {

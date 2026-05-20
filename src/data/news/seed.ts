@@ -9,7 +9,7 @@ interface NewsFeed {
 }
 
 export const NEWS_SEED: NewsFeed = {
-  updatedAt: '2026-05-18',
+  updatedAt: '2026-05-20',
   items: {
     MEX: {
       es: [
@@ -74,9 +74,13 @@ export const NEWS_SEED: NewsFeed = {
     SUI: {
       es: [
         { title: "Convocatoria de Suiza para el Mundial 2026: ¿Qué jugadores llegarán a la gran cita en EE. UU., México y Canadá?", url: "https://news.google.com/rss/articles/CBMi7wFBVV95cUxOT2RzZW1xN1Q2Y0dqaEJ3NWk4cTFmR2RRc2J2TEJuX1hvcDBHemdkS2xzSVpVZk5LV3kwWG5hZThrQndDZ3lOdVpRcUwweG1YNUwtcWdKbENILWNWVERGdmVYU1dsTUVxN3BjY09nQkxHZnN1cEFTUGxaRlNaRzN2YVhScVZDZlVCaDVNNUZ6ZEl5S0dfUTZYb2ZQV1d2Y2RhdVN0VFNhSnZVb1pZZmN3eVd1cF9MYzFNWThKSHRaRF9hZzlZMWpkNlhEdjBjMWdmcGxZQkZ5V2ZfN1drQS1KY0pyN2FvM2JDaHZZaE9VUQ?oc=5", source: "Goal.com", date: "2026-05-13" },
+        { title: "Cómo comprar entradas para el Mundial de Suiza 2026: fechas, calendario, precios y más", url: "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOeWtNZi1wTTBMNWFPNjg4dlRBY3BzX3BoT0V6OG5QX3EzWE5YcENZb3Jpd0ktQUNjOEtxZk5fVTFUcEdqLTVSZzY1VlJTQjFhMjhEbkg5WjlHOHExd1R2V0c5TlVOZndTaWVWT0pWMUowOGhKaUkxakdqbm1mMW9PaWY4T1ZwakNDZTlwVFEzRkJrNHc1dkVpYllxRG5UUF9DZVBPS01rZ0VpQW1VYWJuT3FVUjhEano0dGtLeXdETG9QTnhjdDBienJic2xLZkd3dl90MUR3?oc=5", source: "Goal.com", date: "2026-04-11" },
+        { title: "Mundial 2026: ¿qué selecciones europeas se han clasificado?", url: "https://news.google.com/rss/articles/CBMi1gFBVV95cUxNYmRhaGNkYU93cWE1VEdYYjliV0ZVa0wtYzJHZTRnbzVqaDBKU2ptOGdSZ0tXc1IwdnVxWjBiVVNwVmVDVnVKQ1pRTUFyR2k3NmtVd1JWVEdMT2JaeGQ5QjJiRWV0NDlHazZ3YUpuc1ZpTEpFVHI1UnExelZmTmQtSVRsWUd3dlNFaG9hSjhqTHNqRmxMYnlqdGg4M0xRNExzUllRWWpaNUQ2QnRQVDdTNFB6NGZ4YzF2akN3VXV3a3BaOHBJWDJEMy1Sd01GMzB2Vnh3a3dR?oc=5", source: "UEFA.com", date: "2026-04-01" },
       ],
       en: [
-
+        { title: "South Africa FIFA World Cup 2026 Schedule: Fixtures, Dates, Venues & Kick-Off Times", url: "https://news.google.com/rss/articles/CBMirAFBVV95cUxOWjFKaTVveThQU2J4VV9JRUJQcDdmREZxNTdXY0RhRUdpLV9SRnh3TnZNdU9VQVU3djgyT0Q5a2kyVGlHZzRrYklsWDVMcGw1dkxZSVN5LUt6OWRLelc0UEtDaS1GMUhUandqU0QyUmhWaWR6eWxvNDNQRHBoZzFnd0ZZRldETVhTaEV4Yk9RYW81R1lGZTNSbTFoeUpRZTdYRjdWTlBkTThOaUZh?oc=5", source: "cupofnations2025.com", date: "2026-04-24" },
+        { title: "These are the favorites to win their groups at the 2026 World Cup", url: "https://news.google.com/rss/articles/CBMisAFBVV95cUxNSGtlZnVjcU5yU2NrNjl4VGFoSlljdEFmVlM5RENkeW5qSkZPdXNHX2hLVERpaGx1RGdnX1FVMzJ0aVZ1dU9BQ2pBM0FsSk5LYzRsb3pZVGIxMDVRSURzNXBwaDBSTkFZVi15U3E3MkRkRGExUDJMVERsb0t6RmZDMEo1RUpwNEtkT2pnUkY1bmtPUTZNV1ZWVXhoTFFaZ19RbHNGSTJZdDJYcVd4VUMxStIBxAFBVV95cUxQQ19Tc3VOcENpd2Vkdk1qTFQ1VHZiZVNIZGlHRHZyd1J0Yk5fcS1rMGdfVG1Gek9PVzVzRlRJMmduOG9aZG9fOXRlSnJyMldYSGQ1M3M0T010VnZ5ME1MOFlHd1BMVHBWYVFrcExQVmp6SlAxX1RrejRiUGxHVjJKa0R1WEZfemlCVWRBWmhFQTIzSUl1LVZHUWdRNmlRMWZpQ0RPa2xOLWItOUF3V1BXSGRreUktMk85QUQ1RzJ3YWhaanl6?oc=5", source: "Diario AS", date: "2026-04-02" },
+        { title: "Slovenia 0-0 Switzerland, FIFA World Cup European Qualifiers: Swiss Extend Unbeaten Run In Drab Draw", url: "https://news.google.com/rss/articles/CBMi2wFBVV95cUxQaURHZElJN2lWU2VFR0EyVXNYM3JfMWFPd0tvZERYUl9Wa3B4ZzRaTjVJM3dSUm5wNWhuV3hZdEZMblBHZVJCdHVoLW9wR0k4ck5hSEkweDl6SGlJeC1QeElCWU1xTjlEU20zM0d2WlhaZ0NCd2lNcVFmNFdvYmxaVnp4TDhCOHQtNWFqSW5zdGdWUEM0TVlfWDBoOUVhRjV1bnoxRURYTUxnM0o3Uno3MF9ZWVFXWmFrVlhtcDNOa29BdmFkM296WGtPUnNsOW9HVksweVZwSExqQUnSAegBQVVfeXFMUEhnRUl2ZG9OWm92MXhGZEk3b25fdUxmR05waEJsUDZvVzNWeFR4RElrU2JETy1nZXlSd294MkMwaTdVQzVNVEZDd3hWdGpDaDdMQmJKRW1YaUphS2s1eUgydjBEQjBRbFQtZ1NCM1lZU3BEdlNFWllyVHpHV2V6R3VudFJoanRUTEc3cE5SZ2NWdXdheHB2ejM4RXNMZ3QwOWNUX3RESmhBbFNON1k3bk1MOWNBZjZqWmp3NlY1dHI3RDZCRVJPZFpxRGVYVTN0VFNCa0JRMmR3M3Ayc0x3b1JHbTJFVEVsVA?oc=5", source: "Outlook India", date: "2025-10-14" },
       ],
     },
     QAT: {
