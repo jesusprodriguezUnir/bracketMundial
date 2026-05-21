@@ -55,9 +55,8 @@ jobs:
           cat > vercel.json <<'EOF'
           {
             "$schema": "https://openapi.vercel.sh/vercel.json",
-            "installCommand": "echo 'No install step for news-data'",
-            "buildCommand": "echo 'No build step for news-data'",
-            "outputDirectory": "."
+            "installCommand": "true",
+            "buildCommand": "true"
           }
           EOF
           git add news-feed.json vercel.json
