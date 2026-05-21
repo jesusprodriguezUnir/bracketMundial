@@ -31,11 +31,11 @@ const SUPABASE_URL = ENV.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = ENV.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!API_FOOTBALL_KEY) {
-  console.error("❌ ERROR: Falta API_FOOTBALL_KEY en .env");
+  console.error("❌ ERROR: Falta API_FOOTBALL_KEY (process.env o .env). En GitHub Actions, define el secret/var API_FOOTBALL_KEY (o RAPIDAPI_KEY).");
   process.exit(1);
 }
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error("❌ ERROR: Faltan VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env");
+  console.error("❌ ERROR: Faltan VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY (process.env o .env). En GitHub Actions, define esos secrets/vars (o SUPABASE_URL / SUPABASE_SERVICE_KEY).");
   process.exit(1);
 }
 
