@@ -12,7 +12,7 @@
 - **`share-card.ts` (562 líneas)** duplica los IDs de partidos (`r32L`, `r32R`, ...), `ROUND_COLORS`, `renderMatch()` y la lógica de render del árbol del bracket. Es la peor violación DRY del proyecto.
 - **Solución:** Extraer `bracket-match` como componente Lit compartido. Separar en 4-5 archivos: `bracket-knockout-desktop.ts`, `bracket-knockout-mobile.ts`, `bracket-knockout-path.ts`, `bracket-knockout-team-picker.ts`, `bracket-match-card.ts`.
 
-### 1.2 Drag-to-dismiss duplicado 6+ veces
+### 1.2 Drag-to-dismiss duplicado 6+ veces ✅
 Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar) en:
 - `auth-modal.ts` — `AuthModal` y `SyncConflictModal`
 - `leagues-modal.ts`
@@ -20,6 +20,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `match-modal.ts`
 - `player-card.ts`
 - **Solución:** Crear mixin `DragToDismiss` o directiva Lit reutilizable.
+- **Realizado mayo 2026:** Creado `src/mixins/drag-to-dismiss.ts` con `DragToDismissMixin`. Aplicado a `auth-modal`, `leagues-modal`, `share-modal` y `match-modal`. El mixin expone `_dragThreshold`, `_getDragTarget()`, `_getDragAnimateTarget()`, `_dragCanStart()`, `_onDragMove()`, `_onDragEnd()` y `_dragDismiss()`, permitiendo personalización (ej. `match-modal` usa target interno `.modal`, velocidad y fade de fondo). Se eliminó ~120 líneas de lógica duplicada.
 
 ### 1.3 `renderFlag` implementado 5+ veces
 - `groups-view.ts`, `bracket-knockout.ts`, `share-card.ts`, `calendar-view.ts`, `player-card.ts`
@@ -91,11 +92,12 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - Props pasadas con `as any` desde `bracket-knockout.ts:1233`.
 - **Solución:** Extraer subcomponentes (`<score-editor>`, `<penalty-editor>`, `<odds-display>`).
 
-### 3.2 `share-card.ts` no usa CSS custom properties
+### 3.2 `share-card.ts` no usa CSS custom properties ✅
 - Todos los colores hardcodeados (`#ecdfc0`, `#1a1933`, `#e8541f`, ...) en lugar de `var(--retro-*)`.
 - Familias tipográficas hardcodeadas en lugar de `var(--font-var)`.
 - Diseñado para captura de imagen (aislado), pero el acoplamiento con la paleta del proyecto es frágil.
 - **Solución:** Usar custom properties también en share-card; si se renderiza off-screen, las hereda del `:root`.
+- **Realizado mayo 2026:** Todos los colores (`#ecdfc0`, `#1a1933`, `#e8541f`, `#c41e2c`, `#1f6b3a`, `#22418c`, `#f0b021`, `#7a6f54`, `#e6d6b1`) reemplazados por `var(--paper)`, `var(--ink)`, `var(--retro-orange)`, `var(--retro-red)`, `var(--retro-green)`, `var(--retro-blue)`, `var(--retro-yellow)`, `var(--dim)`, `var(--paper-2)`. Familias tipográficas reemplazadas por `var(--font-var)`, `var(--font-mono)`, `var(--font-body)`. Texturas radiales con `rgba()` convertidas a `color-mix(in srgb, var(--*) X%, transparent)` y `var(--halftone)`/`var(--halftone-soft)`. `ROUND_COLORS` también actualizado.
 
 ### 3.3 `logo-crest.ts` — IDs SVG colisionan
 - `logo-crest.ts:67,70` usa `id="cs-${this.mode}"` y `id="cc-${this.mode}"`.
@@ -130,9 +132,10 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `groups-view.ts` — `div` con `@click` pero sin `role="button"` ni `tabindex`.
 - **Solución:** Añadir `role="button"`, `tabindex="0"`, handler de teclado. ✓ Añadido.
 
-### 4.3 Team picker sin atributos ARIA
+### 4.3 Team picker sin atributos ARIA ✅
 - `bracket-knockout.ts` — overlay del team picker sin `aria-expanded`/`aria-controls`.
 - **Solución:** Añadir atributos ARIA al botón toggle y al panel.
+- **Realizado mayo 2026:** Botón `.mob-hero-change` ahora tiene `aria-expanded="${this._showTeamPicker}"` y `aria-controls="team-picker-panel"`. El panel `.mob-picker-sheet` tiene `id="team-picker-panel"`, `role="dialog"` y `aria-modal="true"`.
 
 ### 4.4 Textos hardcodeados en español (12+ ocurrencias)
 - `match-modal.ts:924` → "Probabilidad 1X2"

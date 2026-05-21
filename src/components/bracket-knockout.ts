@@ -1823,7 +1823,10 @@ export class BracketKnockout extends LitElement {
             <div class="hero-name">${team?.name.toUpperCase() ?? 'NINGUNO'}</div>
             ${isChampion ? html`<div style="font-family:var(--font-mono);font-size:10px;opacity:0.9;margin-top:4px;letter-spacing:0.1em;">🏆 CAMPEÓN · ${path.length} PARTIDOS</div>` : ''}
           </div>
-          <button class="mob-hero-change" @click="${() => { this._showTeamPicker = true; }}">★ CAMBIAR</button>
+          <button class="mob-hero-change"
+            aria-expanded="${this._showTeamPicker}"
+            aria-controls="team-picker-panel"
+            @click="${() => { this._showTeamPicker = true; }}">★ CAMBIAR</button>
         </div>
 
         <!-- Timeline -->
@@ -1908,7 +1911,7 @@ export class BracketKnockout extends LitElement {
       <div class="mob-picker-backdrop" @click="${(e: Event) => {
         if (e.target === e.currentTarget) { this._showTeamPicker = false; this._pickerSearch = ''; }
       }}">
-        <div class="mob-picker-sheet">
+        <div id="team-picker-panel" class="mob-picker-sheet" role="dialog" aria-modal="true">
           <div class="mob-picker-header">
             <span class="mob-picker-title">SELECCIONAR EQUIPO</span>
             <button class="mob-picker-close" @click="${() => { this._showTeamPicker = false; this._pickerSearch = ''; }}">CERRAR</button>
