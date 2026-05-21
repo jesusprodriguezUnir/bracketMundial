@@ -74,12 +74,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   QAT: {
-    name: 'Marquez Lopez',
-    born: '1970-04-14',
+    name: 'Julen Lopetegui',
+    born: '1966-08-28',
     nationality: 'España',
     bio: {
-      es: 'Entrenador español con experiencia en el fútbol asiático. Asumió la dirección de Qatar tras el Mundial 2022.',
-      en: 'Spanish coach with experience in Asian football. He took charge of Qatar after the 2022 World Cup.',
+      es: 'Entrenador español de amplia trayectoria en clubes europeos y selecciones nacionales. Dirigió a España, Real Madrid, Sevilla, Wolverhampton y West Ham antes de asumir el banquillo de Qatar en 2025 para el ciclo mundialista.',
+      en: 'Highly experienced Spanish manager who coached Spain, Real Madrid, Sevilla, Wolverhampton, and West Ham before taking charge of Qatar in 2025 for the World Cup cycle.',
     },
   },
   SUI: {
