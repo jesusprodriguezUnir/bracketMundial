@@ -10,6 +10,7 @@ import { getLineup, getSquad } from '../data/squads';
 import { COACHES } from '../data/coaches';
 import { getPreview, type Preview } from '../data/previews';
 import { showToast, lightTap, mediumTap } from '../lib/interaction';
+import type { GoalEvent } from '../types';
 
 
 @customElement('match-modal')
@@ -26,6 +27,7 @@ export class MatchModal extends LitElement {
   @property() city = '';
   @property() timeSpain = '';
   @property() stadiumImage = '';
+  @property({ attribute: false }) goalScorers: GoalEvent[] | undefined;
 
   @state() private _scoreA: number | null = null;
   @state() private _scoreB: number | null = null;
@@ -1046,6 +1048,34 @@ export class MatchModal extends LitElement {
     }
     .pitch-dt.home { top: 7px; left: 7px; }
     .pitch-dt.away { bottom: 7px; right: 7px; }
+
+    /* ─── Goleadores ─── */
+    .scorers-block {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 20px 0;
+      gap: 20px;
+    }
+    .scorers-side {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+    .scorers-side.left { align-items: flex-end; text-align: right; }
+    .scorers-side.right { align-items: flex-start; text-align: left; }
+    .scorer-item {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .scorer-name { font-weight: 700; }
+    .scorer-min { color: var(--dim); font-size: 10px; }
+    .scorer-pen { color: var(--retro-red); font-size: 9px; font-weight: 700; }
+    .scorers-divider { width: 1px; background: rgba(26,25,51,0.15); }
   `];
 
   // ─── V2-Cancha helpers ────────────────────────────────────────────
@@ -1110,6 +1140,35 @@ export class MatchModal extends LitElement {
         <rect x="158" y="417" width="84" height="18" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
         <circle cx="200" cy="392" r="2.5" fill="rgba(255,255,255,0.4)"/>
       </svg>
+    `;
+  }
+
+  private _renderGoalScorers(_tA: ReturnType<typeof TEAMS_2026.find>, _tB: ReturnType<typeof TEAMS_2026.find>) {
+    if (!this.goalScorers || this.goalScorers.length === 0) return '';
+    const homeScorers = this.goalScorers.filter(g => g.teamId === this.teamA);
+    const awayScorers = this.goalScorers.filter(g => g.teamId === this.teamB);
+    return html`
+      <div class="scorers-block">
+        <div class="scorers-side left">
+          ${homeScorers.map(g => html`
+            <span class="scorer-item">
+              <span class="scorer-name">${g.playerName}</span>
+              <span class="scorer-min">${g.minute}'</span>
+              ${g.type === 'penalty' ? html`<span class="scorer-pen">(P)</span>` : ''}
+            </span>
+          `)}
+        </div>
+        <div class="scorers-divider"></div>
+        <div class="scorers-side right">
+          ${awayScorers.map(g => html`
+            <span class="scorer-item">
+              <span class="scorer-name">${g.playerName}</span>
+              <span class="scorer-min">${g.minute}'</span>
+              ${g.type === 'penalty' ? html`<span class="scorer-pen">(P)</span>` : ''}
+            </span>
+          `)}
+        </div>
+      </div>
     `;
   }
 
@@ -1311,6 +1370,9 @@ export class MatchModal extends LitElement {
             </div>
           </div>
         </div>
+
+        <!-- Goleadores -->
+        ${this._renderGoalScorers(tA, tB)}
 
         <!-- Crónica + probabilidades + cancha (V2-cancha) -->
         ${this._renderCronica(tA, tB)}

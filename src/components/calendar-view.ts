@@ -29,6 +29,7 @@ interface CalendarRow {
   scoreB: number | null;
   penaltyScoreA: number | null;
   penaltyScoreB: number | null;
+  goalScorers: import('../types').GoalEvent[] | undefined;
 }
 
 const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: TranslationKey }> = [
@@ -413,6 +414,7 @@ export class CalendarView extends LitElement {
         scoreB: match.scoreB,
         penaltyScoreA: null,
         penaltyScoreB: null,
+        goalScorers: match.goalScorers,
       };
     });
 
@@ -435,6 +437,7 @@ export class CalendarView extends LitElement {
         scoreB: match?.scoreB ?? null,
         penaltyScoreA: match?.penaltyScoreA ?? null,
         penaltyScoreB: match?.penaltyScoreB ?? null,
+        goalScorers: match?.goalScorers,
       };
     });
 
@@ -510,6 +513,7 @@ export class CalendarView extends LitElement {
     modal.initialPenaltyScoreA = row.penaltyScoreA;
     modal.initialPenaltyScoreB = row.penaltyScoreB;
     modal.phase = row.kind === 'group' ? 'group' : 'knockout';
+    modal.goalScorers = row.goalScorers;
     modal.venue = row.venue;
     modal.city = row.city;
     modal.timeSpain = row.timeSpain;

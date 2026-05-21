@@ -1239,6 +1239,7 @@ export class BracketKnockout extends LitElement {
     modal.initialPenaltyScoreA = match.penaltyScoreA ?? null;
     modal.initialPenaltyScoreB = match.penaltyScoreB ?? null;
     modal.phase = 'knockout';
+    modal.goalScorers = match.goalScorers;
     (modal as any).venue = (match as any).venue || '';
     (modal as any).city = (match as any).city || '';
     (modal as any).timeSpain = (match as any).timeSpain || '';

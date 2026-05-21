@@ -34,6 +34,8 @@ function posLabel(pos: string, locale: string): string {
 export class GuideView extends LitElement {
   @state() private _mode: 'auto' | 'user' = 'auto';
   @state() private _data: GuideData | null = null;
+  @state() private _generating = false;
+  @state() private _genProgress: { current: number; total: number } | null = null;
   private _unsubscribeLocale?: () => void;
 
   static readonly styles = css`
@@ -109,12 +111,51 @@ export class GuideView extends LitElement {
       transform: translate(1px, 1px);
       box-shadow: 1px 1px 0 var(--ink);
     }
+    .pdf-btn {
+      all: unset;
+      cursor: pointer;
+      padding: 10px 18px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      background: var(--retro-orange);
+      color: #fff;
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .pdf-btn:hover:not(:disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .pdf-btn:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+    .pdf-btn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
 
     /* ── Documento de guía ── */
     .guide-document {
       background: var(--paper);
       color: var(--ink);
       font-family: var(--font-body);
+    }
+    .guide-document.pdf-exporting .calendar-match {
+      grid-template-columns: 45px minmax(0, 1fr) 70px minmax(0, 1fr) 55px;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .guide-document.pdf-exporting .calendar-team,
+    .guide-document.pdf-exporting .calendar-venue {
+      min-width: 0;
+    }
+    .guide-document.pdf-exporting .calendar-venue {
+      font-size: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ── Portada ── */
@@ -597,6 +638,28 @@ export class GuideView extends LitElement {
     window.print();
   }
 
+  private async _downloadPdf() {
+    if (!this._data || this._generating) return;
+    this._generating = true;
+    this._genProgress = null;
+    this.requestUpdate();
+    try {
+      const { triggerGuidePdfDownload } = await import('../lib/guide-pdf-export');
+      await triggerGuidePdfDownload(
+        this.shadowRoot!,
+        this._data.locale,
+        (current, total) => {
+          this._genProgress = { current, total };
+          this.requestUpdate();
+        }
+      );
+    } finally {
+      this._generating = false;
+      this._genProgress = null;
+      this.requestUpdate();
+    }
+  }
+
   goBack() {
     // No-op: guide-view has no internal navigation state
   }
@@ -655,6 +718,13 @@ export class GuideView extends LitElement {
         </div>
         <button class="print-btn" @click="${this._print}">
           🖨 ${t('guide.print')}
+        </button>
+        <button class="pdf-btn" @click="${this._downloadPdf}" ?disabled="${this._generating}">
+          ${this._generating
+            ? (this._genProgress
+                ? html`⏳ ${this._genProgress.current}/${this._genProgress.total}`
+                : html`⏳ ${locale === 'es' ? 'Preparando...' : 'Preparing...'}`)
+            : html`📥 ${locale === 'es' ? 'Descargar PDF' : 'Download PDF'}`}
         </button>
       </div>
 

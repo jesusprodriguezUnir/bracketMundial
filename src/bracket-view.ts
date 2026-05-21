@@ -571,6 +571,7 @@ export class BracketView extends LitElement {
     modal.initialScoreA = match.scoreA;
     modal.initialScoreB = match.scoreB;
     modal.phase = 'group';
+    modal.goalScorers = match.goalScorers;
     (modal as any).venue = match.venue;
     (modal as any).city = match.city;
     (modal as any).timeSpain = match.timeSpain;
@@ -588,7 +589,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide'];
     const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
       { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
       { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.groups') },
@@ -786,6 +787,7 @@ export class BracketView extends LitElement {
             <guide-view></guide-view>
           ` : ''}
         </div>
+
       </div>
     `;
   }

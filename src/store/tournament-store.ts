@@ -7,6 +7,8 @@ import type { TeamStats } from '../lib/bracket-logic';
 import { TEAM_STRENGTH } from '../data/team-strength';
 import { expectedProbabilities, sampleResult } from '../lib/odds-model';
 import { ODDS_SEED } from '../data/odds/seed';
+import { generateGoalScorers } from '../lib/goal-scorers';
+import type { GoalEvent } from '../types';
 
 
 export interface GroupStanding {
@@ -28,6 +30,7 @@ export interface GroupMatchResult {
   teamB: string;
   scoreA: number | null;
   scoreB: number | null;
+  goalScorers?: GoalEvent[];
   matchDay: number;
   date?: string;
   timeSpain?: string;
@@ -44,6 +47,7 @@ export interface KnockoutMatchResult {
   scoreB: number | null;
   penaltyScoreA?: number | null;
   penaltyScoreB?: number | null;
+  goalScorers?: GoalEvent[];
   winnerId: string | null;
   isPlayed: boolean;
   venue?: string;
@@ -343,7 +347,11 @@ export const useTournamentStore = createStore<TournamentState>()(
               TEAM_STRENGTH[m.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
             );
             const result = sampleResult(prob);
-            return { ...m, scoreA: result.scoreA, scoreB: result.scoreB };
+            const goalScorers = [
+              ...generateGoalScorers(m.teamA, result.scoreA),
+              ...generateGoalScorers(m.teamB, result.scoreB),
+            ];
+            return { ...m, scoreA: result.scoreA, scoreB: result.scoreB, goalScorers };
           });
           const standings = recalculateStandings(matches, state.groupStandings);
           return {
@@ -377,6 +385,10 @@ export const useTournamentStore = createStore<TournamentState>()(
                 if (penaltyScoreA === penaltyScoreB) penaltyScoreB += 1;
               }
 
+              const goalScorers = [
+                ...generateGoalScorers(match.teamA, scoreA, true),
+                ...generateGoalScorers(match.teamB, scoreB, true),
+              ];
               updated = resolveKnockoutMatches(state.groupStandings, {
                 ...updated,
                 [matchId]: {
@@ -385,6 +397,7 @@ export const useTournamentStore = createStore<TournamentState>()(
                   scoreB,
                   penaltyScoreA,
                   penaltyScoreB,
+                  goalScorers,
                   winnerId: getWinnerId(match.teamA, match.teamB, scoreA, scoreB, penaltyScoreA, penaltyScoreB),
                   isPlayed: true,
                 },

@@ -34,6 +34,14 @@ export interface GroupMatch {
   city: string;
 }
 
+export interface GoalEvent {
+  minute: number;
+  playerName: string;
+  playerNumber: number;
+  teamId: string;
+  type?: 'normal' | 'penalty' | 'own_goal';
+}
+
 export type TournamentPhase = 'groups' | 'roundOf32' | 'roundOf16' | 'quarterfinals' | 'semifinals' | 'thirdPlace' | 'final';
 
 export interface KnockoutMatch {
