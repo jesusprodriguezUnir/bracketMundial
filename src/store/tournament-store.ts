@@ -119,28 +119,27 @@ export function recalculateStandings(matches: GroupMatchResult[], _standings?: R
   for (const match of matches) {
     if (match.scoreA === null || match.scoreB === null) continue;
 
-    for (const group of 'ABCDEFGHIJKL'.split('')) {
-      if (match.group !== group) continue;
+    const groupStandings = newStandings[match.group];
+    if (!groupStandings) continue;
 
-      for (const standing of newStandings[group]) {
-        if (standing.teamId === match.teamA) {
-          standing.played++;
-          standing.goalsFor += match.scoreA;
-          standing.goalsAgainst += match.scoreB;
-          standing.goalDiff = standing.goalsFor - standing.goalsAgainst;
-          if (match.scoreA > match.scoreB) { standing.won++; standing.points += 3; }
-          else if (match.scoreA === match.scoreB) { standing.drawn++; standing.points += 1; }
-          else { standing.lost++; }
-        }
-        if (standing.teamId === match.teamB) {
-          standing.played++;
-          standing.goalsFor += match.scoreB;
-          standing.goalsAgainst += match.scoreA;
-          standing.goalDiff = standing.goalsFor - standing.goalsAgainst;
-          if (match.scoreB > match.scoreA) { standing.won++; standing.points += 3; }
-          else if (match.scoreA === match.scoreB) { standing.drawn++; standing.points += 1; }
-          else { standing.lost++; }
-        }
+    for (const standing of groupStandings) {
+      if (standing.teamId === match.teamA) {
+        standing.played++;
+        standing.goalsFor += match.scoreA;
+        standing.goalsAgainst += match.scoreB;
+        standing.goalDiff = standing.goalsFor - standing.goalsAgainst;
+        if (match.scoreA > match.scoreB) { standing.won++; standing.points += 3; }
+        else if (match.scoreA === match.scoreB) { standing.drawn++; standing.points += 1; }
+        else { standing.lost++; }
+      }
+      if (standing.teamId === match.teamB) {
+        standing.played++;
+        standing.goalsFor += match.scoreB;
+        standing.goalsAgainst += match.scoreA;
+        standing.goalDiff = standing.goalsFor - standing.goalsAgainst;
+        if (match.scoreB > match.scoreA) { standing.won++; standing.points += 3; }
+        else if (match.scoreA === match.scoreB) { standing.drawn++; standing.points += 1; }
+        else { standing.lost++; }
       }
     }
   }
