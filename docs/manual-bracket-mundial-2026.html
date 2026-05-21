@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual · Bracket Mundial 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Archivo+Black&family=Archivo:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════
+       VARIABLES CSS — idénticas a src/index.css
+    ═══════════════════════════════════════════════ */
+    :root {
+      --paper:        #ecdfc0;
+      --paper-2:      #e6d6b1;
+      --paper-3:      #fff9ec;
+      --ink:          #1a1933;
+      --retro-orange: #e8541f;
+      --retro-red:    #c41e2c;
+      --retro-green:  #1f6b3a;
+      --retro-blue:   #22418c;
+      --retro-yellow: #f0b021;
+      --dim:          #7a6f54;
+
+      --font-var:  'Bowlby One', 'Anton', Impact, sans-serif;
+      --font-head: 'Archivo Black', 'Anton', Impact, sans-serif;
+      --font-body: 'Archivo', 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+
+      --shadow-sm: 2px 2px 0 0 var(--ink);
+      --shadow-md: 3px 3px 0 0 var(--ink);
+      --shadow-lg: 4px 4px 0 0 var(--ink);
+      --shadow-xl: 6px 6px 0 0 var(--ink);
+      --shadow-2xl: 8px 8px 0 0 var(--ink);
+
+      --halftone: radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+    }
+
+    [data-theme="dark"] {
+      --paper:        #1a1933;
+      --paper-2:      #231d3e;
+      --paper-3:      #2e2750;
+      --ink:          #ecdfc0;
+      --retro-orange: #f0713d;
+      --retro-red:    #e83345;
+      --retro-green:  #2d9c56;
+      --retro-blue:   #4570d4;
+      --retro-yellow: #f5c040;
+      --dim:          #8a8070;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      background-image: var(--halftone);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOPBAR — replicando el header retro de la app
+    ═══════════════════════════════════════════════ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: var(--retro-orange);
+      border-bottom: 4px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+      gap: 16px;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .topbar-title {
+      font-family: var(--font-var);
+      font-size: 22px;
+      color: var(--paper);
+      letter-spacing: 0.05em;
+    }
+    .topbar-subtitle {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--paper);
+      opacity: 0.85;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .topbar-badge {
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 3px 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-toggle {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--paper);
+      border: 2px solid var(--paper);
+      padding: 4px 10px;
+      letter-spacing: 0.1em;
+      transition: background 0.15s;
+    }
+    .theme-toggle:hover {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    /* ═══════════════════════════════════════════════
+       TABS DE NAVEGACIÓN — igual a .phase-tabs
+    ═══════════════════════════════════════════════ */
+    .phase-tabs {
+      display: flex;
+      background: var(--paper-2);
+      border-bottom: 4px solid var(--ink);
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .phase-tabs::-webkit-scrollbar { display: none; }
+    .phase-tab {
+      all: unset;
+      cursor: pointer;
+      padding: 14px 22px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      border-left: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: background 0.1s;
+    }
+    .phase-tab:first-child { border-left: none; }
+    .phase-tab:hover { background: var(--retro-yellow); }
+    .phase-tab.active {
+      background: var(--retro-orange);
+      color: var(--paper);
+    }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+    ═══════════════════════════════════════════════ */
+    .page-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       SECCIÓN HERO / PORTADA DEL MANUAL
+    ═══════════════════════════════════════════════ */
+    .hero {
+      border-bottom: 4px solid var(--ink);
+      padding: 64px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--paper-3);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--halftone);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-family: var(--font-var);
+      font-size: clamp(48px, 8vw, 96px);
+      line-height: 0.95;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .hero-title span { color: var(--retro-orange); }
+    .hero-subtitle {
+      font-family: var(--font-head);
+      font-size: clamp(18px, 3vw, 28px);
+      color: var(--retro-blue);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .hero-stamp {
+      display: inline-block;
+      border: 4px solid var(--retro-red);
+      color: var(--retro-red);
+      font-family: var(--font-var);
+      font-size: 13px;
+      padding: 8px 20px;
+      letter-spacing: 0.2em;
+      transform: rotate(-2deg);
+      box-shadow: var(--shadow-xl);
+    }
+    .hero-meta {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-value {
+      font-family: var(--font-var);
+      font-size: 36px;
+      color: var(--retro-orange);
+      display: block;
+    }
+    .hero-stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ═══════════════════════════════════════════════
+       SECTION HEADING — igual a .section-heading
+    ═══════════════════════════════════════════════ */
+    .section {
+      padding: 64px 0 48px;
+      border-bottom: 3px solid var(--paper-2);
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-heading {
+      padding: 0 0 20px;
+      border-bottom: 3px dashed var(--ink);
+      margin-bottom: 32px;
+    }
+    .section-heading.solid { border-bottom-style: solid; }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: var(--font-var);
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    /* ═══════════════════════════════════════════════
+       CARDS / BLOQUES DE CONTENIDO
+    ═══════════════════════════════════════════════ */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-2xl);
+      padding: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--retro-orange);
+    }
+    .card-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+    .card-title {
+      font-family: var(--font-head);
+      font-size: 16px;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+    .card p {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--dim);
+    }
+    .card p + p { margin-top: 10px; }
+
+    /* ═══════════════════════════════════════════════
+       FEATURE BLOCKS — destacados funcionales
+    ═══════════════════════════════════════════════ */
+    .feature-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+      margin-bottom: 40px;
+    }
+    .feature-block.reverse { direction: rtl; }
+    .feature-block.reverse > * { direction: ltr; }
+
+    .feature-visual {
+      background: var(--paper-2);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-xl);
+      padding: 28px;
+      position: relative;
+    }
+    .feature-visual::after {
+      content: attr(data-label);
+      position: absolute;
+      top: -14px;
+      left: 16px;
+      background: var(--retro-orange);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      padding: 3px 10px;
+      text-transform: uppercase;
+    }
+    .feature-text h3 {
+      font-family: var(--font-head);
+      font-size: 20px;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .feature-text p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       STEPS / INSTRUCCIONES
+    ═══════════════════════════════════════════════ */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .step {
+      counter-increment: step;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-md);
+      padding: 16px 20px;
+    }
+    .step::before {
+      content: counter(step);
+      font-family: var(--font-var);
+      font-size: 24px;
+      color: var(--retro-orange);
+      min-width: 32px;
+      line-height: 1;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-title {
+      font-family: var(--font-head);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .step p {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--dim);
+    }
+
+    /* ═══════════════════════════════════════════════
+       TABLA DE DATOS
+    ═══════════════════════════════════════════════ */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-xl);
+      margin: 24px 0;
+      font-size: 13px;
+    }
+    .data-table th {
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+    }
+    .data-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--paper-2);
+      font-family: var(--font-body);
+      color: var(--ink);
+    }
+    .data-table tr:nth-child(even) td { background: var(--paper-2); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* ═══════════════════════════════════════════════
+       BADGE / PILLS
+    ═══════════════════════════════════════════════ */
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border: 2px solid var(--ink);
+    }
+    .badge-orange { background: var(--retro-orange); color: var(--paper); border-color: var(--retro-orange); }
+    .badge-yellow { background: var(--retro-yellow); color: var(--ink); border-color: var(--retro-yellow); }
+    .badge-blue   { background: var(--retro-blue);   color: var(--paper); border-color: var(--retro-blue); }
+    .badge-green  { background: var(--retro-green);  color: var(--paper); border-color: var(--retro-green); }
+    .badge-ink    { background: var(--ink);           color: var(--paper); border-color: var(--ink); }
+
+    /* ═══════════════════════════════════════════════
+       BLOQUE INFORMATIVO TIPO TICKET
+    ═══════════════════════════════════════════════ */
+    .ticket {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-2xl);
+      padding: 0;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .ticket-header {
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-var);
+      font-size: 13px;
+      letter-spacing: 0.15em;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ticket-body {
+      padding: 20px 24px;
+    }
+    .ticket-body p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--dim);
+      margin-bottom: 10px;
+    }
+    .ticket-body p:last-child { margin-bottom: 0; }
+    .ticket-divider {
+      border: none;
+      border-top: 2px dashed var(--ink);
+      margin: 16px 0;
+      opacity: 0.3;
+    }
+
+    /* ═══════════════════════════════════════════════
+       BRACKET MINI — visual decorativo
+    ═══════════════════════════════════════════════ */
+    .bracket-visual {
+      display: flex;
+      gap: 0;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: auto;
+    }
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 120px;
+    }
+    .bracket-round-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-align: center;
+      margin-bottom: 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--dim);
+    }
+    .bracket-match {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-sm);
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink);
+      text-align: center;
+    }
+    .bracket-match.winner {
+      background: var(--retro-orange);
+      color: var(--paper);
+      border-color: var(--retro-orange);
+    }
+    .bracket-connector {
+      width: 24px;
+      height: 2px;
+      background: var(--dim);
+      flex-shrink: 0;
+      margin-top: 20px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       GRUPO VISUAL
+    ═══════════════════════════════════════════════ */
+    .group-card {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .group-header {
+      background: var(--retro-blue);
+      color: var(--paper);
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .group-header span {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      opacity: 0.75;
+      letter-spacing: 0.15em;
+    }
+    .group-team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--paper-2);
+      font-size: 13px;
+      font-family: var(--font-body);
+    }
+    .group-team:last-child { border-bottom: none; }
+    .group-team .flag { font-size: 18px; }
+    .group-team .pts {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    /* ═══════════════════════════════════════════════
+       STATS ROW
+    ═══════════════════════════════════════════════ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .stat-box {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-lg);
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .stat-box-value {
+      font-family: var(--font-var);
+      font-size: 42px;
+      color: var(--retro-orange);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-box-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOC — índice de contenidos
+    ═══════════════════════════════════════════════ */
+    .toc {
+      background: var(--paper-2);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-2xl);
+      padding: 24px 28px;
+      margin: 32px 0;
+    }
+    .toc-title {
+      font-family: var(--font-var);
+      font-size: 16px;
+      color: var(--ink);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--retro-orange);
+      letter-spacing: 0.05em;
+    }
+    .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 32px;
+    }
+    .toc-list li a {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--ink);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--dim);
+      transition: color 0.1s;
+    }
+    .toc-list li a:hover { color: var(--retro-orange); }
+    .toc-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--retro-orange);
+      min-width: 20px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       STACK TÉCNICO
+    ═══════════════════════════════════════════════ */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .tech-item {
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tech-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .tech-value {
+      font-family: var(--font-head);
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .tech-desc {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════
+       ALERTA / NOTA
+    ═══════════════════════════════════════════════ */
+    .note {
+      background: var(--retro-yellow);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-md);
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 20px 0;
+    }
+    .note-icon { font-size: 16px; flex-shrink: 0; }
+    .note p { margin: 0; }
+
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
+    footer {
+      border-top: 4px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-title {
+      font-family: var(--font-var);
+      font-size: 24px;
+      color: var(--retro-yellow);
+      margin-bottom: 8px;
+    }
+    .footer-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--retro-orange);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+    }
+    .footer-links a:hover { color: var(--retro-yellow); }
+
+    /* ═══════════════════════════════════════════════
+       PRINT
+    ═══════════════════════════════════════════════ */
+    @media print {
+      .topbar, .phase-tabs { position: relative; }
+      .section { page-break-inside: avoid; }
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .page-wrap { padding: 0 16px; }
+      .feature-block { grid-template-columns: 1fr; }
+      .feature-block.reverse { direction: ltr; }
+      .toc-list { grid-template-columns: 1fr; }
+      .hero { padding: 40px 16px; }
+      .hero-meta { gap: 20px; }
+      .hero-stat-value { font-size: 28px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       TOPBAR
+  ═══════════════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">BRACKET</span>
+      <span class="topbar-subtitle">MUNDIAL · 2026</span>
+      <span class="topbar-badge">MANUAL</span>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()">◑ NOCHE</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════
+       TABS DE SECCIÓN (navegación interna)
+  ═══════════════════════════════════════════════ -->
+  <nav class="phase-tabs" aria-label="Secciones del manual">
+    <a href="#inicio"        class="phase-tab active">Inicio</a>
+    <a href="#grupos"        class="phase-tab">Grupos</a>
+    <a href="#cruces"        class="phase-tab">Cruces</a>
+    <a href="#equipos"       class="phase-tab">Equipos</a>
+    <a href="#calendario"    class="phase-tab">Calendario</a>
+    <a href="#estadios"      class="phase-tab">Estadios</a>
+    <a href="#entrenadores"  class="phase-tab">Entrenadores</a>
+    <a href="#funciones"     class="phase-tab">Funciones</a>
+    <a href="#tecnico"       class="phase-tab">Técnico</a>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════════════ -->
+  <section class="hero" id="inicio">
+    <div class="hero-eyebrow">DOCUMENTACIÓN OFICIAL</div>
+    <h1 class="hero-title">BRACKET <span>MUNDIAL</span></h1>
+    <div class="hero-subtitle">FIFA WORLD CUP 2026 · USA · CANADA · MEXICO</div>
+    <div class="hero-stamp">EDICIÓN 2026</div>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-value">48</span>
+        <span class="hero-stat-label">Selecciones</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">12</span>
+        <span class="hero-stat-label">Grupos</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">104</span>
+        <span class="hero-stat-label">Partidos</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">16</span>
+        <span class="hero-stat-label">Estadios</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">3</span>
+        <span class="hero-stat-label">Países sede</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       INTRODUCCIÓN
+  ═══════════════════════════════════════════════ -->
+  <div class="page-wrap">
+
+    <div class="toc">
+      <div class="toc-title">⚽ ÍNDICE DEL MANUAL</div>
+      <ul class="toc-list">
+        <li><a href="#que-es"><span class="toc-num">01</span>¿Qué es Bracket Mundial?</a></li>
+        <li><a href="#inicio-uso"><span class="toc-num">02</span>Cómo empezar</a></li>
+        <li><a href="#grupos"><span class="toc-num">03</span>Fase de Grupos</a></li>
+        <li><a href="#cruces"><span class="toc-num">04</span>Eliminatorias (Cruces)</a></li>
+        <li><a href="#equipos"><span class="toc-num">05</span>Equipos y Plantillas</a></li>
+        <li><a href="#calendario"><span class="toc-num">06</span>Calendario de Partidos</a></li>
+        <li><a href="#estadios"><span class="toc-num">07</span>Estadios y Sedes</a></li>
+        <li><a href="#entrenadores"><span class="toc-num">08</span>Entrenadores</a></li>
+        <li><a href="#funciones"><span class="toc-num">09</span>Funciones Avanzadas</a></li>
+        <li><a href="#tecnico"><span class="toc-num">10</span>Stack Técnico</a></li>
+      </ul>
+    </div>
+
+    <!-- ─── 01 ¿QUÉ ES? ─── -->
+    <section class="section" id="que-es">
+      <div class="section-heading">
+        <div class="section-eyebrow">📖 GUÍA OFICIAL</div>
+        <div class="section-title">MUNDIAL 2026 · CALENDARIO, PLANTILLAS Y PREDICCIÓN</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🎯</span>
+            <span class="card-title">¿Cómo funciona el Simulador?</span>
+          </div>
+          <p>Nuestro bracket interactivo te permite predecir cada resultado, desde la fase de grupos con sus 12 grupos de 4 selecciones, hasta la gran final en el MetLife Stadium.</p>
+          <p>Puedes simular los cruces, ver quiénes serían los mejores terceros y compartir tu cuadro completo con amigos.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🌍</span>
+            <span class="card-title">Nuevo formato: 48 selecciones</span>
+          </div>
+          <p>El Mundial de la FIFA 2026 estrena formato con 48 equipos: más partidos (104 en total), una ronda extra de dieciseisavos de final y una emoción sin precedentes.</p>
+          <p>Sedes repartidas entre Estados Unidos, México y Canadá con 16 estadios oficiales.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📱</span>
+            <span class="card-title">PWA — Instálala en tu dispositivo</span>
+          </div>
+          <p>Bracket Mundial es una Progressive Web App. Puedes instalarla en tu móvil o escritorio como si fuera una app nativa, con soporte offline y acceso directo desde tu pantalla de inicio.</p>
+          <p>También disponible en Android e iOS vía Capacitor.</p>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-box-value">48</div>
+          <div class="stat-box-label">Selecciones</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value">12</div>
+          <div class="stat-box-label">Grupos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value">104</div>
+          <div class="stat-box-label">Partidos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value">16</div>
+          <div class="stat-box-label">Estadios</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value">11 Jun</div>
+          <div class="stat-box-label">Inicio</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value">19 Jul</div>
+          <div class="stat-box-label">Final</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 02 CÓMO EMPEZAR ─── -->
+    <section class="section" id="inicio-uso">
+      <div class="section-heading">
+        <div class="section-eyebrow">🚀 PRIMEROS PASOS</div>
+        <div class="section-title">CÓMO EMPEZAR A USAR LA APP</div>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Accede a la web</div>
+            <p>Abre <strong>bracket-mundial.vercel.app</strong> en cualquier navegador moderno. La app carga de forma instantánea gracias a Vite y Lit Web Components.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Explora las pestañas principales</div>
+            <p>La barra de navegación superior permite saltar entre: <span class="badge badge-orange">Inicio</span> <span class="badge badge-blue">Grupos</span> <span class="badge badge-ink">Cruces</span> <span class="badge badge-green">Equipos</span> <span class="badge badge-yellow">Calendario</span> Estadios · Entrenadores.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Introduce tus predicciones en Grupos</div>
+            <p>Haz clic en cualquier partido de la fase de grupos para abrir el modal de edición de marcador. Introduce el resultado y pulsa <strong>GUARDAR</strong>. La tabla de clasificación se actualiza automáticamente.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Genera las eliminatorias</div>
+            <p>Una vez completada la fase de grupos, ve a la pestaña <strong>Cruces</strong> y pulsa <strong>GENERAR ELIMINATORIAS</strong>. La app calcula automáticamente los dieciseisavos de final aplicando el reglamento FIFA.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Comparte tu bracket</div>
+            <p>Usa el botón <strong>COMPARTIR</strong> de la topbar para generar una imagen de tu predicción completa y compartirla en redes sociales o con amigos.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="note">
+        <span class="note-icon">💡</span>
+        <p>La app guarda tu bracket automáticamente en el navegador. Si cierras la pestaña y vuelves, tu predicción se conserva. Para sincronizarla entre dispositivos, inicia sesión con tu cuenta.</p>
+      </div>
+    </section>
+
+    <!-- ─── 03 FASE DE GRUPOS ─── -->
+    <section class="section" id="grupos">
+      <div class="section-heading">
+        <div class="section-eyebrow">⚽ FASE DE GRUPOS</div>
+        <div class="section-title">12 GRUPOS · 48 EQUIPOS</div>
+      </div>
+
+      <div class="feature-block">
+        <div class="feature-text">
+          <h3>Estructura de la fase de grupos</h3>
+          <p>El Mundial 2026 divide las 48 selecciones en <strong>12 grupos de 4 equipos</strong> (grupos A–L). Cada equipo disputa 3 partidos dentro de su grupo. Los 2 primeros de cada grupo y los 8 mejores terceros (un total de 32 equipos) avanzan a los dieciseisavos de final.</p>
+          <p>La vista de Grupos muestra cada grupo con su clasificación en tiempo real: puntos (PTS), diferencia de goles (DG) y partidos jugados. Puedes hacer clic en cualquier partido para editarlo.</p>
+          <ul style="margin-top:12px; padding-left:20px; font-size:14px; color:var(--dim); line-height:2;">
+            <li>Pulsa <strong>EDITAR</strong> sobre cualquier partido para introducir el resultado</li>
+            <li>Pulsa <strong>SIMULAR GRUPOS</strong> para que la app genere resultados aleatorios basados en las probabilidades reales</li>
+            <li>Pulsa <strong>REINICIAR TODO</strong> para borrar todos los marcadores de grupos</li>
+          </ul>
+        </div>
+        <div class="feature-visual" data-label="VISTA PREVIA — GRUPO">
+          <div class="group-card">
+            <div class="group-header">
+              GRUPO A <span>0/6 JUGADOS</span>
+            </div>
+            <div class="group-team">
+              <span class="flag">🇺🇸</span> Estados Unidos
+              <span class="pts">PTS 0 · DG 0</span>
+            </div>
+            <div class="group-team">
+              <span class="flag">🇲🇽</span> México
+              <span class="pts">PTS 0 · DG 0</span>
+            </div>
+            <div class="group-team">
+              <span class="flag">🇨🇦</span> Canadá
+              <span class="pts">PTS 0 · DG 0</span>
+            </div>
+            <div class="group-team">
+              <span class="flag">🇲🇦</span> Marruecos
+              <span class="pts">PTS 0 · DG 0</span>
+            </div>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="badge badge-orange">SIMULAR GRUPOS</span>
+            <span class="badge badge-ink">REINICIAR TODO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-header">
+          <span>★ TICKET · MODAL DE PARTIDO</span>
+          <span>GRUPO {letter}</span>
+        </div>
+        <div class="ticket-body">
+          <p>Al hacer clic en un partido se abre el modal de edición. Muestra el nombre del estadio, la ciudad, la hora en España (ESP) y los campos de marcador para cada equipo.</p>
+          <hr class="ticket-divider" />
+          <p><strong>Controles:</strong> usa los botones ＋/－ para añadir o restar goles. En eliminatorias con empate, se activa el selector de penaltis.</p>
+          <p><strong>Acciones disponibles:</strong> GUARDAR · LIMPIAR · CANCELAR</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 04 ELIMINATORIAS ─── -->
+    <section class="section" id="cruces">
+      <div class="section-heading solid">
+        <div class="section-eyebrow">★ ELIMINATORIAS ★</div>
+        <div class="section-title">EL CAMINO A LA GLORIA</div>
+      </div>
+
+      <div class="feature-block reverse">
+        <div class="feature-text">
+          <h3>Estructura de eliminatorias</h3>
+          <p>Con 32 clasificados (24 primeros + segundos de grupos + 8 mejores terceros), el torneo de eliminación directa se compone de <strong>5 rondas</strong>:</p>
+
+          <table class="data-table" style="margin-top:16px;">
+            <thead>
+              <tr>
+                <th>Ronda</th>
+                <th>Nombre</th>
+                <th>Partidos</th>
+                <th>Equipos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="badge badge-ink">R32</span></td><td>Dieciseisavos</td><td>16</td><td>32</td></tr>
+              <tr><td><span class="badge badge-blue">R16</span></td><td>Octavos</td><td>8</td><td>16</td></tr>
+              <tr><td><span class="badge badge-orange">QF</span></td><td>Cuartos</td><td>4</td><td>8</td></tr>
+              <tr><td><span class="badge badge-yellow">SF</span></td><td>Semifinales</td><td>2</td><td>4</td></tr>
+              <tr><td><span class="badge badge-green">F</span></td><td>Final</td><td>1</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="feature-visual" data-label="BRACKET — ELIMINATORIAS">
+          <div class="bracket-visual">
+            <div class="bracket-round">
+              <div class="bracket-round-label">1/16 AVOS</div>
+              <div class="bracket-match">1A vs 3X</div>
+              <div class="bracket-match">2B vs 2C</div>
+            </div>
+            <div class="bracket-connector"></div>
+            <div class="bracket-round">
+              <div class="bracket-round-label">OCTAVOS</div>
+              <div class="bracket-match winner">Ganador →</div>
+            </div>
+            <div class="bracket-connector"></div>
+            <div class="bracket-round">
+              <div class="bracket-round-label">CUARTOS</div>
+              <div class="bracket-match">…</div>
+            </div>
+            <div class="bracket-connector"></div>
+            <div class="bracket-round">
+              <div class="bracket-round-label">FINAL</div>
+              <div class="bracket-match winner">🏆</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-icon">⚠️</span>
+        <p>En partidos de eliminatoria con empate al final del tiempo reglamentario, debes indicar el equipo ganador por <strong>penaltis</strong>. La app activa automáticamente el selector de desempate cuando el marcador está igualado.</p>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Genera las eliminatorias</div>
+            <p>Ve a la pestaña <strong>Cruces</strong> y pulsa <strong>GENERAR ELIMINATORIAS</strong>. El algoritmo aplica el reglamento FIFA para los cruces de los mejores terceros.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Edita cada cruce</div>
+            <p>Haz clic en cualquier partido del bracket. El modal muestra equipo A vs equipo B con el estadio y horario asignado. Introduce el marcador y penaltis si procede.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Simula el resto</div>
+            <p>Pulsa <strong>SIMULAR RESTO</strong> para que la app complete automáticamente los partidos pendientes usando las probabilidades de cuotas de apuestas.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Desliza para ver el cuadro completo</div>
+            <p>En móvil, desliza horizontalmente sobre la sección de eliminatorias para navegar por todas las rondas del bracket.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ─── 05 EQUIPOS ─── -->
+    <section class="section" id="equipos">
+      <div class="section-heading">
+        <div class="section-eyebrow">✦ EQUIPOS Y PLANTILLAS</div>
+        <div class="section-title">48 SELECCIONES · ROSTERS + SEDES</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">👕</span>
+            <span class="card-title">Pestaña Plantilla</span>
+          </div>
+          <p>Muestra el roster completo de cada selección con nombre, posición, club y foto de cada jugador. Marcados como <span class="badge badge-green">OFICIAL</span> cuando la lista está confirmada por la FIFA.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⚽</span>
+            <span class="card-title">Pestaña Partidos</span>
+          </div>
+          <p>Filtra y visualiza todos los partidos de esa selección en el torneo: fase de grupos + posibles cruces en eliminatorias. Muestra los partidos pendientes de jugar.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🏟️</span>
+            <span class="card-title">Pestaña Sedes</span>
+          </div>
+          <p>Lista los estadios donde esa selección jugará sus partidos de grupos, con información del recinto, capacidad y ciudad.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📰</span>
+            <span class="card-title">Pestaña Noticias</span>
+          </div>
+          <p>Feed de noticias recientes sobre esa selección. Si no hay noticias recientes, se muestra el mensaje <em>"Sin noticias recientes para esta selección."</em></p>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-icon">ℹ️</span>
+        <p>Las 48 selecciones incluyen equipos de todas las confederaciones. Los datos de plantillas, fotos de jugadores y entrenadores se actualizan en tiempo real desde el backend de Supabase.</p>
+      </div>
+    </section>
+
+    <!-- ─── 06 CALENDARIO ─── -->
+    <section class="section" id="calendario">
+      <div class="section-heading">
+        <div class="section-eyebrow">🗓️ CALENDARIO GLOBAL</div>
+        <div class="section-title">104 PARTIDOS · 11 JUN A 19 JUL</div>
+      </div>
+
+      <div class="feature-block">
+        <div class="feature-text">
+          <h3>Vista de Calendario</h3>
+          <p>La sección de Calendario presenta los <strong>104 partidos</strong> del torneo organizados cronológicamente. Incluye filtros por fase, fecha y selección para encontrar rápidamente el partido que buscas.</p>
+          <p>Cada partido muestra: hora en España (hora local), estadio, ciudad, fase del torneo y el canal de emisión (RTVE / DAZN).</p>
+          <p>Cuando aún no hay resultado, el partido aparece como <span class="badge badge-yellow">PRÓXIMO</span>. Una vez introducido, cambia a <span class="badge badge-green">PRONÓSTICO</span>.</p>
+        </div>
+        <div class="feature-visual" data-label="FILTROS DE CALENDARIO">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">FASES</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="badge badge-ink">Grupos</span>
+              <span class="badge badge-ink">Octavos</span>
+              <span class="badge badge-ink">Cuartos</span>
+              <span class="badge badge-ink">Semis</span>
+              <span class="badge badge-orange">3er Puesto</span>
+              <span class="badge badge-yellow">Final</span>
+            </div>
+            <div style="margin-top:12px; font-family:var(--font-mono); font-size:10px; color:var(--dim); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">EMISIÓN (ESPAÑA)</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="badge badge-blue">RTVE (Abierto)</span>
+              <span class="badge badge-orange">Exclusivo DAZN</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-header">
+          <span>📅 EXPORTAR CALENDARIO</span>
+          <span>MUNDIAL 2026</span>
+        </div>
+        <div class="ticket-body">
+          <p>La app permite exportar el calendario completo en formato <strong>iCal (.ics)</strong> para importarlo en Google Calendar, Outlook o cualquier app de calendario. El archivo exportado se llama <em>CALENDARIO · MUNDIAL 2026</em>.</p>
+          <hr class="ticket-divider" />
+          <p>La emisión en España se divide entre <strong>33 partidos en abierto por RTVE</strong> (todos los partidos de España, semifinales y final) y el resto en exclusiva por DAZN.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 07 ESTADIOS ─── -->
+    <section class="section" id="estadios">
+      <div class="section-heading">
+        <div class="section-eyebrow">🏟️ SEDES OFICIALES</div>
+        <div class="section-title">16 ESTADIOS · 3 PAÍSES</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🇺🇸</span>
+            <span class="card-title">Estados Unidos — 11 estadios</span>
+          </div>
+          <p>MetLife Stadium (Nueva York/Nueva Jersey) será la sede de la gran final. También acogen partidos: AT&T Stadium (Dallas), SoFi Stadium (Los Ángeles), Levi's Stadium (San Francisco), Rose Bowl (Pasadena), Arrowhead Stadium (Kansas City), Hard Rock Stadium (Miami), Lincoln Financial Field (Filadelfia), Gillette Stadium (Boston), Lumen Field (Seattle) y Mercedes-Benz Stadium (Atlanta).</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🇲🇽</span>
+            <span class="card-title">México — 3 estadios</span>
+          </div>
+          <p>Estadio Azteca (Ciudad de México), Estadio BBVA (Monterrey) y Estadio Akron (Guadalajara). El Azteca se convierte en el primer estadio en albergar partidos de tres Mundiales diferentes (1970, 1986 y 2026).</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🇨🇦</span>
+            <span class="card-title">Canadá — 2 estadios</span>
+          </div>
+          <p>BC Place (Vancouver) y BMO Field (Toronto). Es la primera vez que Canadá acoge partidos de la Copa del Mundo.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-icon">🗺️</span>
+        <p>La vista de Estadios incluye <strong>ficha completa</strong> de cada recinto: foto, capacidad, ciudad, año de construcción y los partidos asignados. Haz clic en cualquier estadio para abrir su modal con toda la información.</p>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Accede a la vista de Estadios</div>
+            <p>Pulsa la pestaña <strong>Estadios</strong> en la barra de navegación.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Selecciona un estadio</div>
+            <p>Haz clic en cualquier card de estadio para abrir el modal con información detallada y los partidos que se disputarán en ese recinto.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Vuelve al listado</div>
+            <p>Pulsa <strong>← Volver a estadios</strong> para regresar a la vista general de los 16 estadios.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ─── 08 ENTRENADORES ─── -->
+    <section class="section" id="entrenadores">
+      <div class="section-heading">
+        <div class="section-eyebrow">📋 CUERPO TÉCNICO</div>
+        <div class="section-title">ENTRENADORES DE LAS 48 SELECCIONES</div>
+      </div>
+
+      <div class="feature-block">
+        <div class="feature-text">
+          <h3>Vista de Entrenadores</h3>
+          <p>La sección de Entrenadores presenta la ficha de los técnicos de las <strong>48 selecciones participantes</strong>. Cada ficha incluye foto, nombre, nacionalidad, selección que dirige y datos relevantes del cuerpo técnico.</p>
+          <p>Los datos se cargan de forma lazy al acceder a la pestaña por primera vez, optimizando el tiempo de carga inicial de la app.</p>
+        </div>
+        <div class="feature-visual" data-label="TARJETA DE ENTRENADOR">
+          <div style="display:flex; align-items:center; gap:16px; background:var(--paper); border:2px solid var(--ink); padding:16px; box-shadow:var(--shadow-md);">
+            <div style="width:56px; height:56px; background:var(--paper-2); border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-size:28px;">👤</div>
+            <div>
+              <div style="font-family:var(--font-head); font-size:16px; color:var(--ink);">Nombre del Entrenador</div>
+              <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); letter-spacing:0.1em; margin-top:4px;">🏳️ SELECCIÓN NACIONAL</div>
+              <div style="margin-top:8px;"><span class="badge badge-blue">TÉCNICO</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 09 FUNCIONES AVANZADAS ─── -->
+    <section class="section" id="funciones">
+      <div class="section-heading">
+        <div class="section-eyebrow">⚙️ FUNCIONES AVANZADAS</div>
+        <div class="section-title">HERRAMIENTAS Y CARACTERÍSTICAS</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📤</span>
+            <span class="card-title">Importar / Exportar JSON</span>
+          </div>
+          <p><strong>EXPORTAR JSON</strong>: descarga el estado completo de tu bracket como archivo JSON.</p>
+          <p><strong>IMPORTAR JSON</strong>: carga un bracket previamente exportado para restaurar o compartir predicciones entre dispositivos o usuarios.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📊</span>
+            <span class="card-title">Importar / Exportar Excel</span>
+          </div>
+          <p><strong>BAJAR EXCEL</strong>: descarga una plantilla .xlsx con todos los partidos del bracket en formato editable.</p>
+          <p><strong>SUBIR EXCEL</strong>: sube un archivo .xlsx con los resultados ya completados para importar toda la predicción de golpe.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🖼️</span>
+            <span class="card-title">Compartir Bracket</span>
+          </div>
+          <p>Pulsa <strong>COMPARTIR</strong> para generar una imagen del bracket con tu predicción completa. La tarjeta incluye el campeón, subcampeón y tercer puesto. Lista para compartir en redes sociales.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🏆</span>
+            <span class="card-title">Ligas Privadas</span>
+          </div>
+          <p>Crea o únete a una liga privada con amigos usando un código de invitación. La clasificación se actualiza automáticamente con los puntos obtenidos según los resultados reales del torneo.</p>
+          <p>Requiere iniciar sesión con cuenta de correo (magic link).</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🌙</span>
+            <span class="card-title">Modo Noche</span>
+          </div>
+          <p>Alterna entre modo día y modo noche con el botón <strong>◑ NOCHE / ◐ DÍA</strong> de la topbar. El modo oscuro invierte la paleta manteniendo el diseño retro: fondo azul noche, texto crema.</p>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🌐</span>
+            <span class="card-title">Idioma: ES / EN</span>
+          </div>
+          <p>Cambia el idioma de la interfaz entre español e inglés con el botón <strong>EN</strong> de la topbar. Toda la UI se traduce en tiempo real sin recargar la página.</p>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-header">
+          <span>📺 DÓNDE VER — ESPAÑA</span>
+          <span>DERECHOS Y CALENDARIO RTVE</span>
+        </div>
+        <div class="ticket-body">
+          <p>En España, los derechos de emisión del Mundial 2026 se dividen entre <strong>RTVE</strong> (abierto) y <strong>DAZN</strong> (pago).</p>
+          <hr class="ticket-divider" />
+          <p><strong>Paquete Completo (104 partidos):</strong> todos los partidos en DAZN y canales habilitados en Movistar Plus+ y Orange TV.</p>
+          <p><strong>33 partidos en abierto:</strong> gratis a través de RTVE (La 1, Teledeporte y RTVE Play). Incluye todos los partidos de España, semifinales y final.</p>
+          <hr class="ticket-divider" />
+          <p>⚠️ Nota: todos los partidos de la Selección Española se emitirán en abierto por RTVE.</p>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-header">
+          <span>📖 GUÍA PDF DESCARGABLE</span>
+          <span>PREDICCIÓN + CALENDARIO</span>
+        </div>
+        <div class="ticket-body">
+          <p>La app permite generar y descargar una <strong>Guía PDF completa</strong> con fichas de equipos, calendario y tu predicción del torneo.</p>
+          <hr class="ticket-divider" />
+          <p><strong>Modo Predicción Automática:</strong> genera la guía con resultados simulados por odds de apuestas.</p>
+          <p><strong>Modo Mi Predicción:</strong> usa tu bracket actual (los resultados que tú has introducido) para la predicción de la guía.</p>
+          <p style="margin-top:8px;">Pulsa <strong>Imprimir / Guardar PDF</strong> o <strong>Descargar Guía PDF</strong> en la sección Guía.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 10 STACK TÉCNICO ─── -->
+    <section class="section" id="tecnico">
+      <div class="section-heading">
+        <div class="section-eyebrow">🔧 ARQUITECTURA</div>
+        <div class="section-title">STACK TÉCNICO</div>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-item">
+          <span class="tech-label">Core UI</span>
+          <span class="tech-value">Lit 3.3</span>
+          <span class="tech-desc">Web Components ligeros con reactividad declarativa via decoradores. Sin Virtual DOM.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Lenguaje</span>
+          <span class="tech-value">TypeScript 6</span>
+          <span class="tech-desc">Tipado estricto end-to-end. Decoradores Lit con tsconfig paths.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Build Tool</span>
+          <span class="tech-value">Vite 8</span>
+          <span class="tech-desc">HMR instantáneo, code-splitting por tab (lazy imports), tree-shaking agresivo.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Estado Global</span>
+          <span class="tech-value">Zustand 5</span>
+          <span class="tech-desc">Stores: tournament-store, auth-store, leagues-store. Persistencia en localStorage.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Backend / DB</span>
+          <span class="tech-value">Supabase</span>
+          <span class="tech-desc">PostgreSQL gestionado. Auth con magic links. Sincronización de predicciones entre dispositivos.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">PWA</span>
+          <span class="tech-value">vite-plugin-pwa</span>
+          <span class="tech-desc">Service Worker con Workbox. Soporte offline completo. Instalable en escritorio y móvil.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Mobile</span>
+          <span class="tech-value">Capacitor 8</span>
+          <span class="tech-desc">Wrapper nativo para Android e iOS. Auth nativa, notificaciones push.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Deploy</span>
+          <span class="tech-value">Vercel</span>
+          <span class="tech-desc">Deploy automático desde GitHub. Edge Network para baja latencia global.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Testing</span>
+          <span class="tech-value">Vitest 4 + Playwright</span>
+          <span class="tech-desc">Unit tests para bracket-logic, scoring, calendar-export. E2E con Playwright.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Exports</span>
+          <span class="tech-value">ExcelJS + jsPDF</span>
+          <span class="tech-desc">Exportación a .xlsx y generación de guía PDF. html-to-image para tarjeta de compartir.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Internac.</span>
+          <span class="tech-value">i18n custom</span>
+          <span class="tech-desc">Sistema de traducciones propio (sin dependencias externas). Español e inglés. Zustand como store de locale.</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-label">Fuentes</span>
+          <span class="tech-value">Google Fonts</span>
+          <span class="tech-desc">Bowlby One (títulos retro), Archivo Black (headings), Archivo (cuerpo), Space Mono (mono/datos).</span>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-header">
+          <span>📁 ESTRUCTURA DEL REPOSITORIO</span>
+          <span>github.com/jesusprodriguezUnir/bracketMundial</span>
+        </div>
+        <div class="ticket-body">
+          <table class="data-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Directorio</th>
+                <th>Contenido</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>src/components/</code></td><td>19 Web Components Lit (vistas, modales, cards)</td></tr>
+              <tr><td><code>src/data/</code></td><td>Datos del torneo: equipos, partidos, estadios, jugadores</td></tr>
+              <tr><td><code>src/lib/</code></td><td>30 módulos de lógica: bracket, scoring, exports, servicios</td></tr>
+              <tr><td><code>src/store/</code></td><td>4 stores Zustand: torneo, auth, ligas, utilidades</td></tr>
+              <tr><td><code>src/i18n/</code></td><td>Traducciones ES / EN</td></tr>
+              <tr><td><code>src/styles/</code></td><td>Tokens CSS y estilos compartidos</td></tr>
+              <tr><td><code>android/ ios/</code></td><td>Proyectos Capacitor para apps nativas</td></tr>
+              <tr><td><code>scripts/</code></td><td>Scripts de build y generación de datos</td></tr>
+              <tr><td><code>docs/</code></td><td>Documentación técnica del proyecto</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /page-wrap -->
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-title">BRACKET MUNDIAL 2026</div>
+    <div class="footer-sub">48 SELECCIONES · 104 PARTIDOS · 3 PAÍSES · FIFA WORLD CUP</div>
+    <div class="footer-links">
+      <a href="https://bracket-mundial.vercel.app/" target="_blank">🌐 Abrir App</a>
+      <a href="https://github.com/jesusprodriguezUnir/bracketMundial" target="_blank">⚙️ Repositorio GitHub</a>
+    </div>
+    <div style="margin-top:20px; font-family:var(--font-mono); font-size:9px; color:var(--dim); letter-spacing:0.15em;">
+      GENERADO POR BRACKETMUNDIAL.COM · MANUAL v1.0 · MAYO 2026
+    </div>
+  </footer>
+
+  <script>
+    // ─── Toggle modo noche ───────────────────────────────────────
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.querySelector('.theme-toggle').textContent = isDark ? '◑ NOCHE' : '◐ DÍA';
+    }
+
+    // ─── Tab activo al hacer scroll / clic ───────────────────────
+    const tabs = document.querySelectorAll('.phase-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+
+    // Resaltar tab según scroll (IntersectionObserver)
+    const sectionMap = {
+      'inicio':       '.phase-tab[href="#inicio"]',
+      'que-es':       '.phase-tab[href="#inicio"]',
+      'inicio-uso':   '.phase-tab[href="#inicio"]',
+      'grupos':       '.phase-tab[href="#grupos"]',
+      'cruces':       '.phase-tab[href="#cruces"]',
+      'equipos':      '.phase-tab[href="#equipos"]',
+      'calendario':   '.phase-tab[href="#calendario"]',
+      'estadios':     '.phase-tab[href="#estadios"]',
+      'entrenadores': '.phase-tab[href="#entrenadores"]',
+      'funciones':    '.phase-tab[href="#funciones"]',
+      'tecnico':      '.phase-tab[href="#tecnico"]',
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          const selector = sectionMap[id];
+          if (selector) {
+            tabs.forEach(t => t.classList.remove('active'));
+            const activeTab = document.querySelector(selector);
+            if (activeTab) activeTab.classList.add('active');
+          }
+        }
+      });
+    }, { rootMargin: '-64px 0px -60% 0px', threshold: 0 });
+
+    document.querySelectorAll('[id]').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

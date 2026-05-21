@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 20/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 21/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 100 fotos faltantes en 25 equipos (1122/1222 cubiertos)  
+**Jugadores:** 99 fotos faltantes en 25 equipos (1126/1225 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -14,8 +14,8 @@
 |--------|-----------|----------|--------|-------------|
 | JOR | 23 | 10 | ❌ 13 | ✅ |
 | HAI | 26 | 14 | ❌ 12 | ✅ |
-| EGY | 23 | 16 | ❌ 7 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
+| EGY | 26 | 20 | ❌ 6 | ✅ |
 | IRN | 30 | 24 | ❌ 6 | ✅ |
 | QAT | 26 | 20 | ❌ 6 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
@@ -92,16 +92,6 @@
 - `#23` Josué Duverger
 - `#25` Yassin Fortune
 
-### EGY — faltan 7 fotos
-
-- `#6` Ahmed Fattouh
-- `#14` Mohamed Magdy Afsha
-- `#15` Osama Galal
-- `#16` Mohamed Sobhy
-- `#17` Ahmed Sayed Zizo
-- `#21` Mostafa Shalaby
-- `#23` Mahmoud Gad
-
 ### IRQ — faltan 7 fotos
 
 - `#4` Frans Dhia Putros
@@ -111,6 +101,15 @@
 - `#12` Ahmed Basil
 - `#18` Ibrahim Bayesh
 - `#22` Ahmed Yasin
+
+### EGY — faltan 6 fotos
+
+- `#6` Ahmed El Fotouh
+- `#21` Mostafa Ziko
+- `#23` El Mahdy Soliman
+- `#24` Mohanad Lasheen
+- `#25` Donga
+- `#26` Mahmoud Saber
 
 ### IRN — faltan 6 fotos
 
