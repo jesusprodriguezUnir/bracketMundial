@@ -2,7 +2,7 @@
 
 > Generado el 21/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 100 fotos faltantes en 25 equipos (1129/1229 cubiertos)  
+**Jugadores:** 95 fotos faltantes en 24 equipos (1136/1231 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -17,7 +17,6 @@
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
 | EGY | 26 | 20 | ❌ 6 | ✅ |
 | IRN | 30 | 24 | ❌ 6 | ✅ |
-| QAT | 26 | 20 | ❌ 6 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | SEN | 28 | 23 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
@@ -26,8 +25,8 @@
 | POR | 27 | 23 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
 | COD | 26 | 23 | ❌ 3 | ✅ |
+| NOR | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
-| CAN | 27 | 25 | ❌ 2 | ✅ |
 | CRO | 26 | 24 | ❌ 2 | ✅ |
 | NED | 26 | 24 | ❌ 2 | ✅ |
 | TUR | 23 | 21 | ❌ 2 | ✅ |
@@ -42,9 +41,10 @@
 | BEL | 29 | 29 | ✅ 0 | ✅ |
 | BIH | 26 | 26 | ✅ 0 | ✅ |
 | BRA | 26 | 26 | ✅ 0 | ✅ |
+| CAN | 27 | 27 | ✅ 0 | ✅ |
 | CUW | 26 | 26 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
-| ENG | 26 | 26 | ✅ 0 | ✅ |
+| ENG | 25 | 25 | ✅ 0 | ✅ |
 | ESP | 26 | 26 | ✅ 0 | ✅ |
 | FRA | 27 | 27 | ✅ 0 | ✅ |
 | GER | 26 | 26 | ✅ 0 | ✅ |
@@ -53,8 +53,8 @@
 | KOR | 26 | 26 | ✅ 0 | ✅ |
 | MAR | 26 | 26 | ✅ 0 | ✅ |
 | MEX | 26 | 26 | ✅ 0 | ✅ |
-| NOR | 23 | 23 | ✅ 0 | ✅ |
 | NZL | 26 | 26 | ✅ 0 | ✅ |
+| QAT | 26 | 26 | ✅ 0 | ✅ |
 | RSA | 26 | 26 | ✅ 0 | ✅ |
 | SCO | 26 | 26 | ✅ 0 | ✅ |
 | SUI | 26 | 26 | ✅ 0 | ✅ |
@@ -120,15 +120,6 @@
 - `#28` Amirhossein Mahmoudi
 - `#30` Mohammad Khalifeh
 
-### QAT — faltan 6 fotos
-
-- `#2` Pedro Miguel
-- `#14` Hommam Al-Amin
-- `#16` Al Hashemi Al Hussein
-- `#17` Ahmed Al Janhi
-- `#22` Mahmoud Abunada
-- `#25` Youssef Abdelrisaq
-
 ### KSA — faltan 5 fotos
 
 - `#3` Hassan Kadesh
@@ -186,16 +177,17 @@
 - `#22` Ngalayel Mukau
 - `#23` Timothy Fayulu
 
+### NOR — faltan 3 fotos
+
+- `#24` Henrik Falchener
+- `#25` Sondre Langås
+- `#26` Thelonious Aasgaard
+
 ### PAR — faltan 3 fotos
 
 - `#14` Marcelo Palencia
 - `#21` Alberto Espínola
 - `#23` Diego Melgarejo
-
-### CAN — faltan 2 fotos
-
-- `#15` Niko Sigur
-- `#20` Ali Ahmed
 
 ### CRO — faltan 2 fotos
 
