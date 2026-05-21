@@ -23,6 +23,34 @@ jobs:
           
       - name: Instalar dependencias
         run: npm ci
+
+      - name: Validar secrets requeridos
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY || vars.API_FOOTBALL_KEY || secrets.RAPIDAPI_KEY || vars.RAPIDAPI_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL || secrets.SUPABASE_URL || vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
+        run: |
+          missing=0
+
+          if [ -z "$API_FOOTBALL_KEY" ]; then
+            echo "❌ Falta API_FOOTBALL_KEY en GitHub Secrets/Variables (también válido: RAPIDAPI_KEY)."
+            missing=1
+          fi
+
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            echo "❌ Falta VITE_SUPABASE_URL en GitHub Secrets/Variables (también válido: SUPABASE_URL)."
+            missing=1
+          fi
+
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "❌ Falta SUPABASE_SERVICE_ROLE_KEY en GitHub Secrets/Variables (también válido: SUPABASE_SERVICE_KEY)."
+            missing=1
+          fi
+
+          if [ "$missing" -eq 1 ]; then
+            echo "⛔ Abortando workflow por secrets faltantes."
+            exit 1
+          fi
         
       - name: Ejecutar script de actualización
         env:
