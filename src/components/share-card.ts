@@ -4,6 +4,7 @@ import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import type { KnockoutMatchResult } from '../store/tournament-store';
 import { t, useLocaleStore } from '../i18n';
+import { renderFlag } from '../lib/render-flag';
 
 const ROUND_COLORS: Record<string, string> = {
   r32:   '#22418c',
@@ -349,15 +350,6 @@ export class ShareCard extends LitElement {
     return TEAMS_2026.find(team => team.id === id);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private renderFlag(team: any, cls = 'flag-img') {
-    if (!team) return html``;
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${cls}">`;
-    }
-    return html`<span class="team-flag">${team.flag}</span>`;
-  }
-
   private renderMatch(km: Record<string, KnockoutMatchResult>, matchId: string, accentColor: string, isRightSide = false) {
     const m = km[matchId];
     const isPlayed = m?.isPlayed ?? false;
@@ -373,7 +365,7 @@ export class ShareCard extends LitElement {
         <div class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
           style="${isWinner ? `background:${accentColor};` : ''}">
           <div class="team-info">
-            ${this.renderFlag(team)}
+            ${renderFlag(team, { imgClass: 'flag-img', flagClass: 'team-flag' })}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
           <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
@@ -429,7 +421,7 @@ export class ShareCard extends LitElement {
               <div>
                 <div class="hd-champion-label">${t('card.champion')}</div>
                 <div class="hd-champion-name">
-                  ${this.renderFlag(champion, 'hd-flag-img')} ${champion.name.toUpperCase()}
+                  ${renderFlag(champion, { imgClass: 'hd-flag-img', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}
                 </div>
               </div>`
             : html`<div class="hd-prediction-badge">${t('card.prediction')}</div>`
@@ -481,7 +473,7 @@ export class ShareCard extends LitElement {
             <div class="champion-box">
               <div class="champion-title">${t('card.champion')}</div>
               ${champion
-                ? html`<div class="champion-team">${this.renderFlag(champion, 'flag-img-champion')} ${champion.name.toUpperCase()}</div>`
+                ? html`<div class="champion-team">${renderFlag(champion, { imgClass: 'flag-img-champion', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}</div>`
                 : html`<div class="champion-team tbd">${t('card.tbd')}</div>`}
             </div>
 
@@ -532,7 +524,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.championLabel')}</span>
               <span class="podium-name ${!champion ? 'tbd' : ''}">
-                ${champion ? html`${this.renderFlag(champion, 'footer-flag-img')} ${champion.name.toUpperCase()}` : '???'}
+                ${champion ? html`${renderFlag(champion, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>
@@ -541,7 +533,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.runnerUp')}</span>
               <span class="podium-name ${!runnerUp ? 'tbd' : ''}">
-                ${runnerUp ? html`${this.renderFlag(runnerUp, 'footer-flag-img')} ${runnerUp.name.toUpperCase()}` : '???'}
+                ${runnerUp ? html`${renderFlag(runnerUp, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${runnerUp.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>
@@ -550,7 +542,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.thirdLabel')}</span>
               <span class="podium-name ${!third ? 'tbd' : ''}">
-                ${third ? html`${this.renderFlag(third, 'footer-flag-img')} ${third.name.toUpperCase()}` : '???'}
+                ${third ? html`${renderFlag(third, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${third.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>

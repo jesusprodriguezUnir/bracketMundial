@@ -49,13 +49,13 @@ interface KnockoutStructureLike {
 type MatchScheduleLike = Record<string, Pick<KnockoutMatchLike, 'venue' | 'city' | 'timeSpain' | 'date'>>;
 
 export function calculateBestThirds(thirds: TeamStats[]): TeamStats[] {
-  // Sort according to FIFA rules: 
-  // 1. Points, 2. GD, 3. GF, 4. Fair Play
+  // Sort according to FIFA rules:
+  // 1. Points, 2. GD, 3. GF, 4. Fair Play (lower = better = fewer cards)
   const sorted = [...thirds].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
     if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-    return b.fairPlay - a.fairPlay;
+    return a.fairPlay - b.fairPlay;
   });
 
   return sorted.slice(0, 8);

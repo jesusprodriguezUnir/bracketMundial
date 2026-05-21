@@ -9,6 +9,7 @@ import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
 import { isMatchPending } from '../lib/date-utils';
 import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
+import { renderFlag } from '../lib/render-flag';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -1217,14 +1218,6 @@ export class BracketKnockout extends LitElement {
     return TEAMS_2026.find(t => t.id === id);
   }
 
-  private renderFlag(team?: ReturnType<typeof this.getTeam>, isChampion = false) {
-    if (!team) return html``;
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${isChampion ? 'flag-img-champion' : 'flag-img'}">`;
-    }
-    return html`<span class="team-flag">${(team as any).flag}</span>`;
-  }
-
   private openMatch(matchId: string) {
     const match = useTournamentStore.getState().knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
@@ -1313,7 +1306,7 @@ export class BracketKnockout extends LitElement {
           class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
           style="${isWinner ? `background: ${accentColor};` : ''}">
           <div class="team-info">
-            ${this.renderFlag(team)}
+            ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
           ${canEdit
@@ -1480,12 +1473,6 @@ export class BracketKnockout extends LitElement {
     const penAVal = m.penaltyScoreA ?? 0;
     const penBVal = m.penaltyScoreB ?? 0;
 
-    const renderFlagTag = (team: ReturnType<typeof this.getTeam>) => {
-      if (!team) return html`<span class="flag">?</span>`;
-      if (team.flagUrl) return html`<img src="${team.flagUrl}" alt="${team.name}" class="flag-img">`;
-      return html`<span class="flag">${(team as any).flag}</span>`;
-    };
-
     const row = (team: ReturnType<typeof this.getTeam>, score: number | null, teamAB: 'A' | 'B', isWin: boolean, isLose: boolean) => {
       const stepVal = teamAB === 'A' ? (m.scoreA ?? 0) : (m.scoreB ?? 0);
       return html`
@@ -1493,7 +1480,7 @@ export class BracketKnockout extends LitElement {
           class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
           style="${isWin ? `background: ${roundColor};` : ''}">
           <div class="mob-team-info">
-            ${renderFlagTag(team)}
+            ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'flag' })}
             <span class="code">${team?.shortName ?? 'TBD'}</span>
             <span class="name">${team?.name ?? ''}</span>
           </div>
@@ -1664,7 +1651,7 @@ export class BracketKnockout extends LitElement {
                 <div class="champion-trophy">🏆</div>
                 <div class="champion-title">CAMPEÓN MUNDIAL 2026</div>
                 ${champion
-                  ? html`<div class="champion-team">${this.renderFlag(champion, true)} ${champion.name.toUpperCase()}</div>`
+                  ? html`<div class="champion-team">${renderFlag(champion, { size: 'sm', imgClass: 'flag-img-champion', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}</div>`
                   : html`<div class="champion-team tbd">POR DEFINIR</div>`
                 }
               </div>

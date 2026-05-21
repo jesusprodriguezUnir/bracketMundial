@@ -113,7 +113,7 @@ function createInitialStandings(): Record<string, GroupStanding[]> {
   return standings;
 }
 
-export function recalculateStandings(matches: GroupMatchResult[], _standings?: Record<string, GroupStanding[]>): Record<string, GroupStanding[]> {
+export function recalculateStandings(matches: GroupMatchResult[]): Record<string, GroupStanding[]> {
   const newStandings = createInitialStandings();
 
   for (const match of matches) {
@@ -276,7 +276,7 @@ export const useTournamentStore = createStore<TournamentState>()(
           const matches = state.groupMatches.map(m =>
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
           );
-          const standings = recalculateStandings(matches, state.groupStandings);
+          const standings = recalculateStandings(matches);
 
           return {
             groupMatches: matches,
@@ -352,7 +352,7 @@ export const useTournamentStore = createStore<TournamentState>()(
             ];
             return { ...m, scoreA: result.scoreA, scoreB: result.scoreB, goalScorers };
           });
-          const standings = recalculateStandings(matches, state.groupStandings);
+          const standings = recalculateStandings(matches);
           return {
             groupMatches: matches,
             groupStandings: standings,
@@ -438,7 +438,7 @@ export const useTournamentStore = createStore<TournamentState>()(
             const override = groupScoreMap.get(m.matchId);
             return override ? { ...m, scoreA: override.scoreA, scoreB: override.scoreB } : m;
           });
-          const groupStandings = recalculateStandings(groupMatches, state.groupStandings);
+          const groupStandings = recalculateStandings(groupMatches);
 
           let knockoutMatches = resolveKnockoutMatches(groupStandings, {});
           const knockoutScoreMap = new Map(data.knockoutScores.map(s => [s.matchId, s]));
@@ -463,24 +463,38 @@ export const useTournamentStore = createStore<TournamentState>()(
       importTournament: (jsonData: string) => {
         try {
           const parsed = JSON.parse(jsonData);
-          if (parsed.groupMatches) {
-            const groupMatches = parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match));
-            const groupStandings = parsed.groupStandings ?? recalculateStandings(groupMatches, createInitialStandings());
-            const knockoutMatches = resolveKnockoutMatches(
-              groupStandings,
-              hydrateKnockoutMatches(parsed.knockoutMatches || {})
-            );
+          if (!Array.isArray(parsed.groupMatches)) return false;
 
-            set({
-              groupMatches,
-              groupStandings,
-              knockoutMatches,
-              activePhase: parsed.activePhase || 'groups',
-              selectedMatch: null,
-            });
-            return true;
+          for (const m of parsed.groupMatches) {
+            if (typeof m !== 'object' || !m || typeof m.matchId !== 'string') return false;
+            if (m.scoreA !== null && m.scoreA !== undefined && (typeof m.scoreA !== 'number' || m.scoreA < 0)) return false;
+            if (m.scoreB !== null && m.scoreB !== undefined && (typeof m.scoreB !== 'number' || m.scoreB < 0)) return false;
           }
-          return false;
+
+          if (parsed.knockoutMatches !== undefined && (typeof parsed.knockoutMatches !== 'object' || parsed.knockoutMatches === null)) {
+            return false;
+          }
+
+          const phases = ['groups', 'round16', 'quarterfinals', 'semifinals', 'thirdplace', 'final'];
+          if (parsed.activePhase !== undefined && !phases.includes(parsed.activePhase)) {
+            parsed.activePhase = 'groups';
+          }
+
+          const groupMatches = parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match));
+          const groupStandings = parsed.groupStandings ?? recalculateStandings(groupMatches);
+          const knockoutMatches = resolveKnockoutMatches(
+            groupStandings,
+            hydrateKnockoutMatches(parsed.knockoutMatches || {})
+          );
+
+          set({
+            groupMatches,
+            groupStandings,
+            knockoutMatches,
+            activePhase: parsed.activePhase || 'groups',
+            selectedMatch: null,
+          });
+          return true;
         } catch (e) {
           console.error("Error parsing tournament data:", e);
           return false;
@@ -541,7 +555,7 @@ export const useTournamentStore = createStore<TournamentState>()(
         }
 
         const groupMatches = p.groupMatches ?? current.groupMatches;
-        const groupStandings = p.groupStandings ?? recalculateStandings(groupMatches, current.groupStandings);
+        const groupStandings = p.groupStandings ?? recalculateStandings(groupMatches);
         const knockoutMatches = resolveKnockoutMatches(groupStandings, p.knockoutMatches ?? current.knockoutMatches);
 
         return { ...current, ...p, groupMatches, groupStandings, knockoutMatches };

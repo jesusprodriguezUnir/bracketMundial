@@ -382,7 +382,7 @@ export class LeaguesModal extends LitElement {
       this._members = s.members;
       this._leaderboard = s.leaderboard;
       this._status = s.status;
-      if (s.lastError) this._error = s.lastError;
+      this._error = s.lastError;
       this.requestUpdate();
     });
     const s = useLeaguesStore.getState();

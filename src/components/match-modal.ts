@@ -4,6 +4,7 @@ import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
+import { renderFlag } from '../lib/render-flag';
 import { retroButton } from '../styles/retro-button';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { getLineup, getSquad } from '../data/squads';
@@ -1281,14 +1282,6 @@ export class MatchModal extends LitElement {
 
   // ─────────────────────────────────────────────────────────────────
 
-  private renderFlag(team?: any, size: 'small' | 'big' = 'small') {
-    if (!team) return '';
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${size === 'big' ? 'flag-img-big' : 'flag-img'}">`;
-    }
-    return html`<span class="sticker-flag">${team.flag}</span>`;
-  }
-
   private getPenaltyBadgeText() {
     if (this._penaltyScoreA === null || this._penaltyScoreB === null) {
       return t('modal.finalTime');
@@ -1344,7 +1337,7 @@ export class MatchModal extends LitElement {
         <div class="showdown">
           <div class="sticker-side-left">
             <div class="sticker left">
-              ${this.renderFlag(tA, 'big')}
+              ${renderFlag(tA, { size: 'lg', imgClass: 'flag-img-big', flagClass: 'sticker-flag' })}
               <span class="sticker-name">${tA?.shortName ?? this.teamA}</span>
             </div>
           </div>
@@ -1365,7 +1358,7 @@ export class MatchModal extends LitElement {
 
           <div class="sticker-side-right">
             <div class="sticker right">
-              ${this.renderFlag(tB, 'big')}
+              ${renderFlag(tB, { size: 'lg', imgClass: 'flag-img-big', flagClass: 'sticker-flag' })}
               <span class="sticker-name">${tB?.shortName ?? this.teamB}</span>
             </div>
           </div>

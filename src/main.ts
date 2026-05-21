@@ -5,6 +5,7 @@ import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { initAuth } from './store/auth-store';
 import { extractJoinCode } from './lib/league-invite';
+import { useLocaleStore } from './i18n';
 
 inject();
 injectSpeedInsights();
@@ -15,11 +16,11 @@ if (storedTheme === 'dark') {
   document.documentElement.dataset.theme = 'dark';
 }
 
-// Sincroniza el atributo lang con la preferencia guardada
-try {
-  const storedLocale = JSON.parse(localStorage.getItem('bm-locale') ?? '{}')?.state?.locale;
-  if (storedLocale === 'en') document.documentElement.lang = 'en';
-} catch { /* ignora */ }
+// Sincroniza el atributo lang con el store de locale
+document.documentElement.lang = useLocaleStore.getState().locale;
+useLocaleStore.subscribe(state => {
+  document.documentElement.lang = state.locale;
+});
 
 // Locale inicial según la ruta estática (antes del primer render)
 applyLocaleFromRoute();

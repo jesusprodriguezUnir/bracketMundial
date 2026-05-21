@@ -126,9 +126,9 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - SVG connectors con `aria-hidden="true"` pero sin descripción del árbol de eliminatorias.
 - **Solución:** Añadir `aria-label` descriptivo en el contenedor o texto alternativo oculto.
 
-### 4.2 Match items en groups-view no son focusables
+### 4.2 Match items en groups-view no son focusables **✓ CORREGIDO**
 - `groups-view.ts` — `div` con `@click` pero sin `role="button"` ni `tabindex`.
-- **Solución:** Añadir `role="button"`, `tabindex="0"`, handler de teclado.
+- **Solución:** Añadir `role="button"`, `tabindex="0"`, handler de teclado. ✓ Añadido.
 
 ### 4.3 Team picker sin atributos ARIA
 - `bracket-knockout.ts` — overlay del team picker sin `aria-expanded`/`aria-controls`.
@@ -177,20 +177,20 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - Si los datos de partido contuvieran strings no escapados, hay riesgo XSS.
 - **Solución:** Usar `lit` `svg` template literal o sanitizar.
 
-### 6.2 `importTournament` sin validación estructural
+### 6.2 `importTournament` sin validación estructural **✓ CORREGIDO**
 - `tournament-store.ts:451-476` — solo verifica `if (parsed.groupMatches)`.
 - Sin validar `Array.isArray`, `matchId` válido, rangos de score, `activePhase` enum.
-- **Solución:** Añadir validación con schema (Zod o manual).
+- **Solución:** Añadir validación con schema (Zod o manual). ✓ Validación manual añadida: verifica Array, matchId string, scores numéricos, knockoutMatches objeto, activePhase enum.
 
 ---
 
 ## 7. Bajo — Bugs y edge cases
 
-### 7.1 Fair-play sort potencialmente invertido
+### 7.1 Fair-play sort potencialmente invertido **✓ CORREGIDO**
 - `bracket-logic.ts:58` → `b.fairPlay - a.fairPlay` ordena descendente.
 - Si `fairPlay` son puntos de penalización positivos, el equipo con MÁS tarjetas queda mejor rankeado.
 - El test usa `fairPlay: -1` (valores negativos), lo que invierte la semántica y enmascara el bug.
-- **Solución:** Clarificar convención (negativo = penalización) y documentar, o invertir sort.
+- **Solución:** Clarificar convención (negativo = penalización) y documentar, o invertir sort. ✓ Corregido: sort cambiado a `a.fairPlay - b.fairPlay` (ascendente, menos = mejor). Convención documentada: valores positivos = más penalizaciones. Test actualizado con `fairPlay: 1`.
 
 ### 7.2 Scores capados a 14 en formato compacto
 - `bracket-codec.ts` → `Math.min(m.scoreA, 14)` trunca scores ≥15.
@@ -315,26 +315,26 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 
 ---
 
-## 12. Quick wins (bajo esfuerzo, alto impacto)
+## 12. Quick wins (bajo esfuerzo, alto impacto) **✓ COMPLETADO**
 
-| # | Acción | Esfuerzo | Impacto |
-|---|--------|----------|---------|
-| 1 | Eliminar `src/lib/data-service.ts` y `src/my-element.ts` | 5 min | Limpieza |
-| 2 | Migrar textos hardcodeados a `t()` (12+ sitios) | 2 h | i18n completo |
-| 3 | Extraer `getInitials` y `normalize` a `src/lib/text-utils.ts` | 30 min | DRY |
-| 4 | Unificar `renderFlag` en `src/lib/render-flag.ts` | 1 h | DRY |
-| 5 | Añadir `role="button"` y `tabindex` a matches en groups-view | 15 min | A11y |
-| 6 | Mover `document.documentElement.lang` fuera de `setLocale` | 10 min | Pureza |
-| 7 | Limpiar `_error` al cambiar de vista en leagues-modal | 10 min | UX |
-| 8 | Arreglar IDs SVG colisionantes en logo-crest | 15 min | Bug |
-| 9 | Eliminar parámetro `_standings` muerto en `recalculateStandings` | 5 min | Limpieza |
-| 10 | Añadir `rel="noopener"` al link de Twitter en player-card | 2 min | Seguridad |
+| # | Acción | Esfuerzo | Impacto | Estado |
+|---|--------|----------|---------|--------|
+| 1 | Eliminar `src/lib/data-service.ts` y `src/my-element.ts` | 5 min | Limpieza | ✓ (ya no existían) |
+| 2 | Migrar textos hardcodeados a `t()` (12+ sitios) | 2 h | i18n completo | ✓ |
+| 3 | Extraer `getInitials` y `normalize` a `src/lib/text-utils.ts` | 30 min | DRY | ✓ |
+| 4 | Unificar `renderFlag` en `src/lib/render-flag.ts` | 1 h | DRY | ✓ |
+| 5 | Añadir `role="button"` y `tabindex` a matches en groups-view | 15 min | A11y | ✓ |
+| 6 | Mover `document.documentElement.lang` fuera de `setLocale` | 10 min | Pureza | ✓ |
+| 7 | Limpiar `_error` al cambiar de vista en leagues-modal | 10 min | UX | ✓ |
+| 8 | Arreglar IDs SVG colisionantes en logo-crest | 15 min | Bug | ✓ |
+| 9 | Eliminar parámetro `_standings` muerto en `recalculateStandings` | 5 min | Limpieza | ✓ |
+| 10 | Añadir `rel="noopener"` al link de Twitter en player-card | 2 min | Seguridad | ✓ |
 
 ---
 
 ## 13. Priorización sugerida
 
-1. **Sprint 1 — Estabilización:** Quick wins + arreglar fair-play sort + validación import + textos hardcodeados.
+1. **Sprint 1 — Estabilización** ✓ **COMPLETADO**: Quick wins + arreglar fair-play sort + validación import + textos hardcodeados.
 2. **Sprint 2 — Refactor componentes:** Extraer `bracket-match`, `score-stepper`, `odds-bar`, `drag-to-dismiss` mixin.
 3. **Sprint 3 — Refactor bracket:** Dividir `bracket-knockout.ts` en 4-5 archivos. Unificar `share-card` con el nuevo `bracket-match`.
 4. **Sprint 4 — Arquitectura:** Unificar interfaces `GroupMatch`, consolidar best-thirds, romper dependencia circular auth↔leagues.

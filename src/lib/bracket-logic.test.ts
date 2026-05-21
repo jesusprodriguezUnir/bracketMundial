@@ -76,7 +76,7 @@ describe('Bracket Logic', () => {
       { id: 'T9', points: 4, goalDifference: 0, goalsFor: 1, fairPlay: 0, group: 'I' },
       { id: 'T10', points: 3, goalDifference: 1, goalsFor: 2, fairPlay: 0, group: 'J' },
       { id: 'T11', points: 0, goalDifference: -5, goalsFor: 0, fairPlay: 0, group: 'K' },
-      { id: 'T12', points: 3, goalDifference: 0, goalsFor: 3, fairPlay: -1, group: 'L' },
+      { id: 'T12', points: 3, goalDifference: 0, goalsFor: 3, fairPlay: 1, group: 'L' }, // 1 penalti = peor fair-play
     ];
 
     const best = calculateBestThirds(thirds);
