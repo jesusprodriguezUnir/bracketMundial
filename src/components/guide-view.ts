@@ -157,6 +157,88 @@ export class GuideView extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .guide-document.pdf-exporting {
+      padding: 0 36px;
+      box-sizing: border-box;
+    }
+    .guide-document.pdf-exporting .section-header {
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+    }
+    .guide-document.pdf-exporting .cover-page {
+      min-height: auto;
+      height: 1100px;
+      justify-content: flex-start;
+      padding-top: 80px;
+    }
+    .guide-document.pdf-exporting .cover-eyebrow {
+      font-size: 14px;
+      letter-spacing: 0.35em;
+      margin-bottom: 24px;
+    }
+    .guide-document.pdf-exporting .cover-title {
+      font-size: 56px;
+    }
+    .guide-document.pdf-exporting .cover-subtitle {
+      font-size: 22px;
+      margin-bottom: 40px;
+    }
+    .guide-document.pdf-exporting .cover-badge {
+      font-size: 12px;
+      padding: 12px 28px;
+      margin-bottom: 48px;
+    }
+    .guide-document.pdf-exporting .cover-flags {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      max-width: 100%;
+      margin-top: 32px;
+    }
+    .guide-document.pdf-exporting .cover-flag {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 3 / 2;
+    }
+    .guide-document.pdf-exporting .players-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .guide-document.pdf-exporting .coach-block {
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .guide-document.pdf-exporting .team-sheet-header {
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Cabecera y pie de página para PDF ── */
+    .pdf-running-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px dotted var(--ink);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 16px;
+    }
+    .pdf-page-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 1px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      margin-top: 16px;
+    }
 
     /* ── Portada ── */
     .cover-page {

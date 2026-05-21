@@ -1,8 +1,8 @@
 import { toJpeg } from 'html-to-image';
 
 const EXPORT_WIDTH_PX = 794;
-const EXPORT_PIXEL_RATIO = 1.6;
-const EXPORT_JPEG_QUALITY = 0.82;
+const EXPORT_PIXEL_RATIO = 1.25;
+const EXPORT_JPEG_QUALITY = 0.72;
 
 /** Wait for all <img> elements inside a node to fully decode. */
 async function waitForSectionImages(el: HTMLElement): Promise<void> {
@@ -70,6 +70,31 @@ async function sectionToJpeg(
   return { imgData, pxW, pxH };
 }
 
+/** Inject a running header and page footer into a cloned section (skipped for cover). */
+function decorateSection(
+  section: HTMLElement,
+  pageNum: number,
+  totalPages: number
+): void {
+  if (section.classList.contains('cover-page')) return;
+
+  const titleEl =
+    section.querySelector<HTMLElement>('.section-title') ||
+    section.querySelector<HTMLElement>('.team-sheet-name');
+  const sectionTitle = titleEl?.textContent?.trim() || '';
+
+  const header = document.createElement('div');
+  header.className = 'pdf-running-header';
+  header.innerHTML = `<span>${sectionTitle}</span><span>Mundial 2026</span>`;
+
+  const footer = document.createElement('div');
+  footer.className = 'pdf-page-footer';
+  footer.textContent = `${pageNum} / ${totalPages} · Guía Mundial 2026`;
+
+  section.insertBefore(header, section.firstChild);
+  section.appendChild(footer);
+}
+
 /**
  * Generate a multi-page PDF from the rendered guide-view shadow DOM.
  * Each section (.cover-page, .section-page, .team-sheet, .prediction-page)
@@ -117,9 +142,11 @@ export async function exportGuidePdf(
 
     // --- Capture all sections sequentially ---
     const captures: { imgData: string; mmH: number }[] = [];
+    const totalContentPages = sections.length - 1;
     for (let i = 0; i < sections.length; i++) {
       onProgress?.(i, sections.length);
       const section = sections[i];
+      decorateSection(section, i, totalContentPages);
       const { imgData, pxW, pxH } = await sectionToJpeg(section, paperColor);
       // Scale height proportionally using the same width seen on screen.
       const mmH = Math.ceil((pxH / pxW) * A4_W_MM);
