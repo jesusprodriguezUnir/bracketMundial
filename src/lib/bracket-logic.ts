@@ -238,6 +238,43 @@ export function assignBestThirds(bestThirds: TeamStats[]): Record<string, string
   return result;
 }
 
+export function buildResolvedKnockout(
+  decoded: { groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>; knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> },
+  initialGroupMatches: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; teamA: string; teamB: string }>,
+  recalculateStandings: (matches: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; teamA: string; teamB: string }>) => Record<string, GroupStandingLike[]>,
+  getWinnerId: (teamA: string, teamB: string, scoreA: number, scoreB: number, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => string | null,
+  getKnockoutMatchOrder: () => string[],
+  knockoutStructure: KnockoutStructureLike,
+  schedule: MatchScheduleLike = {},
+): Record<string, KnockoutMatchLike> {
+  const groupScoreMap = new Map(decoded.groupScores.map(s => [s.matchId, s]));
+  const groupMatches = initialGroupMatches.map(m => {
+    const override = groupScoreMap.get(m.matchId);
+    return override ? { ...m, scoreA: override.scoreA, scoreB: override.scoreB } : m;
+  }) as Array<{ matchId: string; scoreA: number | null; scoreB: number | null; teamA: string; teamB: string }>;
+
+  const groupStandings = recalculateStandings(groupMatches);
+  let knockout = syncKnockoutBracket(groupStandings, {}, knockoutStructure, schedule);
+
+  const knockoutScoreMap = new Map(decoded.knockoutScores.map(s => [s.matchId, s]));
+  for (const matchId of getKnockoutMatchOrder()) {
+    const score = knockoutScoreMap.get(matchId);
+    const match = knockout[matchId];
+    if (!match || !score || score.scoreA === null || score.scoreB === null) continue;
+
+    const isDrawAfterRegularTime = score.scoreA === score.scoreB;
+    const penaltyScoreA = isDrawAfterRegularTime ? (score.penaltyScoreA ?? null) : null;
+    const penaltyScoreB = isDrawAfterRegularTime ? (score.penaltyScoreB ?? null) : null;
+    const winnerId = getWinnerId(match.teamA!, match.teamB!, score.scoreA, score.scoreB, penaltyScoreA, penaltyScoreB);
+    knockout = syncKnockoutBracket(groupStandings, {
+      ...knockout,
+      [matchId]: { ...match, scoreA: score.scoreA, scoreB: score.scoreB, penaltyScoreA, penaltyScoreB, winnerId, isPlayed: winnerId !== null },
+    }, knockoutStructure, schedule);
+  }
+
+  return knockout;
+}
+
 export function generateKnockoutMatches(groups: Record<string, TeamStats[]>) {
   // Extract 1st, 2nd and 3rd
   const groupWinners: TeamStats[] = [];

@@ -86,15 +86,4 @@ function _cleanAuthParams(): void {
 
 function _onSignedIn() {
   import('../lib/prediction-sync').then(({ onSignedIn }) => onSignedIn());
-  import('../store/leagues-store').then(({ useLeaguesStore }) => {
-    useLeaguesStore.getState().loadProfile();
-    useLeaguesStore.getState().loadMyLeagues();
-  });
-  const pendingCode = sessionStorage.getItem('bm-join-code');
-  if (pendingCode) {
-    sessionStorage.removeItem('bm-join-code');
-    import('../components/leagues-modal').then(({ openLeaguesModal }) => {
-      openLeaguesModal(pendingCode);
-    });
-  }
 }

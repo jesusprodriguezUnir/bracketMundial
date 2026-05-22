@@ -4,7 +4,6 @@ import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { initAuth } from './store/auth-store';
-import { extractJoinCode } from './lib/league-invite';
 import { useLocaleStore } from './i18n';
 
 inject();
@@ -36,10 +35,6 @@ import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => 
 
 // Configuración nativa para Android/Capacitor
 import('./lib/native-setup').then(m => m.initNative());
-
-// Detecta enlace de invitación a liga (?join=CODE) y guarda en sessionStorage
-const joinCode = extractJoinCode();
-if (joinCode) sessionStorage.setItem('bm-join-code', joinCode);
 
 const root = document.getElementById('root');
 if (root) {

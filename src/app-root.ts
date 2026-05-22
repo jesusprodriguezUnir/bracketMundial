@@ -6,9 +6,6 @@ import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 import { onToast, type ToastEventDetail } from './lib/interaction';
-
-import { isSupabaseConfigured } from './lib/supabase-client';
-import { isAdmin, saveOfficialResults } from './lib/official-results';
 import './components/ad-block';
 
 @customElement('app-root')
@@ -501,12 +498,6 @@ export class AppRoot extends LitElement {
     openShareModal();
   }
 
-
-  private async handlePublishResults() {
-    const ok = await saveOfficialResults();
-    alert(ok ? t('admin.publishOk') : t('admin.publishErr'));
-  }
-
   private triggerImportExcel() {
     const fileInput = this.shadowRoot?.querySelector('#excel-upload') as HTMLInputElement;
     if (fileInput) fileInput.click();
@@ -572,8 +563,6 @@ export class AppRoot extends LitElement {
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
-            ${isSupabaseConfigured && isAdmin() ? html`
-              <button @click="${this.handlePublishResults}" title="${t('admin.publishResults')}">${t('admin.publishResults')}</button>` : ''}
             <button @click="${this.handleShare}">${t('header.share')}</button>
             <div class="dropdown-wrap">
               <button @click="${this._toggleCalendarMenu}" title="${t('calendar.exportTitle')}">${t('tabs.calendar')}</button>

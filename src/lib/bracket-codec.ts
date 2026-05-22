@@ -190,15 +190,32 @@ export function extractHashPayload(): string | null {
   }
 }
 
-export function readSharedBracketFromHash(): DecodedBracket | null {
-  const hash = window.location.hash;
-  if (hash.startsWith('#b2=')) return decodeBracketCompact(hash.slice(4));
-  if (hash.startsWith('#b=')) {
+export function decodeSharedPayload(raw: string): DecodedBracket | null {
+  let payload = raw.trim();
+
+  if (payload.startsWith('#b2=')) {
+    return decodeBracketCompact(payload.slice(4));
+  }
+  if (payload.startsWith('#b=')) {
     try {
-      return decodeBracket(decodeURIComponent(hash.slice(3)));
+      return decodeBracket(decodeURIComponent(payload.slice(3)));
     } catch {
       return null;
     }
   }
+
+  try {
+    const url = new URL(payload);
+    const fullHash = url.hash;
+    if (fullHash.startsWith('#b2=')) return decodeBracketCompact(fullHash.slice(4));
+    if (fullHash.startsWith('#b=')) return decodeBracket(decodeURIComponent(fullHash.slice(3)));
+  } catch {
+    return decodeBracketCompact(payload);
+  }
+
   return null;
+}
+
+export function readSharedBracketFromHash(): DecodedBracket | null {
+  return decodeSharedPayload(window.location.hash);
 }
