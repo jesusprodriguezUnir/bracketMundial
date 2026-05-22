@@ -235,18 +235,6 @@ export class GuideView extends LitElement {
       background: var(--ink);
       color: var(--paper);
     }
-    .gw-nav-spacer { flex: 1; }
-    .gw-nav-link {
-      all: unset;
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.04em;
-      color: var(--retro-blue);
-      align-self: center;
-      text-decoration: underline;
-    }
-
     /* ───────── Cuaderno ───────── */
     .notebook {
       position: relative;
@@ -638,32 +626,50 @@ export class GuideView extends LitElement {
     }
 
     /* ───────── Bracket ───────── */
+    .bracket-scroll {
+      overflow-x: auto;
+      padding-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
     .bracket-canvas {
       display: flex;
-      gap: 14px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      -webkit-overflow-scrolling: touch;
+      gap: 12px;
+      min-width: max-content;
     }
     .bracket-col {
       display: flex;
       flex-direction: column;
+      width: 168px;
+      flex-shrink: 0;
+    }
+    /* Cada ronda reparte sus partidos: la mitad de partidos => el doble de
+       espacio por partido, así cada match queda centrado frente a su par. */
+    .bracket-col-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
       gap: 8px;
-      min-width: 150px;
     }
     .bracket-col-head {
       font-family: var(--font-var);
       font-size: 13px;
-      color: var(--ink);
+      color: var(--paper);
+      background: var(--ink);
       text-align: center;
-      border-bottom: 3px solid var(--ink);
-      padding-bottom: 4px;
+      padding: 5px 4px;
+      margin-bottom: 8px;
+      border: 2px solid var(--ink);
+    }
+    .bracket-col-head.is-final {
+      background: var(--retro-orange);
     }
     .bracket-col-head .sub {
       display: block;
       font-family: var(--font-mono);
       font-size: 8px;
-      color: var(--dim);
+      color: rgba(255,255,255,0.7);
       letter-spacing: 0.1em;
       margin-top: 1px;
     }
@@ -674,15 +680,18 @@ export class GuideView extends LitElement {
       padding: 6px 8px;
     }
     .bracket-match.final {
-      border-color: var(--retro-orange);
+      border: 3px solid var(--retro-orange);
       box-shadow: 3px 3px 0 0 var(--retro-orange);
+      background: var(--paper);
     }
     .bm-id {
       font-family: var(--font-mono);
       font-size: 8px;
       color: var(--dim);
       letter-spacing: 0.04em;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
+      padding-bottom: 3px;
+      border-bottom: 1px dotted rgba(26,25,51,0.3);
     }
     .bm-slot {
       display: flex;
@@ -692,20 +701,44 @@ export class GuideView extends LitElement {
       font-size: 11px;
       font-weight: 700;
       color: var(--ink);
+      padding: 2px 0;
     }
-    .bm-slot.b { color: var(--dim); font-weight: 500; }
-    .bm-slot.winner { color: var(--retro-green); }
+    .bm-slot .nm {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .bm-slot.tbd { color: var(--dim); font-weight: 400; }
+    .bm-slot.winner .nm { color: var(--retro-green); }
     .bm-score {
       font-family: var(--font-var);
-      font-size: 11px;
+      font-size: 13px;
       margin-left: auto;
-      color: var(--retro-orange);
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1.5px solid var(--ink);
+      padding: 0 5px;
+      flex-shrink: 0;
+    }
+    .bm-vs {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--dim);
+      text-align: center;
+      letter-spacing: 0.1em;
+      margin: 1px 0;
     }
     .bm-venue {
       font-family: var(--font-mono);
       font-size: 8px;
       color: var(--dim);
-      margin-top: 3px;
+      margin-top: 4px;
+      padding-top: 3px;
+      border-top: 1px dotted rgba(26,25,51,0.3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ───────── Calendario ───────── */
@@ -940,7 +973,7 @@ export class GuideView extends LitElement {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 14px;
+      padding: 14px 52px 14px 14px;
       border-bottom: 3px solid var(--ink);
     }
     .modal-flag {
@@ -1146,10 +1179,16 @@ export class GuideView extends LitElement {
     }
     .pitch-wrap {
       position: relative;
-      margin: 10px auto;
-      max-width: 360px;
-      background: var(--retro-green);
+      margin: 12px auto;
+      max-width: 340px;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          var(--retro-green) 0 10%,
+          color-mix(in srgb, var(--retro-green) 86%, #000) 10% 20%
+        );
       border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
       aspect-ratio: 100 / 150;
     }
     .pitch-svg {
@@ -1158,40 +1197,44 @@ export class GuideView extends LitElement {
       width: 100%;
       height: 100%;
     }
-    .pitch-svg .line { fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 0.6; }
-    .pitch-svg .line-bold { fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 0.8; }
-    .pitch-svg .spot { fill: rgba(255,255,255,0.7); }
+    .pitch-svg .line { fill: none; stroke: rgba(255,255,255,0.6); stroke-width: 0.6; }
+    .pitch-svg .line-bold { fill: none; stroke: rgba(255,255,255,0.78); stroke-width: 0.9; }
+    .pitch-svg .spot { fill: rgba(255,255,255,0.78); }
     .player-card {
       position: absolute;
       transform: translate(-50%, -50%);
-      width: 17%;
+      width: 56px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
     }
     .player-photo {
-      width: 30px;
-      height: 30px;
-      border: 2px solid var(--ink);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2.5px solid var(--ink);
       background: var(--player-bg, var(--retro-blue));
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-var);
-      font-size: 9px;
+      font-size: 13px;
       color: var(--paper);
       box-shadow: var(--shadow-hard-sm);
+      position: relative;
     }
     .player-card.gk .player-photo { background: var(--retro-yellow); color: var(--ink); }
-    .player-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .player-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
     .player-name {
       font-family: var(--font-body);
-      font-size: 9px;
-      font-weight: 700;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
       color: var(--paper);
       background: var(--ink);
-      padding: 1px 4px;
+      border: 1.5px solid var(--paper);
+      padding: 1px 5px;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1368,10 +1411,6 @@ export class GuideView extends LitElement {
     else this._compareLeft = id;
   }
 
-  private _openPrintable() {
-    globalThis.print();
-  }
-
   // ───────── Render principal ─────────
   render() {
     const data = this._data;
@@ -1428,8 +1467,6 @@ export class GuideView extends LitElement {
               ${navLabel[v]}
             </button>
           `)}
-          <span class="gw-nav-spacer"></span>
-          <button class="gw-nav-link" @click=${this._openPrintable}>${t('gw.openPrintable')}</button>
         </nav>
       </div>
     `;
@@ -1641,37 +1678,47 @@ export class GuideView extends LitElement {
           </div>
         </div>
       </div>
-      <div class="bracket-canvas">
-        ${rounds.map(r => {
-          const ms = data.knockoutMatches.filter(m => m.matchId.startsWith(r.prefix));
-          return html`
-            <div class="bracket-col">
-              <div class="bracket-col-head">
-                ${t(r.key as 'guide.r32')}
-                <span class="sub">${ms.length} ${ms.length === 1 ? t('gw.colMatch') : t('gw.calMatches', { n: '' }).replace(/[\d()\s]/g, '')}</span>
+      <div class="bracket-scroll">
+        <div class="bracket-canvas">
+          ${rounds.map(r => {
+            const ms = data.knockoutMatches.filter(m => m.matchId.startsWith(r.prefix));
+            const isFinal = r.prefix === 'FIN';
+            return html`
+              <div class="bracket-col">
+                <div class="bracket-col-head ${isFinal ? 'is-final' : ''}">
+                  ${t(r.key as 'guide.r32')}
+                  <span class="sub">${ms.length} ${ms.length === 1 ? t('gw.colMatch') : t('gw.colMatch') + 's'}</span>
+                </div>
+                <div class="bracket-col-body">
+                  ${ms.map(m => {
+                    const played = m.scoreA !== null && m.scoreB !== null;
+                    const penA = m.penaltyScoreA != null && m.penaltyScoreB != null
+                      ? ` (${m.penaltyScoreA})` : '';
+                    const penB = m.penaltyScoreA != null && m.penaltyScoreB != null
+                      ? ` (${m.penaltyScoreB})` : '';
+                    const aWins = !!m.winnerId && m.winnerId === m.teamA;
+                    const bWins = !!m.winnerId && m.winnerId === m.teamB;
+                    return html`
+                      <div class="bracket-match ${isFinal ? 'final' : ''}">
+                        <div class="bm-id">${m.matchId} · ${fmtDate(m.date, data.locale, true)} · ${m.timeSpain}</div>
+                        <div class="bm-slot ${m.teamA ? '' : 'tbd'} ${aWins ? 'winner' : ''}">
+                          <span class="nm">${m.teamAName}</span>
+                          ${played ? html`<span class="bm-score">${m.scoreA}${penA}</span>` : ''}
+                        </div>
+                        <div class="bm-vs">${t('guide.vs')}</div>
+                        <div class="bm-slot ${m.teamB ? '' : 'tbd'} ${bWins ? 'winner' : ''}">
+                          <span class="nm">${m.teamBName}</span>
+                          ${played ? html`<span class="bm-score">${m.scoreB}${penB}</span>` : ''}
+                        </div>
+                        <div class="bm-venue">${m.city || m.venue}</div>
+                      </div>
+                    `;
+                  })}
+                </div>
               </div>
-              ${ms.map(m => {
-                const played = m.scoreA !== null && m.scoreB !== null;
-                const pen = m.penaltyScoreA != null && m.penaltyScoreB != null
-                  ? ` (${m.penaltyScoreA}-${m.penaltyScoreB})` : '';
-                return html`
-                  <div class="bracket-match ${r.prefix === 'FIN' ? 'final' : ''}">
-                    <div class="bm-id">${m.matchId} · ${fmtDate(m.date, data.locale, true)} · ${m.timeSpain}</div>
-                    <div class="bm-slot ${m.winnerId && m.winnerId === m.teamA ? 'winner' : ''}">
-                      ${m.teamAName}
-                      ${played ? html`<span class="bm-score">${m.scoreA}</span>` : ''}
-                    </div>
-                    <div class="bm-slot b ${m.winnerId && m.winnerId === m.teamB ? 'winner' : ''}">
-                      ${t('guide.vs')} ${m.teamBName}
-                      ${played ? html`<span class="bm-score">${m.scoreB}${pen}</span>` : ''}
-                    </div>
-                    <div class="bm-venue">${m.city || m.venue}</div>
-                  </div>
-                `;
-              })}
-            </div>
-          `;
-        })}
+            `;
+          })}
+        </div>
       </div>
     `;
   }

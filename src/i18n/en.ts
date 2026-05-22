@@ -412,7 +412,6 @@ export const en: Record<TranslationKey, string> = {
   'gw.navBracket': 'Bracket',
   'gw.navCalendar': 'Calendar',
   'gw.navCompare': 'Compare',
-  'gw.openPrintable': '📖 printable version',
   'gw.tabAria': 'Open group {letter}',
   'gw.groupEyebrow': 'WORLD CUP 2026 · GROUP',
   'gw.groupPage': 'Pg. {n} / 12',

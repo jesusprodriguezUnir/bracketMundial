@@ -420,7 +420,6 @@ export const es = {
   'gw.navBracket': 'Bracket',
   'gw.navCalendar': 'Calendario',
   'gw.navCompare': 'Comparar',
-  'gw.openPrintable': '📖 versión imprimible',
   'gw.tabAria': 'Abrir grupo {letter}',
   'gw.groupEyebrow': 'MUNDIAL 2026 · GRUPO',
   'gw.groupPage': 'Pg. {n} / 12',
