@@ -1,0 +1,217 @@
+/* XI ideal + banquillo para los 48 equipos del Mundial 2026.
+   Las alineaciones son aproximaciones realistas a mayo 2026; las fotos
+   no se muestran (placeholders con bandera), lo importante es el lienzo. */
+
+const L = (f, xi, bench) => ({ f, xi, bench });
+
+window.LINEUPS = {
+  // ── GROUP A ────────────────────────────────────────────────
+  MEX: L('4-3-3',
+    ['Malagón','Sánchez','Montes','Vásquez','Gallardo','Edson Álvarez','Romo','Pineda','Lozano','S. Giménez','Vega'],
+    ['Ochoa','Acevedo','Reyes','Chávez','Mora','Quiñones']),
+  RSA: L('4-2-3-1',
+    ['Williams','Mokoena','Modiba','Mvala','Mbatha','Maart','Zungu','Tau','Zwane','Mofokeng','Foster'],
+    ['Williams (R.)','Allen','Sithole','Mokoena (T.)','Appollis']),
+  KOR: L('4-2-3-1',
+    ['Cho','Kim Jin-su','Kim Min-jae','Kim Young-gwon','Lee Yong','Hwang In-beom','Jung Woo-young','Son Heung-min','Lee Kang-in','Hwang Hee-chan','Cho Gue-sung'],
+    ['Kim Seung-gyu','Lee Jae-sung','Oh Hyeon-gyu','Kwon Chang-hoon','Paik Seung-ho']),
+  CZE: L('4-2-3-1',
+    ['Staněk','Coufal','Krejčí','Hranáč','Doudera','Souček','Provod','Lingr','Barák','Hložek','Schick'],
+    ['Jaroš','Šulc','Černý','Chorý','Karabec']),
+
+  // ── GROUP B ────────────────────────────────────────────────
+  CAN: L('4-3-3',
+    ['Crépeau','A. Davies','Vitória','Cornelius','Johnston','Eustáquio','Koné','Hutchinson','David','Larin','Buchanan'],
+    ['St. Clair','Laryea','Miller','Choinière','Adekugbe']),
+  SUI: L('4-2-3-1',
+    ['Sommer','Rodríguez','Akanji','Schär','Widmer','Xhaka','Freuler','Vargas','Rieder','Embolo','Amdouni'],
+    ['Kobel','Aebischer','Zakaria','Ndoye','Okafor']),
+  QAT: L('4-2-3-1',
+    ['Barsham','Pedro Correia','Khoukhi','T. Hassan','Ahmed','Boudiaf','Madibo','Akram Afif','Hatem','Al-Haydos','Almoez Ali'],
+    ['Al Sheeb','Ahmed Alaaeldin','Khaled Mohammed','Salem Al-Hajri','Mohammed Muntari']),
+  BIH: L('4-2-3-1',
+    ['Šehić','Kolašinac','Dedić','Šunjić','Hadžikadunić','Pjanić','Hadžiahmetović','Tabaković','Demirović','Krunić','Džeko'],
+    ['Vasilj','Burnić','Memić','Bajić','Bičakčić']),
+
+  // ── GROUP C ────────────────────────────────────────────────
+  BRA: L('4-3-3',
+    ['Alisson','Vanderson','Marquinhos','Beraldo','Wendell','Casemiro','Bruno G.','Paquetá','Raphinha','Vinícius Jr.','Rodrygo'],
+    ['Ederson','Militão','Endrick','Lucas Paquetá','Pedro']),
+  MAR: L('4-3-3',
+    ['Bounou','Hakimi','Aguerd','Saiss','Mazraoui','Amrabat','Ounahi','Amallah','Ziyech','En-Nesyri','Brahim'],
+    ['Munir','Mmaee','Boufal','El Khannouss','Diaz']),
+  HAI: L('4-2-3-1',
+    ['Plácide','Léon','Sainté','Auguste','Gontier','Jean Jacques','Saint-Maximin','Ramirez','Nazon','Belfort','Pierrot'],
+    ['Lafrance','Belfort','St. Juste','Loriston','Joachim']),
+  SCO: L('4-2-3-1',
+    ['Gunn','Robertson','Tierney','Hendry','Hickey','McTominay','Gilmour','McGinn','Christie','Hyam','Adams'],
+    ['Kelly','Ferguson','Conway','Doak','Dykes']),
+
+  // ── GROUP D ────────────────────────────────────────────────
+  USA: L('4-3-3',
+    ['Turner','A. Robinson','Richards','Ream','Dest','Adams','McKennie','Musah','Pulisic','Balogun','Reyna'],
+    ['Steffen','Tillman','Vázquez','Aaronson','Pepi']),
+  PAR: L('4-4-2',
+    ['Coronel','Espinoza','G. Gómez','Alderete','Junior Alonso','Almirón','Cubas','Villasanti','Bobadilla','Enciso','Sanabria'],
+    ['Servio','Dom. Gómez','Galarza','Sosa','González']),
+  AUS: L('4-2-3-1',
+    ['M. Ryan','Goodwin','Souttar','Wright','Atkinson','Irvine','O\'Neill','Bos','Mooy','McGree','Duke'],
+    ['Vukovic','Borrello','Velupillay','Yengi','Boyle']),
+  TUR: L('4-2-3-1',
+    ['Çakır','Müldür','Demiral','Akaydın','Kadıoğlu','Çalhanoğlu','Yüksek','Güler','Yıldız','Kökçü','Yılmaz'],
+    ['Bayındır','Aktürkoğlu','Aydın','Tosun','Çelik']),
+
+  // ── GROUP E ────────────────────────────────────────────────
+  GER: L('4-3-3',
+    ['Neuer','Kimmich','Tah','Rüdiger','Raum','Goretzka','Andrich','Sané','Musiala','Wirtz','Havertz'],
+    ['ter Stegen','Pavlović','Gross','Füllkrug','Adeyemi']),
+  CUW: L('4-4-2',
+    ['Room','Martina','Pop','García','Bacuna','Chong','J. Bacuna','Maduro','Sambo','Diamond','Frans'],
+    ['Vleminckx','Dorlan','Marcos','Da Costa','Roosken']),
+  CIV: L('4-3-3',
+    ['Yahia Fofana','Singo','Boly','Konan','Aurier','Kessié','Seri','Sangaré','Pépé','Haller','Adingra'],
+    ['Sayouba','Diomandé','Konaté','Krasso','Diakité']),
+  ECU: L('4-3-3',
+    ['Galíndez','Estupiñán','Torres','Pacho','Preciado','Caicedo','Sarmiento','Páez','E. Valencia','Estrada','Plata'],
+    ['Ramírez','Hincapié','Mena','Sarmiento','Yeboah']),
+
+  // ── GROUP F ────────────────────────────────────────────────
+  NED: L('4-3-3',
+    ['Verbruggen','Aké','Van Dijk','De Vrij','Dumfries','De Jong','Reijnders','Veerman','Gakpo','Brobbey','Xavi Simons'],
+    ['Flekken','Schouten','Geertruida','Depay','Weghorst']),
+  JPN: L('4-2-3-1',
+    ['Suzuki','Itakura','Shogo','Itō','Tomiyasu','Endō','Kamada','Kubo','Mitoma','Doan','Asano'],
+    ['Ōsako','Minamino','Ueda','Tanaka','Ito Junya']),
+  SWE: L('4-3-3',
+    ['Olsen','Lustig','Lindelöf','Hien','Augustinsson','Cajuste','S. Larsson','Kulusevski','Forsberg','Isak','Gyökeres'],
+    ['Nyland','Olsson','Bergvall','Bernhardsson','Saletros']),
+  TUN: L('4-2-3-1',
+    ['Dahmen','Talbi','Bronn','Meriah','Maaloul','Skhiri','Sassi','Sliti','Khazri','Mejbri','Jebali'],
+    ['Hassen','Laïdouni','Ben Slimane','Msakni','Slimane']),
+
+  // ── GROUP G ────────────────────────────────────────────────
+  BEL: L('4-2-3-1',
+    ['Casteels','Castagne','Faes','Vertonghen','Theate','Tielemans','Onana','Doku','De Bruyne','Trossard','Lukaku'],
+    ['Sels','Witsel','De Cuyper','Openda','De Ketelaere']),
+  EGY: L('4-3-3',
+    ['Abou Gabal','Hany','Hegazi','Ashraf','Hamdi','Elneny','Fathy','Marmoush','M. Mohamed','Salah','Trezeguet'],
+    ['El Shenawy','Kouka','Ezzat','Sobhi','Magdi']),
+  IRN: L('4-3-3',
+    ['Beiranvand','Mohammadi','Pouraliganji','Hosseini','Moharrami','Ezatolahi','Ghoddos','Jahanbakhsh','Taremi','Azmoun','Gholizadeh'],
+    ['Niazmand','Khalilzadeh','Hardani','Mohebi','Rezaeian']),
+  NZL: L('4-4-2',
+    ['Crocombe','Cacace','Boxall','Reid','Lewis','Stamenić','Stanger','Bell','Singh','Wood','Tuiloma'],
+    ['Sail','Garbett','Just','Surman','Waine']),
+
+  // ── GROUP H ────────────────────────────────────────────────
+  ESP: L('4-3-3',
+    ['Simón','Cucurella','Laporte','Le Normand','Carvajal','Rodri','Pedri','Dani Olmo','Nico Williams','Morata','Lamine Yamal'],
+    ['Raya','Vivian','Zubimendi','F. Ruiz','Joselu']),
+  CPV: L('4-3-3',
+    ['Vozinha','Stopira','R. Lopes','Diney Borges','Dylan','Mendes','Bebé','Garry','Monteiro','Júlio Tavares','Kévin Lenini'],
+    ['Marcos','Patrick Andrade','Steven Moreira','Yannick Semedo','Sténio']),
+  KSA: L('4-2-3-1',
+    ['Al-Owais','Al-Bulayhi','Al-Tambakti','Sultan','Saleh','Al-Faraj','Otayf','Al-Shehri','Salem','Kanno','Al-Buraikan'],
+    ['Al-Yami','Bahebri','Al-Najei','Al-Hassan','Al-Ghannam']),
+  URU: L('4-3-3',
+    ['Rochet','M. Olivera','Araújo','Giménez','Varela','Valverde','Bentancur','Ugarte','Núñez','Pellistri','M. Araújo'],
+    ['Sosa','Olivera (N.)','De la Cruz','Vecino','Suárez']),
+
+  // ── GROUP I — GROUP OF DEATH ───────────────────────────────
+  FRA: L('4-3-3',
+    ['Maignan','T. Hernández','Saliba','Upamecano','Koundé','Tchouaméni','Camavinga','Griezmann','Doué','Mbappé','Dembélé'],
+    ['Areola','Mendy','Kimpembe','Olise','Kolo Muani']),
+  SEN: L('4-3-3',
+    ['É. Mendy','Jakobs','Niakhaté','Koulibaly','Y. Mendy','Gana Gueye','Pape Matar Sarr','Diatta','Mané','Sarr','Diallo'],
+    ['Diallo (Sé.)','Ndiaye','Camara','Faye','Dieng']),
+  NOR: L('4-3-3',
+    ['Nyland','Aas','Strand Larsen','Aursnes','Ryerson','Ødegaard','Berge','Berg','Nusa','Haaland','Sørloth'],
+    ['Dyngeland','Helland-Hansen','Bobb','Solbakken','Tengstedt']),
+  IRQ: L('4-2-3-1',
+    ['Talib','Adnan','Ali Ahmed','Rashid','Khalef','Hussein','Resan','Mahmoud','Ali Faez','Iqbal','Mohanad Ali'],
+    ['Hachem','Tahir','Karrar','Jasim','Ammar']),
+
+  // ── GROUP J ────────────────────────────────────────────────
+  ARG: L('4-3-3',
+    ['E. Martínez','Tagliafico','Romero','Otamendi','Molina','De Paul','Mac Allister','Enzo F.','Messi','J. Álvarez','L. Martínez'],
+    ['Rulli','Lisandro Martínez','Paredes','Garnacho','Almada']),
+  AUT: L('4-2-3-1',
+    ['Pentz','Mwene','Wöber','Lienhart','Posch','Seiwald','Laimer','Schmid','Sabitzer','Baumgartner','Arnautović'],
+    ['Schlager','Trauner','Grillitsch','Gregoritsch','Adamu']),
+  ALG: L('4-3-3',
+    ['M\'Bolhi','Mandi','Tougai','Bensebaini','Atal','Bennacer','Zerrouki','Aouar','Mahrez','Slimani','Benrahma'],
+    ['Oukidja','Bedrane','Belaïli','Boudaoui','Brahimi']),
+  JOR: L('4-2-3-1',
+    ['Shafei','Marei','Rashdan','M. Saleh','Othman','Issa','Haddad','Al-Mardi','Al-Tamari','Al-Rashdan','Al-Naimat'],
+    ['Abu Layla','Aljaafreh','Olwan','Suleiman','Bani Attiah']),
+
+  // ── GROUP K ────────────────────────────────────────────────
+  POR: L('4-3-3',
+    ['D. Costa','Cancelo','Pepe','R. Dias','N. Mendes','Vitinha','B. Fernandes','B. Silva','C. Ronaldo','R. Leão','J. Félix'],
+    ['J. Pedro','Otávio','J. Neves','Ramos','Conceição']),
+  COL: L('4-2-3-1',
+    ['Vargas','D. Muñoz','Y. Mina','J. Cuesta','J. Mojica','J. Lerma','R. Ríos','J. Arias','James','L. Díaz','J. Durán'],
+    ['Montero','Sánchez','Carrascal','Borja','Quintero']),
+  UZB: L('4-3-3',
+    ['Yusupov','Boboev','Khusanov','Akhmedov','U. Kapadze','Sayfiev','Khojimat','Masharipov','Fayzullaev','Shomurodov','Khojiakbarov'],
+    ['Nematov','Allayorov','Pirmatov','Norchayev','Sadriddinov']),
+  COD: L('4-3-3',
+    ['Mpasi','Wan-Bissaka','Mbemba','Mukoko','Masuaku','Tshikuna','Pickel','Wissa','Bakambu','Bongonda','Mbuku'],
+    ['Mandanda','Lukonga','Moutoussamy','Elia','Kebano']),
+
+  // ── GROUP L ────────────────────────────────────────────────
+  ENG: L('4-2-3-1',
+    ['Pickford','Shaw','Stones','Guéhi','Walker','Rice','Bellingham','Foden','Saka','Palmer','Kane'],
+    ['Henderson','Trippier','Mainoo','Watkins','Toney']),
+  CRO: L('4-3-3',
+    ['Livaković','Sosa','Gvardiol','Šutalo','Stanišić','Brozović','Modrić','Kovačić','Pašalić','Kramarić','Perišić'],
+    ['Ivušić','Erlić','Sučić','Petković','Majer']),
+  GHA: L('4-2-3-1',
+    ['Lamptey','Mensah','Salisu','Djiku','Baba Rahman','Partey','Kudus','I. Williams','Sulemana','Semenyo','J. Ayew'],
+    ['Wollacott','Lamptey (T.)','Owusu','Sowah','Bukari']),
+  PAN: L('4-2-3-1',
+    ['Mosquera','Galindo','Davis','Murillo','Andrade','Godoy','Carrasquilla','M. Pérez','Quintero','Y. Bárcenas','Fajardo'],
+    ['Penedo','Ovalle','Welch','Vega','Waterman']),
+};
+
+// Posiciones para cada formación en pista vertical 100×150
+// índice 0 = portero (abajo), últimos índices = delanteros (arriba)
+window.FORMATIONS = {
+  '4-3-3': [
+    [50,140],
+    [14,108],[37,108],[63,108],[86,108],
+    [24,80],[50,80],[76,80],
+    [20,40],[50,32],[80,40],
+  ],
+  '4-4-2': [
+    [50,140],
+    [14,108],[37,108],[63,108],[86,108],
+    [14,78],[37,80],[63,80],[86,78],
+    [36,38],[64,38],
+  ],
+  '4-2-3-1': [
+    [50,140],
+    [14,108],[37,108],[63,108],[86,108],
+    [35,88],[65,88],
+    [20,60],[50,58],[80,60],
+    [50,32],
+  ],
+  '3-5-2': [
+    [50,140],
+    [25,108],[50,108],[75,108],
+    [10,82],[30,80],[50,76],[70,80],[90,82],
+    [36,38],[64,38],
+  ],
+  '3-4-3': [
+    [50,140],
+    [25,108],[50,108],[75,108],
+    [14,80],[37,82],[63,82],[86,80],
+    [22,40],[50,32],[78,40],
+  ],
+  '5-3-2': [
+    [50,140],
+    [8,103],[29,110],[50,113],[71,110],[92,103],
+    [28,80],[50,80],[72,80],
+    [36,38],[64,38],
+  ],
+};

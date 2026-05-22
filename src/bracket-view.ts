@@ -878,10 +878,6 @@ export class BracketView extends LitElement {
           id="section-guide"
           class="section-guide ${at === 'guide' ? 'visible' : ''}">
           ${at === 'guide' && loaded.has('guide') ? html`
-            <div class="section-heading">
-              <div class="section-eyebrow">${t('section.guide.eyebrow')}</div>
-              <div class="section-title">${t('section.guide.title')}</div>
-            </div>
             <guide-view></guide-view>
           ` : ''}
         </div>

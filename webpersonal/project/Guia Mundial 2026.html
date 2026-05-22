@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guía Mundial 2026 — Nuevo diseño</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper:        #ecdfc0;
+      --paper-2:      #e6d6b1;
+      --paper-3:      #fff9ec;
+      --ink:          #1a1933;
+      --retro-orange: #e8541f;
+      --retro-red:    #c41e2c;
+      --retro-green:  #1f6b3a;
+      --retro-blue:   #22418c;
+      --retro-yellow: #f0b021;
+      --dim:          #7a6f54;
+      --font-var:     'Bowlby One', Impact, sans-serif;
+      --font-head:    'Archivo Black', Impact, sans-serif;
+      --font-body:    'Archivo', system-ui, sans-serif;
+      --font-mono:    'Space Mono', 'JetBrains Mono', monospace;
+      --shadow-hard-sm: 2px 2px 0 0 var(--ink);
+      --shadow-hard-md: 3px 3px 0 0 var(--ink);
+      --shadow-hard-lg: 4px 4px 0 0 var(--ink);
+      --paper-texture:
+        radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px,
+        radial-gradient(ellipse 800px 600px at 0% 0%, rgba(232,84,31,0.07), transparent 70%),
+        radial-gradient(ellipse 800px 600px at 100% 100%, rgba(34,65,140,0.07), transparent 70%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #2a2436; font-family: var(--font-body); color: var(--ink); }
+    body {
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* ────────── PAGE ────────── */
+    .page {
+      width: 794px;             /* A4 width @96dpi */
+      height: 1123px;           /* A4 height — strict, content must fit */
+      background: var(--paper);
+      background-image: var(--paper-texture);
+      color: var(--ink);
+      padding: 18px 28px 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .page[data-screen-label] {
+      /* Editor labels for comment context */
+    }
+
+    .running-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0 6px;
+      border-bottom: 1px dashed rgba(26,25,51,0.3);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+    .running-header .breadcrumbs { display: flex; gap: 10px; align-items: center; }
+    .running-header .breadcrumbs span:nth-child(even) { color: var(--retro-orange); }
+
+    .running-footer {
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .running-footer .pagenum {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 3px 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+    }
+
+    /* ────────── COVER ────────── */
+    .cover {
+      justify-content: flex-start;
+      align-items: center;
+      text-align: center;
+      padding: 80px 56px 56px;
+      background-color: var(--paper);
+      background-image:
+        repeating-linear-gradient(45deg, rgba(26,25,51,0.04) 0 2px, transparent 2px 32px),
+        var(--paper-texture);
+    }
+    .cover::before, .cover::after {
+      content: '';
+      position: absolute;
+      width: 180px; height: 180px;
+      border: 4px solid var(--ink);
+    }
+    .cover::before { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+    .cover::after { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+
+    .cover-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.4em;
+      color: var(--retro-orange);
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+    .cover-title {
+      font-family: var(--font-var);
+      font-size: 96px;
+      line-height: 0.88;
+      color: var(--ink);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .cover-title .yr {
+      display: block;
+      color: var(--retro-orange);
+      -webkit-text-stroke: 3px var(--ink);
+      font-size: 168px;
+      line-height: 1;
+      margin-top: 6px;
+    }
+    .cover-subtitle {
+      font-family: var(--font-body);
+      font-size: 18px;
+      color: var(--dim);
+      margin-top: 14px;
+      max-width: 500px;
+      letter-spacing: 0.04em;
+    }
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 22px;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      margin-top: 26px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .cover-flags {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 7px;
+      width: 100%;
+      max-width: 540px;
+      margin: 28px auto 18px;
+    }
+    .cover-flag {
+      aspect-ratio: 3/2;
+      border: 2px solid var(--ink);
+      box-shadow: 1.5px 1.5px 0 var(--ink);
+      background-size: cover;
+      background-position: center;
+    }
+    .cover-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 32px;
+      width: 100%;
+      max-width: 560px;
+    }
+    .cover-meta {
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-3);
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .cover-meta .v {
+      font-family: var(--font-var);
+      font-size: 28px;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .cover-meta .l {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--dim);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+    .cover-mode-line {
+      margin-top: 28px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .cover-mode-line strong { color: var(--ink); }
+
+    /* ────────── TEAM PAGE A ────────── */
+    .team-masthead {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 14px;
+      align-items: stretch;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 10px 14px;
+      background: var(--paper-3);
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .team-flag {
+      width: 64px; height: 46px;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background-size: cover; background-position: center;
+      align-self: center;
+    }
+    .team-titles { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .team-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--retro-orange);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .team-name {
+      font-family: var(--font-var);
+      font-size: 32px;
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+    }
+    .group-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      align-self: stretch;
+      width: 64px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 4px 0;
+      font-family: var(--font-var);
+    }
+    .group-badge .g-label {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      letter-spacing: 0.2em;
+      opacity: 0.7;
+    }
+    .group-badge .g-letter {
+      font-size: 30px;
+      line-height: 1;
+      color: var(--retro-yellow);
+    }
+
+    .team-statbar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      margin-bottom: 10px;
+    }
+    .team-statbar > div {
+      padding: 6px 10px;
+      border-right: 1px dashed rgba(26,25,51,0.3);
+      text-align: center;
+    }
+    .team-statbar > div:last-child { border-right: none; }
+    .team-statbar .sb-l {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      letter-spacing: 0.15em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .team-statbar .sb-v {
+      font-family: var(--font-var);
+      font-size: 19px;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+      margin-bottom: 10px;
+    }
+
+    /* Coach block */
+    .coach-block {
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .coach-block-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 5px;
+      border-bottom: 1.5px dashed rgba(26,25,51,0.3);
+    }
+    .coach-block-head .label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--retro-orange);
+      font-weight: 700;
+    }
+    .coach-block-head .badge {
+      background: var(--retro-green);
+      color: var(--paper-3);
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      border: 1.5px solid var(--ink);
+    }
+    .coach-photo-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .coach-photo {
+      width: 70px; height: 90px;
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background-size: cover;
+      background-position: top center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .coach-photo .placeholder {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-var); font-size: 26px;
+      color: var(--dim); background: var(--paper-3);
+    }
+    .coach-info { flex: 1; min-width: 0; }
+    .coach-name {
+      font-family: var(--font-var);
+      font-size: 16px;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+    }
+    .coach-meta {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+    .coach-tags {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    .coach-tag {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      padding: 1.5px 5px;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      border: 1px solid var(--ink);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .coach-bio {
+      font-family: var(--font-body);
+      font-size: 10.5px;
+      line-height: 1.5;
+      color: var(--ink);
+      margin-top: 4px;
+    }
+    .coach-bio .pull {
+      display: block;
+      font-family: var(--font-var);
+      font-size: 11px;
+      line-height: 1.2;
+      color: var(--retro-orange);
+      margin-top: 6px;
+      padding: 4px 6px;
+      border-left: 3px solid var(--retro-orange);
+      background: rgba(232,84,31,0.08);
+    }
+
+    /* Tactics panel */
+    .tactics-panel {
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 9px 10px;
+    }
+    .tactics-panel h4 {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--retro-orange);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .tactics-panel .body {
+      font-family: var(--font-body);
+      font-size: 10px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+    .tactics-panel .body strong { font-family: var(--font-var); font-weight: normal; color: var(--retro-blue); }
+
+    /* Pitch */
+    .pitch-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+    .pitch-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 4px;
+    }
+    .pitch-label .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--retro-orange);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .pitch-label .title {
+      font-family: var(--font-var);
+      font-size: 18px;
+      line-height: 1;
+    }
+    .pitch-label .formation {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 3px 7px;
+      letter-spacing: 0.15em;
+    }
+    .pitch {
+      position: relative;
+      background: var(--retro-green);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      flex: 1;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: space-evenly;
+      padding: 14px 0;
+      overflow: hidden;
+    }
+    .pitch::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(to bottom, transparent 0 28px, rgba(255,255,255,0.05) 28px 56px);
+      z-index: 0;
+    }
+    .pitch .line-center {
+      position: absolute; top: 50%; left: 0; right: 0; height: 2.5px;
+      background: rgba(255,255,255,0.65);
+      transform: translateY(-50%); z-index: 1;
+    }
+    .pitch .circle-center {
+      position: absolute; top: 50%; left: 50%;
+      width: 90px; height: 90px;
+      border: 2.5px solid rgba(255,255,255,0.65);
+      border-radius: 50%;
+      transform: translate(-50%, -50%); z-index: 1;
+    }
+    .pitch .box-top, .pitch .box-bottom {
+      position: absolute; left: 50%; width: 150px; height: 56px;
+      border: 2.5px solid rgba(255,255,255,0.65);
+      transform: translateX(-50%); z-index: 1;
+    }
+    .pitch .box-top { top: 0; border-top: none; }
+    .pitch .box-bottom { bottom: 0; border-bottom: none; }
+    .pitch .small-box-top, .pitch .small-box-bottom {
+      position: absolute; left: 50%; width: 68px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.65);
+      transform: translateX(-50%); z-index: 1;
+    }
+    .pitch .small-box-top { top: 0; border-top: none; }
+    .pitch .small-box-bottom { bottom: 0; border-bottom: none; }
+    .pitch .row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+    }
+    .player {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      width: 58px;
+    }
+    .player-token {
+      position: relative;
+      width: 40px; height: 40px;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .player-token.gk { background: var(--retro-yellow); }
+    .player-token .number-sticker {
+      position: absolute;
+      bottom: -5px; right: -5px;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      padding: 1px 3px;
+      font-family: var(--font-var);
+      font-size: 8.5px;
+      line-height: 1;
+    }
+    .player-token .captain-mark {
+      position: absolute;
+      top: -6px; left: -6px;
+      background: var(--retro-red);
+      color: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 1px 3px;
+      font-family: var(--font-mono);
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+    .player-name {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      padding: 1.5px 3px;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      text-align: center;
+      max-width: 58px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Bench */
+    .bench {
+      background: var(--paper-3);
+      border: 1.5px solid var(--ink);
+      padding: 5px 8px;
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .bench h4 {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--retro-orange);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .bench-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 10px;
+      font-family: var(--font-body);
+      font-size: 9.5px;
+      line-height: 1.3;
+    }
+    .bench-list span { white-space: nowrap; }
+    .bench-list span .n {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--retro-orange);
+      margin-right: 4px;
+    }
+
+    /* Team calendar (own matches) */
+    .team-calendar {
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-3);
+    }
+    .team-calendar-head {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 5px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .team-calendar-head .t {
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+    .team-calendar-head .e {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      color: var(--retro-yellow);
+    }
+    .team-calendar-body {
+      padding: 0;
+    }
+    .cal-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 48px 1fr 80px;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-bottom: 1px dashed rgba(26,25,51,0.25);
+      font-size: 11px;
+    }
+    .cal-row:last-child { border-bottom: none; }
+    .cal-row.knockout-pending {
+      background: rgba(240,176,33,0.18);
+    }
+    .cal-date {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      line-height: 1.25;
+      color: var(--ink);
+    }
+    .cal-date .d { font-weight: 700; }
+    .cal-date .t { color: var(--dim); }
+    .cal-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      min-width: 0;
+    }
+    .cal-team.away { justify-content: flex-end; text-align: right; }
+    .cal-team .mini-flag {
+      width: 20px; height: 14px;
+      border: 1px solid var(--ink);
+      background-size: cover; background-position: center;
+      flex-shrink: 0;
+    }
+    .cal-team .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-team.is-self .name { color: var(--retro-orange); font-family: var(--font-var); }
+    .cal-score {
+      text-align: center;
+      font-family: var(--font-var);
+      font-size: 15px;
+      line-height: 1;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 3px 0;
+    }
+    .cal-score.tbd { font-size: 10px; font-family: var(--font-mono); color: var(--dim); }
+    .cal-venue {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--dim);
+      text-align: right;
+      line-height: 1.25;
+    }
+    .cal-venue .stage {
+      display: inline-block;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      padding: 1px 4px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .cal-venue .stage.knockout { background: var(--retro-orange); color: var(--paper); }
+
+    /* ────────── TEAM PAGE B (SQUAD) ────────── */
+    .squad-head {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2.5px solid var(--ink);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .squad-head .mini-flag {
+      width: 48px; height: 34px;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background-size: cover; background-position: center;
+    }
+    .squad-head .titles .e {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--retro-orange);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .squad-head .titles .t {
+      font-family: var(--font-var);
+      font-size: 24px;
+      line-height: 1;
+    }
+    .squad-head .count {
+      text-align: right;
+    }
+    .squad-head .count .v {
+      font-family: var(--font-var);
+      font-size: 28px;
+      line-height: 1;
+      color: var(--retro-orange);
+    }
+    .squad-head .count .l {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+    }
+
+    .position-row { margin-bottom: 6px; }
+    .position-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .position-label .chip {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-var);
+      font-size: 10.5px;
+      padding: 2.5px 10px;
+      letter-spacing: 0.04em;
+    }
+    .position-label.gk .chip { background: var(--retro-yellow); color: var(--ink); }
+    .position-label.df .chip { background: var(--retro-blue); }
+    .position-label.mf .chip { background: var(--retro-green); }
+    .position-label.fw .chip { background: var(--retro-red); }
+    .position-label .line { flex: 1; height: 2px; background: var(--ink); }
+    .position-label .count {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+    }
+
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .player-card {
+      border: 1.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-2);
+      padding: 4px 4px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      position: relative;
+    }
+    .player-card.captain { background: var(--retro-yellow); }
+    .player-card.captain::before {
+      content: 'CAP';
+      position: absolute;
+      top: -6px; left: 3px;
+      background: var(--retro-red);
+      color: var(--paper);
+      padding: 1px 4px;
+      font-family: var(--font-mono);
+      font-size: 7px;
+      letter-spacing: 0.08em;
+      border: 1px solid var(--ink);
+      font-weight: 700;
+      z-index: 2;
+    }
+    .pc-photo {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--paper-3);
+      border: 1px solid var(--ink);
+      position: relative;
+      overflow: hidden;
+    }
+    .pc-photo .placeholder-icon {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--dim);
+      font-size: 20px;
+    }
+    .pc-photo .pc-number {
+      position: absolute;
+      top: -3px; right: -3px;
+      background: var(--retro-red);
+      color: var(--paper);
+      width: 21px; height: 21px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-var);
+      font-size: 11px;
+      border: 1.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .pc-photo .pc-pos {
+      position: absolute;
+      bottom: 0; left: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--font-mono);
+      font-size: 7px;
+      padding: 1.5px 4px;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+    .pc-body { display: flex; flex-direction: column; gap: 1px; }
+    .pc-name {
+      font-family: var(--font-var);
+      font-size: 9.5px;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pc-meta {
+      font-family: var(--font-mono);
+      font-size: 7.5px;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .pc-club {
+      font-family: var(--font-body);
+      font-size: 8.5px;
+      color: var(--ink);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Squad sidebar */
+    .squad-layout {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: 10px;
+      flex: 1;
+      min-height: 0;
+      margin-bottom: 8px;
+    }
+    .squad-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar-block {
+      border: 1.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      background: var(--paper-3);
+      padding: 7px 8px;
+    }
+    .sidebar-block h4 {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      letter-spacing: 0.18em;
+      color: var(--retro-orange);
+      margin-bottom: 4px;
+      font-weight: 700;
+      padding-bottom: 3px;
+      border-bottom: 1px dashed rgba(26,25,51,0.3);
+    }
+    .sb-stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sb-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+    }
+    .sb-stat-row .v {
+      font-family: var(--font-var);
+      font-size: 13px;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .sb-stat-row.highlight .v { color: var(--retro-orange); }
+
+    .key-player {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .key-player-photo {
+      width: 36px; height: 46px;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--dim);
+      font-family: var(--font-var);
+      font-size: 16px;
+    }
+    .key-player-info { flex: 1; min-width: 0; }
+    .kp-n {
+      font-family: var(--font-var);
+      font-size: 12px;
+      line-height: 1.05;
+    }
+    .kp-r {
+      font-family: var(--font-body);
+      font-size: 9px;
+      color: var(--dim);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    /* ────────── PREDICTION PAGE ────────── */
+    .section-cover {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 56px 40px;
+    }
+    .section-cover .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.4em;
+      color: var(--retro-yellow);
+      margin-bottom: 16px;
+    }
+    .section-cover .title {
+      font-family: var(--font-var);
+      font-size: 72px;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      max-width: 600px;
+    }
+    .section-cover .lede {
+      max-width: 540px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(236,223,192,0.8);
+      margin-top: 18px;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+    .podium-item {
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      padding: 16px 12px;
+      text-align: center;
+      background: var(--paper-3);
+      position: relative;
+    }
+    .podium-item.champion {
+      background: var(--retro-yellow);
+      padding-top: 22px;
+    }
+    .podium-item.runner-up { background: var(--paper-2); }
+    .podium-item.third { background: var(--paper-2); }
+    .podium-rank {
+      position: absolute;
+      top: -16px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 4px 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      border: 2px solid var(--ink);
+      font-weight: 700;
+    }
+    .podium-item.champion .podium-rank { background: var(--retro-orange); }
+    .podium-flag-big {
+      width: 64px; height: 44px;
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      margin: 8px auto;
+      background-size: cover; background-position: center;
+    }
+    .podium-name {
+      font-family: var(--font-var);
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin-top: 6px;
+    }
+    .podium-item.champion .podium-name { font-size: 28px; }
+    .podium-meta {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      margin-top: 6px;
+    }
+    .podium-trophy {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+
+    .bracket-summary {
+      margin-top: 18px;
+    }
+    .bracket-round {
+      margin-bottom: 12px;
+    }
+    .br-title {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 6px 14px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      font-weight: 700;
+    }
+    .br-matches {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+    }
+    .br-match {
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 10px;
+      border-bottom: 1px dashed rgba(26,25,51,0.2);
+      border-right: 1px dashed rgba(26,25,51,0.2);
+      font-size: 11px;
+    }
+    .br-match:nth-child(2n) { border-right: none; }
+    .br-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-body);
+      min-width: 0;
+    }
+    .br-team .mini-flag {
+      width: 18px; height: 13px;
+      border: 1px solid var(--ink);
+      background-size: cover;
+      flex-shrink: 0;
+    }
+    .br-team.winner {
+      font-family: var(--font-var);
+      letter-spacing: -0.01em;
+    }
+    .br-team .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .br-score {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      background: var(--paper-2);
+      border: 1.5px solid var(--ink);
+      padding: 2px 0;
+      font-weight: 700;
+    }
+
+    /* ───── Marker for "page X of N" rendering style ───── */
+    .meta-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    /* Notes for the user */
+    .note-strip {
+      max-width: 794px;
+      width: 100%;
+      background: #f0b021;
+      border: 3px solid #1a1933;
+      padding: 14px 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: #1a1933;
+      line-height: 1.6;
+    }
+    .note-strip strong { font-family: 'Bowlby One', sans-serif; }
+
+    /* ───── Print ───── */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    @media print {
+      body { background: white; padding: 0; gap: 0; }
+      .page {
+        box-shadow: none;
+        margin: 0;
+        page-break-after: always;
+        break-after: page;
+      }
+      .note-strip { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="note-strip">
+    <strong>VISTA PREVIA — NUEVA GUÍA MUNDIAL 2026 ·</strong>
+    Maquetación A4 imprimible (794×1123px). Quitado el calendario global; cada equipo ocupa 2 páginas (ficha + plantilla); predicción al final.
+    Imprime con Cmd/Ctrl+P (sin márgenes) o bórralo del HTML para exportar PDF. Datos de muestra: MEX + ESP usando los squads reales.
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 01 · COVER -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page cover" data-screen-label="01 Cover">
+    <div class="cover-eyebrow">FIFA WORLD CUP · 2026</div>
+    <h1 class="cover-title">
+      GUÍA<br/>OFICIAL
+      <span class="yr">2026</span>
+    </h1>
+    <p class="cover-subtitle">
+      48 selecciones · 12 grupos · 104 partidos · 16 sedes en Estados Unidos, México y Canadá
+    </p>
+    <div class="cover-badge">★ MODO PREDICCIÓN AUTOMÁTICA ★</div>
+
+    <div class="cover-flags">
+      <!-- 32 flags placeholders — would be real flags in app -->
+      <div class="cover-flag" style="background-color:#006847;"></div>
+      <div class="cover-flag" style="background-color:#007a4d;"></div>
+      <div class="cover-flag" style="background-color:#cd2e3a;"></div>
+      <div class="cover-flag" style="background-color:#11457e;"></div>
+      <div class="cover-flag" style="background-color:#ff0000;"></div>
+      <div class="cover-flag" style="background-color:#dc143c;"></div>
+      <div class="cover-flag" style="background-color:#8b1a1a;"></div>
+      <div class="cover-flag" style="background-color:#d80027;"></div>
+      <div class="cover-flag" style="background-color:#fcd116;"></div>
+      <div class="cover-flag" style="background-color:#c8102e;"></div>
+      <div class="cover-flag" style="background-color:#003580;"></div>
+      <div class="cover-flag" style="background-color:#bc002d;"></div>
+      <div class="cover-flag" style="background-color:#21468b;"></div>
+      <div class="cover-flag" style="background-color:#ce1126;"></div>
+      <div class="cover-flag" style="background-color:#239f40;"></div>
+      <div class="cover-flag" style="background-color:#ed2939;"></div>
+      <div class="cover-flag" style="background-color:#ce1126;"></div>
+      <div class="cover-flag" style="background-color:#75aadb;"></div>
+      <div class="cover-flag" style="background-color:#bf0a30;"></div>
+      <div class="cover-flag" style="background-color:#dd0000;"></div>
+      <div class="cover-flag" style="background-color:#fff200;"></div>
+      <div class="cover-flag" style="background-color:#012169;"></div>
+      <div class="cover-flag" style="background-color:#cd2a3e;"></div>
+      <div class="cover-flag" style="background-color:#ce2029;"></div>
+      <div class="cover-flag" style="background-color:#000099;"></div>
+      <div class="cover-flag" style="background-color:#aa151b;"></div>
+      <div class="cover-flag" style="background-color:#078930;"></div>
+      <div class="cover-flag" style="background-color:#239e46;"></div>
+      <div class="cover-flag" style="background-color:#bf0a30;"></div>
+      <div class="cover-flag" style="background-color:#0033a0;"></div>
+      <div class="cover-flag" style="background-color:#171796;"></div>
+      <div class="cover-flag" style="background-color:#012169;"></div>
+    </div>
+
+    <div class="cover-meta-grid">
+      <div class="cover-meta"><div class="v">48</div><div class="l">Selecciones</div></div>
+      <div class="cover-meta"><div class="v">104</div><div class="l">Partidos</div></div>
+      <div class="cover-meta"><div class="v">16</div><div class="l">Sedes</div></div>
+      <div class="cover-meta"><div class="v">39</div><div class="l">Días</div></div>
+    </div>
+
+    <div class="cover-mode-line">
+      Generado el <strong>22 MAY 2026</strong> · Predicción automática basada en consenso de casas de apuestas
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 02 · MEXICO — PAGE A (PROFILE + LINEUP + COACH + CALENDAR) -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page" data-screen-label="02 Mexico — Profile">
+    <div class="running-header">
+      <div class="breadcrumbs">
+        <span>Guía 2026</span>
+        <span>›</span>
+        <span>Grupo A</span>
+        <span>›</span>
+        <span>México</span>
+      </div>
+      <span>Pg. 2 / Equipo 1 de 48</span>
+    </div>
+
+    <div class="team-masthead">
+      <div class="team-flag" style="background-image: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+      <div class="team-titles">
+        <div class="team-eyebrow">★ Anfitrión · 17ª participación</div>
+        <h2 class="team-name">MÉXICO</h2>
+      </div>
+      <div class="group-badge">
+        <span class="g-label">GRUPO</span>
+        <span class="g-letter">A</span>
+      </div>
+    </div>
+
+    <div class="team-statbar">
+      <div><div class="sb-l">FIFA Rank</div><div class="sb-v">#14</div></div>
+      <div><div class="sb-l">Pron. grupo</div><div class="sb-v">1º</div></div>
+      <div><div class="sb-l">Mundiales</div><div class="sb-v">17</div></div>
+      <div><div class="sb-l">Estrellas</div><div class="sb-v">0</div></div>
+    </div>
+
+    <div class="team-grid">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Coach -->
+        <div class="coach-block">
+          <div class="coach-block-head">
+            <span class="label">★ Entrenador</span>
+            <span class="badge">Desde 2024</span>
+          </div>
+          <div class="coach-photo-row">
+            <div class="coach-photo"><div class="placeholder">JA</div></div>
+            <div class="coach-info">
+              <div class="coach-name">Javier Aguirre</div>
+              <div class="coach-meta">67 años · Mexicano</div>
+              <div class="coach-tags">
+                <span class="coach-tag">4-3-3</span>
+                <span class="coach-tag">Pragmático</span>
+                <span class="coach-tag">3er ciclo</span>
+              </div>
+            </div>
+          </div>
+          <div class="coach-bio">
+            «El Vasco» en su tercer mandato al frente de El Tri. Dirigió a Osasuna, Atlético y Espanyol; también seleccionador de Japón y Egipto.
+            <span class="pull">«Orden, simplicidad y resultados.»</span>
+          </div>
+        </div>
+
+        <!-- Tactics panel -->
+        <div class="tactics-panel">
+          <h4>★ Notas tácticas</h4>
+          <div class="body">
+            Aguirre usa habitualmente un <strong>4-3-3</strong> de posesión, alternando con 3-4-2-1 según rival.
+            La portería es la incógnita: <strong>Rangel</strong> titular tras los errores de Malagón, con <strong>Ochoa</strong> como tercera opción a los 40.
+            <strong>Mora</strong>, 17 años, es la sorpresa.
+          </div>
+        </div>
+      </div>
+
+      <div class="pitch-wrap">
+        <div class="pitch-label">
+          <div>
+            <div class="eyebrow">★ Alineación ideal</div>
+            <div class="title">XI TIPO</div>
+          </div>
+          <div class="formation">4 — 3 — 3</div>
+        </div>
+
+        <!-- PITCH -->
+        <div class="pitch">
+          <div class="line-center"></div>
+          <div class="circle-center"></div>
+          <div class="box-top"></div>
+          <div class="small-box-top"></div>
+          <div class="box-bottom"></div>
+          <div class="small-box-bottom"></div>
+
+          <!-- Row 0: GK (bottom in column-reverse) -->
+          <div class="row row-0">
+            <div class="player">
+              <div class="player-token gk">RA<div class="number-sticker">1</div></div>
+              <div class="player-name">RANGEL</div>
+            </div>
+          </div>
+
+          <!-- Row 1: Defenders -->
+          <div class="row row-1">
+            <div class="player">
+              <div class="player-token">JS<div class="number-sticker">2</div></div>
+              <div class="player-name">J. SÁNCHEZ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">CM<div class="number-sticker">3</div></div>
+              <div class="player-name">MONTES</div>
+            </div>
+            <div class="player">
+              <div class="player-token">JV<div class="number-sticker">5</div></div>
+              <div class="player-name">VÁSQUEZ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">MC<div class="number-sticker">22</div></div>
+              <div class="player-name">CHÁVEZ</div>
+            </div>
+          </div>
+
+          <!-- Row 2: Midfielders -->
+          <div class="row row-2">
+            <div class="player">
+              <div class="player-token">
+                EA<div class="number-sticker">4</div>
+                <div class="captain-mark">CAP</div>
+              </div>
+              <div class="player-name">ÁLVAREZ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">AF<div class="number-sticker">8</div></div>
+              <div class="player-name">FIDALGO</div>
+            </div>
+            <div class="player">
+              <div class="player-token">OP<div class="number-sticker">16</div></div>
+              <div class="player-name">PINEDA</div>
+            </div>
+          </div>
+
+          <!-- Row 3: Forwards -->
+          <div class="row row-3">
+            <div class="player">
+              <div class="player-token">SG<div class="number-sticker">11</div></div>
+              <div class="player-name">GIMÉNEZ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">JQ<div class="number-sticker">33</div></div>
+              <div class="player-name">QUIÑONES</div>
+            </div>
+            <div class="player">
+              <div class="player-token">AV<div class="number-sticker">10</div></div>
+              <div class="player-name">A. VEGA</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bench / Subs -->
+        <div class="bench">
+          <h4>★ Banquillo destacado</h4>
+          <div class="bench-list">
+            <span><span class="n">12</span>G. OCHOA</span>
+            <span><span class="n">25</span>G. MORA</span>
+            <span><span class="n">9</span>R. JIMÉNEZ</span>
+            <span><span class="n">23</span>GALLARDO</span>
+            <span><span class="n">19</span>ALVARADO</span>
+            <span><span class="n">6</span>O. VARGAS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Calendar (own matches only) -->
+    <div class="team-calendar">
+      <div class="team-calendar-head">
+        <span class="t">CALENDARIO DEL EQUIPO</span>
+        <span class="e">★ FASE DE GRUPOS + ELIMINATORIA PREDICCIÓN</span>
+      </div>
+      <div class="team-calendar-body">
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">JUE 11 JUN</div><div class="t">21:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+            <span class="name">MÉXICO</span>
+          </div>
+          <div class="cal-score">2–0</div>
+          <div class="cal-team away">
+            <span class="name">Sudáfrica</span>
+            <div class="mini-flag" style="background-color: #007a4d;"></div>
+          </div>
+          <div class="cal-venue">Azteca, CDMX<br/><span class="stage">A · J1</span></div>
+        </div>
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">VIE 19 JUN</div><div class="t">03:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+            <span class="name">MÉXICO</span>
+          </div>
+          <div class="cal-score">1–1</div>
+          <div class="cal-team away">
+            <span class="name">Corea del Sur</span>
+            <div class="mini-flag" style="background-color: #cd2e3a;"></div>
+          </div>
+          <div class="cal-venue">Akron, Guadalajara<br/><span class="stage">A · J2</span></div>
+        </div>
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">MIÉ 24 JUN</div><div class="t">21:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+            <span class="name">MÉXICO</span>
+          </div>
+          <div class="cal-score">2–1</div>
+          <div class="cal-team away">
+            <span class="name">Rep. Checa</span>
+            <div class="mini-flag" style="background-color: #11457e;"></div>
+          </div>
+          <div class="cal-venue">Estadio BBVA, Monterrey<br/><span class="stage">A · J3</span></div>
+        </div>
+
+        <div class="cal-row knockout-pending">
+          <div class="cal-date"><div class="d">LUN 29 JUN</div><div class="t">21:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+            <span class="name">MÉXICO</span>
+          </div>
+          <div class="cal-score">1–2</div>
+          <div class="cal-team away">
+            <span class="name">Países Bajos</span>
+            <div class="mini-flag" style="background-color: #ae1c28;"></div>
+          </div>
+          <div class="cal-venue">Azteca, CDMX<br/><span class="stage knockout">R16</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="running-footer">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum">02</span>
+      <span>MÉXICO · GRUPO A</span>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 03 · MEXICO — PAGE B (FULL SQUAD) -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page" data-screen-label="03 Mexico — Squad">
+    <div class="running-header">
+      <div class="breadcrumbs">
+        <span>Guía 2026</span><span>›</span><span>Grupo A</span><span>›</span><span>México</span><span>›</span><span>Plantilla</span>
+      </div>
+      <span>Pg. 3 / Equipo 1 de 48</span>
+    </div>
+
+    <div class="squad-head">
+      <div class="mini-flag" style="background: linear-gradient(to right, #006847 33%, #fff 33% 66%, #ce1126 66%);"></div>
+      <div class="titles">
+        <div class="e">★ Convocatoria preliminar</div>
+        <div class="t">PLANTILLA</div>
+      </div>
+      <div class="count">
+        <div class="v">26</div>
+        <div class="l">jugadores</div>
+      </div>
+    </div>
+
+    <div class="squad-layout">
+      <div>
+        <!-- Goalkeepers -->
+        <div class="position-row">
+          <div class="position-label gk">
+            <span class="chip">PORTEROS</span>
+            <span class="line"></span>
+            <span class="count">3</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card">
+              <div class="pc-photo">
+                <div class="placeholder-icon">⚽</div>
+                <div class="pc-number">1</div>
+                <div class="pc-pos">POR</div>
+              </div>
+              <div class="pc-body">
+                <div class="pc-name">Raúl Rangel</div>
+                <div class="pc-meta">26 AÑOS</div>
+                <div class="pc-club">Chivas</div>
+              </div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo">
+                <div class="placeholder-icon">⚽</div>
+                <div class="pc-number">12</div>
+                <div class="pc-pos">POR</div>
+              </div>
+              <div class="pc-body">
+                <div class="pc-name">Guillermo Ochoa</div>
+                <div class="pc-meta">40 AÑOS</div>
+                <div class="pc-club">AEL Limassol</div>
+              </div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo">
+                <div class="placeholder-icon">⚽</div>
+                <div class="pc-number">13</div>
+                <div class="pc-pos">POR</div>
+              </div>
+              <div class="pc-body">
+                <div class="pc-name">Carlos Acevedo</div>
+                <div class="pc-meta">30 AÑOS</div>
+                <div class="pc-club">Santos Laguna</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Defenders -->
+        <div class="position-row">
+          <div class="position-label df">
+            <span class="chip">DEFENSAS</span>
+            <span class="line"></span>
+            <span class="count">7</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">3</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">César Montes</div><div class="pc-meta">29 AÑOS</div><div class="pc-club">Lokomotiv Moscú</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">5</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Johan Vásquez</div><div class="pc-meta">27 AÑOS</div><div class="pc-club">Genoa</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">2</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Jorge Sánchez</div><div class="pc-meta">28 AÑOS</div><div class="pc-club">PAOK</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">22</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Mateo Chávez</div><div class="pc-meta">21 AÑOS</div><div class="pc-club">AZ Alkmaar</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">23</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Jesús Gallardo</div><div class="pc-meta">31 AÑOS</div><div class="pc-club">Toluca</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">15</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Israel Reyes</div><div class="pc-meta">25 AÑOS</div><div class="pc-club">América</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">18</div><div class="pc-pos">DEF</div></div>
+              <div class="pc-body"><div class="pc-name">Luis Romo</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">Chivas</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Midfielders -->
+        <div class="position-row">
+          <div class="position-label mf">
+            <span class="chip">MEDIOS</span>
+            <span class="line"></span>
+            <span class="count">8</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card captain">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">4</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Edson Álvarez</div><div class="pc-meta">28 AÑOS · CAP</div><div class="pc-club">Fenerbahçe</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">8</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Álvaro Fidalgo</div><div class="pc-meta">29 AÑOS</div><div class="pc-club">Real Betis</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">24</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Luis Chávez</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">Dinamo Moscú</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">6</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Obed Vargas</div><div class="pc-meta">20 AÑOS</div><div class="pc-club">Atlético Madrid</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">16</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Orbelín Pineda</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">AEK Atenas</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">21</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Brian Gutiérrez</div><div class="pc-meta">23 AÑOS</div><div class="pc-club">Chivas</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">14</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Erik Lira</div><div class="pc-meta">26 AÑOS</div><div class="pc-club">Cruz Azul</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">25</div><div class="pc-pos">MED</div></div>
+              <div class="pc-body"><div class="pc-name">Gilberto Mora</div><div class="pc-meta">17 AÑOS</div><div class="pc-club">Tijuana</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forwards -->
+        <div class="position-row">
+          <div class="position-label fw">
+            <span class="chip">DELANTEROS</span>
+            <span class="line"></span>
+            <span class="count">8</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">11</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">Santiago Giménez</div><div class="pc-meta">25 AÑOS</div><div class="pc-club">AC Milan</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">9</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">Raúl Jiménez</div><div class="pc-meta">35 AÑOS</div><div class="pc-club">Fulham</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">33</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">J. Quiñones</div><div class="pc-meta">29 AÑOS</div><div class="pc-club">Al-Qadsiah</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">20</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">César Huerta</div><div class="pc-meta">25 AÑOS</div><div class="pc-club">Anderlecht</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">19</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">R. Alvarado</div><div class="pc-meta">27 AÑOS</div><div class="pc-club">Chivas</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">10</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">Alexis Vega</div><div class="pc-meta">28 AÑOS</div><div class="pc-club">Toluca</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">17</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">A. González</div><div class="pc-meta">23 AÑOS</div><div class="pc-club">Chivas</div></div>
+            </div>
+            <div class="player-card">
+              <div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">26</div><div class="pc-pos">DEL</div></div>
+              <div class="pc-body"><div class="pc-name">G. Martínez</div><div class="pc-meta">31 AÑOS</div><div class="pc-club">Pumas</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="squad-sidebar">
+        <div class="sidebar-block">
+          <h4>★ Capitán</h4>
+          <div class="key-player">
+            <div class="key-player-photo">EA</div>
+            <div class="key-player-info">
+              <div class="kp-n">Edson Álvarez</div>
+              <div class="kp-r">Mediocentro defensivo titular. Esencial en el 4-3-3 y opción única en su posición.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <h4>★ Jugador estrella</h4>
+          <div class="key-player">
+            <div class="key-player-photo">SG</div>
+            <div class="key-player-info">
+              <div class="kp-n">Santiago Giménez</div>
+              <div class="kp-r">Ariete del Milan. Última oportunidad real de marcar un Mundial tras la decepción de 2022.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <h4>★ Promesa</h4>
+          <div class="key-player">
+            <div class="key-player-photo">GM</div>
+            <div class="key-player-info">
+              <div class="kp-n">Gilberto Mora</div>
+              <div class="kp-r">17 años, Tijuana. La gran apuesta. Visión, técnica y carácter.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <h4>★ Datos rápidos</h4>
+          <div class="sb-stat-list">
+            <div class="sb-stat-row highlight"><span>Edad media</span><span class="v">27.4</span></div>
+            <div class="sb-stat-row"><span>En liga local</span><span class="v">14</span></div>
+            <div class="sb-stat-row"><span>En Europa</span><span class="v">9</span></div>
+            <div class="sb-stat-row"><span>Otros</span><span class="v">3</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="running-footer">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum">03</span>
+      <span>MÉXICO · PLANTILLA</span>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 04 · ESPAÑA — PAGE A (variant: european favourite) -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page" data-screen-label="04 España — Profile">
+    <div class="running-header">
+      <div class="breadcrumbs">
+        <span>Guía 2026</span><span>›</span><span>Grupo H</span><span>›</span><span>España</span>
+      </div>
+      <span>Pg. 18 / Equipo 8 de 48</span>
+    </div>
+
+    <div class="team-masthead">
+      <div class="team-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+      <div class="team-titles">
+        <div class="team-eyebrow">★ Campeón 2010 · 17ª participación</div>
+        <h2 class="team-name">ESPAÑA</h2>
+      </div>
+      <div class="group-badge">
+        <span class="g-label">GRUPO</span>
+        <span class="g-letter">H</span>
+      </div>
+    </div>
+
+    <div class="team-statbar">
+      <div><div class="sb-l">FIFA Rank</div><div class="sb-v">#2</div></div>
+      <div><div class="sb-l">Pron. grupo</div><div class="sb-v">1º</div></div>
+      <div><div class="sb-l">Mundiales</div><div class="sb-v">17</div></div>
+      <div><div class="sb-l">Estrellas</div><div class="sb-v">1</div></div>
+    </div>
+
+    <div class="team-grid">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="coach-block">
+          <div class="coach-block-head">
+            <span class="label">★ Entrenador</span>
+            <span class="badge">Desde 2022</span>
+          </div>
+          <div class="coach-photo-row">
+            <div class="coach-photo"><div class="placeholder">LF</div></div>
+            <div class="coach-info">
+              <div class="coach-name">Luis de la Fuente</div>
+              <div class="coach-meta">64 años · Español</div>
+              <div class="coach-tags">
+                <span class="coach-tag">4-3-3</span>
+                <span class="coach-tag">Eurocopa 2024</span>
+                <span class="coach-tag">Sub-21</span>
+              </div>
+            </div>
+          </div>
+          <div class="coach-bio">
+            Forjó a la mejor generación de la Sub-21 española. Tras ganar la Eurocopa 2024, llega al Mundial con la mayor presión: confirmar el ciclo de oro.
+            <span class="pull">«Verticalidad, presión, jugadores con cabeza.»</span>
+          </div>
+        </div>
+
+        <div class="tactics-panel">
+          <h4>★ Notas tácticas</h4>
+          <div class="body">
+            <strong>4-3-3</strong> con presión alta. <strong>Rodri</strong> es el pivote intocable.
+            <strong>Lamine Yamal</strong> y <strong>Nico Williams</strong> garantizan velocidad en banda. <strong>Oyarzabal</strong> aporta gol en el área.
+            La duda: el reemplazo de un Cubarsí cuando rote.
+          </div>
+        </div>
+      </div>
+
+      <div class="pitch-wrap">
+        <div class="pitch-label">
+          <div>
+            <div class="eyebrow">★ Alineación ideal</div>
+            <div class="title">XI TIPO</div>
+          </div>
+          <div class="formation">4 — 3 — 3</div>
+        </div>
+
+        <div class="pitch">
+          <div class="line-center"></div>
+          <div class="circle-center"></div>
+          <div class="box-top"></div>
+          <div class="small-box-top"></div>
+          <div class="box-bottom"></div>
+          <div class="small-box-bottom"></div>
+
+          <div class="row row-0">
+            <div class="player">
+              <div class="player-token gk">US<div class="number-sticker">1</div></div>
+              <div class="player-name">U. SIMÓN</div>
+            </div>
+          </div>
+
+          <div class="row row-1">
+            <div class="player">
+              <div class="player-token">ML<div class="number-sticker">12</div></div>
+              <div class="player-name">LLORENTE</div>
+            </div>
+            <div class="player">
+              <div class="player-token">MP<div class="number-sticker">24</div></div>
+              <div class="player-name">PUBILL</div>
+            </div>
+            <div class="player">
+              <div class="player-token">PC<div class="number-sticker">4</div></div>
+              <div class="player-name">CUBARSÍ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">MC<div class="number-sticker">22</div></div>
+              <div class="player-name">CUCURELLA</div>
+            </div>
+          </div>
+
+          <div class="row row-2">
+            <div class="player">
+              <div class="player-token">
+                RH<div class="number-sticker">16</div>
+                <div class="captain-mark">CAP</div>
+              </div>
+              <div class="player-name">RODRI</div>
+            </div>
+            <div class="player">
+              <div class="player-token">FR<div class="number-sticker">15</div></div>
+              <div class="player-name">F. RUIZ</div>
+            </div>
+            <div class="player">
+              <div class="player-token">PE<div class="number-sticker">8</div></div>
+              <div class="player-name">PEDRI</div>
+            </div>
+          </div>
+
+          <div class="row row-3">
+            <div class="row" style="display: contents;"></div>
+            <div class="player">
+              <div class="player-token">NW<div class="number-sticker">11</div></div>
+              <div class="player-name">N. WILLIAMS</div>
+            </div>
+            <div class="player">
+              <div class="player-token">MO<div class="number-sticker">9</div></div>
+              <div class="player-name">OYARZABAL</div>
+            </div>
+            <div class="player">
+              <div class="player-token">LY<div class="number-sticker">7</div></div>
+              <div class="player-name">L. YAMAL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bench">
+          <h4>★ Banquillo destacado</h4>
+          <div class="bench-list">
+            <span><span class="n">13</span>D. RAYA</span>
+            <span><span class="n">14</span>LAPORTE</span>
+            <span><span class="n">5</span>LE NORMAND</span>
+            <span><span class="n">6</span>ZUBIMENDI</span>
+            <span><span class="n">10</span>D. OLMO</span>
+            <span><span class="n">18</span>GAVI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-calendar">
+      <div class="team-calendar-head">
+        <span class="t">CALENDARIO DEL EQUIPO</span>
+        <span class="e">★ FASE DE GRUPOS + ELIMINATORIA PREDICCIÓN</span>
+      </div>
+      <div class="team-calendar-body">
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">LUN 15 JUN</div><div class="t">18:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+            <span class="name">ESPAÑA</span>
+          </div>
+          <div class="cal-score">3–0</div>
+          <div class="cal-team away">
+            <span class="name">Cabo Verde</span>
+            <div class="mini-flag" style="background-color: #003893;"></div>
+          </div>
+          <div class="cal-venue">Mercedes-Benz, Atlanta<br/><span class="stage">H · J1</span></div>
+        </div>
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">DOM 21 JUN</div><div class="t">18:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+            <span class="name">ESPAÑA</span>
+          </div>
+          <div class="cal-score">2–1</div>
+          <div class="cal-team away">
+            <span class="name">Arabia Saudí</span>
+            <div class="mini-flag" style="background-color: #006c35;"></div>
+          </div>
+          <div class="cal-venue">Mercedes-Benz, Atlanta<br/><span class="stage">H · J2</span></div>
+        </div>
+
+        <div class="cal-row">
+          <div class="cal-date"><div class="d">VIE 26 JUN</div><div class="t">21:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+            <span class="name">ESPAÑA</span>
+          </div>
+          <div class="cal-score">2–0</div>
+          <div class="cal-team away">
+            <span class="name">Uruguay</span>
+            <div class="mini-flag" style="background-color: #75aadb;"></div>
+          </div>
+          <div class="cal-venue">Hard Rock, Miami<br/><span class="stage">H · J3</span></div>
+        </div>
+
+        <div class="cal-row knockout-pending">
+          <div class="cal-date"><div class="d">MAR 30 JUN</div><div class="t">21:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+            <span class="name">ESPAÑA</span>
+          </div>
+          <div class="cal-score">2–0</div>
+          <div class="cal-team away">
+            <span class="name">Senegal</span>
+            <div class="mini-flag" style="background-color: #00853f;"></div>
+          </div>
+          <div class="cal-venue">SoFi, Los Ángeles<br/><span class="stage knockout">R32</span></div>
+        </div>
+
+        <div class="cal-row knockout-pending">
+          <div class="cal-date"><div class="d">DOM 5 JUL</div><div class="t">18:00 CEST</div></div>
+          <div class="cal-team is-self">
+            <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+            <span class="name">ESPAÑA</span>
+          </div>
+          <div class="cal-score">3–1</div>
+          <div class="cal-team away">
+            <span class="name">Inglaterra</span>
+            <div class="mini-flag" style="background-color: #fff;"></div>
+          </div>
+          <div class="cal-venue">MetLife, Nueva York<br/><span class="stage knockout">R16</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="running-footer">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum">18</span>
+      <span>ESPAÑA · GRUPO H</span>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 05 · ESPAÑA — PAGE B (condensed for demo) -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page" data-screen-label="05 España — Squad">
+    <div class="running-header">
+      <div class="breadcrumbs">
+        <span>Guía 2026</span><span>›</span><span>Grupo H</span><span>›</span><span>España</span><span>›</span><span>Plantilla</span>
+      </div>
+      <span>Pg. 19 / Equipo 8 de 48</span>
+    </div>
+
+    <div class="squad-head">
+      <div class="mini-flag" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+      <div class="titles">
+        <div class="e">★ Convocatoria preliminar</div>
+        <div class="t">PLANTILLA</div>
+      </div>
+      <div class="count">
+        <div class="v">26</div>
+        <div class="l">jugadores</div>
+      </div>
+    </div>
+
+    <div class="squad-layout">
+      <div>
+        <div class="position-row">
+          <div class="position-label gk">
+            <span class="chip">PORTEROS</span><span class="line"></span><span class="count">3</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">1</div><div class="pc-pos">POR</div></div><div class="pc-body"><div class="pc-name">Unai Simón</div><div class="pc-meta">29 AÑOS</div><div class="pc-club">Athletic Club</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">13</div><div class="pc-pos">POR</div></div><div class="pc-body"><div class="pc-name">David Raya</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">Arsenal</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">23</div><div class="pc-pos">POR</div></div><div class="pc-body"><div class="pc-name">Álex Remiro</div><div class="pc-meta">31 AÑOS</div><div class="pc-club">Real Sociedad</div></div></div>
+          </div>
+        </div>
+
+        <div class="position-row">
+          <div class="position-label df">
+            <span class="chip">DEFENSAS</span><span class="line"></span><span class="count">8</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">2</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">Pedro Porro</div><div class="pc-meta">26 AÑOS</div><div class="pc-club">Tottenham</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">12</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">M. Llorente</div><div class="pc-meta">31 AÑOS</div><div class="pc-club">Atlético</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">14</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">A. Laporte</div><div class="pc-meta">32 AÑOS</div><div class="pc-club">Athletic Club</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">5</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">Le Normand</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">Atlético</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">4</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">Pau Cubarsí</div><div class="pc-meta">19 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">24</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">Marc Pubill</div><div class="pc-meta">22 AÑOS</div><div class="pc-club">Atlético</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">22</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">M. Cucurella</div><div class="pc-meta">28 AÑOS</div><div class="pc-club">Chelsea</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">3</div><div class="pc-pos">DEF</div></div><div class="pc-body"><div class="pc-name">A. Grimaldo</div><div class="pc-meta">31 AÑOS</div><div class="pc-club">B. Leverkusen</div></div></div>
+          </div>
+        </div>
+
+        <div class="position-row">
+          <div class="position-label mf">
+            <span class="chip">MEDIOS</span><span class="line"></span><span class="count">8</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card captain"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">16</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Rodri</div><div class="pc-meta">30 AÑOS · CAP</div><div class="pc-club">Man. City</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">6</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Zubimendi</div><div class="pc-meta">27 AÑOS</div><div class="pc-club">Arsenal</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">15</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Fabián Ruiz</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">PSG</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">8</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Pedri</div><div class="pc-meta">23 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">10</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Dani Olmo</div><div class="pc-meta">28 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">25</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">M. Merino</div><div class="pc-meta">30 AÑOS</div><div class="pc-club">Arsenal</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">18</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">Gavi</div><div class="pc-meta">22 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">26</div><div class="pc-pos">MED</div></div><div class="pc-body"><div class="pc-name">P. Barrios</div><div class="pc-meta">22 AÑOS</div><div class="pc-club">Atlético</div></div></div>
+          </div>
+        </div>
+
+        <div class="position-row">
+          <div class="position-label fw">
+            <span class="chip">DELANTEROS</span><span class="line"></span><span class="count">7</span>
+          </div>
+          <div class="player-grid">
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">7</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">L. Yamal</div><div class="pc-meta">19 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">11</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">N. Williams</div><div class="pc-meta">24 AÑOS</div><div class="pc-club">Athletic Club</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">9</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">M. Oyarzabal</div><div class="pc-meta">29 AÑOS</div><div class="pc-club">Real Sociedad</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">19</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">Ferran Torres</div><div class="pc-meta">26 AÑOS</div><div class="pc-club">FC Barcelona</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">20</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">Álex Baena</div><div class="pc-meta">24 AÑOS</div><div class="pc-club">Atlético</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">17</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">Yéremy Pino</div><div class="pc-meta">24 AÑOS</div><div class="pc-club">Crystal Palace</div></div></div>
+            <div class="player-card"><div class="pc-photo"><div class="placeholder-icon">⚽</div><div class="pc-number">21</div><div class="pc-pos">DEL</div></div><div class="pc-body"><div class="pc-name">Ayoze Pérez</div><div class="pc-meta">32 AÑOS</div><div class="pc-club">Villarreal</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="squad-sidebar">
+        <div class="sidebar-block">
+          <h4>★ Capitán</h4>
+          <div class="key-player">
+            <div class="key-player-photo">RO</div>
+            <div class="key-player-info">
+              <div class="kp-n">Rodri</div>
+              <div class="kp-r">Balón de Oro 2024. Pivote intocable. La columna vertebral del equipo.</div>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-block">
+          <h4>★ Jugador estrella</h4>
+          <div class="key-player">
+            <div class="key-player-photo">LY</div>
+            <div class="key-player-info">
+              <div class="kp-n">Lamine Yamal</div>
+              <div class="kp-r">19 años. Mejor extremo del mundo. Decisivo en la Eurocopa 2024.</div>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-block">
+          <h4>★ Promesa</h4>
+          <div class="key-player">
+            <div class="key-player-photo">PC</div>
+            <div class="key-player-info">
+              <div class="kp-n">Pau Cubarsí</div>
+              <div class="kp-r">19 años, central del Barça. Lectura y salida de balón de un veterano.</div>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-block">
+          <h4>★ Datos rápidos</h4>
+          <div class="sb-stat-list">
+            <div class="sb-stat-row highlight"><span>Edad media</span><span class="v">26.1</span></div>
+            <div class="sb-stat-row"><span>En La Liga</span><span class="v">13</span></div>
+            <div class="sb-stat-row"><span>Premier</span><span class="v">7</span></div>
+            <div class="sb-stat-row"><span>Otros</span><span class="v">6</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="running-footer">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum">19</span>
+      <span>ESPAÑA · PLANTILLA</span>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 06 · PREDICTION COVER -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page section-cover" data-screen-label="06 Prediction Cover">
+    <div style="margin-top: 60px;">
+      <div class="eyebrow">★ PARTE FINAL · NUESTRA PREDICCIÓN</div>
+      <h2 class="title">¿QUIÉN<br/>SE LLEVA<br/>LA COPA?</h2>
+      <p class="lede">
+        Simulación automática basada en consenso de casas de apuestas, ELO de equipo y resultados recientes.
+        Esta es nuestra hoja de ruta — la que iremos contrastando con la realidad partido a partido.
+      </p>
+
+      <div style="margin-top: 64px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; color: rgba(236,223,192,0.6); text-transform: uppercase;">
+        <div>
+          <div style="color: var(--retro-yellow); font-family: var(--font-var); font-size: 56px; line-height: 1;">01</div>
+          <div style="margin-top: 8px;">Simulación con consenso de odds</div>
+        </div>
+        <div>
+          <div style="color: var(--retro-orange); font-family: var(--font-var); font-size: 56px; line-height: 1;">02</div>
+          <div style="margin-top: 8px;">Penaltis cuando hay empate</div>
+        </div>
+        <div>
+          <div style="color: var(--retro-yellow); font-family: var(--font-var); font-size: 56px; line-height: 1;">03</div>
+          <div style="margin-top: 8px;">Recalculo en cada actualización</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="running-footer" style="border-color: rgba(236,223,192,0.3); color: rgba(236,223,192,0.6);">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum" style="background: var(--retro-yellow); color: var(--ink);">96</span>
+      <span>PREDICCIÓN</span>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- 07 · PREDICTION DETAIL -->
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <section class="page" data-screen-label="07 Prediction Detail">
+    <div class="running-header">
+      <div class="breadcrumbs">
+        <span>Guía 2026</span><span>›</span><span>Predicción</span>
+      </div>
+      <span>Pg. 97 / Final</span>
+    </div>
+
+    <div style="border-bottom: 3px dashed var(--ink); padding-bottom: 12px; margin-bottom: 22px;">
+      <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.25em; color: var(--retro-orange); text-transform: uppercase; font-weight: 700;">
+        ★ PODIO PREDICHO
+      </div>
+      <h2 style="font-family: var(--font-var); font-size: 32px; line-height: 1; margin-top: 6px;">
+        EL CAMINO A LA GLORIA
+      </h2>
+    </div>
+
+    <!-- Podium -->
+    <div class="podium" style="margin-top: 32px;">
+      <div class="podium-item runner-up">
+        <div class="podium-rank">2º · FINALISTA</div>
+        <div class="podium-flag-big" style="background-color: #75aadb;"></div>
+        <div class="podium-name">Argentina</div>
+        <div class="podium-meta">Final perdida 2–1</div>
+      </div>
+      <div class="podium-item champion">
+        <div class="podium-rank">★ 1º · CAMPEÓN</div>
+        <div class="podium-trophy">🏆</div>
+        <div class="podium-flag-big" style="background: linear-gradient(to bottom, #aa151b 25%, #f1bf00 25% 75%, #aa151b 75%);"></div>
+        <div class="podium-name">España</div>
+        <div class="podium-meta">3ª estrella</div>
+      </div>
+      <div class="podium-item third">
+        <div class="podium-rank">3º · BRONCE</div>
+        <div class="podium-flag-big" style="background-color: #002395;"></div>
+        <div class="podium-name">Francia</div>
+        <div class="podium-meta">3er. y 4to. puesto: 3–2</div>
+      </div>
+    </div>
+
+    <!-- Bracket Summary -->
+    <div class="bracket-summary">
+
+      <div class="bracket-round">
+        <div class="br-title">★ CUARTOS DE FINAL</div>
+        <div class="br-matches">
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#aa151b;"></div><span class="name">España</span></div>
+            <div class="br-score">2–0</div>
+            <div class="br-team"><div class="mini-flag" style="background:#00853f;"></div><span class="name">Marruecos</span></div>
+          </div>
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#75aadb;"></div><span class="name">Argentina</span></div>
+            <div class="br-score">3–1</div>
+            <div class="br-team"><div class="mini-flag" style="background:#fcd116;"></div><span class="name">Brasil</span></div>
+          </div>
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#002395;"></div><span class="name">Francia</span></div>
+            <div class="br-score">2–1</div>
+            <div class="br-team"><div class="mini-flag" style="background:#fff;"></div><span class="name">Inglaterra</span></div>
+          </div>
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#000;"></div><span class="name">Alemania</span></div>
+            <div class="br-score">2–0</div>
+            <div class="br-team"><div class="mini-flag" style="background:#ff8c00;"></div><span class="name">P. Bajos</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bracket-round">
+        <div class="br-title">★ SEMIFINALES</div>
+        <div class="br-matches">
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#aa151b;"></div><span class="name">España</span></div>
+            <div class="br-score">2–1</div>
+            <div class="br-team"><div class="mini-flag" style="background:#000;"></div><span class="name">Alemania</span></div>
+          </div>
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#75aadb;"></div><span class="name">Argentina</span></div>
+            <div class="br-score">1–0</div>
+            <div class="br-team"><div class="mini-flag" style="background:#002395;"></div><span class="name">Francia</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bracket-round">
+        <div class="br-title">★ TERCER PUESTO &amp; FINAL</div>
+        <div class="br-matches">
+          <div class="br-match">
+            <div class="br-team winner"><div class="mini-flag" style="background:#002395;"></div><span class="name">Francia</span></div>
+            <div class="br-score">3–2</div>
+            <div class="br-team"><div class="mini-flag" style="background:#000;"></div><span class="name">Alemania</span></div>
+          </div>
+          <div class="br-match" style="background: var(--retro-yellow);">
+            <div class="br-team winner"><div class="mini-flag" style="background:#aa151b;"></div><span class="name">España</span></div>
+            <div class="br-score" style="background: var(--ink); color: var(--paper-3);">2–1</div>
+            <div class="br-team"><div class="mini-flag" style="background:#75aadb;"></div><span class="name">Argentina</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Trofeo + datos -->
+    <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+      <div style="border: 3px solid var(--ink); box-shadow: var(--shadow-hard-md); background: var(--paper-3); padding: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--retro-orange); font-weight: 700; text-transform: uppercase;">★ Pichichi predicho</div>
+        <div style="font-family: var(--font-var); font-size: 22px; line-height: 1; margin-top: 8px;">Lamine Yamal</div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--dim); margin-top: 4px;">7 GOLES · ESP</div>
+      </div>
+      <div style="border: 3px solid var(--ink); box-shadow: var(--shadow-hard-md); background: var(--paper-3); padding: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--retro-orange); font-weight: 700; text-transform: uppercase;">★ MVP del torneo</div>
+        <div style="font-family: var(--font-var); font-size: 22px; line-height: 1; margin-top: 8px;">Rodri</div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--dim); margin-top: 4px;">CENTROCAMPO · ESP</div>
+      </div>
+      <div style="border: 3px solid var(--ink); box-shadow: var(--shadow-hard-md); background: var(--paper-3); padding: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--retro-orange); font-weight: 700; text-transform: uppercase;">★ Revelación</div>
+        <div style="font-family: var(--font-var); font-size: 22px; line-height: 1; margin-top: 8px;">Cubarsí</div>
+        <div style="font-family: var(--font-mono); font-size: 10px; color: var(--dim); margin-top: 4px;">19 AÑOS · DEF · ESP</div>
+      </div>
+    </div>
+
+    <div class="running-footer">
+      <span>BRACKET MUNDIAL · jesusrodriguez.dev</span>
+      <span class="pagenum">97</span>
+      <span>PREDICCIÓN FINAL</span>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -131,12 +131,18 @@
       "Bash(node -e \"try{require\\('playwright'\\);console.log\\('playwright ok'\\)}catch\\(e\\){console.log\\('no playwright'\\)}\")",
       "Bash(curl -s http://localhost:5175/ -o /dev/null -w \"%{http_code}\\\\n\")",
       "Bash(node -e \"const {chromium}=require\\('playwright'\\); chromium.launch\\(\\).then\\(b=>{console.log\\('chromium launches ok'\\);return b.close\\(\\)}\\).catch\\(e=>console.log\\('ERR:',e.message\\)\\)\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(grep -nE \"'groups\\\\.|'groups$\" \"d:/Personal/bracketMundial/src/i18n/es.ts\")",
+      "Bash(echo \"import { TEAMS_2026 } from './src/data/fifa-2026'; type T = \\(typeof TEAMS_2026\\)[number]; const x: T = TEAMS_2026[0]; console.log\\(x.id, x.shortName\\);\" > /tmp/tt.ts && npx tsc --noEmit --strict /tmp/tt.ts 2>&1 | head -10; echo \"exit done\")",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(echo \"=== tsc exit: $? ===\")",
+      "Bash(echo \"=== tsc: $? ===\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",
       "d:\\Personal\\bracketMundial\\.claude\\skills",
-      "C:\\Users\\jesus\\AppData\\Local\\Temp"
+      "C:\\Users\\jesus\\AppData\\Local\\Temp",
+      "\\tmp"
     ]
   }
 }

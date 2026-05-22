@@ -1,0 +1,290 @@
+:root {
+  /* Paleta Panini retro 80s/90s */
+  --paper:         #ecdfc0;
+  --paper-2:       #e6d6b1;
+  --paper-3:       #fff9ec;
+  --ink:           #1a1933;
+  --retro-orange:  #e8541f;
+  --retro-red:     #c41e2c;
+  --retro-green:   #1f6b3a;
+  --retro-blue:    #22418c;
+  --retro-yellow:  #f0b021;
+  --dim:           #7a6f54;
+
+  /* Sin redondeos — todo es impresión dura */
+  --radius-lg: 0;
+  --radius-md: 0;
+
+  /* Tipografías */
+  --font-var:  'Bowlby One', 'Anton', Impact, sans-serif;
+  --font-head: 'Archivo Black', 'Anton', Impact, sans-serif;
+  --font-body: 'Archivo', 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+
+  /* Sombras duras offset (estilo sello impreso) */
+  --shadow-hard-sm: 2px 2px 0 0 var(--ink);
+  --shadow-hard-md: 3px 3px 0 0 var(--ink);
+  --shadow-hard-lg: 4px 4px 0 0 var(--ink);
+  --shadow-hard-xl: 6px 6px 0 0 var(--ink);
+
+  /* Halftone patterns */
+  --halftone:      radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+  --halftone-soft: radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
+
+  /* Paper texture Panini v2: confetti + halftone + rayas diagonales + viñetas */
+  --paper-texture:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.45'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3Ccircle cx='95' cy='180' r='3' fill='%23e8541f'/%3E%3Ccircle cx='215' cy='195' r='2' fill='%2322418c'/%3E%3Ccircle cx='20' cy='220' r='2.5' fill='%23f0b021'/%3E%3Crect x='180' y='100' width='4' height='10' fill='%23c41e2c' transform='rotate(25 182 105)'/%3E%3Crect x='40' y='150' width='3' height='8' fill='%231f6b3a' transform='rotate(-20 41 154)'/%3E%3Crect x='130' y='75' width='3' height='8' fill='%23e8541f' transform='rotate(45 131 79)'/%3E%3Cpolygon points='75,55 78,62 71,62' fill='%23c41e2c'/%3E%3Cpolygon points='175,205 178,212 171,212' fill='%2322418c'/%3E%3Cpolygon points='100,135 103,142 96,142' fill='%23f0b021'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px,
+    radial-gradient(ellipse 800px 600px at 0% 0%, rgba(232,84,31,0.07), transparent 70%),
+    radial-gradient(ellipse 800px 600px at 100% 100%, rgba(34,65,140,0.07), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(26,25,51,0.04) 0 2px, transparent 2px 32px);
+  --paper-texture-size: 240px 240px, 5px 5px, auto, auto, auto;
+}
+
+/* Tema oscuro — papel de noche, identidad Panini retro conservada */
+:root[data-theme="dark"] {
+  --paper:         #1a1933;
+  --paper-2:       #231d3e;
+  --paper-3:       #2e2750;
+  --ink:           #ecdfc0;
+  --retro-orange:  #f0713d;
+  --retro-red:     #e83345;
+  --retro-green:   #2d9c56;
+  --retro-blue:    #4570d4;
+  --retro-yellow:  #f5c040;
+  --dim:           #8a8070;
+
+  --halftone:      radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+  --halftone-soft: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
+
+  --paper-texture:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23e83345'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%232d9c56'/%3E%3Ccircle cx='95' cy='180' r='3' fill='%23f0713d'/%3E%3Ccircle cx='215' cy='195' r='2' fill='%234570d4'/%3E%3Cpolygon points='75,55 78,62 71,62' fill='%23e83345'/%3E%3Cpolygon points='100,135 103,142 96,142' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px,
+    radial-gradient(ellipse 800px 600px at 0% 0%, rgba(240,113,61,0.06), transparent 70%),
+    radial-gradient(ellipse 800px 600px at 100% 100%, rgba(69,112,212,0.06), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(236,223,192,0.04) 0 2px, transparent 2px 32px);
+  --paper-texture-size: 240px 240px, 5px 5px, auto, auto, auto;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size, 5px 5px);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  
+  /* Optimizaciones para móvil */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-var);
+  letter-spacing: -0.02em;
+}
+
+/* Botón retro: borde sólido grueso + sombra hard offset */
+.btn {
+  background: var(--paper-2);
+  border: 3px solid var(--ink);
+  color: var(--ink);
+  padding: 8px 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-var);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 0;
+  box-shadow: var(--shadow-hard-md);
+  transition: transform 0.1s, box-shadow 0.1s;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (hover: hover) {
+  .btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 0 var(--ink);
+  }
+}
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--ink);
+}
+
+.btn-primary {
+  background: var(--retro-yellow);
+  border-color: var(--ink);
+}
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: var(--retro-yellow);
+  }
+}
+
+.btn-secondary {
+  background: var(--paper-3);
+  color: var(--ink);
+}
+@media (hover: hover) {
+  .btn-secondary:hover {
+    background: var(--paper);
+  }
+}
+
+.btn-danger {
+  background: var(--retro-red);
+  color: var(--paper);
+}
+@media (hover: hover) {
+  .btn-danger:hover {
+    background: var(--retro-orange);
+    color: var(--paper);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-stamp {
+    0%   { box-shadow: var(--shadow-hard-md); }
+    50%  { box-shadow: 0 0 0 4px var(--retro-yellow), var(--shadow-hard-md); }
+    100% { box-shadow: var(--shadow-hard-md); }
+  }
+
+  @keyframes skeletonShimmer {
+    from { background-position: -300px 0; }
+    to   { background-position: calc(300px + 100%) 0; }
+  }
+}
+
+/* ─── Skeleton placeholders ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 0px,
+    var(--paper-3) 40px,
+    var(--paper-2) 80px
+  );
+  background-size: 300px 100%;
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.skeleton-card {
+  height: 72px;
+  border: 3px solid var(--ink);
+  box-shadow: var(--shadow-hard-sm);
+  margin-bottom: 12px;
+}
+
+.skeleton-img {
+  background: var(--paper-2);
+  display: inline-flex;
+}
+
+/* ─── View loading placeholder ─── */
+.view-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 16px;
+  min-height: 200px;
+}
+
+/* ─── Full-screen branded splash (shown before Lit mounts) ─── */
+.app-splash {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+  background-image: var(--paper-texture);
+  background-size: var(--paper-texture-size, 5px 5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: var(--font-var);
+  padding-top: env(safe-area-inset-top);
+}
+.app-splash.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.splash-emblem {
+  width: 80px;
+  height: 80px;
+  background: var(--ink);
+  border: 3px solid var(--retro-yellow);
+  box-shadow: 4px 4px 0 0 var(--retro-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.splash-emblem span {
+  font-size: 36px;
+}
+.splash-label {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+
+/* ─── Toast notifications ─── */
+.toast-bar {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--retro-yellow);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border: 2px solid var(--retro-yellow);
+  box-shadow: var(--shadow-hard-md);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast-bar.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+@media (max-width: 768px) {
+  .toast-bar {
+    bottom: 100px;
+    font-size: 11px;
+    padding: 10px 16px;
+  }
+}
+

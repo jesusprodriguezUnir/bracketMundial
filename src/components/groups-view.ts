@@ -23,13 +23,15 @@ const GROUP_COLORS = [
   'var(--retro-red)',
 ];
 
+const GROUPS = 'ABCDEFGHIJKL'.split('');
+
 @customElement('groups-view')
 export class GroupsView extends LitElement {
   private unsubscribeStore?: () => void;
   private _oddsLoaded = false;
 
   @state() private _odds: Record<string, MatchOdds> = {};
-  @state() private _filterGroup: string | null = null;
+  @state() private _activeGroup = 'A';
 
   static readonly styles = css`
     :host { display: block; }
@@ -41,6 +43,178 @@ export class GroupsView extends LitElement {
       padding: 0 0 22px;
       margin-bottom: 22px;
       border-bottom: 3px dashed var(--ink);
+    }
+
+    /* ──────── Cuaderno modo archivador ──────── */
+    .notebook {
+      position: relative;
+      background: var(--paper);
+      background-image: var(--paper-texture);
+      background-size: var(--paper-texture-size, 5px 5px);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    /* Barra de solapas tipo carpeta de archivo */
+    .archive-tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      padding: 10px 14px 0;
+      border-bottom: 3px solid var(--ink);
+      background-image: var(--halftone-soft);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .archive-tabs::-webkit-scrollbar { display: none; }
+
+    .archive-tab {
+      all: unset;
+      box-sizing: border-box;
+      cursor: pointer;
+      flex: 1 1 auto;
+      min-width: 64px;
+      padding: 9px 6px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-align: center;
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
+      border-bottom: none;
+      border-top-left-radius: 11px;
+      border-top-right-radius: 11px;
+      position: relative;
+      transition: transform 0.12s ease, background 0.12s ease;
+      touch-action: manipulation;
+    }
+    .archive-tab + .archive-tab { margin-left: -2px; }
+    @media (hover: hover) {
+      .archive-tab:hover { transform: translateY(-2px); }
+    }
+    .archive-tab.active {
+      background: var(--paper);
+      transform: translateY(3px);
+      z-index: 2;
+    }
+    /* La solapa activa tapa el borde inferior del cuaderno */
+    .archive-tab.active::after {
+      content: "";
+      position: absolute;
+      left: -2px;
+      right: -2px;
+      bottom: -3px;
+      height: 3px;
+      background: var(--paper);
+    }
+    .archive-tab .at-letter {
+      font-family: var(--font-var);
+      font-size: 18px;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .archive-tab.active .at-letter { color: var(--retro-orange); }
+    .archive-tab .at-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .archive-tab .at-strip {
+      width: 22px;
+      height: 4px;
+      border: 1px solid var(--ink);
+    }
+
+    /* Página del cuaderno */
+    .notebook-page {
+      padding: 18px 18px 20px;
+    }
+    /* La tarjeta de grupo ya vive dentro del cuaderno: sin sombra flotante */
+    .notebook-page .group-card {
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .notebook-page .groups-grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* Cabecera de la ficha del grupo */
+    .folder-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      border-bottom: 3px solid var(--ink);
+    }
+    .folder-letter {
+      font-family: var(--font-var);
+      font-size: 34px;
+      line-height: 1;
+      color: var(--paper);
+      background-image: var(--halftone);
+      border: 3px solid var(--ink);
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .folder-titles { flex: 1; min-width: 0; }
+    .folder-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .folder-title {
+      font-family: var(--font-var);
+      font-size: 24px;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .folder-teams {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .folder-nav {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .folder-nav button {
+      all: unset;
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-var);
+      font-size: 16px;
+      color: var(--paper);
+      background: var(--ink);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      touch-action: manipulation;
+    }
+    .folder-nav button:hover { background: var(--retro-orange); }
+    .folder-nav button:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
     }
 
     /* Grid de grupos */
@@ -409,46 +583,21 @@ export class GroupsView extends LitElement {
     .odds-figs .odds-home { color: var(--retro-blue); }
     .odds-figs .odds-away { color: var(--retro-red); }
 
-    /* Group filter chips para móvil */
-    .group-chips {
-      display: none;
-      gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 0 0 14px;
-      -webkit-overflow-scrolling: touch;
-    }
-    .group-chips::-webkit-scrollbar { display: none; }
-    .group-chip {
-      all: unset;
-      cursor: pointer;
-      flex-shrink: 0;
-      padding: 6px 14px;
-      font-family: var(--font-var);
-      font-size: 14px;
-      letter-spacing: 0.03em;
-      border: 2px solid var(--ink);
-      background: var(--paper-2);
-      color: var(--ink);
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      transition: background 0.1s, color 0.1s;
-      touch-action: manipulation;
-    }
-    .group-chip:active { opacity: 0.7; }
-    .group-chip.active {
-      background: var(--retro-orange);
-      color: var(--paper);
-      box-shadow: var(--shadow-hard-sm);
-    }
-
     @media (max-width: 768px) {
-      .group-chips {
-        display: flex;
-      }
       .groups-grid { grid-template-columns: 1fr; }
       .group-card { box-shadow: var(--shadow-hard-sm); }
+      .notebook { box-shadow: var(--shadow-hard-md); }
+      .notebook-page { padding: 14px 12px 16px; }
+      /* Solapas como letra suelta — sin etiqueta para que quepan las 12 */
+      .archive-tabs { padding: 8px 10px 0; gap: 1px; }
+      .archive-tab {
+        min-width: 38px;
+        padding: 7px 2px 6px;
+      }
+      .archive-tab .at-label { display: none; }
+      .archive-tab .at-strip { width: 16px; }
+      .folder-letter { width: 44px; height: 44px; font-size: 26px; }
+      .folder-title { font-size: 18px; }
       .inline-stepper button {
         padding: 4px 8px;
         font-size: 14px;
@@ -472,6 +621,14 @@ export class GroupsView extends LitElement {
 
   private unsubscribeLocale?: () => void;
 
+  // Flechas ←/→ cambian de grupo en el cuaderno (no si el foco está en un input).
+  private _onKeyNav = (e: KeyboardEvent) => {
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); this._stepGroup(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); this._stepGroup(-1); }
+  };
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = subscribeSlice(
@@ -481,6 +638,7 @@ export class GroupsView extends LitElement {
       (a, b) => a.gm === b.gm && a.gs === b.gs,
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    window.addEventListener('keydown', this._onKeyNav);
     if (!this._oddsLoaded) {
       this._oddsLoaded = true;
       getAllOdds().then(odds => {
@@ -492,6 +650,7 @@ export class GroupsView extends LitElement {
   disconnectedCallback() {
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
+    window.removeEventListener('keydown', this._onKeyNav);
     super.disconnectedCallback();
   }
 
@@ -525,57 +684,32 @@ export class GroupsView extends LitElement {
     useTournamentStore.getState().resetTournament();
   }
 
-  private _scrollToGroup(g: string) {
-    if (this._filterGroup === g) {
-      this._filterGroup = null;
-      this.shadowRoot?.querySelector('.group-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    this._filterGroup = g;
-    this.updateComplete.then(() => {
-      const el = this.shadowRoot?.getElementById(`group-${g}`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+  private _selectGroup(g: string) {
+    this._activeGroup = g;
   }
 
-  render() {
-    const store = useTournamentStore.getState();
-    const groups = 'ABCDEFGHIJKL'.split('');
+  private _stepGroup(delta: number) {
+    const idx = GROUPS.indexOf(this._activeGroup);
+    const next = (idx + delta + GROUPS.length) % GROUPS.length;
+    this._activeGroup = GROUPS[next];
+  }
 
-    const playedTotal = store.groupMatches.filter(m => m.scoreA !== null).length;
-    const showThirds = playedTotal > 0;
-    const bestThirds = showThirds ? store.getBestThirds() : [];
+  /** Una tarjeta de grupo (standings + partidos), reutilizada en el cuaderno. */
+  private renderGroupCard(g: string, gIdx: number): TemplateResult {
+    const store = useTournamentStore.getState();
+    const standings = store.groupStandings[g] || [];
+    const matches = store.groupMatches
+      .filter(m => m.group === g)
+      .sort((a, b) => {
+        const da = a.date ?? '';
+        const db = b.date ?? '';
+        if (da !== db) return da < db ? -1 : 1;
+        return (a.matchDay ?? 0) - (b.matchDay ?? 0);
+      });
+    const playedCount = matches.filter(m => m.scoreA !== null).length;
+    const accentColor = GROUP_COLORS[gIdx % 4];
 
     return html`
-      <div class="group-actions">
-        <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
-        <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
-      </div>
-
-      <div class="group-chips">
-        ${'ABCDEFGHIJKL'.split('').map(g => html`
-          <button
-            class="group-chip ${this._filterGroup === g ? 'active' : ''}"
-            @click="${() => this._scrollToGroup(g)}"
-            aria-label="${t('groups.group', { letter: g })}">${g}</button>
-        `)}
-      </div>
-
-      <div class="groups-grid">
-        ${groups.map((g, gIdx) => {
-          const standings = store.groupStandings[g] || [];
-          const matches = store.groupMatches
-            .filter(m => m.group === g)
-            .sort((a, b) => {
-              const da = a.date ?? '';
-              const db = b.date ?? '';
-              if (da !== db) return da < db ? -1 : 1;
-              return (a.matchDay ?? 0) - (b.matchDay ?? 0);
-            });
-          const playedCount = matches.filter(m => m.scoreA !== null).length;
-          const accentColor = GROUP_COLORS[gIdx % 4];
-
-          return html`
             <div class="group-card" id="group-${g}" style="--i:${gIdx}">
               <!-- Cabecera coloreada con halftone -->
               <div class="group-header" style="background-color: ${accentColor}">
@@ -710,7 +844,77 @@ export class GroupsView extends LitElement {
               </div>
             </div>
           `;
-        })}
+  }
+
+  render() {
+    const store = useTournamentStore.getState();
+    const activeIdx = GROUPS.indexOf(this._activeGroup);
+    const activeStandings = store.groupStandings[this._activeGroup] || [];
+    const activeTeamNames: string[] = [];
+    for (const s of activeStandings) {
+      const tm = this.getTeam(s.teamId);
+      activeTeamNames.push(tm?.shortName ?? s.teamId);
+    }
+    const headTeamName = activeTeamNames[0];
+
+    const playedTotal = store.groupMatches.filter(m => m.scoreA !== null).length;
+    const showThirds = playedTotal > 0;
+    const bestThirds = showThirds ? store.getBestThirds() : [];
+
+    return html`
+      <div class="group-actions">
+        <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
+        <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
+      </div>
+
+      <div class="notebook">
+        <!-- Solapas tipo carpeta de archivo -->
+        <div class="archive-tabs" role="tablist">
+          ${GROUPS.map((g, gIdx) => {
+            const isActive = g === this._activeGroup;
+            const accentColor = GROUP_COLORS[gIdx % 4];
+            return html`
+              <button
+                class="archive-tab ${isActive ? 'active' : ''}"
+                role="tab"
+                aria-selected="${isActive}"
+                aria-label="${t('groups.tabAria', { letter: g })}"
+                @click="${() => this._selectGroup(g)}">
+                <span class="at-letter">${g}</span>
+                <span class="at-label">${t('groups.group', { letter: g })}</span>
+                <span class="at-strip" style="background:${accentColor}"></span>
+              </button>
+            `;
+          })}
+        </div>
+
+        <!-- Página del grupo activo -->
+        <div class="notebook-page" role="tabpanel" key="${this._activeGroup}">
+          <div class="folder-head">
+            <div class="folder-letter" style="background-color:${GROUP_COLORS[activeIdx % 4]}">
+              ${this._activeGroup}
+            </div>
+            <div class="folder-titles">
+              <div class="folder-eyebrow">${t('groups.folderEyebrow')}</div>
+              <div class="folder-title">
+                ${headTeamName
+                  ? t('groups.folderTitle', { team: headTeamName.toUpperCase() })
+                  : t('groups.group', { letter: this._activeGroup })}
+              </div>
+              <div class="folder-teams">
+                ${activeTeamNames.join(' · ')}
+              </div>
+            </div>
+            <div class="folder-nav">
+              <button aria-label="${t('groups.prevGroup')}" @click="${() => this._stepGroup(-1)}">‹</button>
+              <button aria-label="${t('groups.nextGroup')}" @click="${() => this._stepGroup(1)}">›</button>
+            </div>
+          </div>
+
+          <div class="groups-grid">
+            ${this.renderGroupCard(this._activeGroup, activeIdx)}
+          </div>
+        </div>
       </div>
 
       ${showThirds && bestThirds.length > 0 ? html`
