@@ -1432,7 +1432,7 @@ export class GuideView extends LitElement {
         ${this._renderTeamCalendar(team, locale)}
 
         <div class="running-footer">
-          <span>BRACKET MUNDIAL · bracketmundial.com</span>
+          <span>${t('guide.brandFooter')}</span>
           <span class="pagenum">${String(index + 1).padStart(2, '0')}A</span>
           <span>${team.name} · ${t('guide.group', { letter: team.group })}</span>
         </div>
@@ -1523,7 +1523,7 @@ export class GuideView extends LitElement {
                         ? html`<div class="photo-frame" style="background-image:url('${photo}')"></div>`
                         : getInitials(player.name)}
                       <div class="number-sticker">${num}</div>
-                      ${player.captain ? html`<div class="captain-mark">CAP</div>` : ''}
+                      ${player.captain ? html`<div class="captain-mark">${t('guide.captainBadge')}</div>` : ''}
                     </div>
                     <div class="player-name">${getLastName(player.name)}</div>
                   </div>
@@ -1599,7 +1599,7 @@ export class GuideView extends LitElement {
                 </div>
                 <div class="cal-venue">
                   ${m.city || m.venue}<br />
-                  <span class="stage">${team.group} · J${m.matchDay ?? ''}</span>
+                  <span class="stage">${team.group} · ${t('guide.matchdayShort', { n: String(m.matchDay ?? '') })}</span>
                 </div>
               </div>
             `;
@@ -1714,7 +1714,7 @@ export class GuideView extends LitElement {
         </div>
 
         <div class="running-footer">
-          <span>BRACKET MUNDIAL · bracketmundial.com</span>
+          <span>${t('guide.brandFooter')}</span>
           <span class="pagenum">${String(index + 1).padStart(2, '0')}B</span>
           <span>${team.name} · ${t('guide.squadTitle')}</span>
         </div>
@@ -1752,26 +1752,20 @@ export class GuideView extends LitElement {
           <div class="steps">
             <div>
               <div class="num y">01</div>
-              <div class="txt">${this._data?.locale === 'es'
-                ? 'Simulación con consenso de odds'
-                : 'Simulation from odds consensus'}</div>
+              <div class="txt">${t('guide.predictionStep1')}</div>
             </div>
             <div>
               <div class="num o">02</div>
-              <div class="txt">${this._data?.locale === 'es'
-                ? 'Penaltis cuando hay empate'
-                : 'Penalties on a draw'}</div>
+              <div class="txt">${t('guide.predictionStep2')}</div>
             </div>
             <div>
               <div class="num y">03</div>
-              <div class="txt">${this._data?.locale === 'es'
-                ? 'Recálculo en cada actualización'
-                : 'Recomputed on every update'}</div>
+              <div class="txt">${t('guide.predictionStep3')}</div>
             </div>
           </div>
         </div>
         <div class="running-footer">
-          <span>BRACKET MUNDIAL · bracketmundial.com</span>
+          <span>${t('guide.brandFooter')}</span>
           <span class="pagenum">★</span>
           <span>${t('guide.predictionSection')}</span>
         </div>

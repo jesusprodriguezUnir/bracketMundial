@@ -1146,14 +1146,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       <div class="cronica-block">
         <div class="section-label">
           <span class="section-num" style="background:var(--retro-blue)">01</span>
-          <span class="section-title">CRÓNICA · PREVIA</span>
+          <span class="section-title">${t('modal.previewSection')}</span>
           ${this._preview?.title ? html`<span class="cronica-headline">${this._preview.title}</span>` : ''}
           <div class="section-rule"></div>
         </div>
         <p class="cronica-text">${text}</p>
         ${hasChronicle ? html`
           <button class="cronica-link" @click="${() => { this._chronicleOpen = !this._chronicleOpen; }}">
-            ${this._chronicleOpen ? 'OCULTAR CRÓNICA ←' : 'LEER CRÓNICA COMPLETA →'}
+            ${this._chronicleOpen ? t('modal.hideChronicle') : t('modal.readChronicle')}
           </button>
           ${this._chronicleOpen ? html`
             <div class="cronica-full" .innerHTML="${this._preview!.chronicleHtml}"></div>
@@ -1170,9 +1170,11 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       <div class="prob-block">
         <div class="section-label">
           <span class="section-num" style="background:var(--retro-orange)">02</span>
-          <span class="section-title">PROBABILIDADES</span>
+          <span class="section-title">${t('modal.probabilitiesSection')}</span>
           <span style="font-family:var(--font-mono);font-size:8px;color:var(--dim);margin-left:4px">
-            ${this._odds.source === 'market' ? `(${this._odds.bookmakers} casas)` : '(estimado)'}
+            ${this._odds.source === 'market'
+              ? t('modal.oddsBookmakers', { n: String(this._odds.bookmakers) })
+              : t('modal.oddsEstimate')}
           </span>
           <div class="section-rule"></div>
         </div>
@@ -1184,9 +1186,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
           .showLegend=${true}
           .showFigures=${false}
           .inBarValues=${true}
-          homeLabel=${`1 GANA ${tA.shortName}`}
-          drawLabel="X EMPATE"
-          awayLabel=${`2 GANA ${tB.shortName}`}></odds-bar>
+          homeLabel=${t('modal.oddsHomeLabel', { team: tA.shortName })}
+          drawLabel=${t('modal.oddsDrawLabel')}
+          awayLabel=${t('modal.oddsAwayLabel', { team: tB.shortName })}></odds-bar>
       </div>
     `;
   }
@@ -1204,7 +1206,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       <div class="pitch-block">
         <div class="section-label">
           <span class="section-num" style="background:var(--retro-green)">03</span>
-          <span class="section-title">ALINEACIONES PROBABLES</span>
+          <span class="section-title">${t('modal.lineupsSection')}</span>
           <div class="section-rule"></div>
         </div>
         <div class="pitch-field">
@@ -1288,9 +1290,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
           ${(() => {
             const info = getBroadcastInfo(this.matchId, this.teamA, this.teamB);
             if (info === 'BOTH') {
-              return html`<span class="ticket-broadcast">RTVE + DAZN</span>`;
+              return html`<span class="ticket-broadcast">${t('modal.broadcastShared')}</span>`;
             }
-            return html`<span class="ticket-broadcast exclusive">DAZN</span>`;
+            return html`<span class="ticket-broadcast exclusive">${t('modal.broadcastExclusive')}</span>`;
           })()}
           <button class="ticket-close" @click="${this.close}" aria-label="${t('modal.close')}">✕</button>
         </div>
@@ -1317,7 +1319,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
                 </div>
                 <span class="score-final-badge">${scoreBadgeText}</span>
               `
-              : html`<div class="score-tbd">vs</div>`
+              : html`<div class="score-tbd">${t('modal.vs')}</div>`
             }
           </div>
 
@@ -1382,7 +1384,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
                       aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
                   </div>
 
-                  <span class="penalties-badge">Pen</span>
+                  <span class="penalties-badge">${t('modal.penShort')}</span>
 
                   <div class="score-input">
                     <button

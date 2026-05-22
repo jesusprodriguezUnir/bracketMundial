@@ -620,7 +620,7 @@ export class GroupsView extends LitElement {
                         <div class="match-teams">
                           ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                           <strong>${tA?.shortName ?? m.teamA}</strong>
-                          <span class="vs">vs</span>
+                          <span class="vs">${t('groups.vs')}</span>
                           ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                           <strong>${tB?.shortName ?? m.teamB}</strong>
                         </div>
@@ -652,10 +652,10 @@ export class GroupsView extends LitElement {
                         const o = this._odds[m.matchId];
                         if (!o) return '';
                         const srcLabel = o.source === 'market'
-                          ? `${o.bookmakers} casas de apuestas`
-                          : 'estimación del modelo';
+                          ? t('groups.oddsBookmakers', { n: String(o.bookmakers) })
+                          : t('groups.oddsEstimate');
                         return html`
-                          <div class="odds-wrap" title="Probabilidad 1X2 — ${srcLabel}">
+                          <div class="odds-wrap" title="${t('groups.oddsTitle', { source: srcLabel })}">
                             <odds-bar
                               .home=${o.home}
                               .draw=${o.draw}
@@ -667,7 +667,7 @@ export class GroupsView extends LitElement {
                         `;
                       })()}
                       <div class="match-meta">
-                        <span class="jornada">J${m.matchDay}</span>
+                        <span class="jornada">${t('groups.matchdayShort', { n: String(m.matchDay) })}</span>
                         ${m.date ? html`<span>${formatDate(m.date)}</span>` : ''}
                         ${m.timeSpain ? html`<span style="color: var(--retro-yellow); font-weight: bold;">· ${m.timeSpain} ESP</span>` : ''}
                         ${m.city ? html`<span>· ${m.city}</span>` : ''}
@@ -693,13 +693,13 @@ export class GroupsView extends LitElement {
 
       ${showThirds && bestThirds.length > 0 ? html`
         <div class="thirds-section">
-          <div class="thirds-header">★ MEJORES 8 TERCEROS CLASIFICADOS</div>
+          <div class="thirds-header">${t('groups.thirdsHeader')}</div>
           <table class="thirds-table">
             <thead>
               <tr>
                 <th class="col-rank">#</th>
-                <th>EQUIPO</th>
-                <th class="col-stat">GRP</th>
+                <th>${t('groups.tableTeam')}</th>
+                <th class="col-stat">${t('groups.tableGroup')}</th>
                 <th class="col-stat">${t('groups.statGD')}</th>
                 <th class="col-pts-val">${t('groups.statPTS')}</th>
                 <th></th>
