@@ -1046,7 +1046,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   // ─── V2-Cancha helpers ────────────────────────────────────────────
 
   private _getFormationPositions(formation: string): { x: number; y: number }[] {
-    const parts = formation.split('-').map(Number).filter(n => !isNaN(n) && n > 0);
+    const parts = formation.split('-').map(Number).filter(n => !Number.isNaN(n) && n > 0);
     if (parts.length === 0) return [];
     const rows = [1, ...parts];
     const fieldRowCount = parts.length;
@@ -1143,6 +1143,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     const text = this._preview?.previewText
       ?? this._generatePreview(tA.name, tB.name, COACHES[this.teamA]?.name, COACHES[this.teamB]?.name);
     const hasChronicle = !!this._preview?.chronicleHtml;
+    const chronicleToggleLabel = this._chronicleOpen ? t('modal.hideChronicle') : t('modal.readChronicle');
+    const chronicleContent = this._chronicleOpen
+      ? html`<div class="cronica-full" .innerHTML="${this._preview!.chronicleHtml}"></div>`
+      : '';
     return html`
       <div class="cronica-block">
         <div class="section-label">
@@ -1154,11 +1158,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         <p class="cronica-text">${text}</p>
         ${hasChronicle ? html`
           <button class="cronica-link" @click="${() => { this._chronicleOpen = !this._chronicleOpen; }}">
-            ${this._chronicleOpen ? t('modal.hideChronicle') : t('modal.readChronicle')}
+            ${chronicleToggleLabel}
           </button>
-          ${this._chronicleOpen ? html`
-            <div class="cronica-full" .innerHTML="${this._preview!.chronicleHtml}"></div>
-          ` : ''}
+          ${chronicleContent}
         ` : ''}
       </div>
     `;
@@ -1203,6 +1205,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     const awayLineup = getLineup(this.teamB);
     const homeCoach = COACHES[this.teamA];
     const awayCoach = COACHES[this.teamB];
+    const homeFormation = homeLineup?.formation ?? '';
+    const awayFormation = awayLineup?.formation ?? '';
+    const homeCoachSuffix = homeCoach ? ` · ${homeCoach.name}` : '';
+    const awayCoachSuffix = awayCoach ? ` · ${awayCoach.name}` : '';
     return html`
       <div class="pitch-block">
         <div class="section-label">
@@ -1235,12 +1241,12 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
           ${homeLineup || homeCoach ? html`
             <div class="pitch-dt home">
-              ${tA.flag}&nbsp;${homeLineup?.formation ?? ''}${homeCoach ? ` · ${homeCoach.name}` : ''}
+              ${tA.flag}&nbsp;${homeFormation}${homeCoachSuffix}
             </div>
           ` : ''}
           ${awayLineup || awayCoach ? html`
             <div class="pitch-dt away">
-              ${awayLineup?.formation ?? ''}${awayCoach ? ` · ${awayCoach.name}` : ''}&nbsp;${tB.flag}
+              ${awayFormation}${awayCoachSuffix}&nbsp;${tB.flag}
             </div>
           ` : ''}
         </div>
