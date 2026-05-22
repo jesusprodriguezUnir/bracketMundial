@@ -230,6 +230,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 ### 7.8 `auth-modal.ts` — Promise sin resolver si se cierra sin elegir
 - `auth-modal.ts:450-452` → patrón `setResolve(fn)`. Si el modal se cierra sin resolver, la Promise queda colgada (memory leak).
 - **Solución:** Resolver con `reject` o valor por defecto en `disconnectedCallback`.
+- **Realizado mayo 2026:** `SyncConflictModal` ahora liquida siempre la Promise con `'cloud'`, `'local'` o `'dismissed'`. También soporta cierre por Escape, click en backdrop y `remove()` programático sin dejar Promises colgadas. `prediction-sync.ts` trata `'dismissed'` como no-op para no sobrescribir ni la copia local ni la nube.
 
 ---
 
@@ -374,7 +375,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 | P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Hecho |
 | P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Hecho |
 | P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Hecho |
-| P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Pendiente |
+| P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Hecho |
 
 ### Sprint 3 — Refactor del bracket
 

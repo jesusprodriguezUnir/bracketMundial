@@ -19,7 +19,7 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
   private _unsubLocale?: () => void;
   private _resendTimer?: ReturnType<typeof setInterval>;
 
-  static override styles = [retroButton, css`
+  static override readonly styles = [retroButton, css`
     :host {
       position: fixed;
       inset: 0;
@@ -335,12 +335,22 @@ export function openAuthModal(): void {
 // Sync conflict modal — returns a Promise resolved by user choice
 // -----------------------------------------------------------------------
 
+type SyncConflictChoice = 'cloud' | 'local' | 'dismissed';
+
 @customElement('sync-conflict-modal')
 class SyncConflictModal extends LitElement {
   cloudDate = '';
-  private _resolve?: (choice: 'cloud' | 'local') => void;
+  private _resolve?: (choice: SyncConflictChoice) => void;
+  private _isSettled = false;
 
-  static override styles = css`
+  private readonly _handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') this._dismiss();
+  };
+  private readonly _handleHostClick = (event: MouseEvent) => {
+    if (event.composedPath()[0] === this) this._dismiss();
+  };
+
+  static override readonly styles = css`
     :host {
       position: fixed;
       inset: 0;
@@ -398,12 +408,38 @@ class SyncConflictModal extends LitElement {
     .btn-local { background: var(--paper-2); color: var(--ink); }
   `;
 
-  setResolve(fn: (choice: 'cloud' | 'local') => void) {
+  override connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener('keydown', this._handleKeydown);
+    this.addEventListener('click', this._handleHostClick);
+  }
+
+  override disconnectedCallback() {
+    document.removeEventListener('keydown', this._handleKeydown);
+    this.removeEventListener('click', this._handleHostClick);
+    if (!this._isSettled) {
+      this._settle('dismissed');
+    }
+    super.disconnectedCallback();
+  }
+
+  setResolve(fn: (choice: SyncConflictChoice) => void) {
     this._resolve = fn;
   }
 
-  private _choose(choice: 'cloud' | 'local') {
+  private _settle(choice: SyncConflictChoice) {
+    if (this._isSettled) return;
+    this._isSettled = true;
     this._resolve?.(choice);
+  }
+
+  private _dismiss() {
+    this._settle('dismissed');
+    this.remove();
+  }
+
+  private _choose(choice: 'cloud' | 'local') {
+    this._settle(choice);
     this.remove();
   }
 
@@ -421,7 +457,7 @@ class SyncConflictModal extends LitElement {
   }
 }
 
-export function openSyncConflictModal(cloudDate: string): Promise<'cloud' | 'local'> {
+export function openSyncConflictModal(cloudDate: string): Promise<SyncConflictChoice> {
   return new Promise((resolve) => {
     const existing = document.querySelector('sync-conflict-modal');
     if (existing) existing.remove();

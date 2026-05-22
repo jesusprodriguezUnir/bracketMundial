@@ -114,7 +114,7 @@ export async function onSignedIn(): Promise<void> {
   if (choice === 'cloud') {
     const decoded = decodeBracket(cloudStr);
     if (decoded) useTournamentStore.getState().applySharedBracket(decoded);
-  } else {
+  } else if (choice === 'local') {
     await pushNow();
   }
   startSync();
