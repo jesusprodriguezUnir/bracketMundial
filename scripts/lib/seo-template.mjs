@@ -56,8 +56,8 @@ export function renderPage(p) {
     <meta name="twitter:description" content="${p.description}" />
     <meta name="twitter:image" content="${OG_IMAGE}" />
     <title>${p.title}</title>
-    <meta name="google-adsense-account" content="ca-pub-8196395794772309">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8196395794772309"
+    <meta name="google-adsense-account" content="ca-pub-2301364261266891">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2301364261266891"
      crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

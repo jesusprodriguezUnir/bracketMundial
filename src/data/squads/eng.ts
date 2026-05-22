@@ -4,7 +4,6 @@ export const squad: Player[] = [
   { number: 13, name: 'Aaron Ramsdale', position: 'GK', age: 28, club: 'Newcastle United' },
   { number: 23, name: 'Dean Henderson', position: 'GK', age: 29, club: 'Crystal Palace' },
   { number: 2, name: 'Kyle Walker', position: 'DF', age: 36, club: 'Manchester City' },
-  { number: 3, name: 'Luke Shaw', position: 'DF', age: 31, club: 'Manchester United' },
   { number: 4, name: 'John Stones', position: 'DF', age: 32, club: 'Manchester City' },
   { number: 5, name: 'Marc Guéhi', position: 'DF', age: 26, club: 'Manchester City' },
   { number: 6, name: 'Lewis Dunk', position: 'DF', age: 34, club: 'Brighton' },
@@ -30,5 +29,5 @@ export const squad: Player[] = [
 
 export const lineup = {
   formation: '4-2-3-1',
-  startingXI: [1, 3, 5, 4, 2, 8, 18, 25, 10, 7, 9]
+  startingXI: [1, 16, 5, 4, 2, 8, 18, 25, 10, 7, 9]
 };
