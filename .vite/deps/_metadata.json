@@ -1,73 +1,49 @@
 {
-  "hash": "35fee1b1",
+  "hash": "f01469f0",
   "configHash": "ab83f534",
-  "lockfileHash": "cb4460c6",
-  "browserHash": "fc485342",
+  "lockfileHash": "86a69688",
+  "browserHash": "44962e50",
   "optimized": {
-    "@capacitor/app": {
-      "src": "../../node_modules/@capacitor/app/dist/esm/index.js",
-      "file": "@capacitor_app.js",
-      "fileHash": "120a2a2d",
-      "needsInterop": false
-    },
-    "@capacitor/core": {
-      "src": "../../node_modules/@capacitor/core/dist/index.js",
-      "file": "@capacitor_core.js",
-      "fileHash": "35d2fe31",
-      "needsInterop": false
-    },
-    "@capacitor/splash-screen": {
-      "src": "../../node_modules/@capacitor/splash-screen/dist/esm/index.js",
-      "file": "@capacitor_splash-screen.js",
-      "fileHash": "49a6d775",
-      "needsInterop": false
-    },
-    "@capacitor/status-bar": {
-      "src": "../../node_modules/@capacitor/status-bar/dist/esm/index.js",
-      "file": "@capacitor_status-bar.js",
-      "fileHash": "909cec77",
-      "needsInterop": false
-    },
     "@supabase/supabase-js": {
       "src": "../../node_modules/@supabase/supabase-js/dist/index.mjs",
       "file": "@supabase_supabase-js.js",
-      "fileHash": "f9ab894e",
+      "fileHash": "8cc0338b",
       "needsInterop": false
     },
     "@vercel/analytics": {
       "src": "../../node_modules/@vercel/analytics/dist/index.mjs",
       "file": "@vercel_analytics.js",
-      "fileHash": "8d1ad72a",
+      "fileHash": "0cb363bb",
       "needsInterop": false
     },
     "@vercel/speed-insights": {
       "src": "../../node_modules/@vercel/speed-insights/dist/index.mjs",
       "file": "@vercel_speed-insights.js",
-      "fileHash": "b37746ce",
+      "fileHash": "37c646c8",
       "needsInterop": false
     },
     "lit": {
       "src": "../../node_modules/lit/index.js",
       "file": "lit.js",
-      "fileHash": "4d3c703b",
+      "fileHash": "15196174",
       "needsInterop": false
     },
     "lit/decorators.js": {
       "src": "../../node_modules/lit/decorators.js",
       "file": "lit_decorators__js.js",
-      "fileHash": "e0f94d09",
+      "fileHash": "554cb224",
       "needsInterop": false
     },
     "zustand/middleware": {
       "src": "../../node_modules/zustand/esm/middleware.mjs",
       "file": "zustand_middleware.js",
-      "fileHash": "61811661",
+      "fileHash": "b957b91e",
       "needsInterop": false
     },
     "zustand/vanilla": {
       "src": "../../node_modules/zustand/esm/vanilla.mjs",
       "file": "zustand_vanilla.js",
-      "fileHash": "43998f7a",
+      "fileHash": "3538a674",
       "needsInterop": false
     }
   },
@@ -75,14 +51,6 @@
     "reactive-element-ClMeNGvs": {
       "file": "reactive-element-ClMeNGvs.js",
       "isDynamicEntry": false
-    },
-    "web-BjRl0wNr": {
-      "file": "web-BjRl0wNr.js",
-      "isDynamicEntry": true
-    },
-    "web-i1IkzYRc": {
-      "file": "web-i1IkzYRc.js",
-      "isDynamicEntry": true
     }
   }
 }

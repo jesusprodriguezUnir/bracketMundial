@@ -17,8 +17,24 @@ import { syncKnockoutBracket } from '../lib/bracket-logic';
 import { expectedProbabilities, sampleResult } from '../lib/odds-model';
 import { TEAM_STRENGTH } from '../data/team-strength';
 import { ODDS_SEED } from '../data/odds/seed';
+import { getTeamMeta, type TeamMeta } from '../data/team-meta';
 import { useLocaleStore } from '../i18n';
 import { useTournamentStore } from '../store/tournament-store';
+
+/** A key player highlight derived from the squad (captain / star / wonderkid). */
+export interface GuideKeyPlayer {
+  number: number;
+  name: string;
+  position: 'GK' | 'DF' | 'MF' | 'FW';
+  age: number;
+  club: string;
+}
+
+/** Quick aggregate stats derived from the squad. */
+export interface GuideSquadStats {
+  avgAge: number;
+  count: number;
+}
 
 export interface GuideTeamData {
   teamId: string;
@@ -32,6 +48,16 @@ export interface GuideTeamData {
   hasCoachPhoto: boolean;
   coachPhotoUrl: string;
   players: Array<Player & { hasPhoto: boolean; photoUrl: string }>;
+  meta: TeamMeta;
+  /** Predicted group position (1-4) from the simulated standings. */
+  groupPosition: number;
+  /** This team's three group-stage matches, in matchday order. */
+  groupMatches: GuideMatch[];
+  /** Derived highlights for the squad sidebar. */
+  captain: GuideKeyPlayer | null;
+  starPlayer: GuideKeyPlayer | null;
+  wonderkid: GuideKeyPlayer | null;
+  squadStats: GuideSquadStats;
 }
 
 export interface GuideMatch {
@@ -73,17 +99,63 @@ function getTeamName(teamId: string): string {
   return TEAMS_2026.find(t => t.id === teamId)?.name ?? teamId;
 }
 
-function buildGuideTeamData(teamId: string): GuideTeamData {
+function toKeyPlayer(p: Player | undefined): GuideKeyPlayer | null {
+  if (!p) return null;
+  return { number: p.number, name: p.name, position: p.position, age: p.age, club: p.club };
+}
+
+/** Star player: an outfield starter, preferring forwards/attacking mids over the captain. */
+function pickStarPlayer(squad: Player[], lineup: Lineup | null, captain: Player | undefined): Player | undefined {
+  const starting = lineup ? squad.filter(p => lineup.startingXI.includes(p.number)) : squad;
+  const posRank = { FW: 0, MF: 1, DF: 2, GK: 3 } as const;
+  const candidates = starting
+    .filter(p => p.position !== 'GK' && p.number !== captain?.number)
+    .sort((a, b) => posRank[a.position] - posRank[b.position]);
+  return candidates[0] ?? starting.find(p => p.number !== captain?.number);
+}
+
+/** Wonderkid: the youngest player in the squad (must be 23 or under to qualify). */
+function pickWonderkid(squad: Player[]): Player | undefined {
+  const youngest = [...squad].sort((a, b) => a.age - b.age)[0];
+  return youngest && youngest.age <= 23 ? youngest : undefined;
+}
+
+function buildSquadStats(squad: Player[]): GuideSquadStats {
+  if (squad.length === 0) return { avgAge: 0, count: 0 };
+  const totalAge = squad.reduce((sum, p) => sum + p.age, 0);
+  return {
+    avgAge: Math.round((totalAge / squad.length) * 10) / 10,
+    count: squad.length,
+  };
+}
+
+function buildGuideTeamData(
+  teamId: string,
+  standings: Record<string, GroupStanding[]>,
+  groupMatches: GuideMatch[],
+): GuideTeamData {
   const team = TEAMS_2026.find(t => t.id === teamId);
   const coach = COACHES[teamId] ?? null;
   const squad = SQUADS[teamId] ?? [];
   const lineup = LINEUPS[teamId] ?? null;
+  const group = team?.group ?? '?';
+
+  const captain = squad.find(p => p.captain);
+  const starPlayer = pickStarPlayer(squad, lineup, captain);
+  const wonderkid = pickWonderkid(squad);
+
+  const groupStanding = standings[group] ?? [];
+  const groupPosition = Math.max(1, groupStanding.findIndex(s => s.teamId === teamId) + 1);
+
+  const ownGroupMatches = groupMatches
+    .filter(m => m.teamA === teamId || m.teamB === teamId)
+    .sort((a, b) => (a.matchDay ?? 0) - (b.matchDay ?? 0));
 
   return {
     teamId,
     name: team?.name ?? teamId,
     shortName: team?.shortName ?? teamId,
-    group: team?.group ?? '?',
+    group,
     flagUrl: team?.flagUrl ?? '',
     coach,
     squad,
@@ -95,6 +167,13 @@ function buildGuideTeamData(teamId: string): GuideTeamData {
       hasPhoto: hasPlayerPhoto(teamId, p.number),
       photoUrl: playerPhotoSrc(teamId, p.number),
     })),
+    meta: getTeamMeta(teamId),
+    groupPosition,
+    groupMatches: ownGroupMatches,
+    captain: toKeyPlayer(captain),
+    starPlayer: toKeyPlayer(starPlayer),
+    wonderkid: toKeyPlayer(wonderkid),
+    squadStats: buildSquadStats(squad),
   };
 }
 
@@ -257,9 +336,9 @@ export function generateGuideData(mode: 'auto' | 'user'): GuideData {
     knockoutMatches = state.knockoutMatches;
   }
 
-  const teams = TEAMS_2026.map(t => buildGuideTeamData(t.id));
-
   const formattedGroupMatches = groupMatches.map(formatGroupMatch);
+
+  const teams = TEAMS_2026.map(t => buildGuideTeamData(t.id, standings, formattedGroupMatches));
 
   // Ensure all knockout matches exist (some may not be generated yet)
   const allKnockoutIds = getKnockoutMatchOrder();

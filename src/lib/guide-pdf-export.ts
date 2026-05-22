@@ -70,35 +70,10 @@ async function sectionToJpeg(
   return { imgData, pxW, pxH };
 }
 
-/** Inject a running header and page footer into a cloned section (skipped for cover). */
-function decorateSection(
-  section: HTMLElement,
-  pageNum: number,
-  totalPages: number
-): void {
-  if (section.classList.contains('cover-page')) return;
-
-  const titleEl =
-    section.querySelector<HTMLElement>('.section-title') ||
-    section.querySelector<HTMLElement>('.team-sheet-name');
-  const sectionTitle = titleEl?.textContent?.trim() || '';
-
-  const header = document.createElement('div');
-  header.className = 'pdf-running-header';
-  header.innerHTML = `<span>${sectionTitle}</span><span>Mundial 2026</span>`;
-
-  const footer = document.createElement('div');
-  footer.className = 'pdf-page-footer';
-  footer.textContent = `${pageNum} / ${totalPages} · Guía Mundial 2026`;
-
-  section.insertBefore(header, section.firstChild);
-  section.appendChild(footer);
-}
-
 /**
  * Generate a multi-page PDF from the rendered guide-view shadow DOM.
- * Each section (.cover-page, .section-page, .team-sheet, .prediction-page)
- * becomes one page at its natural content height.
+ * Each section (.cover-page, .team-sheet, .prediction-page) is an A4-sized
+ * .page element that already carries its own running header and footer.
  *
  * @param shadowRoot  Shadow root of the <guide-view> element.
  * @param onProgress  Optional callback invoked with (current, total) after each page capture.
@@ -131,22 +106,16 @@ export async function exportGuidePdf(
   const { host, clone } = await prepareGuideCloneForExport(shadowRoot, guideDoc);
 
   try {
-    const sections = Array.from(
-      clone.querySelectorAll<HTMLElement>(
-        '.cover-page, .section-page, .team-sheet, .prediction-page'
-      )
-    );
-    if (sections.length === 0) throw new Error('No printable sections found in guide-view');
+    const sections = Array.from(clone.querySelectorAll<HTMLElement>('.page'));
+    if (sections.length === 0) throw new Error('No printable pages found in guide-view');
 
     const A4_W_MM = 210;
 
     // --- Capture all sections sequentially ---
     const captures: { imgData: string; mmH: number }[] = [];
-    const totalContentPages = sections.length - 1;
     for (let i = 0; i < sections.length; i++) {
       onProgress?.(i, sections.length);
       const section = sections[i];
-      decorateSection(section, i, totalContentPages);
       const { imgData, pxW, pxH } = await sectionToJpeg(section, paperColor);
       // Scale height proportionally using the same width seen on screen.
       const mmH = Math.ceil((pxH / pxW) * A4_W_MM);
