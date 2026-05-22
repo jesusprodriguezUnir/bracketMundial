@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 22/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 23/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 80 fotos faltantes en 23 equipos (1150/1230 cubiertos)  
+**Jugadores:** 75 fotos faltantes en 22 equipos (1159/1234 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -18,7 +18,6 @@
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | SEN | 28 | 23 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
-| CPV | 23 | 19 | ❌ 4 | ✅ |
 | PAN | 23 | 19 | ❌ 4 | ✅ |
 | POR | 27 | 23 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
@@ -26,12 +25,12 @@
 | IRN | 26 | 23 | ❌ 3 | ✅ |
 | NOR | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
-| CRO | 26 | 24 | ❌ 2 | ✅ |
 | NED | 26 | 24 | ❌ 2 | ✅ |
 | TUR | 23 | 21 | ❌ 2 | ✅ |
 | AUS | 27 | 26 | ❌ 1 | ✅ |
 | CIV | 26 | 25 | ❌ 1 | ✅ |
 | COL | 23 | 22 | ❌ 1 | ✅ |
+| CPV | 26 | 25 | ❌ 1 | ✅ |
 | ECU | 23 | 22 | ❌ 1 | ✅ |
 | SWE | 26 | 25 | ❌ 1 | ✅ |
 | USA | 32 | 31 | ❌ 1 | ✅ |
@@ -41,9 +40,10 @@
 | BIH | 26 | 26 | ✅ 0 | ✅ |
 | BRA | 26 | 26 | ✅ 0 | ✅ |
 | CAN | 27 | 27 | ✅ 0 | ✅ |
+| CRO | 26 | 26 | ✅ 0 | ✅ |
 | CUW | 26 | 26 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
-| ENG | 25 | 25 | ✅ 0 | ✅ |
+| ENG | 26 | 26 | ✅ 0 | ✅ |
 | ESP | 26 | 26 | ✅ 0 | ✅ |
 | FRA | 27 | 27 | ✅ 0 | ✅ |
 | GER | 26 | 26 | ✅ 0 | ✅ |
@@ -120,13 +120,6 @@
 - `#22` Khusayin Norchaev
 - `#23` Dilshodbek Hamidov
 
-### CPV — faltan 4 fotos
-
-- `#11` Benchimol
-- `#15` Jeffry Fortes
-- `#16` Dérick Poloni
-- `#23` Dylan Silva
-
 ### PAN — faltan 4 fotos
 
 - `#10` Édgar Bárcenas
@@ -171,11 +164,6 @@
 - `#21` Alberto Espínola
 - `#23` Diego Melgarejo
 
-### CRO — faltan 2 fotos
-
-- `#14` Nikola Moro
-- `#15` Toni Fruk
-
 ### NED — faltan 2 fotos
 
 - `#26` Jurriën Timber
@@ -197,6 +185,10 @@
 ### COL — faltan 1 foto
 
 - `#23` Kevin Mier
+
+### CPV — faltan 1 foto
+
+- `#25` 'Diney' Borges
 
 ### ECU — faltan 1 foto
 

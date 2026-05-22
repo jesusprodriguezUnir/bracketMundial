@@ -320,6 +320,8 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'CRO-11',
   'CRO-12',
   'CRO-13',
+  'CRO-14',
+  'CRO-15',
   'CRO-17',
   'CRO-18',
   'CRO-19',
