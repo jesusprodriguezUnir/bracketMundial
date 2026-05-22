@@ -21,16 +21,7 @@ import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
 import { getOddsForMatch } from '../lib/odds-service';
 import type { MatchOdds } from '../lib/odds-service';
-
-function normalize(str: string): string {
-  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+import { getInitials, normalize } from '../lib/text-utils';
 
 interface TeamMatchSummary {
   id: string;
@@ -1458,7 +1449,7 @@ export class SquadsView extends LitElement {
   }
 
   private formatDate(date: string, timeSpain: string) {
-    if (!date) return 'Fecha por confirmar';
+    if (!date) return t('squads.matchDetail.dateTBD');
     const base = formatShortDate(date);
     return `${base} · ${timeSpain || '--:--'} ESP`;
   }
@@ -1549,8 +1540,8 @@ export class SquadsView extends LitElement {
               <div class="panel-title">${t('squads.tab.squad')}</div>
               ${getLineup(selectedTeam.id) ? html`
                 <div class="view-toggle">
-                  <button class=${this.squadViewMode === 'list' ? 'active' : ''} @click=${() => { this.squadViewMode = 'list'; }}>Lista</button>
-                  <button class=${this.squadViewMode === 'pitch' ? 'active' : ''} @click=${() => { this.squadViewMode = 'pitch'; }}>Cancha</button>
+                  <button class=${this.squadViewMode === 'list' ? 'active' : ''} @click=${() => { this.squadViewMode = 'list'; }}>${t('squads.list.viewList')}</button>
+                  <button class=${this.squadViewMode === 'pitch' ? 'active' : ''} @click=${() => { this.squadViewMode = 'pitch'; }}>${t('squads.list.viewPitch')}</button>
                 </div>
               ` : ''}
             </div>
@@ -1564,10 +1555,10 @@ export class SquadsView extends LitElement {
                   <tr>
                     <th></th>
                     <th>#</th>
-                    <th>Jugador</th>
-                    <th>Pos</th>
-                    <th>Edad</th>
-                    <th>Club</th>
+                    <th>${t('squads.table.player')}</th>
+                    <th>${t('squads.table.pos')}</th>
+                    <th>${t('player.labelAge')}</th>
+                    <th>${t('squads.table.club')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1584,7 +1575,7 @@ export class SquadsView extends LitElement {
                       <td>${player.number}</td>
                       <td>
                         ${player.name}
-                        ${player.captain ? html`<span class="captain">CAP</span>` : ''}
+                        ${player.captain ? html`<span class="captain">${t('squads.table.captain')}</span>` : ''}
                       </td>
                       <td>${player.position}</td>
                       <td>${player.age}</td>
@@ -1613,7 +1604,7 @@ export class SquadsView extends LitElement {
                     </div>
                     <div class="mob-player-secondary">
                       <span class="mob-player-pos-badge">${player.position}</span>
-                      <span class="mob-player-age">${player.age} años</span>
+                      <span class="mob-player-age">${t('player.ageSuffix', { n: player.age })}</span>
                       <span class="mob-player-club">${player.club}</span>
                     </div>
                   </div>
@@ -1642,16 +1633,16 @@ export class SquadsView extends LitElement {
                           @click=${() => this._toggleMatch(match.matchId, match.teamId, match.opponentId)}
                         >
                           <div class="match-card-meta">
-                            <span>${match.phase} · JORNADA ${match.matchDay}</span>
+                            <span>${match.phase} · ${t('squads.matchDetail.matchday', { n: String(match.matchDay) })}</span>
                             <span>${this.formatDate(match.date, match.timeSpain)}</span>
                           </div>
                           <div class="match-card-opponent">
                             ${renderFlag(opponent, 'sm')}
-                            <span>${opponent?.name ?? 'Rival por decidir'}</span>
+                            <span>${opponent?.name ?? t('squads.matchDetail.unknownOpp')}</span>
                           </div>
                           <div class="match-card-footer">
                             <span>${match.venue} · ${match.city}</span>
-                            <span class="match-toggle-pill">${isOpen ? 'CERRAR ▲' : 'VER DETALLE ▼'}</span>
+                            <span class="match-toggle-pill">${isOpen ? t('squads.matchDetail.collapse') : t('squads.matchDetail.expand')}</span>
                           </div>
                         </div>
 
@@ -1662,7 +1653,7 @@ export class SquadsView extends LitElement {
                               <div>
                                 <div class="match-section-label">
                                   <span class="match-section-num orange">01</span>
-                                  <span class="match-section-title">PROBABILIDADES</span>
+                                  <span class="match-section-title">${t('squads.matchDetail.oddsLabel')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
                                 <div class="odds-bar">
@@ -1680,19 +1671,19 @@ export class SquadsView extends LitElement {
                                   </div>
                                 </div>
                                 <div class="odds-legend">
-                                  <span>GANA ${selectedTeam.name.toUpperCase()}</span>
-                                  <span>EMPATE</span>
-                                  <span>GANA ${(opponent?.name ?? '').toUpperCase()}</span>
+                                  <span>${t('squads.matchDetail.oddsHome', { team: selectedTeam.name.toUpperCase() })}</span>
+                                  <span>${t('squads.matchDetail.oddsDraw')}</span>
+                                  <span>${t('squads.matchDetail.oddsAway', { team: (opponent?.name ?? '').toUpperCase() })}</span>
                                 </div>
                               </div>
                             ` : html`
                               <div>
                                 <div class="match-section-label">
                                   <span class="match-section-num orange">01</span>
-                                  <span class="match-section-title">PROBABILIDADES</span>
+                                  <span class="match-section-title">${t('squads.matchDetail.oddsLabel')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
-                                <p style="font-family:var(--font-mono);font-size:11px;color:var(--dim);margin:0">Cargando cuotas…</p>
+                                <p style="font-family:var(--font-mono);font-size:11px;color:var(--dim);margin:0">${t('squads.matchDetail.oddsLoading')}</p>
                               </div>
                             `}
 
@@ -1701,7 +1692,7 @@ export class SquadsView extends LitElement {
                               <div>
                                 <div class="match-section-label">
                                   <span class="match-section-num green">02</span>
-                                  <span class="match-section-title">ALINEACIONES PROBABLES</span>
+                                  <span class="match-section-title">${t('squads.matchDetail.lineups')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
                                 <div class="match-pitch-wrap">
@@ -1847,8 +1838,8 @@ export class SquadsView extends LitElement {
         <input
           type="search"
           class="search-input"
-          placeholder="Buscar equipo o jugador…"
-          aria-label="Buscar equipo o jugador"
+          placeholder=${t('squads.list.searchPlaceholder')}
+          aria-label=${t('squads.list.searchLabel')}
           .value=${this.searchQuery}
           @input=${(e: InputEvent) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
         >
@@ -1870,7 +1861,7 @@ export class SquadsView extends LitElement {
         ` : ''}
       </div>
 
-      ${showNoResults ? html`<div class="no-results">SIN RESULTADOS · Prueba con otro nombre</div>` : ''}
+      ${showNoResults ? html`<div class="no-results">${t('squads.list.noResults')}</div>` : ''}
 
       <div class="groups-stack">
         ${groupsWithMatch.map(group => {
@@ -1878,8 +1869,8 @@ export class SquadsView extends LitElement {
           return html`
             <section class="group-block">
               <div class="group-header">
-                <div class="group-title">Grupo ${group}</div>
-                <div class="group-sub">4 selecciones</div>
+                <div class="group-title">${t('squads.list.groupTitle', { letter: group })}</div>
+                <div class="group-sub">${t('squads.list.groups', { n: 4 })}</div>
               </div>
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {

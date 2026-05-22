@@ -2,10 +2,14 @@ import { LitElement, html, svg, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 // Escudo circular tipo sello postal — balón clásico + bandera "MUNDIAL · 2026"
+let _instanceCount = 0;
+
 @customElement('logo-crest')
 export class LogoCrest extends LitElement {
   @property({ type: Number }) size = 200;
   @property({ type: String }) mode: 'color' | 'mono' = 'color';
+
+  private _instanceId = ++_instanceCount;
 
   static styles = css`:host { display: inline-block; line-height: 0; }`;
 
@@ -64,10 +68,10 @@ export class LogoCrest extends LitElement {
     return html`
       <svg viewBox="0 0 200 200" width="${this.size}" height="${this.size}" style="display:block">
         <defs>
-          <pattern id="cs-${this.mode}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern id="cs-${this._instanceId}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="4" height="8" fill="${stripeColor}" opacity="0.08" />
           </pattern>
-          <clipPath id="cc-${this.mode}">
+          <clipPath id="cc-${this._instanceId}">
             <circle cx="100" cy="100" r="92" />
           </clipPath>
         </defs>
@@ -75,7 +79,7 @@ export class LogoCrest extends LitElement {
         ${perfs}
         <!-- Main body -->
         <circle cx="100" cy="100" r="92" fill="${A.body}" stroke="${A.ring}" stroke-width="3" />
-        <rect x="8" y="8" width="184" height="184" fill="url(#cs-${this.mode})" clip-path="url(#cc-${this.mode})" />
+        <rect x="8" y="8" width="184" height="184" fill="url(#cs-${this._instanceId})" clip-path="url(#cc-${this._instanceId})" />
         <!-- Inner rings -->
         <circle cx="100" cy="100" r="82" fill="none" stroke="${A.accent}" stroke-width="1.5" />
         <circle cx="100" cy="100" r="78" fill="none" stroke="${A.ring}" stroke-width="2.5" />

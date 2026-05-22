@@ -18,7 +18,6 @@ export const useLocaleStore = createStore<LocaleState>()(
       locale: 'es',
       setLocale: (locale) => {
         set({ locale });
-        document.documentElement.lang = locale;
       },
     }),
     { name: 'bm-locale' }

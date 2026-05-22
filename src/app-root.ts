@@ -656,7 +656,7 @@ export class AppRoot extends LitElement {
           <span class="footer-copy">© BRACKET MUNDIAL 2026</span>
         </footer>
 
-        ${this._toastMessage ? html`<div class="toast-bar">${this._toastMessage}</div>` : ''}
+        ${this._toastMessage ? html`<div class="toast-bar" role="status" aria-live="polite" aria-atomic="true">${this._toastMessage}</div>` : ''}
       </div>
     `;
   }

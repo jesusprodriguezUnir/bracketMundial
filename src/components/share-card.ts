@@ -4,13 +4,14 @@ import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import type { KnockoutMatchResult } from '../store/tournament-store';
 import { t, useLocaleStore } from '../i18n';
+import { renderFlag } from '../lib/render-flag';
 
 const ROUND_COLORS: Record<string, string> = {
-  r32:   '#22418c',
-  r16:   '#e8541f',
-  qf:    '#1f6b3a',
-  sf:    '#c41e2c',
-  final: '#1a1933',
+  r32:   'var(--retro-blue)',
+  r16:   'var(--retro-orange)',
+  qf:    'var(--retro-green)',
+  sf:    'var(--retro-red)',
+  final: 'var(--ink)',
 };
 
 @customElement('share-card')
@@ -19,19 +20,19 @@ export class ShareCard extends LitElement {
     :host {
       display: block;
       width: 1580px;
-      background: #ecdfc0;
-      font-family: 'Bowlby One', 'Anton', Impact, sans-serif;
-      color: #1a1933;
+      background: var(--paper);
+      font-family: var(--font-var);
+      color: var(--ink);
     }
 
     /* ---- HEADER ---- */
     .card-header {
       height: 76px;
-      background: #1a1933;
+      background: var(--ink);
       display: flex;
       align-items: center;
       padding: 0 28px;
-      border-bottom: 4px solid #1a1933;
+      border-bottom: 4px solid var(--ink);
       gap: 0;
     }
     .hd-wordmark {
@@ -40,15 +41,15 @@ export class ShareCard extends LitElement {
       line-height: 1;
     }
     .hd-title {
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 22px;
       letter-spacing: 0.05em;
-      color: #ecdfc0;
+      color: var(--paper);
     }
     .hd-sub {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 9px;
-      color: #f0b021;
+      color: var(--retro-yellow);
       letter-spacing: 0.28em;
       text-transform: uppercase;
       margin-top: 2px;
@@ -56,13 +57,13 @@ export class ShareCard extends LitElement {
     .hd-divider {
       width: 3px;
       height: 40px;
-      background: #e8541f;
+      background: var(--retro-orange);
       margin: 0 20px;
     }
     .hd-hosts {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 11px;
-      color: #ecdfc0;
+      color: var(--paper);
       letter-spacing: 0.1em;
       opacity: 0.75;
     }
@@ -73,30 +74,30 @@ export class ShareCard extends LitElement {
       gap: 10px;
     }
     .hd-champion-label {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 9px;
-      color: #f0b021;
+      color: var(--retro-yellow);
       letter-spacing: 0.2em;
       text-transform: uppercase;
     }
     .hd-champion-name {
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 20px;
-      color: #f0b021;
+      color: var(--retro-yellow);
       letter-spacing: 0.04em;
     }
     .hd-flag-img {
       width: 28px;
       height: 18px;
       object-fit: cover;
-      border: 2px solid #f0b021;
+      border: 2px solid var(--retro-yellow);
     }
     .hd-prediction-badge {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 10px;
-      color: #f0b021;
+      color: var(--retro-yellow);
       letter-spacing: 0.15em;
-      border: 1px solid #f0b021;
+      border: 1px solid var(--retro-yellow);
       padding: 3px 8px;
     }
 
@@ -104,11 +105,11 @@ export class ShareCard extends LitElement {
     .card-body {
       display: flex;
       align-items: stretch;
-      background: #ecdfc0;
+      background: var(--paper);
       background-image:
-        radial-gradient(circle at 20% 30%, rgba(232,84,31,0.04) 0, transparent 30%),
-        radial-gradient(circle at 80% 70%, rgba(34,65,140,0.04) 0, transparent 30%),
-        radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
+        radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--retro-orange) 4%, transparent) 0, transparent 30%),
+        radial-gradient(circle at 80% 70%, color-mix(in srgb, var(--retro-blue) 4%, transparent) 0, transparent 30%),
+        var(--halftone-soft);
     }
     .bracket-wrap {
       display: flex;
@@ -135,13 +136,13 @@ export class ShareCard extends LitElement {
     }
     .round-title {
       padding: 4px 7px;
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 9px;
       letter-spacing: 0.08em;
-      border: 2px solid #1a1933;
-      box-shadow: 2px 2px 0 0 #1a1933;
-      color: #ecdfc0;
-      background-image: radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      color: var(--paper);
+      background-image: var(--halftone);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -159,10 +160,10 @@ export class ShareCard extends LitElement {
       gap: 6px;
     }
     .round-title.is-final {
-      color: #f0b021;
+      color: var(--retro-yellow);
     }
     .round-count {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 7px;
       opacity: 0.75;
       flex-shrink: 0;
@@ -170,10 +171,10 @@ export class ShareCard extends LitElement {
 
     /* ---- MATCH BOX ---- */
     .match-box {
-      background: #e6d6b1;
-      border: 2px solid #1a1933;
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
       border-left-width: 4px;
-      box-shadow: 2px 2px 0 0 #1a1933;
+      box-shadow: 2px 2px 0 0 var(--ink);
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -188,18 +189,18 @@ export class ShareCard extends LitElement {
       padding: 3px 6px;
       min-height: 22px;
     }
-    .team-row.winner-row { color: #ecdfc0; }
+    .team-row.winner-row { color: var(--paper); }
     .team-row.loser-row { opacity: 0.45; }
     .team-separator {
       height: 1px;
-      background: #1a1933;
+      background: var(--ink);
       margin: 0 6px;
     }
     .team-info {
       display: flex;
       align-items: center;
       gap: 4px;
-      font-family: 'Archivo', sans-serif;
+      font-family: var(--font-body);
       font-size: 8px;
       font-weight: 700;
       overflow: hidden;
@@ -208,7 +209,7 @@ export class ShareCard extends LitElement {
       width: 13px;
       height: 8px;
       object-fit: cover;
-      border: 1px solid #1a1933;
+      border: 1px solid var(--ink);
       flex-shrink: 0;
     }
     .team-flag { font-size: 9px; flex-shrink: 0; }
@@ -218,42 +219,42 @@ export class ShareCard extends LitElement {
       text-overflow: ellipsis;
     }
     .score {
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 10px;
       flex-shrink: 0;
     }
-    .score.pending { color: #7a6f54; opacity: 0.4; font-size: 8px; }
+    .score.pending { color: var(--dim); opacity: 0.4; font-size: 8px; }
     .penalty-note {
       padding: 1px 6px;
-      border-top: 1px solid #1a1933;
+      border-top: 1px solid var(--ink);
       background: rgba(0,0,0,0.05);
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 6px;
-      color: #7a6f54;
+      color: var(--dim);
     }
 
     /* ---- CHAMPION BOX ---- */
     .champion-box {
-      background: #f0b021;
-      border: 3px solid #1a1933;
-      box-shadow: 3px 3px 0 0 #1a1933;
+      background: var(--retro-yellow);
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
       padding: 10px 8px;
       text-align: center;
       flex-shrink: 0;
       min-width: 0;
     }
     .champion-title {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 7px;
-      color: #1a1933;
+      color: var(--ink);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       margin-bottom: 5px;
     }
     .champion-team {
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 13px;
-      color: #1a1933;
+      color: var(--ink);
       line-height: 1.1;
       display: flex;
       align-items: center;
@@ -265,12 +266,12 @@ export class ShareCard extends LitElement {
       width: 20px;
       height: 13px;
       object-fit: cover;
-      border: 2px solid #1a1933;
+      border: 2px solid var(--ink);
     }
     .third-place-label {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 7px;
-      color: #7a6f54;
+      color: var(--dim);
       letter-spacing: 0.18em;
       text-align: center;
       margin-top: 8px;
@@ -281,8 +282,8 @@ export class ShareCard extends LitElement {
     /* ---- FOOTER ---- */
     .card-footer {
       height: 68px;
-      background: #1a1933;
-      border-top: 4px solid #1a1933;
+      background: var(--ink);
+      border-top: 4px solid var(--ink);
       display: flex;
       align-items: center;
       padding: 0 28px;
@@ -298,36 +299,36 @@ export class ShareCard extends LitElement {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
     }
     .podium-medal {
       font-size: 16px;
     }
     .podium-label {
       font-size: 7px;
-      color: #7a6f54;
+      color: var(--dim);
       letter-spacing: 0.15em;
       text-transform: uppercase;
       display: block;
     }
     .podium-name {
-      font-family: 'Bowlby One', Impact, sans-serif;
+      font-family: var(--font-var);
       font-size: 12px;
-      color: #ecdfc0;
+      color: var(--paper);
       display: block;
     }
-    .podium-name.tbd { color: #7a6f54; font-size: 10px; }
+    .podium-name.tbd { color: var(--dim); font-size: 10px; }
     .footer-flag-img {
       width: 18px;
       height: 11px;
       object-fit: cover;
-      border: 1px solid #7a6f54;
+      border: 1px solid var(--dim);
     }
     .footer-watermark {
       margin-left: auto;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 9px;
-      color: #7a6f54;
+      color: var(--dim);
       letter-spacing: 0.1em;
     }
   `;
@@ -349,15 +350,6 @@ export class ShareCard extends LitElement {
     return TEAMS_2026.find(team => team.id === id);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private renderFlag(team: any, cls = 'flag-img') {
-    if (!team) return html``;
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${cls}">`;
-    }
-    return html`<span class="team-flag">${team.flag}</span>`;
-  }
-
   private renderMatch(km: Record<string, KnockoutMatchResult>, matchId: string, accentColor: string, isRightSide = false) {
     const m = km[matchId];
     const isPlayed = m?.isPlayed ?? false;
@@ -373,7 +365,7 @@ export class ShareCard extends LitElement {
         <div class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
           style="${isWinner ? `background:${accentColor};` : ''}">
           <div class="team-info">
-            ${this.renderFlag(team)}
+            ${renderFlag(team, { imgClass: 'flag-img', flagClass: 'team-flag' })}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
           <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
@@ -429,7 +421,7 @@ export class ShareCard extends LitElement {
               <div>
                 <div class="hd-champion-label">${t('card.champion')}</div>
                 <div class="hd-champion-name">
-                  ${this.renderFlag(champion, 'hd-flag-img')} ${champion.name.toUpperCase()}
+                  ${renderFlag(champion, { imgClass: 'hd-flag-img', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}
                 </div>
               </div>`
             : html`<div class="hd-prediction-badge">${t('card.prediction')}</div>`
@@ -481,7 +473,7 @@ export class ShareCard extends LitElement {
             <div class="champion-box">
               <div class="champion-title">${t('card.champion')}</div>
               ${champion
-                ? html`<div class="champion-team">${this.renderFlag(champion, 'flag-img-champion')} ${champion.name.toUpperCase()}</div>`
+                ? html`<div class="champion-team">${renderFlag(champion, { imgClass: 'flag-img-champion', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}</div>`
                 : html`<div class="champion-team tbd">${t('card.tbd')}</div>`}
             </div>
 
@@ -532,7 +524,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.championLabel')}</span>
               <span class="podium-name ${!champion ? 'tbd' : ''}">
-                ${champion ? html`${this.renderFlag(champion, 'footer-flag-img')} ${champion.name.toUpperCase()}` : '???'}
+                ${champion ? html`${renderFlag(champion, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>
@@ -541,7 +533,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.runnerUp')}</span>
               <span class="podium-name ${!runnerUp ? 'tbd' : ''}">
-                ${runnerUp ? html`${this.renderFlag(runnerUp, 'footer-flag-img')} ${runnerUp.name.toUpperCase()}` : '???'}
+                ${runnerUp ? html`${renderFlag(runnerUp, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${runnerUp.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>
@@ -550,7 +542,7 @@ export class ShareCard extends LitElement {
             <div>
               <span class="podium-label">${t('card.thirdLabel')}</span>
               <span class="podium-name ${!third ? 'tbd' : ''}">
-                ${third ? html`${this.renderFlag(third, 'footer-flag-img')} ${third.name.toUpperCase()}` : '???'}
+                ${third ? html`${renderFlag(third, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ${third.name.toUpperCase()}` : '???'}
               </span>
             </div>
           </div>

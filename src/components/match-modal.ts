@@ -1,9 +1,11 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { DragToDismissMixin } from '../mixins/drag-to-dismiss';
 import type { PropertyValues } from 'lit';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { t, useLocaleStore } from '../i18n';
 import { getBroadcastInfo } from '../lib/broadcasting';
+import { renderFlag } from '../lib/render-flag';
 import { retroButton } from '../styles/retro-button';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { getLineup, getSquad } from '../data/squads';
@@ -14,7 +16,7 @@ import type { GoalEvent } from '../types';
 
 
 @customElement('match-modal')
-export class MatchModal extends LitElement {
+export class MatchModal extends DragToDismissMixin(LitElement) {
   @property({ attribute: 'match-id' }) matchId = '';
   @property({ attribute: 'team-a' }) teamA = '';
   @property({ attribute: 'team-b' }) teamB = '';
@@ -59,7 +61,6 @@ export class MatchModal extends LitElement {
   }
 
   override firstUpdated() {
-    this._addDragListeners();
     const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
     addBtn?.focus({ preventScroll: true });
   }
@@ -89,63 +90,45 @@ export class MatchModal extends LitElement {
   };
 
   private _unsubscribeLocale?: () => void;
+  _dragThreshold = 100;
 
-  private _startY = 0;
-  private _currentY = 0;
-  private _startTime = 0;
-  private _isDragging = false;
-  private _dragEl: HTMLElement | null = null;
+  override _getDragTarget(): HTMLElement | null {
+    return this.shadowRoot?.querySelector('.modal') as HTMLElement | null;
+  }
 
-  private readonly _handleTouchStart = (e: TouchEvent) => {
-    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
+  override _getDragAnimateTarget(): HTMLElement | null {
+    return this._getDragTarget();
+  }
+
+  override _dragCanStart(target: HTMLElement): boolean {
     const body = this.shadowRoot?.querySelector('.modal-body') as HTMLElement;
-    if (!modal) return;
-    if ((body ?? modal).scrollTop > 5) return;
-    this._dragEl = modal;
-    this._startY = e.touches[0].clientY;
-    this._currentY = this._startY;
-    this._startTime = Date.now();
-    this._isDragging = true;
-    this._dragEl.style.transition = 'none';
-  };
+    return (body ?? target).scrollTop <= 5;
+  }
 
-  private readonly _handleTouchMove = (e: TouchEvent) => {
-    if (!this._isDragging || !this._dragEl) return;
-    this._currentY = e.touches[0].clientY;
-    const deltaY = this._currentY - this._startY;
-    if (deltaY > 0) {
-      if (e.cancelable) e.preventDefault();
-      this._dragEl.style.transform = `translateY(${deltaY}px)`;
-      const progress = Math.min(deltaY / 200, 1);
-      this.style.background = `rgba(26,25,51,${0.65 * (1 - progress)})`;
-    } else {
-      this._isDragging = false;
-    }
-  };
+  override _onDragMove(deltaY: number): void {
+    const progress = Math.min(deltaY / 200, 1);
+    this.style.background = `rgba(26,25,51,${0.65 * (1 - progress)})`;
+  }
 
-  private readonly _handleTouchEnd = () => {
-    if (!this._isDragging || !this._dragEl) return;
-    this._isDragging = false;
-    const deltaY = this._currentY - this._startY;
-    const velocity = deltaY / Math.max(Date.now() - this._startTime, 1);
-    const modal = this._dragEl;
-    this._dragEl = null;
-
-    modal.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
-
+  override _onDragEnd(deltaY: number, elapsed: number): boolean | void {
+    const velocity = deltaY / Math.max(elapsed, 1);
     if (deltaY > 100 || velocity > 0.5) {
-      modal.style.transform = `translateY(110vh)`;
+      const modal = this._getDragAnimateTarget();
+      if (modal) {
+        modal.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+        modal.style.transform = `translateY(110vh)`;
+      }
       this.style.background = 'rgba(26,25,51,0)';
       this.style.transition = 'background 0.25s ease';
       setTimeout(() => this.close(), 250);
-    } else {
-      modal.style.transform = '';
-      this.style.background = '';
-      modal.addEventListener('transitionend', () => {
-        modal.style.transition = '';
-      }, { once: true });
+      return true;
     }
-  };
+    return false;
+  }
+
+  _dragDismiss(): void {
+    this.close();
+  }
 
   override connectedCallback() {
     super.connectedCallback();
@@ -157,27 +140,8 @@ export class MatchModal extends LitElement {
   override disconnectedCallback() {
     document.removeEventListener('keydown', this._handleKeydown);
     this.removeEventListener('click', this._handleHostClick);
-    this._removeDragListeners();
     this._unsubscribeLocale?.();
     super.disconnectedCallback();
-  }
-
-  private _addDragListeners() {
-    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-    if (!modal) return;
-    modal.addEventListener('touchstart', this._handleTouchStart, { passive: false });
-    modal.addEventListener('touchmove', this._handleTouchMove, { passive: false });
-    modal.addEventListener('touchend', this._handleTouchEnd);
-    modal.addEventListener('touchcancel', this._handleTouchEnd);
-  }
-
-  private _removeDragListeners() {
-    const modal = this.shadowRoot?.querySelector('.modal') as HTMLElement;
-    if (!modal) return;
-    modal.removeEventListener('touchstart', this._handleTouchStart);
-    modal.removeEventListener('touchmove', this._handleTouchMove);
-    modal.removeEventListener('touchend', this._handleTouchEnd);
-    modal.removeEventListener('touchcancel', this._handleTouchEnd);
   }
 
   private close() {
@@ -1281,14 +1245,6 @@ export class MatchModal extends LitElement {
 
   // ─────────────────────────────────────────────────────────────────
 
-  private renderFlag(team?: any, size: 'small' | 'big' = 'small') {
-    if (!team) return '';
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="${size === 'big' ? 'flag-img-big' : 'flag-img'}">`;
-    }
-    return html`<span class="sticker-flag">${team.flag}</span>`;
-  }
-
   private getPenaltyBadgeText() {
     if (this._penaltyScoreA === null || this._penaltyScoreB === null) {
       return t('modal.finalTime');
@@ -1344,7 +1300,7 @@ export class MatchModal extends LitElement {
         <div class="showdown">
           <div class="sticker-side-left">
             <div class="sticker left">
-              ${this.renderFlag(tA, 'big')}
+              ${renderFlag(tA, { size: 'lg', imgClass: 'flag-img-big', flagClass: 'sticker-flag' })}
               <span class="sticker-name">${tA?.shortName ?? this.teamA}</span>
             </div>
           </div>
@@ -1365,7 +1321,7 @@ export class MatchModal extends LitElement {
 
           <div class="sticker-side-right">
             <div class="sticker right">
-              ${this.renderFlag(tB, 'big')}
+              ${renderFlag(tB, { size: 'lg', imgClass: 'flag-img-big', flagClass: 'sticker-flag' })}
               <span class="sticker-name">${tB?.shortName ?? this.teamB}</span>
             </div>
           </div>

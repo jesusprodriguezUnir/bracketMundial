@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { getAllOdds, type MatchOdds } from '../lib/odds-service';
 import { useTournamentStore, type GroupMatchResult } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
+import { renderFlag } from '../lib/render-flag';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { formatShortDate, isMatchPending } from '../lib/date-utils';
@@ -535,14 +536,6 @@ export class GroupsView extends LitElement {
     });
   }
 
-  private renderFlag(team?: any) {
-    if (!team) return '';
-    if (team.flagUrl) {
-      return html`<img src="${team.flagUrl}" alt="${team.name}" class="flag-img">`;
-    }
-    return html`<span class="team-flag">${team.flag}</span>`;
-  }
-
   render() {
     const store = useTournamentStore.getState();
     const groups = 'ABCDEFGHIJKL'.split('');
@@ -598,7 +591,7 @@ export class GroupsView extends LitElement {
                     <div class="standing-row ${top2 ? '' : 'muted'}">
                       <div class="rank-badge ${top2 ? 'qualify' : ''}">${idx + 1}</div>
                       <div class="team-cell">
-                        ${this.renderFlag(team)}
+                        ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                         <span class="team-short">${team?.shortName ?? s.teamId}</span>
                         ${posLabel ? html`<span class="pos-badge">${posLabel}</span>` : ''}
                       </div>
@@ -617,13 +610,16 @@ export class GroupsView extends LitElement {
                   const isPlayed = m.scoreA !== null;
                   const pending = isMatchPending(m.date ?? '', m.timeSpain ?? '');
                   return html`
-                    <div class="match-item" @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}">
+                    <div class="match-item" role="button" tabindex="0"
+                      @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
+                      @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openMatch(m.matchId, m.date, m.timeSpain); } }}"
+                    >
                       <div class="match-top">
                         <div class="match-teams">
-                          ${this.renderFlag(tA)}
+                          ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                           <strong>${tA?.shortName ?? m.teamA}</strong>
                           <span class="vs">vs</span>
-                          ${this.renderFlag(tB)}
+                          ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                           <strong>${tB?.shortName ?? m.teamB}</strong>
                         </div>
                         ${!pending ? html`
@@ -721,7 +717,7 @@ export class GroupsView extends LitElement {
                     <td class="col-rank">${idx + 1}</td>
                     <td>
                       <div class="team-cell">
-                        ${this.renderFlag(team)}
+                        ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                         <span class="team-short">${team?.shortName ?? t.id}</span>
                       </div>
                     </td>

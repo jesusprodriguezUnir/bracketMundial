@@ -6,16 +6,7 @@ import { renderFlag } from '../lib/render-flag';
 import { coachAge, formatFullDate } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
 import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function normalize(str: string): string {
-  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
+import { getInitials, normalize } from '../lib/text-utils';
 
 @customElement('coaches-view')
 export class CoachesView extends LitElement {
@@ -492,14 +483,14 @@ export class CoachesView extends LitElement {
         <input
           type="search"
           class="search-input"
-          placeholder="Buscar selección o entrenador…"
-          aria-label="Buscar selección o entrenador"
+          placeholder=${t('coaches.searchPlaceholder')}
+          aria-label=${t('coaches.searchLabel')}
           .value=${this.searchQuery}
           @input=${(e: InputEvent) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
         >
       </div>
 
-      ${showNoResults ? html`<div class="no-results">SIN RESULTADOS · Prueba con otro nombre</div>` : ''}
+      ${showNoResults ? html`<div class="no-results">${t('coaches.noResults')}</div>` : ''}
 
       <div class="groups-stack">
         ${groupsWithMatch.map(group => {
@@ -507,8 +498,8 @@ export class CoachesView extends LitElement {
           return html`
             <section class="group-block">
               <div class="group-header">
-                <div class="group-title">Grupo ${group}</div>
-                <div class="group-sub">${teamsInGroup.length} selecciones</div>
+                <div class="group-title">${t('coaches.groupTitle', { letter: group })}</div>
+                <div class="group-sub">${t('coaches.groups', { n: teamsInGroup.length })}</div>
               </div>
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {
@@ -532,9 +523,9 @@ export class CoachesView extends LitElement {
                       </div>
                       ${coach ? html`
                         <div class="card-coach-name">${coach.name}</div>
-                        <div class="card-meta">${coach.nationality} · ${coachAge(coach.born)} años</div>
+                        <div class="card-meta">${coach.nationality} · ${t('coaches.ageSuffix', { n: coachAge(coach.born) })}</div>
                       ` : html`
-                        <div class="card-no-coach">Por definir</div>
+                        <div class="card-no-coach">${t('coaches.noCoach')}</div>
                       `}
                     </button>
                   `;
@@ -568,7 +559,7 @@ export class CoachesView extends LitElement {
           <div>
             <div class="detail-title">${renderFlag(selectedTeam, 'lg')} ${selectedTeam.name}</div>
             <div class="detail-sub">
-              Grupo ${selectedTeam.group} · ${t('squads.coach.title')}
+              ${t('coaches.groupTitle', { letter: selectedTeam.group })} · ${t('squads.coach.title')}
             </div>
           </div>
         </div>
@@ -589,36 +580,35 @@ export class CoachesView extends LitElement {
           <div class="detail-info-col">
             <div class="detail-name-block">
               <div class="detail-coach-label">${t('squads.coach.title')}</div>
-              <div class="detail-coach-name">${coach ? coach.name : 'Por definir'}</div>
+              <div class="detail-coach-name">${coach ? coach.name : t('coaches.noCoach')}</div>
             </div>
 
             ${coach ? html`
               <div class="detail-stats-grid">
                 <div class="stat-cell">
-                  <div class="stat-label">Edad</div>
+                  <div class="stat-label">${t('coaches.labelAge')}</div>
                   <div class="stat-value-large">${coachAge(coach.born)}</div>
                 </div>
                 <div class="stat-cell">
-                  <div class="stat-label">Nacionalidad</div>
+                  <div class="stat-label">${t('coaches.labelNationality')}</div>
                   <div class="stat-value">${coach.nationality}</div>
                 </div>
                 <div class="stat-cell">
-                  <div class="stat-label">Fecha de nacimiento</div>
+                  <div class="stat-label">${t('coaches.labelBorn')}</div>
                   <div class="stat-value">${formatFullDate(coach.born)}</div>
                 </div>
                 <div class="stat-cell">
-                  <div class="stat-label">Grupo</div>
-                  <div class="stat-value">Grupo ${selectedTeam.group}</div>
+                  <div class="stat-label">${t('coaches.labelGroup')}</div>
+                  <div class="stat-value">${t('coaches.groupTitle', { letter: selectedTeam.group })}</div>
                 </div>
               </div>
               <div class="detail-bio-block">
-                <div class="detail-bio-label">Trayectoria</div>
+                <div class="detail-bio-label">${t('coaches.labelBio')}</div>
                 <div class="detail-bio-text">${coach.bio[locale] ?? coach.bio.es}</div>
               </div>
             ` : html`
               <div class="detail-pending">
-                La federación de ${selectedTeam.name} aún no ha confirmado a su seleccionador
-                oficial para el torneo.
+                ${t('coaches.pendingCoach', { team: selectedTeam.name })}
               </div>
             `}
           </div>

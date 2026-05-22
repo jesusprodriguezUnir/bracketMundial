@@ -6,6 +6,7 @@ import type { PlayerDetail } from '../lib/player-service';
 import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
+import { t } from '../i18n';
 
 function formatBirthDate(dateStr: string): string {
   const parts = dateStr.split('-');
@@ -14,8 +15,8 @@ function formatBirthDate(dateStr: string): string {
 }
 
 function footLabel(foot: string): string {
-  if (foot === 'Right') return 'Derecho';
-  if (foot === 'Left') return 'Izquierdo';
+  if (foot === 'Right') return t('player.footRight');
+  if (foot === 'Left') return t('player.footLeft');
   return foot;
 }
 
@@ -79,10 +80,10 @@ export class PlayerCard extends LitElement {
 
   private _posLabel(pos: string) {
     const map: Record<string, string> = {
-      GK: 'Portero',
-      DF: 'Defensa',
-      MF: 'Centrocampista',
-      FW: 'Delantero',
+      GK: t('player.positionGK'),
+      DF: t('player.positionDF'),
+      MF: t('player.positionMF'),
+      FW: t('player.positionFW'),
     };
     return map[pos] ?? pos;
   }
@@ -315,12 +316,12 @@ export class PlayerCard extends LitElement {
       >
         <div class="card" role="dialog" aria-modal="true">
           <div class="card-header">
-            <button class="close-btn" @click=${() => this._close()}>← Cerrar</button>
+            <button class="close-btn" @click=${() => this._close()}>${t('player.close')}</button>
             <span class="card-badge">#${this.player.number} · ${this.player.position}</span>
           </div>
 
           ${detail === 'loading'
-            ? html`<div class="loading">CARGANDO DATOS...</div>`
+            ? html`<div class="loading">${t('player.loading')}</div>`
             : html`
               <div class="card-body">
                 <div class="player-hero">
@@ -348,8 +349,8 @@ export class PlayerCard extends LitElement {
 
                 ${(detail?.twitter || detail?.instagram) ? html`
                   <div class="socials">
-                    ${detail.twitter ? html`<a class="social-link" href="${detail.twitter}" target="_blank" rel="noopener">𝕏 Twitter</a>` : ''}
-                    ${detail.instagram ? html`<a class="social-link" href="${detail.instagram}" target="_blank" rel="noopener">📷 Instagram</a>` : ''}
+                    ${detail.twitter ? html`<a class="social-link" href="${detail.twitter}" target="_blank" rel="noopener noreferrer">𝕏 Twitter</a>` : ''}
+                    ${detail.instagram ? html`<a class="social-link" href="${detail.instagram}" target="_blank" rel="noopener noreferrer">📷 Instagram</a>` : ''}
                   </div>
                 ` : ''}
               </div>
@@ -363,14 +364,14 @@ export class PlayerCard extends LitElement {
     const p = this.player!;
     const cells: Array<{ label: string; value: string }> = [];
 
-    cells.push({ label: 'Posición', value: this._posLabel(p.position) });
-    cells.push({ label: 'Edad', value: `${p.age} años` });
+    cells.push({ label: t('player.labelPosition'), value: this._posLabel(p.position) });
+    cells.push({ label: t('player.labelAge'), value: t('player.ageSuffix', { n: p.age }) });
 
-    if (detail?.height) cells.push({ label: 'Altura', value: detail.height });
-    if (detail?.birthDate) cells.push({ label: 'Nacimiento', value: formatBirthDate(detail.birthDate) });
-    if (detail?.foot) cells.push({ label: 'Pie', value: footLabel(detail.foot) });
-    if (detail?.weight) cells.push({ label: 'Peso', value: detail.weight });
-    if (detail?.birthPlace) cells.push({ label: 'Ciudad natal', value: detail.birthPlace });
+    if (detail?.height) cells.push({ label: t('player.labelHeight'), value: detail.height });
+    if (detail?.birthDate) cells.push({ label: t('player.labelBirth'), value: formatBirthDate(detail.birthDate) });
+    if (detail?.foot) cells.push({ label: t('player.labelFoot'), value: footLabel(detail.foot) });
+    if (detail?.weight) cells.push({ label: t('player.labelWeight'), value: detail.weight });
+    if (detail?.birthPlace) cells.push({ label: t('player.labelBirthPlace'), value: detail.birthPlace });
 
     if (cells.length % 2 !== 0) cells.push({ label: '', value: '' });
 

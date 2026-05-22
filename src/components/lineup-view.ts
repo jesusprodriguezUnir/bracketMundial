@@ -2,16 +2,11 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { Player, Lineup } from '../data/squads';
 import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
+import { getInitials } from '../lib/text-utils';
 
 function getLastName(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1];
-}
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 @customElement('lineup-view')
