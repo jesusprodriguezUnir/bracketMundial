@@ -182,6 +182,60 @@ La skill `/odds` de Claude Code orquesta el flujo completo (ver [`.claude/skills
 - Plan free de The Odds API: ~500 req/mes. El cron usa 1 req/ejecución ≈ 60 req/mes.
 - No editar `src/data/odds/seed.ts` a mano; regenerar con `--write-seed`.
 
+## Sistema de Marketing y Social
+
+Scripts que capturan la app real con Playwright para generar contenido
+promocional. Todos arrancan y detienen su propio servidor dev; los que generan
+video requieren `ffmpeg` en el PATH.
+
+### Módulo compartido
+
+[`scripts/lib/recording-utils.mjs`](scripts/lib/recording-utils.mjs) centraliza
+helpers reutilizados: arranque del dev server, navegación por vista vía evento
+`navigate`, conversión WebM→MP4, idioma/tema y el overlay de texto estilo Panini.
+
+### Reels de Instagram — skill `/instagram-reel`
+
+```bash
+npm run reel list
+npm run reel -- grupos --text "Sigue el Mundial 2026" --lang es --theme light
+```
+
+Graba un reel vertical 1080×1920 de **una vista concreta** ([`scripts/record-reel.mjs`](scripts/record-reel.mjs)).
+El flag `--text` se incrusta como banner quemado en el MP4. Salida en
+`recordings/reel-<vista>-<lang>.mp4` + `.caption.txt`.
+
+### Assets de Google Play — skill `/google-play-assets`
+
+```bash
+npm run play:assets                  # todo
+npm run play:assets -- --only phone  # solo un tipo: phone|tablet|promo|graphic|icon
+```
+
+[`scripts/generate-play-assets.mjs`](scripts/generate-play-assets.mjs) genera en
+`marketing/google-play/`: capturas de teléfono (1080×1920), tablet 7" y 10",
+video promocional 1080p, feature graphic 1024×500 e icono 512×512. Las
+dimensiones exactas se garantizan con `sharp`.
+
+### Post en X — skill `/x-post`
+
+```bash
+npm run x:post list
+npm run x:post -- estadios --ratio 16:9 --text "Mundial 2026"
+```
+
+[`scripts/generate-x-post.mjs`](scripts/generate-x-post.mjs) genera en
+`marketing/x/` una imagen (16:9 o 1:1) + un `.txt` con el texto del tweet
+(≤280 chars) y hashtags. Publicación manual, sin API de X.
+
+### Notas
+
+- Las salidas (`recordings/`, `marketing/`) son artefactos generados; no se
+  versionan salvo que se decida lo contrario.
+- La navegación entre vistas usa el evento custom `navigate` de
+  [src/bracket-view.ts](src/bracket-view.ts) — es idioma-agnóstica y no depende
+  de etiquetas de texto.
+
 ## Areas fragiles
 
 - [src/bracket-view.ts](src/bracket-view.ts) mantiene la vista activa en estado local; tocar tabs o navegacion puede romper el re-render.

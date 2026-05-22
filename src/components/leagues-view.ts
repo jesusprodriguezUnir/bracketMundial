@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, initialGroupMatches, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
+import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
 import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
 import { scoreParticipant, rankParticipants } from '../lib/mini-league';
 import type { ParticipantScore, MatchPoints } from '../lib/mini-league';
@@ -1388,9 +1388,10 @@ export class LeaguesView extends LitElement {
 
     let resolvedKnockout: Record<string, { teamA?: string | null; teamB?: string | null; winnerId?: string | null; scoreA?: number | null; scoreB?: number | null }> = {};
     try {
+      const st = useTournamentStore.getState();
       resolvedKnockout = buildResolvedKnockout(
         decoded,
-        initialGroupMatches,
+        st.groupMatches,
         recalculateStandings as unknown as (matches: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; teamA: string; teamB: string }>) => Record<string, { teamId: string; points?: number; goalDiff?: number; goalsFor?: number }[]>,
         getWinnerId as unknown as (teamA: string, teamB: string, scoreA: number, scoreB: number, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => string | null,
         getKnockoutMatchOrder,

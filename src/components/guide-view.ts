@@ -129,6 +129,7 @@ export class GuideView extends LitElement {
   @state() private _calPhase: 'todas' | 'grupos' | 'eliminatoria' = 'grupos';
   @state() private _calVenue = 'todas';
   @state() private _calDay = 'todos';
+  @state() private _modalTab: 'summary' | 'lineup' | 'calendar' = 'summary';
 
   private _unsubscribeLocale?: () => void;
   private _unsubscribeStore?: () => void;
@@ -1282,6 +1283,52 @@ export class GuideView extends LitElement {
       border-bottom: 3px solid var(--ink);
     }
 
+    /* ───────── Modal tabs (mobile) ───────── */
+    .modal-tab-bar {
+      display: none;
+      gap: 4px;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--ink);
+      background: var(--paper-2);
+    }
+    .modal-tab-btn {
+      all: unset;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      border-bottom: 3px solid transparent;
+      text-transform: uppercase;
+      touch-action: manipulation;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-tab-btn.active {
+      color: var(--ink);
+      border-bottom-color: var(--retro-orange);
+      font-weight: 700;
+      background: var(--paper);
+    }
+    .modal-tab-content { display: block; }
+
+    /* key-players-by-line label */
+    .kp-line {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--retro-orange);
+      width: 28px;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
     /* ───────── Pie ───────── */
     .gw-footer {
       margin-top: 14px;
@@ -1322,6 +1369,62 @@ export class GuideView extends LitElement {
       .compare-grid { grid-template-columns: 1fr; }
       .compare-vs { justify-self: center; }
       .modal-matches { overflow-x: auto; }
+
+      /* Modal tabs — visible only on mobile */
+      .modal-tab-bar {
+        display: flex;
+      }
+      .modal-tab-content {
+        display: none;
+      }
+      .modal-tab-content.active {
+        display: block;
+      }
+
+      /* Modal overlay less padding on mobile */
+      .modal-overlay {
+        padding: 12px 8px;
+        align-items: flex-start;
+      }
+
+      /* Modal actions — wide stacked buttons */
+      .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .modal-action-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        font-size: 14px;
+        min-height: 44px;
+      }
+
+      /* Pitch compact on mobile */
+      .pitch-wrap {
+        max-width: 270px;
+        aspect-ratio: 100 / 128;
+        margin: 8px auto;
+      }
+      .player-card {
+        width: 44px;
+        gap: 2px;
+      }
+      .player-photo {
+        width: 26px;
+        height: 26px;
+        font-size: 10px;
+        border-width: 2px;
+      }
+      .player-name {
+        font-size: 7.5px;
+        padding: 1px 3px;
+      }
+
+      /* Calendar table — hide venue column on mobile */
+      .gw-col-venue-col {
+        display: none;
+      }
     }
   `;
 
@@ -1359,7 +1462,7 @@ export class GuideView extends LitElement {
       return;
     }
     if (e.key === 'Escape') {
-      if (this._selectedTeam) { this._selectedTeam = null; return; }
+      if (this._selectedTeam) { this._selectedTeam = null; this._modalTab = 'summary'; return; }
       if (this._query) { this._query = ''; return; }
     }
     if (inField || this._selectedTeam) return;
@@ -1394,7 +1497,7 @@ export class GuideView extends LitElement {
     return this._data ? this._data.teams.filter(tm => tm.group === letter) : [];
   }
 
-  private _openTeam(id: string) { this._selectedTeam = id; }
+  private _openTeam(id: string) { this._selectedTeam = id; this._modalTab = 'summary'; }
 
   private _jumpToGroup(letter: string) {
     this._view = 'groups';
@@ -1965,18 +2068,18 @@ export class GuideView extends LitElement {
     const data = this._data;
     if (!tm || !data) return html``;
 
-    const stars = tm.squad
-      .filter(p => lineupNumbers(tm).includes(p.number))
-      .slice(0, 8);
+    const kp = this._keyPlayersByLine(tm);
     const ownMatches = data.groupMatches
       .filter(m => m.teamA === tm.teamId || m.teamB === tm.teamId)
       .sort((a, b) => (a.matchDay ?? 0) - (b.matchDay ?? 0));
     const groupColor = GROUP_COLORS[GROUPS.indexOf(tm.group) % 4];
 
+    const closeModal = () => { this._selectedTeam = null; this._modalTab = 'summary'; };
+
     return html`
-      <div class="modal-overlay" @click=${() => { this._selectedTeam = null; }}>
+      <div class="modal-overlay" @click=${closeModal}>
         <div class="modal" @click=${(e: Event) => e.stopPropagation()}>
-          <button class="modal-close" @click=${() => { this._selectedTeam = null; }} aria-label="✕">✕</button>
+          <button class="modal-close" @click=${closeModal} aria-label="✕">✕</button>
 
           <div class="modal-hero">
             <span class="modal-flag">${tm.shortName}</span>
@@ -2009,80 +2112,106 @@ export class GuideView extends LitElement {
             </div>
           </div>
 
-          <div class="modal-cols">
-            <div class="modal-block">
-              <div class="mb-head"><span>${t('gw.modalCoachBlock')}</span></div>
-              <div class="mb-body">
-                <div class="c-name">${tm.coach?.name ?? '—'}</div>
-                ${tm.coach ? html`
+          <!-- Tab bar (mobile only) -->
+          <div class="modal-tab-bar">
+            <button class="modal-tab-btn ${this._modalTab === 'summary' ? 'active' : ''}"
+                    @click=${() => { this._modalTab = 'summary'; }}>
+              ${t('gw.modalTabSummary')}
+            </button>
+            <button class="modal-tab-btn ${this._modalTab === 'lineup' ? 'active' : ''}"
+                    @click=${() => { this._modalTab = 'lineup'; }}>
+              ${t('gw.modalTabLineup')}
+            </button>
+            <button class="modal-tab-btn ${this._modalTab === 'calendar' ? 'active' : ''}"
+                    @click=${() => { this._modalTab = 'calendar'; }}>
+              ${t('gw.modalTabCalendar')}
+            </button>
+          </div>
+
+          <!-- Tab: Summary -->
+          <div class="modal-tab-content ${this._modalTab === 'summary' ? 'active' : ''}">
+            <div class="modal-cols">
+              <div class="modal-block">
+                <div class="mb-head"><span>${t('gw.modalCoachBlock')}</span></div>
+                <div class="mb-body">
+                  <div class="c-name">${tm.coach?.name ?? '—'}</div>
+                  ${tm.coach ? html`
+                    <div class="c-row">
+                      <span class="c-label">${t('guide.coach')}</span>
+                      <span>${tm.coach.nationality ?? ''}</span>
+                    </div>
+                  ` : ''}
                   <div class="c-row">
-                    <span class="c-label">${t('guide.coach')}</span>
-                    <span>${tm.coach.nationality ?? ''}</span>
+                    <span class="c-label">${t('guide.formation')}</span>
+                    <span>${tm.lineup?.formation ?? '—'}</span>
                   </div>
-                ` : ''}
-                <div class="c-row">
-                  <span class="c-label">${t('guide.formation')}</span>
-                  <span>${tm.lineup?.formation ?? '—'}</span>
                 </div>
               </div>
-            </div>
-            <div class="modal-block">
-              <div class="mb-head">
-                <span>${t('gw.modalSquadBlock')}</span>
-                <span class="mb-extra">${t('gw.modalSquadExtra', { n: String(stars.length) })}</span>
-              </div>
-              <div class="mb-body">
-                <ol class="players-list">
-                  ${stars.map((p, i) => html`
-                    <li class="${i === 0 ? 'star' : ''}">
-                      <span class="p-num">${i === 0 ? '★' : String(i + 1).padStart(2, '0')}</span>
-                      <span>${p.name}${p.captain ? html` <small style="color:var(--dim)">${t('guide.captainBadge')}</small>` : ''}</span>
-                    </li>
-                  `)}
-                </ol>
+              <div class="modal-block">
+                <div class="mb-head">
+                  <span>${t('gw.modalSquadBlock')}</span>
+                  <span class="mb-extra">${t('gw.modalSquadExtra', { n: String(kp.filter(k => k.player).length) })}</span>
+                </div>
+                <div class="mb-body">
+                  <ol class="players-list">
+                    ${kp.filter(k => k.player).map((k, i) => html`
+                      <li class="${i === 0 ? 'star' : ''}">
+                        <span class="kp-line">${k.label}</span>
+                        <span class="p-num">${k.player!.number}</span>
+                        <span>${k.player!.name}${k.player!.captain ? html` <small style="color:var(--dim)">${t('guide.captainBadge')}</small>` : ''}</span>
+                      </li>
+                    `)}
+                  </ol>
+                </div>
               </div>
             </div>
           </div>
 
-          ${this._renderPitch(tm)}
+          <!-- Tab: Lineup -->
+          <div class="modal-tab-content ${this._modalTab === 'lineup' ? 'active' : ''}">
+            ${this._renderPitch(tm)}
+          </div>
 
-          <div class="modal-block modal-matches">
-            <div class="mb-head">
-              <span>${t('gw.modalCalendar')}</span>
-              <span class="mb-extra">${t('gw.modalCalendarSub')}</span>
+          <!-- Tab: Calendar -->
+          <div class="modal-tab-content ${this._modalTab === 'calendar' ? 'active' : ''}">
+            <div class="modal-block modal-matches">
+              <div class="mb-head">
+                <span>${t('gw.modalCalendar')}</span>
+                <span class="mb-extra">${t('gw.modalCalendarSub')}</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>${t('gw.colJornada')}</th>
+                    <th>${t('gw.colMatch')}</th>
+                    <th>${t('gw.colDate')}</th>
+                    <th>${t('gw.colTime')}</th>
+                    <th class="gw-col-venue-col">${t('gw.colVenue')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${ownMatches.map(m => {
+                    const home = m.teamA === tm.teamId;
+                    const rival = this._teamById(home ? m.teamB : m.teamA);
+                    return html`
+                      <tr>
+                        <td class="mm-day">J${m.matchDay}</td>
+                        <td>
+                          <div class="mm-vs">
+                            <span>${home ? tm.shortName : rival?.shortName}</span>
+                            <span class="vs">${t('guide.vs')}</span>
+                            <span>${home ? rival?.shortName : tm.shortName}</span>
+                          </div>
+                        </td>
+                        <td class="mm-mono">${fmtDate(m.date, data.locale)}</td>
+                        <td style="font-family:var(--font-var);font-size:12px;color:var(--retro-orange)">${m.timeSpain}</td>
+                        <td class="mm-mono gw-col-venue-col">${m.city}</td>
+                      </tr>
+                    `;
+                  })}
+                </tbody>
+              </table>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>${t('gw.colJornada')}</th>
-                  <th>${t('gw.colMatch')}</th>
-                  <th>${t('gw.colDate')}</th>
-                  <th>${t('gw.colTime')}</th>
-                  <th>${t('gw.colVenue')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${ownMatches.map(m => {
-                  const home = m.teamA === tm.teamId;
-                  const rival = this._teamById(home ? m.teamB : m.teamA);
-                  return html`
-                    <tr>
-                      <td class="mm-day">J${m.matchDay}</td>
-                      <td>
-                        <div class="mm-vs">
-                          <span>${home ? tm.shortName : rival?.shortName}</span>
-                          <span class="vs">${t('guide.vs')}</span>
-                          <span>${home ? rival?.shortName : tm.shortName}</span>
-                        </div>
-                      </td>
-                      <td class="mm-mono">${fmtDate(m.date, data.locale)}</td>
-                      <td style="font-family:var(--font-var);font-size:12px;color:var(--retro-orange)">${m.timeSpain}</td>
-                      <td class="mm-mono">${m.city}</td>
-                    </tr>
-                  `;
-                })}
-              </tbody>
-            </table>
           </div>
 
           <div class="modal-actions">
@@ -2099,6 +2228,19 @@ export class GuideView extends LitElement {
   }
 
   // ───────── Campo de fútbol ─────────
+  private _keyPlayersByLine(tm: GuideTeamData): { line: 'GK' | 'DF' | 'MF' | 'FW'; label: string; player: (typeof tm.squad)[number] | undefined }[] {
+    const xi = lineupNumbers(tm);
+    const xiPlayers = xi
+      .map(num => tm.squad.find(p => p.number === num))
+      .filter((p): p is NonNullable<typeof p> => p != null);
+    return [
+      { line: 'GK' as const, label: t('gw.lineGK'), player: xiPlayers.find(p => p.position === 'GK') },
+      { line: 'DF' as const, label: t('gw.lineDEF'), player: xiPlayers.find(p => p.position === 'DF') },
+      { line: 'MF' as const, label: t('gw.lineMID'), player: xiPlayers.find(p => p.position === 'MF') },
+      { line: 'FW' as const, label: t('gw.lineFWD'), player: xiPlayers.find(p => p.position === 'FW') },
+    ];
+  }
+
   private _renderPitch(tm: GuideTeamData): TemplateResult {
     const lineup = tm.lineup;
     if (!lineup) {

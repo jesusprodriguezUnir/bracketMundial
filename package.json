@@ -25,7 +25,10 @@
     "video": "node scripts/record-video.mjs",
     "video:list": "node scripts/record-video.mjs list",
     "video:all": "node scripts/record-video-all.mjs",
-    "record:session": "node scripts/record-session.mjs"
+    "record:session": "node scripts/record-session.mjs",
+    "reel": "node scripts/record-reel.mjs",
+    "play:assets": "node scripts/generate-play-assets.mjs",
+    "x:post": "node scripts/generate-x-post.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

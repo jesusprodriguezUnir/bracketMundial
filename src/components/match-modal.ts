@@ -39,6 +39,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @state() private _odds: MatchOdds | null = null;
   @state() private _preview: Preview | null = null;
   @state() private _chronicleOpen = false;
+  @state() private _infoTab: 'preview' | 'lineups' | 'edit' = 'edit';
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -58,6 +59,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     if (changedProps.has('matchId')) {
       this._preview = getPreview(this.matchId);
       this._chronicleOpen = false;
+      this._infoTab = 'edit';
     }
   }
 
@@ -814,6 +816,22 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .player-circle { width: 22px; height: 22px; font-size: 10px; }
       .player-label { font-size: 7px; max-width: 55px; }
       .pitch-dt { font-size: 8px; padding: 3px 5px; }
+
+      /* Info tabs — visible only on mobile */
+      .info-tab-bar {
+        display: flex;
+        gap: 4px;
+        padding: 8px 10px;
+        border-top: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        background: var(--paper-2);
+      }
+      .info-tab-content {
+        display: none;
+      }
+      .info-tab-content.active {
+        display: block;
+      }
     }
 
     /* ─── Modal body scrollable ─── */
@@ -822,6 +840,38 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── Info tabs (mobile only) ─── */
+    .info-tab-bar {
+      display: none;
+    }
+    .info-tab-btn {
+      all: unset;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      border-bottom: 3px solid transparent;
+      text-transform: uppercase;
+      touch-action: manipulation;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .info-tab-btn.active {
+      color: var(--ink);
+      border-bottom-color: var(--retro-orange);
+      font-weight: 700;
+      background: var(--paper);
+    }
+    .info-tab-content {
+      display: block;
     }
 
     /* ─── V2-Cancha: Section labels ─── */
@@ -1341,76 +1391,100 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         <!-- Goleadores -->
         ${this._renderGoalScorers(tA, tB)}
 
-        <!-- Crónica + probabilidades + cancha (V2-cancha) -->
-        ${this._renderCronica(tA, tB)}
-        ${this._renderProbBlock(tA, tB)}
-        ${this._renderPitchBlock(tA, tB)}
+        <!-- Info tab bar (mobile only) -->
+        <div class="info-tab-bar">
+          <button class="info-tab-btn ${this._infoTab === 'preview' ? 'active' : ''}"
+                  @click=${() => { this._infoTab = 'preview'; }}>
+            ${t('modal.tabPreview')}
+          </button>
+          <button class="info-tab-btn ${this._infoTab === 'lineups' ? 'active' : ''}"
+                  @click=${() => { this._infoTab = 'lineups'; }}>
+            ${t('modal.tabLineups')}
+          </button>
+          <button class="info-tab-btn ${this._infoTab === 'edit' ? 'active' : ''}"
+                  @click=${() => { this._infoTab = 'edit'; }}>
+            ${t('modal.tabScore')}
+          </button>
+        </div>
 
-        <!-- Editor de marcador -->
-        <div class="editor-section">
-          <div class="editor-label">${t('modal.editScore')}</div>
-          <div class="editor-stack">
-            <div class="editor-row">
-              <div class="score-input">
-                <button
-                  class="score-add-a"
-                  @click="${() => this.adjustScore('A', -1)}"
-                  aria-label="${t('modal.subtractGoal', { team: tA?.shortName ?? '' })}">−</button>
-                <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
-                <button
-                  @click="${() => this.adjustScore('A', 1)}"
-                  aria-label="${t('modal.addGoal', { team: tA?.shortName ?? '' })}">+</button>
+        <!-- Tab: Preview -->
+        <div class="info-tab-content ${this._infoTab === 'preview' ? 'active' : ''}">
+          ${this._renderCronica(tA, tB)}
+          ${this._renderProbBlock(tA, tB)}
+        </div>
+
+        <!-- Tab: Lineups -->
+        <div class="info-tab-content ${this._infoTab === 'lineups' ? 'active' : ''}">
+          ${this._renderPitchBlock(tA, tB)}
+        </div>
+
+        <!-- Tab: Edit -->
+        <div class="info-tab-content ${this._infoTab === 'edit' ? 'active' : ''}">
+          <div class="editor-section">
+            <div class="editor-label">${t('modal.editScore')}</div>
+            <div class="editor-stack">
+              <div class="editor-row">
+                <div class="score-input">
+                  <button
+                    class="score-add-a"
+                    @click="${() => this.adjustScore('A', -1)}"
+                    aria-label="${t('modal.subtractGoal', { team: tA?.shortName ?? '' })}">−</button>
+                  <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
+                  <button
+                    @click="${() => this.adjustScore('A', 1)}"
+                    aria-label="${t('modal.addGoal', { team: tA?.shortName ?? '' })}">+</button>
+                </div>
+
+                <span class="vs-sep">×</span>
+
+                <div class="score-input">
+                  <button
+                    @click="${() => this.adjustScore('B', -1)}"
+                    aria-label="${t('modal.subtractGoal', { team: tB?.shortName ?? '' })}">−</button>
+                  <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
+                  <button
+                    @click="${() => this.adjustScore('B', 1)}"
+                    aria-label="${t('modal.addGoal', { team: tB?.shortName ?? '' })}">+</button>
+                </div>
+
+                <button class="btn btn-danger limpiar-btn" @click="${this.clear}">${t('modal.clear')}</button>
               </div>
 
-              <span class="vs-sep">×</span>
+              ${penaltiesVisible ? html`
+                <div class="penalties-block">
+                  <div class="penalties-title">${t('modal.penalties')}</div>
+                  <div class="penalties-row">
+                    <div class="score-input">
+                      <button
+                        @click="${() => this.adjustPenalty('A', -1)}"
+                        aria-label="${t('modal.subtractPen', { team: tA?.shortName ?? '' })}">−</button>
+                      <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
+                      <button
+                        @click="${() => this.adjustPenalty('A', 1)}"
+                        aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
+                    </div>
 
-              <div class="score-input">
-                <button
-                  @click="${() => this.adjustScore('B', -1)}"
-                  aria-label="${t('modal.subtractGoal', { team: tB?.shortName ?? '' })}">−</button>
-                <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
-                <button
-                  @click="${() => this.adjustScore('B', 1)}"
-                  aria-label="${t('modal.addGoal', { team: tB?.shortName ?? '' })}">+</button>
-              </div>
+                    <span class="penalties-badge">${t('modal.penShort')}</span>
 
-              <button class="btn btn-danger limpiar-btn" @click="${this.clear}">${t('modal.clear')}</button>
-            </div>
-
-            ${penaltiesVisible ? html`
-              <div class="penalties-block">
-                <div class="penalties-title">${t('modal.penalties')}</div>
-                <div class="penalties-row">
-                  <div class="score-input">
-                    <button
-                      @click="${() => this.adjustPenalty('A', -1)}"
-                      aria-label="${t('modal.subtractPen', { team: tA?.shortName ?? '' })}">−</button>
-                    <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
-                    <button
-                      @click="${() => this.adjustPenalty('A', 1)}"
-                      aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
-                  </div>
-
-                  <span class="penalties-badge">${t('modal.penShort')}</span>
-
-                  <div class="score-input">
-                    <button
-                      @click="${() => this.adjustPenalty('B', -1)}"
-                      aria-label="${t('modal.subtractPen', { team: tB?.shortName ?? '' })}">−</button>
-                    <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
-                    <button
-                      @click="${() => this.adjustPenalty('B', 1)}"
-                      aria-label="${t('modal.addPen', { team: tB?.shortName ?? '' })}">+</button>
+                    <div class="score-input">
+                      <button
+                        @click="${() => this.adjustPenalty('B', -1)}"
+                        aria-label="${t('modal.subtractPen', { team: tB?.shortName ?? '' })}">−</button>
+                      <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
+                      <button
+                        @click="${() => this.adjustPenalty('B', 1)}"
+                        aria-label="${t('modal.addPen', { team: tB?.shortName ?? '' })}">+</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ` : ''}
-          </div>
+              ` : ''}
+            </div>
 
-          ${isDraw
-            ? html`<div class="warn">${t('modal.penRequired')}</div>`
-            : ''
-          }
+            ${isDraw
+              ? html`<div class="warn">${t('modal.penRequired')}</div>`
+              : ''
+            }
+          </div>
         </div>
 
         </div><!-- /modal-body -->

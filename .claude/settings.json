@@ -3,7 +3,19 @@
     "allow": [
       "Bash(xargs grep -l \"updateParticipantScores\\\\|replaceParticipantFromExcel\")",
       "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\\\\.claude\\\\skills\\\\\" -Recurse -Force | Select-Object FullName, PSIsContainer | Sort-Object FullName)",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Edit(/.claude/skills/instagram-reel/**)",
+      "Edit(/.claude/skills/google-play-assets/**)",
+      "Edit(/.claude/skills/x-post/**)",
+      "Bash(node scripts/record-reel.mjs list)",
+      "Bash(node scripts/generate-x-post.mjs list)",
+      "Bash(node scripts/record-video.mjs list)",
+      "Bash(node -e \"import\\('./scripts/generate-play-assets.mjs'\\).catch\\(e=>{console.error\\('ERR',e.message\\);process.exit\\(1\\)}\\)\" --only icon)",
+      "Bash(node --check scripts/generate-play-assets.mjs)",
+      "Bash(node --check scripts/record-reel.mjs)",
+      "Bash(node --check scripts/generate-x-post.mjs)",
+      "Bash(node --check scripts/lib/recording-utils.mjs)",
+      "Bash(node --check scripts/record-video.mjs)"
     ]
   }
 }
