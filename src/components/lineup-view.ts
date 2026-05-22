@@ -6,7 +6,7 @@ import { getInitials } from '../lib/text-utils';
 
 function getLastName(name: string): string {
   const parts = name.trim().split(/\s+/);
-  return parts[parts.length - 1];
+  return parts.at(-1) ?? name;
 }
 
 @customElement('lineup-view')
@@ -15,7 +15,7 @@ export class LineupView extends LitElement {
   @property({ type: Object }) lineup!: Lineup;
   @property() teamId = '';
 
-  static styles = css`
+  static readonly styles = css`
     :host {
       display: block;
       width: 100%;
@@ -224,7 +224,7 @@ export class LineupView extends LitElement {
     if (!this.lineup || !this.squad.length) return html``;
 
     // parse formation
-    const rows = this.lineup.formation.split('-').map(n => parseInt(n, 10));
+    const rows = this.lineup.formation.split('-').map(n => Number.parseInt(n, 10));
     // rows is like [4, 2, 3, 1]
     
     // Group players into rows: GK (1), Defenders (rows[0]), Midfielders (rows[1])...
@@ -240,8 +240,22 @@ export class LineupView extends LitElement {
       currentIndex += count;
     }
 
+    const lineupDescription = playerGroups
+      .map((group, rowIndex) => {
+        const rowLabel = rowIndex === 0 ? 'Portero' : `Línea ${rowIndex}`;
+        const names = group.map(playerNumber => {
+          const player = this.squad.find(p => p.number === playerNumber);
+          return player ? player.name : `Jugador ${playerNumber}`;
+        }).join(', ');
+        return `${rowLabel}: ${names}.`;
+      })
+      .join(' ');
+
     return html`
-      <div class="pitch">
+      <div
+        class="pitch"
+        role="img"
+        aria-label="Formación ${this.lineup.formation}. ${lineupDescription}">
         <div class="line-center"></div>
         <div class="circle-center"></div>
         <div class="penalty-box-top"></div>
@@ -266,7 +280,7 @@ export class LineupView extends LitElement {
                       class="photo-frame"
                       style="${photo ? `background-image: url('${photo}')` : ''}"
                     >
-                      ${!photo ? fallback : ''}
+                      ${photo ? '' : fallback}
                     </div>
                     <div class="number-sticker">${playerNumber}</div>
                     ${player?.captain ? html`<div class="captain-mark">CAP</div>` : ''}

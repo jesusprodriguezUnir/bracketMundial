@@ -213,6 +213,18 @@ export class BracketKnockout extends LitElement {
     }
     .round-title.is-final { color: var(--retro-yellow); }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     /* Match box */
     .match-box {
       background: var(--paper-2);
@@ -1218,6 +1230,39 @@ export class BracketKnockout extends LitElement {
     return TEAMS_2026.find(t => t.id === id);
   }
 
+  private _getAccessibleTeamName(teamId: string | null) {
+    return this.getTeam(teamId)?.name ?? 'Por decidir';
+  }
+
+  private _describeMatchForAssistiveTech(matchId: string) {
+    const match = useTournamentStore.getState().knockoutMatches[matchId];
+    if (!match) return `${matchId}: por decidir.`;
+
+    const teamA = this._getAccessibleTeamName(match.teamA);
+    const teamB = this._getAccessibleTeamName(match.teamB);
+    const score = match.scoreA !== null && match.scoreB !== null
+      ? ` Resultado ${match.scoreA}-${match.scoreB}.`
+      : ' Sin resultado todavía.';
+    const penalties = match.penaltyScoreA !== null && match.penaltyScoreB !== null
+      ? ` Penaltis ${match.penaltyScoreA}-${match.penaltyScoreB}.`
+      : '';
+    const venue = match.venue ? ` ${match.venue}, ${match.city ?? ''}.`.replace(',.', '.') : '';
+    return `${matchId}: ${teamA} contra ${teamB}.${score}${penalties}${venue}`;
+  }
+
+  private _getBracketAccessibleSummary() {
+    const orderedMatchIds = [
+      ...KNOCKOUT_BRACKET.roundOf32.map(match => match.id),
+      ...KNOCKOUT_BRACKET.roundOf16.map(match => match.id),
+      ...KNOCKOUT_BRACKET.quarterfinals.map(match => match.id),
+      ...KNOCKOUT_BRACKET.semifinals.map(match => match.id),
+      KNOCKOUT_BRACKET.final.id,
+      KNOCKOUT_BRACKET.thirdPlace.id,
+    ];
+
+    return orderedMatchIds.map(matchId => this._describeMatchForAssistiveTech(matchId)).join(' ');
+  }
+
   private openMatch(matchId: string) {
     const match = useTournamentStore.getState().knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
@@ -1955,6 +2000,12 @@ export class BracketKnockout extends LitElement {
   }
 
   render() {
-    return this._isMobile ? this._renderMobile() : this._renderDesktop();
+    const bracketSummary = this._getBracketAccessibleSummary();
+    return html`
+      <section aria-label="Bracket eliminatorio" aria-describedby="knockout-summary">
+        <div id="knockout-summary" class="sr-only">${bracketSummary}</div>
+        ${this._isMobile ? this._renderMobile() : this._renderDesktop()}
+      </section>
+    `;
   }
 }

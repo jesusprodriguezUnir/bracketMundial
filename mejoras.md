@@ -124,9 +124,10 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 
 ## 4. Medio — Accesibilidad (A11y)
 
-### 4.1 Bracket knockout sin alternativa textual
+### 4.1 Bracket knockout sin alternativa textual ✅
 - SVG connectors con `aria-hidden="true"` pero sin descripción del árbol de eliminatorias.
 - **Solución:** Añadir `aria-label` descriptivo en el contenedor o texto alternativo oculto.
+- **Realizado mayo 2026:** `bracket-knockout.ts` ahora expone un resumen textual oculto con los cruces, equipos, marcadores y penaltis mediante `aria-describedby`, manteniendo los conectores SVG con `aria-hidden="true"`.
 
 ### 4.2 Match items en groups-view no son focusables **✓ CORREGIDO**
 - `groups-view.ts` — `div` con `@click` pero sin `role="button"` ni `tabindex`.
@@ -145,9 +146,10 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `player-card.ts` → "← Cerrar"
 - **Solución:** Migrar a claves `t()` del sistema i18n.
 
-### 4.5 `lineup-view.ts` — campo de fútbol sin alternativa textual
+### 4.5 `lineup-view.ts` — campo de fútbol sin alternativa textual ✅
 - Puramente visual, sin `aria-label` ni descripción para lectores de pantalla.
 - **Solución:** Añadir `aria-label="Formación ${lineup.formation}"` y roles adecuados.
+- **Realizado mayo 2026:** `lineup-view.ts` ahora marca el campo como `role="img"` y genera un `aria-label` con la formación y la distribución nominal por líneas.
 
 ### 4.6 `player-card.ts` — `rel="noopener"` faltante en link de Twitter
 - `player-card.ts:349` — link de Twitter sin `rel="noopener noreferrer"`.
