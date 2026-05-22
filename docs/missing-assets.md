@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 21/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 22/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 95 fotos faltantes en 24 equipos (1136/1231 cubiertos)  
+**Jugadores:** 80 fotos faltantes en 23 equipos (1150/1230 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,11 +12,9 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| JOR | 23 | 10 | ❌ 13 | ✅ |
-| HAI | 26 | 14 | ❌ 12 | ✅ |
+| JOR | 26 | 13 | ❌ 13 | ✅ |
 | IRQ | 23 | 16 | ❌ 7 | ✅ |
 | EGY | 26 | 20 | ❌ 6 | ✅ |
-| IRN | 30 | 24 | ❌ 6 | ✅ |
 | KSA | 23 | 18 | ❌ 5 | ✅ |
 | SEN | 28 | 23 | ❌ 5 | ✅ |
 | UZB | 23 | 18 | ❌ 5 | ✅ |
@@ -25,6 +23,7 @@
 | POR | 27 | 23 | ❌ 4 | ✅ |
 | ALG | 23 | 20 | ❌ 3 | ✅ |
 | COD | 26 | 23 | ❌ 3 | ✅ |
+| IRN | 26 | 23 | ❌ 3 | ✅ |
 | NOR | 26 | 23 | ❌ 3 | ✅ |
 | PAR | 23 | 20 | ❌ 3 | ✅ |
 | CRO | 26 | 24 | ❌ 2 | ✅ |
@@ -49,6 +48,7 @@
 | FRA | 27 | 27 | ✅ 0 | ✅ |
 | GER | 26 | 26 | ✅ 0 | ✅ |
 | GHA | 23 | 23 | ✅ 0 | ✅ |
+| HAI | 26 | 26 | ✅ 0 | ✅ |
 | JPN | 28 | 28 | ✅ 0 | ✅ |
 | KOR | 26 | 26 | ✅ 0 | ✅ |
 | MAR | 26 | 26 | ✅ 0 | ✅ |
@@ -65,32 +65,17 @@
 
 - `#2` Ehsan Haddad
 - `#5` Mohannad Abu Taha
-- `#9` Hamza Al-Dardour
-- `#10` Mousa Al-Taamari
-- `#12` Abdullah Al-Fakhouri
-- `#13` Salem Al-Ajalin
-- `#14` Bara Marei
-- `#15` Abu Jalboush Nour Al-Rawabdeh
-- `#17` Ibrahim Sadeh
-- `#19` Mahmoud Ereimat
-- `#20` Baha Faisal
-- `#22` Sharara
-- `#23` Ahmed Abdel Sattar
-
-### HAI — faltan 12 fotos
-
-- `#6` Wilguens Pauguaïn
-- `#8` Leverton Pierre
-- `#10` Frantzdy Pierrot
-- `#12` Alexandre Pierre
-- `#13` Duke Lacroix
-- `#14` Martin Expérience
-- `#15` Keeto Thermoncy
-- `#18` Carl-Fred Sainthe
-- `#19` Pierre Woodenski
-- `#20` Dominique Simon
-- `#23` Josué Duverger
-- `#25` Yassin Fortune
+- `#10` Mousa Al Tamari
+- `#12` Abdallah Al Fakhouri
+- `#13` Yousef Abu Al Jazar
+- `#14` Husam Abu Dahab
+- `#17` Ibrahim Saadeh
+- `#19` Issam Smeeri
+- `#20` Bahaa Faisal
+- `#22` Nour Bani Attiah
+- `#23` Mohammad Abualnadi
+- `#24` Saad Al Rousan
+- `#25` Ahmad Assaf
 
 ### IRQ — faltan 7 fotos
 
@@ -110,15 +95,6 @@
 - `#24` Mohanad Lasheen
 - `#25` Donga
 - `#26` Mahmoud Saber
-
-### IRN — faltan 6 fotos
-
-- `#4` Shoja Khalilzadeh
-- `#24` Danial Eiri
-- `#25` Dennis Dargahi
-- `#26` Hadi Habibinejad
-- `#28` Amirhossein Mahmoudi
-- `#30` Mohammad Khalifeh
 
 ### KSA — faltan 5 fotos
 
@@ -176,6 +152,12 @@
 - `#17` Meschack Elia
 - `#22` Ngalayel Mukau
 - `#23` Timothy Fayulu
+
+### IRN — faltan 3 fotos
+
+- `#4` Shoja Khalilzadeh
+- `#24` Danial Iri
+- `#26` Mohammad Khalifeh
 
 ### NOR — faltan 3 fotos
 
