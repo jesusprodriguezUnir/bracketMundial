@@ -184,6 +184,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `bracket-knockout.ts:1133-1186` → `svg.innerHTML = regular + champ`.
 - Si los datos de partido contuvieran strings no escapados, hay riesgo XSS.
 - **Solución:** Usar `lit` `svg` template literal o sanitizar.
+- **Realizado mayo 2026:** `bracket-knockout.ts` ya no escribe conectores con `svg.innerHTML`. Ahora calcula los paths en estado y los renderiza declarativamente dentro del `<svg>` con Lit, manteniendo el mismo trazado visual sin escritura HTML imperativa.
 
 ### 6.2 `importTournament` sin validación estructural **✓ CORREGIDO**
 - `tournament-store.ts:451-476` — solo verifica `if (parsed.groupMatches)`.
@@ -372,7 +373,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 | P1 | Extraer `<score-stepper>` desde groups/knockout | 3-5 h | Alto | Hecho |
 | P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Hecho |
 | P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Hecho |
-| P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Pendiente |
+| P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Hecho |
 | P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Pendiente |
 
 ### Sprint 3 — Refactor del bracket

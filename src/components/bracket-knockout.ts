@@ -52,6 +52,14 @@ const MOBILE_STAGES = [
   { label: 'FINAL',   abbr: '1',  color: ROUND_COLORS.final, matchIds: ['FIN-01'] },
 ] as const;
 
+type ConnectorPath = {
+  d: string;
+  stroke: string;
+  strokeWidth: string;
+  opacity: string;
+  dashArray?: string;
+};
+
 @customElement('bracket-knockout')
 export class BracketKnockout extends LitElement {
   private unsubscribeStore?: () => void;
@@ -73,6 +81,8 @@ export class BracketKnockout extends LitElement {
   @state() private _pathTeamId: string | null = null;
   @state() private _showTeamPicker = false;
   @state() private _pickerSearch = '';
+  @state() private _connectorPaths: ConnectorPath[] = [];
+  private _connectorSignature = '';
 
   public static readonly styles = css`
     /* Host ocupa exactamente el espacio disponible bajo topbar + phase-tabs */
@@ -1148,7 +1158,11 @@ export class BracketKnockout extends LitElement {
   private _drawConnectors() {
     const svg = this.shadowRoot?.querySelector<SVGElement>('svg.connectors');
     const container = this.shadowRoot?.querySelector<HTMLElement>('.bracket-container');
-    if (!svg || !container) return;
+    if (!svg || !container) {
+      this._connectorPaths = [];
+      this._connectorSignature = '';
+      return;
+    }
 
     const cr = container.getBoundingClientRect();
     if (cr.width === 0) return;
@@ -1167,8 +1181,8 @@ export class BracketKnockout extends LitElement {
     const km = useTournamentStore.getState().knockoutMatches;
     const champion = km['FIN-01']?.winnerId ?? null;
 
-    let regular = '';
-    let champ = '';
+    const regular: ConnectorPath[] = [];
+    const champ: ConnectorPath[] = [];
 
     for (const { src, dst } of BRACKET_EDGES) {
       const s = getBox(src);
@@ -1191,13 +1205,32 @@ export class BracketKnockout extends LitElement {
       }
 
       if (isChampPath) {
-        champ += `<path d="${pathD}" stroke="var(--retro-yellow)" stroke-width="5" fill="none" stroke-linejoin="miter" opacity="1"/>`;
+        champ.push({
+          d: pathD,
+          stroke: 'var(--retro-yellow)',
+          strokeWidth: '5',
+          opacity: '1',
+        });
       } else {
-        regular += `<path d="${pathD}" stroke="var(--ink)" stroke-width="2.5" fill="none" stroke-linejoin="miter" opacity="${opacity}"${dash}/>`;
+        regular.push({
+          d: pathD,
+          stroke: 'var(--ink)',
+          strokeWidth: '2.5',
+          opacity,
+          dashArray: dash ? '6 4' : undefined,
+        });
       }
     }
 
-    svg.innerHTML = regular + champ;
+    const nextPaths = [...regular, ...champ];
+    const signature = nextPaths
+      .map(path => `${path.d}|${path.stroke}|${path.strokeWidth}|${path.opacity}|${path.dashArray ?? ''}`)
+      .join(';');
+
+    if (signature === this._connectorSignature) return;
+
+    this._connectorSignature = signature;
+    this._connectorPaths = nextPaths;
   }
 
   private _initDragScroll() {
@@ -1639,7 +1672,18 @@ export class BracketKnockout extends LitElement {
           radial-gradient(ellipse 1000px 700px at 50% 0%, rgba(34,65,140,0.10), transparent 60%);
       ">
         <div class="bracket-container">
-          <svg class="connectors" aria-hidden="true"></svg>
+          <svg class="connectors" aria-hidden="true">
+            ${this._connectorPaths.map(path => html`
+              <path
+                d="${path.d}"
+                stroke="${path.stroke}"
+                stroke-width="${path.strokeWidth}"
+                fill="none"
+                stroke-linejoin="miter"
+                opacity="${path.opacity}"
+                stroke-dasharray="${path.dashArray ?? ''}"></path>
+            `)}
+          </svg>
 
           <!-- LADO IZQUIERDO -->
           <div class="round-col" id="col-r32-left">
