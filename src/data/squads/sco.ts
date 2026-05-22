@@ -22,7 +22,7 @@ export const squad: Player[] = [
   { number: 16, name: 'Billy Gilmour',          position: 'MF', age: 25, club: 'Napoli' },
   { number: 18, name: 'Lewis Ferguson',         position: 'MF', age: 26, club: 'Bologna' },
   { number: 20, name: 'Findlay Curtis',          position: 'MF', age: 20, club: 'Hearts' },
-  { number: 21, name: 'Ben Doak',               position: 'MF', age: 20, club: 'Liverpool' },
+  { number: 21, name: 'Ben Gannon-Doak',         position: 'MF', age: 20, club: 'Liverpool' },
   { number: 24, name: 'Kenny McLean',           position: 'MF', age: 34, club: 'Norwich City' },
 
   { number: 9,  name: 'Lyndon Dykes',           position: 'FW', age: 30, club: 'Queens Park Rangers' },
