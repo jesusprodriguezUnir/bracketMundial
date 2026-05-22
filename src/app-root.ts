@@ -110,7 +110,8 @@ export class AppRoot extends LitElement {
       align-items: stretch;
       margin-left: auto;
     }
-    .header-actions button {
+    .header-actions button,
+    .header-actions a.header-link {
       all: unset;
       cursor: pointer;
       padding: 0 18px;
@@ -123,13 +124,17 @@ export class AppRoot extends LitElement {
       color: #ecdfc0;
       background: transparent;
       transition: background 0.1s;
+      text-decoration: none;
+      box-sizing: border-box;
     }
     @media (hover: hover) {
-      .header-actions button:hover {
+      .header-actions button:hover,
+      .header-actions a.header-link:hover {
         background: rgba(240,176,33,0.15);
       }
     }
-    .header-actions button.primary {
+    .header-actions button.primary,
+    .header-actions a.header-link.primary {
       background: var(--retro-yellow);
       color: #1a1933;
       border: 2px solid #1a1933;
@@ -138,10 +143,14 @@ export class AppRoot extends LitElement {
       padding: 0 14px;
     }
     @media (hover: hover) {
-      .header-actions button.primary:hover {
+      .header-actions button.primary:hover,
+      .header-actions a.header-link.primary:hover {
         background: var(--retro-orange);
         color: #ecdfc0;
       }
+    }
+    .header-actions a.amzn-btn {
+      color: #f0b021;
     }
     .header-actions button.account-btn {
       max-width: 160px;
@@ -325,7 +334,8 @@ export class AppRoot extends LitElement {
         flex-wrap: wrap;
         max-height: none;
       }
-      .header-actions button {
+      .header-actions button,
+      .header-actions a.header-link {
         padding: 0 12px;
         font-size: 11px;
         min-height: 44px;
@@ -563,6 +573,9 @@ export class AppRoot extends LitElement {
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
+            <a href="https://amzn.to/3Rtl2KQ" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Álbum Panini en Amazon">
+              🛒 Álbum Panini
+            </a>
             <button @click="${this.handleShare}">${t('header.share')}</button>
             <div class="dropdown-wrap">
               <button @click="${this._toggleCalendarMenu}" title="${t('calendar.exportTitle')}">${t('tabs.calendar')}</button>
@@ -613,6 +626,18 @@ export class AppRoot extends LitElement {
         </div>
 
         <footer class="site-footer">
+          <!-- Tienda / Afiliados -->
+          <div class="footer-section">
+            <span class="footer-label">Tienda</span>
+            <div class="footer-social">
+              <a href="https://amzn.to/3Rtl2KQ" target="_blank" rel="noopener noreferrer" aria-label="Comprar Álbum Panini en Amazon">
+                🛒 Álbum Panini 2026
+              </a>
+            </div>
+          </div>
+
+          <span class="footer-sep">·</span>
+
           <!-- Redes sociales -->
           <div class="footer-section">
             <span class="footer-label">${t('footer.follow')}</span>
