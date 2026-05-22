@@ -10,7 +10,7 @@ const POS_ORDER: Record<string, number> = { GK: 0, DF: 1, MF: 2, FW: 3 };
 
 function getLastName(name: string): string {
   const parts = name.trim().split(/\s+/);
-  return parts[parts.length - 1];
+  return parts.at(-1) ?? name;
 }
 
 function posLabel(pos: string): string {
@@ -1250,7 +1250,7 @@ export class GuideView extends LitElement {
   }
 
   private _print() {
-    window.print();
+    globalThis.print();
   }
 
   private async _downloadPdf() {
@@ -1286,10 +1286,18 @@ export class GuideView extends LitElement {
 
     const teamsByGroup: Record<string, GuideTeamData[]> = {};
     for (const team of data.teams) {
-      (teamsByGroup[team.group] ??= []).push(team);
+      const groupTeams = teamsByGroup[team.group] ?? [];
+      groupTeams.push(team);
+      teamsByGroup[team.group] = groupTeams;
     }
     const groupLetters = 'ABCDEFGHIJKL'.split('');
     const orderedTeams = groupLetters.flatMap(letter => teamsByGroup[letter] ?? []);
+    let pdfButtonContent = html`📥 ${t('guide.downloadPdf')}`;
+    if (this._generating) {
+      pdfButtonContent = this._genProgress
+        ? html`⏳ ${this._genProgress.current}/${this._genProgress.total}`
+        : html`⏳ ${t('guide.preparingPdf')}`;
+    }
 
     return html`
       <div class="guide-controls no-print">
@@ -1313,11 +1321,7 @@ export class GuideView extends LitElement {
           🖨 ${t('guide.print')}
         </button>
         <button class="pdf-btn" @click="${this._downloadPdf}" ?disabled="${this._generating}">
-          ${this._generating
-            ? (this._genProgress
-                ? html`⏳ ${this._genProgress.current}/${this._genProgress.total}`
-              : html`⏳ ${t('guide.preparingPdf')}`)
-            : html`📥 ${t('guide.downloadPdf')}`}
+          ${pdfButtonContent}
         </button>
       </div>
 
@@ -1443,16 +1447,17 @@ export class GuideView extends LitElement {
   private _renderCoachBlock(coach: Coach | null, hasPhoto: boolean, photoUrl: string, locale: string) {
     if (!coach) return html``;
     const age = computeAge(coach.born);
+    const coachImageSrc = hasPhoto ? photoUrl : coach.photoUrl;
+    const coachVisual = coachImageSrc
+      ? html`<img class="coach-photo" src="${coachImageSrc}" alt="${coach.name}" loading="lazy" />`
+      : html`<div class="coach-photo-fallback">${getInitials(coach.name)}</div>`;
     return html`
       <div class="coach-block">
         <div class="coach-block-head">
           <span class="label">★ ${t('guide.coach')}</span>
         </div>
         <div class="coach-photo-row">
-          ${hasPhoto || coach.photoUrl
-            ? html`<img class="coach-photo" src="${hasPhoto ? photoUrl : coach.photoUrl}"
-                alt="${coach.name}" loading="lazy" />`
-            : html`<div class="coach-photo-fallback">${getInitials(coach.name)}</div>`}
+          ${coachVisual}
           <div class="coach-info">
             <div class="coach-name">${coach.name}</div>
             <div class="coach-meta">${age} ${t('guide.years')} · ${coach.nationality}</div>
@@ -1487,7 +1492,7 @@ export class GuideView extends LitElement {
 
     let pitchBody;
     if (lineup && team.squad.length) {
-      const rows = formation.split('-').map(n => parseInt(n, 10));
+      const rows = formation.split('-').map(n => Number.parseInt(n, 10));
       const groups: number[][] = [];
       let idx = 0;
       groups.push([lineup.startingXI[idx]]);
@@ -1580,6 +1585,7 @@ export class GuideView extends LitElement {
             const flagB = this._data?.teams.find(tt => tt.teamId === m.teamB)?.flagUrl ?? '';
             const { day, time } = formatMatchDate(m.date, m.timeSpain, locale);
             const played = m.scoreA !== null && m.scoreB !== null;
+            const awaySelfClass = isHome ? '' : 'is-self';
             return html`
               <div class="cal-row">
                 <div class="cal-date">
@@ -1593,7 +1599,7 @@ export class GuideView extends LitElement {
                 <div class="cal-score ${played ? '' : 'tbd'}">
                   ${played ? `${m.scoreA}–${m.scoreB}` : t('guide.vs')}
                 </div>
-                <div class="cal-team away ${!isHome ? 'is-self' : ''}">
+                <div class="cal-team away ${awaySelfClass}">
                   <span class="nm">${m.teamBName}</span>
                   <img class="mini-flag" src="${flagB}" alt="" />
                 </div>
@@ -1612,7 +1618,9 @@ export class GuideView extends LitElement {
   private _renderTeamSquad(team: GuideTeamData, index: number, total: number) {
     const byPosition: Record<string, typeof team.players> = { GK: [], DF: [], MF: [], FW: [] };
     for (const p of team.players) {
-      (byPosition[p.position] ??= []).push(p);
+      const playersForPosition = byPosition[p.position] ?? [];
+      playersForPosition.push(p);
+      byPosition[p.position] = playersForPosition;
     }
     for (const key of Object.keys(byPosition)) {
       byPosition[key].sort((a, b) => a.number - b.number);
@@ -1845,11 +1853,11 @@ export class GuideView extends LitElement {
                     const flagA = teamById(m.teamA)?.flagUrl ?? '';
                     const flagB = teamById(m.teamB)?.flagUrl ?? '';
                     const played = m.scoreA !== null && m.scoreB !== null;
+                    const penaltySuffix = m.penaltyScoreA != null && m.penaltyScoreB != null
+                      ? ` (${m.penaltyScoreA}–${m.penaltyScoreB})`
+                      : '';
                     const scoreText = played
-                      ? `${m.scoreA}–${m.scoreB}` +
-                        (m.penaltyScoreA != null && m.penaltyScoreB != null
-                          ? ` (${m.penaltyScoreA}–${m.penaltyScoreB})`
-                          : '')
+                      ? `${m.scoreA}–${m.scoreB}${penaltySuffix}`
                       : '—';
                     const isFinal = round === 'final';
                     return html`
