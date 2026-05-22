@@ -104,6 +104,12 @@ export const es = {
   'modal.broadcastExclusive': 'DAZN',
   'modal.vs': 'vs',
   'modal.penShort': 'Pen',
+  'modal.penaltyMark': '(P)',
+  'modal.previewIntroGroup': '{teamA} y {teamB} se miden en el Grupo {group} del Mundial 2026',
+  'modal.previewIntroNoGroup': '{teamA} y {teamB} se miden en el Mundial 2026',
+  'modal.previewVenueSuffix': ' en {venue}',
+  'modal.previewCoachA': 'El equipo de {coach} busca arrancar con buen pie y sumar los primeros tres puntos.',
+  'modal.previewCoachB': '{team}, con {coach} al mando, llega con la determinación de competir desde el primer minuto.',
 
   // Groups view
   'groups.simulate': 'SIMULAR GRUPOS',
@@ -307,8 +313,10 @@ export const es = {
   'guide.downloadPdf': 'Descargar Guía PDF',
   'guide.modeAuto': 'Predicción automática',
   'guide.modeUser': 'Mi predicción',
+  'guide.modeLabel': 'Modo',
   'guide.modeAutoDesc': 'Genera la guía con resultados simulados por odds',
   'guide.modeUserDesc': 'Usa tu bracket actual para la predicción',
+  'guide.preparingPdf': 'Preparando...',
   'guide.coverSubtitle': '48 SELECCIONES · 104 PARTIDOS · 3 PAÍSES',
   'guide.teamsSection': 'FICHAS DE EQUIPOS',
   'guide.calendarSection': 'CALENDARIO COMPLETO',
@@ -341,7 +349,9 @@ export const es = {
   'guide.page': 'Página',
   'guide.brandFooter': 'BRACKET MUNDIAL · bracketmundial.com',
   'guide.captainBadge': 'CAP',
+  'guide.vs': 'vs',
   'guide.matchdayShort': 'J{n}',
+  'guide.groupBadgeLabel': 'GRUPO',
   // Guía — nuevo diseño editorial
   'guide.coverEyebrow': 'FIFA WORLD CUP · 2026',
   'guide.coverTitle1': 'GUÍA',

@@ -860,7 +860,7 @@ export class GuideView extends LitElement {
     }
     .player-card.captain { background: var(--retro-yellow); }
     .player-card.captain::before {
-      content: 'CAP';
+      content: attr(data-badge);
       position: absolute;
       top: -6px; left: 3px;
       background: var(--retro-red);
@@ -1294,7 +1294,7 @@ export class GuideView extends LitElement {
     return html`
       <div class="guide-controls no-print">
         <div class="mode-group">
-          <span class="mode-label">${locale === 'es' ? 'Modo' : 'Mode'}</span>
+          <span class="mode-label">${t('guide.modeLabel')}</span>
           <button
             class="mode-btn ${this._mode === 'auto' ? 'active' : ''}"
             @click="${() => this._setMode('auto')}">
@@ -1316,7 +1316,7 @@ export class GuideView extends LitElement {
           ${this._generating
             ? (this._genProgress
                 ? html`⏳ ${this._genProgress.current}/${this._genProgress.total}`
-                : html`⏳ ${locale === 'es' ? 'Preparando...' : 'Preparing...'}`)
+              : html`⏳ ${t('guide.preparingPdf')}`)
             : html`📥 ${t('guide.downloadPdf')}`}
         </button>
       </div>
@@ -1397,7 +1397,7 @@ export class GuideView extends LitElement {
             <h2 class="team-name">${team.name}</h2>
           </div>
           <div class="group-badge">
-            <span class="g-label">${locale === 'es' ? 'GRUPO' : 'GROUP'}</span>
+            <span class="g-label">${t('guide.groupBadgeLabel')}</span>
             <span class="g-letter">${team.group}</span>
           </div>
         </div>
@@ -1591,7 +1591,7 @@ export class GuideView extends LitElement {
                   <span class="nm">${m.teamAName}</span>
                 </div>
                 <div class="cal-score ${played ? '' : 'tbd'}">
-                  ${played ? `${m.scoreA}–${m.scoreB}` : 'vs'}
+                  ${played ? `${m.scoreA}–${m.scoreB}` : t('guide.vs')}
                 </div>
                 <div class="cal-team away ${!isHome ? 'is-self' : ''}">
                   <span class="nm">${m.teamBName}</span>
@@ -1663,7 +1663,7 @@ export class GuideView extends LitElement {
                   </div>
                   <div class="player-grid">
                     ${players.map(p => html`
-                      <div class="player-card ${p.captain ? 'captain' : ''}">
+                      <div class="player-card ${p.captain ? 'captain' : ''}" data-badge="${t('guide.captainBadge')}">
                         <div class="pc-photo">
                           ${p.hasPhoto
                             ? html`<img src="${p.photoUrl}" alt="${p.name}" loading="lazy" />`

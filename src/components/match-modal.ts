@@ -1082,12 +1082,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
   private _generatePreview(teamAName: string, teamBName: string, coachAName: string | undefined, coachBName: string | undefined): string {
     const group = TEAMS_2026.find(t => t.name === teamAName)?.group;
-    const groupText = group ? `el Grupo ${group} del ` : '';
-    let text = `${teamAName} y ${teamBName} se miden en ${groupText}Mundial 2026`;
-    if (this.venue) text += ` en ${this.venue}`;
+    let text = group
+      ? t('modal.previewIntroGroup', { teamA: teamAName, teamB: teamBName, group })
+      : t('modal.previewIntroNoGroup', { teamA: teamAName, teamB: teamBName });
+    if (this.venue) text += t('modal.previewVenueSuffix', { venue: this.venue });
     text += '. ';
-    if (coachAName) text += `El equipo de ${coachAName} busca arrancar con buen pie y sumar los primeros tres puntos. `;
-    if (coachBName) text += `${teamBName}, con ${coachBName} al mando, llega con la determinación de competir desde el primer minuto.`;
+    if (coachAName) text += `${t('modal.previewCoachA', { coach: coachAName })} `;
+    if (coachBName) text += t('modal.previewCoachB', { team: teamBName, coach: coachBName });
     return text;
   }
 
@@ -1119,7 +1120,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
             <span class="scorer-item">
               <span class="scorer-name">${g.playerName}</span>
               <span class="scorer-min">${g.minute}'</span>
-              ${g.type === 'penalty' ? html`<span class="scorer-pen">(P)</span>` : ''}
+              ${g.type === 'penalty' ? html`<span class="scorer-pen">${t('modal.penaltyMark')}</span>` : ''}
             </span>
           `)}
         </div>
@@ -1129,7 +1130,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
             <span class="scorer-item">
               <span class="scorer-name">${g.playerName}</span>
               <span class="scorer-min">${g.minute}'</span>
-              ${g.type === 'penalty' ? html`<span class="scorer-pen">(P)</span>` : ''}
+              ${g.type === 'penalty' ? html`<span class="scorer-pen">${t('modal.penaltyMark')}</span>` : ''}
             </span>
           `)}
         </div>
