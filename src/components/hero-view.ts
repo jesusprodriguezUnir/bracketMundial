@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
+import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import './logo-crest';
 
@@ -25,18 +26,25 @@ function calcCountdown(): CountdownValues {
 export class HeroView extends LitElement {
   @state() private _cd: CountdownValues = calcCountdown();
   private _timer?: ReturnType<typeof setInterval>;
+  private _unsubscribeStore?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
     this._timer = setInterval(() => { this._cd = calcCountdown(); }, 1000);
+    this._unsubscribeStore = subscribeSlice(
+      useTournamentStore,
+      state => state.groupMatches,
+      () => this.requestUpdate(),
+    );
   }
 
   disconnectedCallback() {
     clearInterval(this._timer);
+    this._unsubscribeStore?.();
     super.disconnectedCallback();
   }
 
-  static styles = css`
+  static readonly styles = css`
     :host { display: block; }
 
     .hero {

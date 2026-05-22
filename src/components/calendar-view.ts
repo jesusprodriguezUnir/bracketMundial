@@ -5,9 +5,9 @@ import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { STADIUMS } from '../data/stadiums';
 import { renderFlag } from '../lib/render-flag';
 import { formatFullDate } from '../lib/date-utils';
+import { openMatchModal } from '../lib/match-modal-service';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
-import type { MatchModal } from './match-modal';
 import './match-modal';
 import { t, useLocaleStore } from '../i18n';
 import type { TranslationKey } from '../i18n/es';
@@ -40,6 +40,57 @@ const KNOCKOUT_LABEL_KEYS: Array<{ key: string; i18nKey: TranslationKey }> = [
   { key: 'TP',  i18nKey: 'calendar.tp' },
   { key: 'FIN', i18nKey: 'calendar.final' },
 ];
+
+const MADRID_TIME_ZONE = 'Europe/Madrid';
+
+function getFormatter(timeZone: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
+function getZonedParts(date: Date, timeZone: string) {
+  const parts = getFormatter(timeZone).formatToParts(date);
+  const read = (type: string) => Number(parts.find(part => part.type === type)?.value ?? '0');
+  return {
+    year: read('year'),
+    month: read('month'),
+    day: read('day'),
+    hour: read('hour'),
+    minute: read('minute'),
+    second: read('second'),
+  };
+}
+
+function zonedTimeToUtc(dateIso: string, timeValue: string, timeZone: string): Date {
+  const [year, month, day] = dateIso.split('-').map(Number);
+  const [hour, minute] = timeValue.split(':').map(Number);
+  let candidate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+
+  for (let index = 0; index < 3; index += 1) {
+    const parts = getZonedParts(candidate, timeZone);
+    const expected = Date.UTC(year, month - 1, day, hour, minute, 0);
+    const actual = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+    const delta = expected - actual;
+    if (delta === 0) break;
+    candidate = new Date(candidate.getTime() + delta);
+  }
+
+  return candidate;
+}
+
+function formatGoogleCalendarLocal(date: Date, timeZone: string): string {
+  const parts = getZonedParts(date, timeZone);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${parts.year}${pad(parts.month)}${pad(parts.day)}T${pad(parts.hour)}${pad(parts.minute)}${pad(parts.second)}`;
+}
 
 @customElement('calendar-view')
 export class CalendarView extends LitElement {
@@ -484,19 +535,17 @@ export class CalendarView extends LitElement {
 
   private buildGCalUrl(row: CalendarRow): string | null {
     if (!row.date || !row.timeSpain) return null;
-    const [year, month, day] = row.date.split('-').map(Number);
-    const [hour, minute] = row.timeSpain.split(':').map(Number);
-    // World Cup is during CEST (UTC+2)
-    const startUtc = new Date(Date.UTC(year, month - 1, day, hour - 2, minute));
+    const stadium = STADIUMS.find(item => item.id === row.venueId || item.name === row.venue);
+    const calendarTimeZone = stadium?.timezone ?? MADRID_TIME_ZONE;
+    const startUtc = zonedTimeToUtc(row.date, row.timeSpain, MADRID_TIME_ZONE);
     const endUtc = new Date(startUtc.getTime() + 2 * 60 * 60 * 1000);
-    const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const teamAName = this.getTeam(row.teamA)?.name ?? 'Por decidir';
     const teamBName = this.getTeam(row.teamB)?.name ?? 'Por decidir';
     const text = encodeURIComponent(`${teamAName} vs ${teamBName} · FIFA Mundial 2026`);
-    const dates = `${fmt(startUtc)}/${fmt(endUtc)}`;
+    const dates = `${formatGoogleCalendarLocal(startUtc, calendarTimeZone)}/${formatGoogleCalendarLocal(endUtc, calendarTimeZone)}`;
     const details = encodeURIComponent(`${row.phaseLabel} · ${row.venue}, ${row.city}`);
     const location = encodeURIComponent(`${row.venue}, ${row.city}`);
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&ctz=${encodeURIComponent(calendarTimeZone)}&details=${details}&location=${location}`;
   }
 
   private openMatch(row: CalendarRow) {
@@ -504,38 +553,30 @@ export class CalendarView extends LitElement {
     const teamB = row.teamB;
     if (!teamA || !teamB) return;
 
-    const modal = document.createElement('match-modal') as MatchModal;
-    modal.matchId = row.id;
-    modal.teamA = teamA;
-    modal.teamB = teamB;
-    modal.initialScoreA = row.scoreA;
-    modal.initialScoreB = row.scoreB;
-    modal.initialPenaltyScoreA = row.penaltyScoreA;
-    modal.initialPenaltyScoreB = row.penaltyScoreB;
-    modal.phase = row.kind === 'group' ? 'group' : 'knockout';
-    modal.goalScorers = row.goalScorers;
-    modal.venue = row.venue;
-    modal.city = row.city;
-    modal.timeSpain = row.timeSpain;
     const stadium = STADIUMS.find(item => item.id === row.venueId || item.name === row.venue);
-    if (stadium) {
-      modal.stadiumImage = stadium.image;
-    }
-
-    const handleSave = (event: Event) => {
-      const { scoreA, scoreB, penaltyScoreA, penaltyScoreB } = (event as CustomEvent).detail;
+    openMatchModal({
+      matchId: row.id,
+      teamA,
+      teamB,
+      initialScoreA: row.scoreA,
+      initialScoreB: row.scoreB,
+      initialPenaltyScoreA: row.penaltyScoreA,
+      initialPenaltyScoreB: row.penaltyScoreB,
+      phase: row.kind === 'group' ? 'group' : 'knockout',
+      goalScorers: row.goalScorers,
+      venue: row.venue,
+      city: row.city,
+      timeSpain: row.timeSpain,
+      stadiumImage: stadium?.image,
+      onSave: ({ scoreA, scoreB, penaltyScoreA, penaltyScoreB }) => {
       const store = useTournamentStore.getState();
       if (row.kind === 'group') {
         store.setGroupMatchResult(row.id, scoreA, scoreB);
       } else {
         store.setKnockoutMatchResult(row.id, scoreA, scoreB, penaltyScoreA, penaltyScoreB);
       }
-      modal.remove();
-    };
-
-    modal.addEventListener('save', handleSave);
-    modal.addEventListener('close', () => modal.remove());
-    document.body.appendChild(modal);
+      },
+    });
   }
 
   render() {

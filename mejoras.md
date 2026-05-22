@@ -343,3 +343,70 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 4. **Sprint 4 — Arquitectura:** Unificar interfaces `GroupMatch`, consolidar best-thirds, romper dependencia circular auth↔leagues.
 5. **Sprint 5 — A11y y UX:** Alternativas textuales, focus management, loading skeletons, estados de error.
 6. **Sprint 6 — Testing y rendimiento:** Tests de componentes Lit, lazy loading, code splitting, auditoría Lighthouse.
+
+---
+
+## 14. Lista de trabajo priorizada por sprint y esfuerzo
+
+> Reordenada tras contrastar el plan con el código real. Se prioriza ROI: impacto alto, riesgo bajo, esfuerzo bajo/medio.
+
+### Sprint 2A — ROI inmediato (esta semana)
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Corregir export a Google Calendar con timezone explícito por sede | 1-2 h | Alto | ▶ En curso |
+| P1 | Suscribir `hero-view` al store para evitar ticker obsoleto | 20-30 min | Alto | ▶ En curso |
+| P1 | Unificar apertura de `match-modal` con helper compartido | 1-2 h | Alto | ▶ En curso |
+| P2 | Añadir alternativa textual al árbol de knockout | 30-45 min | Alto | Pendiente |
+| P2 | Añadir `aria-label` al campo táctico en `lineup-view` | 15-30 min | Medio | Pendiente |
+
+### Sprint 2B — ROI alto con refactor acotado
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Extraer `<score-stepper>` desde groups/knockout | 3-5 h | Alto | Pendiente |
+| P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Pendiente |
+| P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Pendiente |
+| P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Pendiente |
+| P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Pendiente |
+
+### Sprint 3 — Refactor del bracket
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Extraer `bracket-match-card` compartido | 6-8 h | Muy alto | Pendiente |
+| P1 | Separar desktop/mobile/path/team-picker en archivos dedicados | 12-16 h | Muy alto | Pendiente |
+| P1 | Reusar la nueva pieza en `share-card.ts` | 4-6 h | Alto | Pendiente |
+
+### Sprint 4 — Arquitectura y estado
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Consolidar best-thirds en una sola ruta | 3-4 h | Alto | Pendiente |
+| P1 | Reducir recálculo completo en `setGroupMatchResult` | 5-8 h | Alto | Pendiente |
+| P2 | Unificar la interfaz canónica de `GroupMatch` | 3-5 h | Medio | Pendiente |
+| P2 | Romper dependencia conceptual auth↔leagues | 4-6 h | Medio | Pendiente |
+| P3 | Revisar `activePhase` y eliminarlo o conectarlo a navegación real | 1-2 h | Medio | Pendiente |
+
+### Sprint 5 — UX, feedback y datos
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Banner de "datos offline" cuando odds/news usan seed | 2-3 h | Alto | Pendiente |
+| P2 | Skeletons para odds/news en vistas principales | 3-5 h | Medio | Pendiente |
+| P2 | Completar noticias EN faltantes y USA anfitrión | 1-2 h | Medio | Pendiente |
+| P3 | Revisar teams KO ocultos en calendario antes de jugarse | 1 h | Medio | Pendiente |
+
+### Sprint 6 — Calidad y cobertura
+
+| Prioridad | Mejora | Esfuerzo | Impacto | Estado |
+|---|---|---|---|---|
+| P1 | Tests del store para standings + knockout progression | 4-6 h | Alto | Pendiente |
+| P2 | Tests de componentes Lit clave | 6-10 h | Alto | Pendiente |
+| P3 | Auditoría final de rendimiento y Lighthouse | 2-4 h | Medio | Pendiente |
+
+### Próximas 3 tareas recomendadas
+
+1. **Cerrar Sprint 2A**: timezone calendar + hero reactive + helper de modal.
+2. **Extraer reutilizables pequeños**: `score-stepper` y `odds-bar` antes del refactor grande del bracket.
+3. **Entrar al bracket monolítico** solo cuando la superficie compartida ya exista.

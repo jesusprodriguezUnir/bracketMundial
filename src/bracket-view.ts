@@ -3,10 +3,10 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from './store/tournament-store';
 // Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
-import type { MatchModal } from './components/match-modal';
 import './components/match-modal';
 import './components/ad-block';
 import { STADIUMS } from './data/stadiums';
+import { openMatchModal } from './lib/match-modal-service';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
@@ -564,28 +564,24 @@ export class BracketView extends LitElement {
     const match = store.groupMatches.find((m: { matchId: string }) => m.matchId === matchId);
     if (!match) return;
 
-    const modal = document.createElement('match-modal') as MatchModal;
-    modal.matchId = match.matchId;
-    modal.teamA = match.teamA;
-    modal.teamB = match.teamB;
-    modal.initialScoreA = match.scoreA;
-    modal.initialScoreB = match.scoreB;
-    modal.phase = 'group';
-    modal.goalScorers = match.goalScorers;
-    (modal as any).venue = match.venue;
-    (modal as any).city = match.city;
-    (modal as any).timeSpain = match.timeSpain;
     const s = STADIUMS.find(st => st.name === match.venue);
-    if (s) (modal as any).stadiumImage = s.image;
 
-    const handler = (ev: Event) => {
-      const { scoreA, scoreB } = (ev as CustomEvent).detail;
+    openMatchModal({
+      matchId: match.matchId,
+      teamA: match.teamA,
+      teamB: match.teamB,
+      initialScoreA: match.scoreA,
+      initialScoreB: match.scoreB,
+      phase: 'group',
+      goalScorers: match.goalScorers,
+      venue: match.venue,
+      city: match.city,
+      timeSpain: match.timeSpain,
+      stadiumImage: s?.image,
+      onSave: ({ scoreA, scoreB }) => {
       store.setGroupMatchResult(matchId, scoreA, scoreB);
-      modal.remove();
-    };
-    modal.addEventListener('save', handler);
-    modal.addEventListener('close', () => modal.remove());
-    document.body.appendChild(modal);
+      },
+    });
   }
 
   render() {

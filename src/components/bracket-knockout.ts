@@ -3,12 +3,12 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
-import type { MatchModal } from './match-modal';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
 import { isMatchPending } from '../lib/date-utils';
 import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
+import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
 
 // Colores por ronda — retro Panini
@@ -1223,32 +1223,27 @@ export class BracketKnockout extends LitElement {
     if (!match?.teamA || !match?.teamB) return;
     if (!isMatchPending(match.date ?? '', match.timeSpain ?? '')) return;
 
-    const modal = document.createElement('match-modal') as MatchModal;
-    modal.matchId = match.matchId;
-    modal.teamA = match.teamA;
-    modal.teamB = match.teamB;
-    modal.initialScoreA = match.scoreA;
-    modal.initialScoreB = match.scoreB;
-    modal.initialPenaltyScoreA = match.penaltyScoreA ?? null;
-    modal.initialPenaltyScoreB = match.penaltyScoreB ?? null;
-    modal.phase = 'knockout';
-    modal.goalScorers = match.goalScorers;
-    (modal as any).venue = (match as any).venue || '';
-    (modal as any).city = (match as any).city || '';
-    (modal as any).timeSpain = (match as any).timeSpain || '';
-    const s = STADIUMS.find(st => st.name === (match as any).venue);
-    if (s) (modal as any).stadiumImage = s.image;
-
-    const handler = (ev: Event) => {
-      const { scoreA, scoreB, penaltyScoreA, penaltyScoreB } = (ev as CustomEvent).detail;
+    const stadium = STADIUMS.find(st => st.name === match.venue);
+    openMatchModal({
+      matchId: match.matchId,
+      teamA: match.teamA,
+      teamB: match.teamB,
+      initialScoreA: match.scoreA,
+      initialScoreB: match.scoreB,
+      initialPenaltyScoreA: match.penaltyScoreA ?? null,
+      initialPenaltyScoreB: match.penaltyScoreB ?? null,
+      phase: 'knockout',
+      goalScorers: match.goalScorers,
+      venue: match.venue,
+      city: match.city,
+      timeSpain: match.timeSpain,
+      stadiumImage: stadium?.image,
+      onSave: ({ scoreA, scoreB, penaltyScoreA, penaltyScoreB }) => {
       useTournamentStore.getState().setKnockoutMatchResult(matchId, scoreA, scoreB, penaltyScoreA, penaltyScoreB);
       this._pulseId = matchId;
       setTimeout(() => { this._pulseId = null; }, 700);
-      modal.remove();
-    };
-    modal.addEventListener('save', handler);
-    modal.addEventListener('close', () => modal.remove());
-    document.body.appendChild(modal);
+      },
+    });
   }
 
   private adjustInlineKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
