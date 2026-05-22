@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
@@ -1102,7 +1102,7 @@ export class BracketKnockout extends LitElement {
       () => this.requestUpdate(),
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
-    this._mql = window.matchMedia('(max-width: 768px)');
+    this._mql = globalThis.matchMedia('(max-width: 768px)');
     this._isMobile = this._mql.matches;
     this._mql.addEventListener('change', this._onMqlChange);
     if (!this._oddsLoaded) {
@@ -1376,6 +1376,16 @@ export class BracketKnockout extends LitElement {
       const isWinner = winnerId !== null && winnerId === teamId;
       const isLoser  = winnerId !== null && winnerId !== teamId;
       const stepVal  = teamAB === 'A' ? scoreAVal : scoreBVal;
+      const scoreClass = isPending ? 'pending' : '';
+      const scoreText = isPlayed ? score : '—';
+      const scoreContent = canEdit
+        ? html`<score-stepper
+            .value=${stepVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="compact"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
+        : html`<div class="score ${scoreClass}">${scoreText}</div>`;
       return html`
         <div
           class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
@@ -1384,18 +1394,60 @@ export class BracketKnockout extends LitElement {
             ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
-          ${canEdit
-            ? html`<score-stepper
-                .value=${stepVal}
-                decrementLabel=${t('groups.decScore')}
-                incrementLabel=${t('groups.incScore')}
-                variant="compact"
-                @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
-            : html`<div class="score ${isPending ? 'pending' : ''}">${isPlayed ? score : '—'}</div>`
-          }
+          ${scoreContent}
         </div>
       `;
     };
+
+    const penaltiesSuffix = decidedOnPenalties
+      ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}`
+      : '';
+    const matchAriaLabel = isPlayed
+      ? `Partido ${label}, resultado ${m.scoreA}-${m.scoreB}${penaltiesSuffix}`
+      : `Partido ${label}, click para editar`;
+    let penaltyNote: TemplateResult | string = '';
+    if (isDraw) {
+      penaltyNote = html`
+        <div class="ko-pen-row">
+          <span class="ko-pen-label">PEN</span>
+          <score-stepper
+            .value=${penAVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="compact"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
+          <span class="ko-pen-sep">·</span>
+          <score-stepper
+            .value=${penBVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="compact"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
+        </div>
+      `;
+    } else if (decidedOnPenalties) {
+      penaltyNote = html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>`;
+    }
+    const odds = this._getOdds(matchId, m?.teamA, m?.teamB);
+    let oddsTitle = '';
+    if (odds) {
+      let oddsSourceLabel = ' · estimado';
+      if (odds.source === 'market') {
+        oddsSourceLabel = ` · ${odds.bookmakers} casas`;
+      }
+      oddsTitle = `Probabilidad 1X2${oddsSourceLabel}`;
+    }
+    const oddsContent: TemplateResult | string = !odds || m?.isPlayed
+      ? ''
+      : html`
+          <odds-bar
+            title="${oddsTitle}"
+            .home=${odds.home}
+            .draw=${odds.draw}
+            .away=${odds.away}
+            variant="compact"
+            .showFigures=${true}></odds-bar>
+        `;
 
     return html`
       <div
@@ -1404,44 +1456,14 @@ export class BracketKnockout extends LitElement {
         style="--i:${idx}; ${isRightSide ? `border-right-color: ${accentColor};` : `border-left-color: ${accentColor};`}"
         role="button"
         tabindex="0"
-        aria-label="Partido ${label}${isPlayed ? `, resultado ${m.scoreA}-${m.scoreB}${decidedOnPenalties ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}` : ''}` : ', click para editar'}"
+        aria-label="${matchAriaLabel}"
         @click="${() => this.openMatch(matchId)}"
         @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
         ${renderRow(m?.teamA ?? null, m?.scoreA ?? null, 'A')}
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null, 'B')}
-        ${isDraw ? html`
-          <div class="ko-pen-row">
-            <span class="ko-pen-label">PEN</span>
-            <score-stepper
-              .value=${penAVal}
-              decrementLabel=${t('groups.decScore')}
-              incrementLabel=${t('groups.incScore')}
-              variant="compact"
-              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
-            <span class="ko-pen-sep">·</span>
-            <score-stepper
-              .value=${penBVal}
-              decrementLabel=${t('groups.decScore')}
-              incrementLabel=${t('groups.incScore')}
-              variant="compact"
-              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
-          </div>
-        ` : (decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : '')}
-
-        ${(() => {
-          const o = this._getOdds(matchId, m?.teamA, m?.teamB);
-          if (!o || m?.isPlayed) return '';
-          return html`
-            <odds-bar
-              title="Probabilidad 1X2${o.source === 'market' ? ` · ${o.bookmakers} casas` : ' · estimado'}"
-              .home=${o.home}
-              .draw=${o.draw}
-              .away=${o.away}
-              variant="compact"
-              .showFigures=${true}></odds-bar>
-          `;
-        })()}
+        ${penaltyNote}
+        ${oddsContent}
 
         ${(m as any)?.venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
@@ -1550,6 +1572,16 @@ export class BracketKnockout extends LitElement {
 
     const row = (team: ReturnType<typeof this.getTeam>, score: number | null, teamAB: 'A' | 'B', isWin: boolean, isLose: boolean) => {
       const stepVal = teamAB === 'A' ? (m.scoreA ?? 0) : (m.scoreB ?? 0);
+      const mobileScoreClass = isPending && score === null ? 'pending' : '';
+      const mobileScoreText = m.isPlayed ? score : '—';
+      const mobileScoreContent = canEdit
+        ? html`<score-stepper
+            .value=${stepVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="mobile"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
+        : html`<div class="mob-score ${mobileScoreClass}">${mobileScoreText}</div>`;
       return html`
         <div
           class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
@@ -1559,15 +1591,7 @@ export class BracketKnockout extends LitElement {
             <span class="code">${team?.shortName ?? 'TBD'}</span>
             <span class="name">${team?.name ?? ''}</span>
           </div>
-          ${canEdit
-            ? html`<score-stepper
-                .value=${stepVal}
-                decrementLabel=${t('groups.decScore')}
-                incrementLabel=${t('groups.incScore')}
-                variant="mobile"
-                @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
-            : html`<div class="mob-score ${isPending && score === null ? 'pending' : ''}">${m.isPlayed ? score : '—'}</div>`
-          }
+          ${mobileScoreContent}
         </div>
       `;
     };
@@ -1577,52 +1601,72 @@ export class BracketKnockout extends LitElement {
     const cityName = (m as any).city;
     const matchDate = (m as any).date;
     const matchTime = (m as any).timeSpain;
+    let mobPenaltyNote: TemplateResult | string = '';
+    if (isDraw) {
+      mobPenaltyNote = html`
+        <div class="mob-pen-row">
+          <span class="mob-pen-label">PEN</span>
+          <score-stepper
+            .value=${penAVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="mobile"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
+          <span class="mob-pen-sep">·</span>
+          <score-stepper
+            .value=${penBVal}
+            decrementLabel=${t('groups.decScore')}
+            incrementLabel=${t('groups.incScore')}
+            variant="mobile"
+            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
+        </div>
+      `;
+    } else if (m.penaltyScoreA !== null && m.penaltyScoreB !== null) {
+      mobPenaltyNote = html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`;
+    }
+    let mobOddsTitle = '';
+    if (mobOdds) {
+      let mobOddsSourceLabel = ' · estimado';
+      if (mobOdds.source === 'market') {
+        mobOddsSourceLabel = ` · ${mobOdds.bookmakers} casas`;
+      }
+      mobOddsTitle = `Probabilidad 1X2${mobOddsSourceLabel}`;
+    }
+    const mobOddsContent: TemplateResult | string = mobOdds && !m.isPlayed
+      ? html`
+          <odds-bar
+            style="margin:2px 4px 3px;"
+            title="${mobOddsTitle}"
+            .home=${mobOdds.home}
+            .draw=${mobOdds.draw}
+            .away=${mobOdds.away}
+            variant="compact"
+            .showFigures=${true}></odds-bar>
+        `
+      : '';
+    const venueImage = venueName
+      ? STADIUMS.find(s => s.name === venueName)?.image ?? ''
+      : '';
+    const venueImageContent: TemplateResult | string = venueImage ? html`<img src="${venueImage}" class="mob-venue-img" alt="">` : '';
+    const matchDateLabel = matchDate ? ` · ${matchDate}` : '';
+    const matchTimeLabel = matchTime ? ` · ${matchTime} ESP` : '';
+    const venueContent: TemplateResult | string = venueName
+      ? html`
+          <div class="mob-match-venue">
+            ${venueImageContent}
+            <span>${venueName} · ${cityName}${matchDateLabel}${matchTimeLabel}</span>
+          </div>
+        `
+      : '';
 
     return html`
       <div class="mob-match-card" @click="${() => this.openMatch(matchId)}" role="button" tabindex="0"
            @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
         ${row(tA, m.scoreA, 'A', winA, winB)}
         ${row(tB, m.scoreB, 'B', winB, winA)}
-        ${isDraw ? html`
-          <div class="mob-pen-row">
-            <span class="mob-pen-label">PEN</span>
-            <score-stepper
-              .value=${penAVal}
-              decrementLabel=${t('groups.decScore')}
-              incrementLabel=${t('groups.incScore')}
-              variant="mobile"
-              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
-            <span class="mob-pen-sep">·</span>
-            <score-stepper
-              .value=${penBVal}
-              decrementLabel=${t('groups.decScore')}
-              incrementLabel=${t('groups.incScore')}
-              variant="mobile"
-              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
-          </div>
-        ` : (m.penaltyScoreA !== null && m.penaltyScoreB !== null
-          ? html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`
-          : '')
-        }
-        ${mobOdds && !m.isPlayed ? html`
-          <odds-bar
-            style="margin:2px 4px 3px;"
-            title="Probabilidad 1X2${mobOdds.source === 'market' ? ` · ${mobOdds.bookmakers} casas` : ' · estimado'}"
-            .home=${mobOdds.home}
-            .draw=${mobOdds.draw}
-            .away=${mobOdds.away}
-            variant="compact"
-            .showFigures=${true}></odds-bar>
-        ` : ''}
-        ${venueName ? html`
-          <div class="mob-match-venue">
-            ${(() => {
-              const st = STADIUMS.find(s => s.name === venueName);
-              return st ? html`<img src="${st.image}" class="mob-venue-img" alt="">` : '';
-            })()}
-            <span>${venueName} · ${cityName}${matchDate ? ` · ${matchDate}` : ''}${matchTime ? ` · ${matchTime} ESP` : ''}</span>
-          </div>
-        ` : ''}
+        ${mobPenaltyNote}
+        ${mobOddsContent}
+        ${venueContent}
       </div>
     `;
   }
@@ -1799,6 +1843,72 @@ export class BracketKnockout extends LitElement {
     const stage = MOBILE_STAGES[this._mobileStage];
     const championId = km['FIN-01']?.winnerId;
     const champion = this.getTeam(championId ?? null);
+    let stageMatchLabel = t('knockout.matchPlural');
+    if (stage.matchIds.length === 1) {
+      stageMatchLabel = t('knockout.matchSingular');
+    }
+    let championVisual: TemplateResult = html`<div style="font-family:var(--font-var);font-size:18px;color:var(--ink);opacity:0.4;">${t('knockout.toBeDefined')}</div>`;
+    if (champion) {
+      const championFlag = champion.flagUrl
+        ? html`<img src="${champion.flagUrl}" alt="${champion.name}" style="width:48px;height:32px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);">`
+        : html`<span style="font-size:40px">${(champion as any).flag}</span>`;
+      championVisual = html`
+        <div style="margin-bottom:6px;">${championFlag}</div>
+        <div style="font-family:var(--font-var);font-size:26px;color:var(--ink);">${champion.name.toUpperCase()}</div>
+      `;
+    }
+    let championStageContent: TemplateResult | string = '';
+    if (this._mobileStage === 4) {
+      championStageContent = html`
+        <div class="mob-champion-card">
+          <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,0.10) 1.4px,transparent 1.6px);background-size:7px 7px;pointer-events:none;"></div>
+          <div style="position:relative;text-align:center;">
+            <div style="font-size:40px;line-height:1;margin-bottom:4px;">🏆</div>
+            <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.3em;font-weight:700;color:var(--ink);margin-bottom:8px;">${t('knockout.worldChampion26')}</div>
+            ${championVisual}
+          </div>
+        </div>
+        <div class="mob-third-label">${t('knockout.thirdPlace')}</div>
+        ${this._renderMobileMatchCard('TP-01', ROUND_COLORS.sf)}
+      `;
+    }
+    let mobileModeContent: TemplateResult = this._renderPathMode();
+    if (this._mobileMode === 'all') {
+      mobileModeContent = html`
+        <div class="mob-chips">
+          ${MOBILE_STAGES.map((s, i) => html`
+            <button
+              class="mob-chip ${i === this._mobileStage ? 'active' : ''}"
+              style="${i === this._mobileStage ? `background: ${s.color};` : ''}"
+              @click="${() => { this._mobileStage = i; }}">
+              ${s.label}
+              <span style="font-family: var(--font-mono); font-size: 8px; opacity: 0.7;">[${s.abbr}]</span>
+            </button>
+          `)}
+        </div>
+
+        <div class="mob-body">
+          <div class="mob-stage-banner" style="background: ${stage.color};">
+            <div class="mob-banner-dots"></div>
+            <span class="mob-banner-label">${stage.label}</span>
+            <span class="mob-banner-count">${stage.matchIds.length} ${stageMatchLabel}</span>
+          </div>
+
+          ${stage.matchIds.map(id => this._renderMobileMatchCard(id, stage.color))}
+          ${championStageContent}
+        </div>
+      `;
+    }
+    let pickerOverlay: TemplateResult | string = '';
+    if (this._showTeamPicker) {
+      pickerOverlay = this._renderTeamPicker();
+    }
+    let headerAction: TemplateResult;
+    if (hasKnockout) {
+      headerAction = html`<button class="mob-header-action" @click="${this.handleSimulate}">🎲 ${t('knockout.simulate')}</button>`;
+    } else {
+      headerAction = html`<button class="mob-header-action" @click="${this.handleGenerate}">⚡ ${t('knockout.generate')}</button>`;
+    }
 
     return html`
       <div class="mob-layout">
@@ -1806,10 +1916,7 @@ export class BracketKnockout extends LitElement {
         <div class="mob-header">
           <div class="mob-header-top">
             <div class="mob-header-eyebrow">★ MUNDIAL 26 ★</div>
-            ${hasKnockout
-              ? html`<button class="mob-header-action" @click="${this.handleSimulate}">🎲 ${t('knockout.simulate')}</button>`
-              : html`<button class="mob-header-action" @click="${this.handleGenerate}">⚡ ${t('knockout.generate')}</button>`
-            }
+            ${headerAction}
           </div>
           <div class="mob-header-title">${t('knockout.mobileTitle')}</div>
           <div class="mob-header-sub">${t('knockout.mobileSubtitle', { n: totalMatches })}</div>
@@ -1831,58 +1938,10 @@ export class BracketKnockout extends LitElement {
           </div>
         </div>
 
-        ${this._mobileMode === 'all' ? html`
-          <!-- Chips de fases -->
-          <div class="mob-chips">
-            ${MOBILE_STAGES.map((s, i) => html`
-              <button
-                class="mob-chip ${i === this._mobileStage ? 'active' : ''}"
-                style="${i === this._mobileStage ? `background: ${s.color};` : ''}"
-                @click="${() => { this._mobileStage = i; }}">
-                ${s.label}
-                <span style="font-family: var(--font-mono); font-size: 8px; opacity: 0.7;">[${s.abbr}]</span>
-              </button>
-            `)}
-          </div>
-
-          <!-- Lista de partidos de la fase activa -->
-          <div class="mob-body">
-            <div class="mob-stage-banner" style="background: ${stage.color};">
-              <div class="mob-banner-dots"></div>
-              <span class="mob-banner-label">${stage.label}</span>
-              <span class="mob-banner-count">${stage.matchIds.length} ${stage.matchIds.length === 1 ? t('knockout.matchSingular') : t('knockout.matchPlural')}</span>
-            </div>
-
-            ${stage.matchIds.map(id => this._renderMobileMatchCard(id, stage.color))}
-
-            ${this._mobileStage === 4 ? html`
-              <!-- Campeón -->
-              <div class="mob-champion-card">
-                <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,0.10) 1.4px,transparent 1.6px);background-size:7px 7px;pointer-events:none;"></div>
-                <div style="position:relative;text-align:center;">
-                  <div style="font-size:40px;line-height:1;margin-bottom:4px;">🏆</div>
-                  <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.3em;font-weight:700;color:var(--ink);margin-bottom:8px;">${t('knockout.worldChampion26')}</div>
-              ${champion
-                ? html`
-                  <div style="margin-bottom:6px;">${champion.flagUrl ? html`<img src="${champion.flagUrl}" alt="${champion.name}" style="width:48px;height:32px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);">` : html`<span style="font-size:40px">${(champion as any).flag}</span>`}</div>
-                  <div style="font-family:var(--font-var);font-size:26px;color:var(--ink);">${champion.name.toUpperCase()}</div>
-                `
-                    : html`<div style="font-family:var(--font-var);font-size:18px;color:var(--ink);opacity:0.4;">${t('knockout.toBeDefined')}</div>`
-                  }
-                </div>
-              </div>
-              <!-- Tercer puesto -->
-              <div class="mob-third-label">${t('knockout.thirdPlace')}</div>
-              ${this._renderMobileMatchCard('TP-01', ROUND_COLORS.sf)}
-            ` : ''}
-          </div>
-        ` : html`
-          <!-- MI CAMINO — path mode -->
-          ${this._renderPathMode()}
-        `}
+        ${mobileModeContent}
 
         <!-- Team picker overlay -->
-        ${this._showTeamPicker ? this._renderTeamPicker() : ''}
+        ${pickerOverlay}
       </div>
     `;
   }
@@ -1893,6 +1952,65 @@ export class BracketKnockout extends LitElement {
     const path = teamId ? this._getTeamPath(teamId) : [];
     const km = useTournamentStore.getState().knockoutMatches;
     const isChampion = teamId !== null && km['FIN-01']?.winnerId === teamId;
+    const teamFlagContent = team?.flagUrl
+      ? html`<img src="${team.flagUrl}" alt="${team.name}" style="width:100%;height:100%;object-fit:cover;">`
+      : html`<span style="font-size:36px">?</span>`;
+    const championBadge = isChampion
+      ? html`<div style="font-family:var(--font-mono);font-size:10px;opacity:0.9;margin-top:4px;letter-spacing:0.1em;">🏆 ${t('knockout.championBadge', { n: path.length })}</div>`
+      : '';
+    const emptyPathContent = html`<div style="font-family:var(--font-mono);font-size:11px;color:var(--dim);letter-spacing:0.15em;text-align:center;padding:24px 0;">${t('knockout.noMatchesAvailable')}</div>`;
+    const trophyContent = isChampion
+      ? html`
+          <div class="mob-trophy-item">
+            <div class="mob-trophy-node">🏆</div>
+            <div class="mob-trophy-card">
+              <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.25em;font-weight:700;color:var(--ink);">${t('knockout.worldChampion')}</div>
+              <div style="font-family:var(--font-var);font-size:20px;line-height:1;margin-top:2px;color:var(--ink);">${team?.name.toUpperCase()} 2026</div>
+            </div>
+          </div>
+        `
+      : '';
+    const timelineContent = path.length === 0
+      ? emptyPathContent
+      : html`
+          <div class="mob-timeline">
+            <div class="mob-timeline-line"></div>
+            ${path.map(p => {
+              const opp = p.opponentId ? this.getTeam(p.opponentId) : null;
+              let resultLabel = '—';
+              if (p.isWin === true) {
+                resultLabel = t('knockout.resultWin', { score: `${p.myScore}-${p.oppScore}` });
+              } else if (p.isWin === false) {
+                resultLabel = t('knockout.resultLose', { score: `${p.myScore}-${p.oppScore}` });
+              }
+              let resultBg = 'var(--dim)';
+              if (p.isWin === true) {
+                resultBg = p.color;
+              } else if (p.isWin === false) {
+                resultBg = 'var(--retro-red)';
+              }
+              const opponentVisual = opp?.flagUrl
+                ? html`<img src="${opp.flagUrl}" alt="${opp.name}" style="width:24px;height:16px;object-fit:cover;border:1px solid var(--ink);flex-shrink:0;">`
+                : html`<span style="font-size:22px;flex-shrink:0;">?</span>`;
+              return html`
+                <div class="mob-timeline-item">
+                  <div class="mob-node" style="background: ${p.color};">${p.abbr}</div>
+                  <div class="mob-item-card">
+                    <div class="mob-item-opponent">
+                      ${opponentVisual}
+                      <div>
+                        <div style="font-family:var(--font-var);font-size:14px;line-height:1;">vs ${opp?.shortName ?? 'TBD'}</div>
+                        <div style="font-family:var(--font-mono);font-size:9px;color:var(--dim);letter-spacing:0.1em;margin-top:2px;">${p.stageLabel}</div>
+                      </div>
+                    </div>
+                    <div class="mob-result-badge" style="background: ${resultBg};">${resultLabel}</div>
+                  </div>
+                </div>
+              `;
+            })}
+            ${trophyContent}
+          </div>
+        `;
 
     return html`
       <div class="mob-path-body">
@@ -1900,15 +2018,12 @@ export class BracketKnockout extends LitElement {
         <div class="mob-team-hero" style="background: var(--retro-green);">
           <div class="mob-hero-halftone"></div>
           <div class="hero-flag-box">
-            ${team?.flagUrl
-              ? html`<img src="${team.flagUrl}" alt="${team.name}" style="width:100%;height:100%;object-fit:cover;">`
-              : html`<span style="font-size:36px">?</span>`
-            }
+            ${teamFlagContent}
           </div>
           <div class="hero-info">
             <div class="hero-label">${t('knockout.following')}</div>
             <div class="hero-name">${team?.name.toUpperCase() ?? t('knockout.none')}</div>
-            ${isChampion ? html`<div style="font-family:var(--font-mono);font-size:10px;opacity:0.9;margin-top:4px;letter-spacing:0.1em;">🏆 ${t('knockout.championBadge', { n: path.length })}</div>` : ''}
+            ${championBadge}
           </div>
           <button class="mob-hero-change"
             aria-expanded="${this._showTeamPicker}"
@@ -1917,54 +2032,7 @@ export class BracketKnockout extends LitElement {
         </div>
 
         <!-- Timeline -->
-        ${path.length === 0
-          ? html`<div style="font-family:var(--font-mono);font-size:11px;color:var(--dim);letter-spacing:0.15em;text-align:center;padding:24px 0;">
-              ${t('knockout.noMatchesAvailable')}
-            </div>`
-          : html`
-            <div class="mob-timeline">
-              <div class="mob-timeline-line"></div>
-              ${path.map(p => {
-                const opp = p.opponentId ? this.getTeam(p.opponentId) : null;
-                const resultLabel = p.isWin === null
-                  ? '—'
-                  : p.isWin
-                    ? t('knockout.resultWin', { score: `${p.myScore}-${p.oppScore}` })
-                    : t('knockout.resultLose', { score: `${p.myScore}-${p.oppScore}` });
-                const resultBg = p.isWin === null
-                  ? 'var(--dim)'
-                  : p.isWin ? p.color : 'var(--retro-red)';
-                return html`
-                  <div class="mob-timeline-item">
-                    <div class="mob-node" style="background: ${p.color};">${p.abbr}</div>
-                    <div class="mob-item-card">
-                      <div class="mob-item-opponent">
-                        ${opp?.flagUrl
-                          ? html`<img src="${opp.flagUrl}" alt="${opp.name}" style="width:24px;height:16px;object-fit:cover;border:1px solid var(--ink);flex-shrink:0;">`
-                          : html`<span style="font-size:22px;flex-shrink:0;">?</span>`
-                        }
-                        <div>
-                          <div style="font-family:var(--font-var);font-size:14px;line-height:1;">vs ${opp?.shortName ?? 'TBD'}</div>
-                          <div style="font-family:var(--font-mono);font-size:9px;color:var(--dim);letter-spacing:0.1em;margin-top:2px;">${p.stageLabel}</div>
-                        </div>
-                      </div>
-                      <div class="mob-result-badge" style="background: ${resultBg};">${resultLabel}</div>
-                    </div>
-                  </div>
-                `;
-              })}
-              ${isChampion ? html`
-                <div class="mob-trophy-item">
-                  <div class="mob-trophy-node">🏆</div>
-                  <div class="mob-trophy-card">
-                    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.25em;font-weight:700;color:var(--ink);">${t('knockout.worldChampion')}</div>
-                    <div style="font-family:var(--font-var);font-size:20px;line-height:1;margin-top:2px;color:var(--ink);">${team?.name.toUpperCase()} 2026</div>
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-          `
-        }
+        ${timelineContent}
       </div>
     `;
   }

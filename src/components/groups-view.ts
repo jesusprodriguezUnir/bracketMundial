@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { getAllOdds, type MatchOdds } from '../lib/odds-service';
 import { useTournamentStore, type GroupMatchResult } from '../store/tournament-store';
@@ -588,17 +588,23 @@ export class GroupsView extends LitElement {
                 ${standings.map((s, idx) => {
                   const team = this.getTeam(s.teamId);
                   const top2 = idx < 2;
-                  const posLabel = idx === 0 ? '1°' : idx === 1 ? '2°' : null;
+                  let posLabel: string | null = null;
+                  if (idx === 0) posLabel = '1°';
+                  else if (idx === 1) posLabel = '2°';
+                  const standingRowClass = top2 ? '' : 'muted';
+                  const rankBadgeClass = top2 ? 'qualify' : '';
+                  const pointsClass = top2 ? '' : 'muted';
+                  const posBadge = posLabel ? html`<span class="pos-badge">${posLabel}</span>` : '';
                   return html`
-                    <div class="standing-row ${top2 ? '' : 'muted'}">
-                      <div class="rank-badge ${top2 ? 'qualify' : ''}">${idx + 1}</div>
+                    <div class="standing-row ${standingRowClass}">
+                      <div class="rank-badge ${rankBadgeClass}">${idx + 1}</div>
                       <div class="team-cell">
                         ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
                         <span class="team-short">${team?.shortName ?? s.teamId}</span>
-                        ${posLabel ? html`<span class="pos-badge">${posLabel}</span>` : ''}
+                        ${posBadge}
                       </div>
                       <span class="wdl">${s.won}-${s.drawn}-${s.lost}</span>
-                      <span class="pts ${top2 ? '' : 'muted'}">${s.points}</span>
+                      <span class="pts ${pointsClass}">${s.points}</span>
                     </div>
                   `;
                 })}
@@ -611,26 +617,31 @@ export class GroupsView extends LitElement {
                   const tB = this.getTeam(m.teamB);
                   const isPlayed = m.scoreA !== null;
                   const pending = isMatchPending(m.date ?? '', m.timeSpain ?? '');
-                  return html`
-                    <div class="match-item" role="button" tabindex="0"
-                      @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
-                      @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openMatch(m.matchId, m.date, m.timeSpain); } }}"
-                    >
-                      <div class="match-top">
-                        <div class="match-teams">
-                          ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-                          <strong>${tA?.shortName ?? m.teamA}</strong>
-                          <span class="vs">${t('groups.vs')}</span>
-                          ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-                          <strong>${tB?.shortName ?? m.teamB}</strong>
-                        </div>
-                        ${!pending ? html`
-                          <div class="match-score ${!isPlayed ? 'pending' : ''}">
-                            ${isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit')}
-                          </div>
-                        ` : ''}
+                  const showScoreSummary = pending === false;
+                  const matchScoreClass = isPlayed ? '' : 'pending';
+                  const matchScoreText = isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit');
+                  const venueStadium = m.venue ? STADIUMS.find(st => st.name === m.venue) : null;
+                  const venueThumb = venueStadium
+                    ? html`<img src="${venueStadium.image}" style="width: 20px; height: 12px; object-fit: cover; border: 1px solid var(--ink);" alt="">`
+                    : '';
+                  let venueMeta: TemplateResult | string = '';
+                  if (m.venue) {
+                    venueMeta = html`
+                      <div style="display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                        ${venueThumb}
+                        <span style="font-size: 8px; opacity: 0.7;">${m.venue}</span>
                       </div>
-                      ${pending ? html`
+                    `;
+                  }
+                  const scoreSummary = showScoreSummary
+                    ? html`
+                        <div class="match-score ${matchScoreClass}">
+                          ${matchScoreText}
+                        </div>
+                      `
+                    : '';
+                  const inlineScoreRow = pending
+                    ? html`
                         <div class="inline-score-row">
                           <score-stepper
                             .value=${m.scoreA ?? 0}
@@ -646,41 +657,52 @@ export class GroupsView extends LitElement {
                             variant="inline"
                             @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInline(e, m, 'B', e.detail.delta)}></score-stepper>
                         </div>
-                      ` : ''}
-
-                      ${(() => {
-                        const o = this._odds[m.matchId];
-                        if (!o) return '';
-                        const srcLabel = o.source === 'market'
-                          ? t('groups.oddsBookmakers', { n: String(o.bookmakers) })
-                          : t('groups.oddsEstimate');
-                        return html`
-                          <div class="odds-wrap" title="${t('groups.oddsTitle', { source: srcLabel })}">
-                            <odds-bar
-                              .home=${o.home}
-                              .draw=${o.draw}
-                              .away=${o.away}
-                              variant="default"
-                              .showLegend=${true}
-                              .showFigures=${true}></odds-bar>
-                          </div>
-                        `;
-                      })()}
+                      `
+                    : '';
+                  const odds = this._odds[m.matchId];
+                  let oddsMeta: TemplateResult | string = '';
+                  if (odds) {
+                    const srcLabel = odds.source === 'market'
+                      ? t('groups.oddsBookmakers', { n: String(odds.bookmakers) })
+                      : t('groups.oddsEstimate');
+                    oddsMeta = html`
+                      <div class="odds-wrap" title="${t('groups.oddsTitle', { source: srcLabel })}">
+                        <odds-bar
+                          .home=${odds.home}
+                          .draw=${odds.draw}
+                          .away=${odds.away}
+                          variant="default"
+                          .showLegend=${true}
+                          .showFigures=${true}></odds-bar>
+                      </div>
+                    `;
+                  }
+                  const badgeClass = isPlayed ? 'badge-played' : 'badge-upcoming';
+                  const badgeText = isPlayed ? t('groups.badgePlayed') : t('groups.badgeNext');
+                  return html`
+                    <div class="match-item" role="button" tabindex="0"
+                      @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
+                      @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openMatch(m.matchId, m.date, m.timeSpain); } }}"
+                    >
+                      <div class="match-top">
+                        <div class="match-teams">
+                          ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                          <strong>${tA?.shortName ?? m.teamA}</strong>
+                          <span class="vs">${t('groups.vs')}</span>
+                          ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                          <strong>${tB?.shortName ?? m.teamB}</strong>
+                        </div>
+                        ${scoreSummary}
+                      </div>
+                      ${inlineScoreRow}
+                      ${oddsMeta}
                       <div class="match-meta">
                         <span class="jornada">${t('groups.matchdayShort', { n: String(m.matchDay) })}</span>
                         ${m.date ? html`<span>${formatDate(m.date)}</span>` : ''}
                         ${m.timeSpain ? html`<span style="color: var(--retro-yellow); font-weight: bold;">· ${m.timeSpain} ESP</span>` : ''}
                         ${m.city ? html`<span>· ${m.city}</span>` : ''}
-                        ${m.venue ? html`
-                          <div style="display: flex; align-items: center; gap: 4px; margin-left: auto;">
-                            ${(() => {
-                              const s = STADIUMS.find(st => st.name === m.venue);
-                              return s ? html`<img src="${s.image}" style="width: 20px; height: 12px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
-                            })()}
-                            <span style="font-size: 8px; opacity: 0.7;">${m.venue}</span>
-                          </div>
-                        ` : ''}
-                        <span class="badge ${isPlayed ? 'badge-played' : 'badge-upcoming'}">${isPlayed ? t('groups.badgePlayed') : t('groups.badgeNext')}</span>
+                        ${venueMeta}
+                        <span class="badge ${badgeClass}">${badgeText}</span>
                       </div>
                     </div>
                   `;

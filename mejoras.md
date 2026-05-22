@@ -25,10 +25,12 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 ### 1.3 `renderFlag` implementado 5+ veces
 - `groups-view.ts`, `bracket-knockout.ts`, `share-card.ts`, `calendar-view.ts`, `player-card.ts`
 - Ya existe `src/lib/render-flag.ts` — verificar si está alineado con todos los usos y unificar.
+- **Realizado mayo 2026:** Unificado el render de banderas con `src/lib/render-flag.ts` en las superficies principales para eliminar variantes locales y reducir divergencias visuales.
 
 ### 1.4 `getInitials` / `normalize` duplicados
 - `coaches-view.ts:10-18`, `lineup-view.ts`, `squads-view.ts`
 - **Solución:** Mover a `src/lib/text-utils.ts`.
+- **Realizado mayo 2026:** Helpers de texto consolidados en `src/lib/text-utils.ts` y reutilizados desde las vistas que los duplicaban.
 
 ### 1.5 Steppers de score duplicados
 - `.inline-stepper` en `groups-view.ts` vs `.ko-stepper` en `bracket-knockout.ts`
@@ -85,6 +87,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `hero-view.ts:372-399` llama `useTournamentStore.getState()` en `render()` pero no tiene `subscribeSlice` en `connectedCallback`.
 - Resultado: ticker de resultados y flag `hasPlayed` siempre muestran datos del primer render.
 - **Solución:** Añadir suscripción o documentar que es intencionalmente estático.
+- **Realizado mayo 2026:** `hero-view.ts` ya se suscribe al store y reacciona a cambios de resultados/estado sin quedarse congelado en el primer render.
 
 ---
 
@@ -117,11 +120,13 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `bracket-knockout.ts` crea el modal directamente con `document.createElement('match-modal')`.
 - `calendar-view.ts` también crea el modal directamente.
 - **Solución:** Unificar con un servicio `ModalService` o evento global.
+- **Avance mayo 2026:** Creado `src/lib/match-modal-service.ts` con `openMatchModal()` y adoptado en `bracket-view.ts`, `bracket-knockout.ts` y `calendar-view.ts`. Queda rematar la consolidación completa de todos los puntos de apertura bajo un único patrón.
 
 ### 3.6 `calendar-view.ts` — timezone hardcodeado
 - `buildGCalUrl()` (`calendar-view.ts:482-497`) asume CEST (UTC+2) restando 2 horas.
 - Los partidos en México/Canadá tienen UTC-5/-6.
 - **Solución:** Usar el campo `timezone` del estadio desde `stadiums.ts`.
+- **Realizado mayo 2026:** La exportación de Google Calendar ya usa el timezone real por sede a partir de `stadiums.ts` en lugar de asumir CEST fija.
 
 ---
 
@@ -141,13 +146,14 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - **Solución:** Añadir atributos ARIA al botón toggle y al panel.
 - **Realizado mayo 2026:** Botón `.mob-hero-change` ahora tiene `aria-expanded="${this._showTeamPicker}"` y `aria-controls="team-picker-panel"`. El panel `.mob-picker-sheet` tiene `id="team-picker-panel"`, `role="dialog"` y `aria-modal="true"`.
 
-### 4.4 Textos hardcodeados en español (12+ ocurrencias)
+### 4.4 Textos hardcodeados residuales en español
 - `match-modal.ts:924` → "Probabilidad 1X2"
 - `player-card.ts:81-87` → etiquetas de posición
 - `player-card.ts:16-20` → "Derecho"/"Izquierdo"
 - `coaches-view.ts:502` → "SIN RESULTADOS"
 - `player-card.ts` → "← Cerrar"
 - **Solución:** Migrar a claves `t()` del sistema i18n.
+- **Avance mayo 2026:** Se completó un barrido amplio de i18n visible en `hero-view.ts`, `groups-view.ts`, `match-modal.ts`, `guide-view.ts` y `bracket-knockout.ts`. Lo pendiente aquí queda acotado a cadenas residuales fuera de esas superficies, principalmente en fichas y vistas secundarias.
 
 ### 4.5 `lineup-view.ts` — campo de fútbol sin alternativa textual ✅
 - Puramente visual, sin `aria-label` ni descripción para lectores de pantalla.
@@ -345,8 +351,8 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 ## 13. Priorización sugerida
 
 1. **Sprint 1 — Estabilización** ✓ **COMPLETADO**: Quick wins + arreglar fair-play sort + validación import + textos hardcodeados.
-2. **Sprint 2 — Refactor componentes:** Extraer `bracket-match`, `score-stepper`, `odds-bar`, `drag-to-dismiss` mixin.
-3. **Sprint 3 — Refactor bracket:** Dividir `bracket-knockout.ts` en 4-5 archivos. Unificar `share-card` con el nuevo `bracket-match`.
+2. **Sprint 2 — Refactor componentes** ✓ **COMPLETADO EN GRAN PARTE**: `score-stepper`, `odds-bar`, `drag-to-dismiss`, helper compartido de apertura de modal, timezone real en calendario, `hero-view` reactivo y barrido fuerte de i18n visible.
+3. **Sprint 3 — Refactor bracket:** Dividir `bracket-knockout.ts` en 4-5 archivos. Unificar `share-card` con el nuevo `bracket-match`. Sigue siendo el bloque principal pendiente.
 4. **Sprint 4 — Arquitectura:** Unificar interfaces `GroupMatch`, consolidar best-thirds, romper dependencia circular auth↔leagues.
 5. **Sprint 5 — A11y y UX:** Alternativas textuales, focus management, loading skeletons, estados de error.
 6. **Sprint 6 — Testing y rendimiento:** Tests de componentes Lit, lazy loading, code splitting, auditoría Lighthouse.
@@ -361,11 +367,11 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 
 | Prioridad | Mejora | Esfuerzo | Impacto | Estado |
 |---|---|---|---|---|
-| P1 | Corregir export a Google Calendar con timezone explícito por sede | 1-2 h | Alto | ▶ En curso |
-| P1 | Suscribir `hero-view` al store para evitar ticker obsoleto | 20-30 min | Alto | ▶ En curso |
-| P1 | Unificar apertura de `match-modal` con helper compartido | 1-2 h | Alto | ▶ En curso |
-| P2 | Añadir alternativa textual al árbol de knockout | 30-45 min | Alto | Pendiente |
-| P2 | Añadir `aria-label` al campo táctico en `lineup-view` | 15-30 min | Medio | Pendiente |
+| P1 | Corregir export a Google Calendar con timezone explícito por sede | 1-2 h | Alto | Hecho |
+| P1 | Suscribir `hero-view` al store para evitar ticker obsoleto | 20-30 min | Alto | Hecho |
+| P1 | Unificar apertura de `match-modal` con helper compartido | 1-2 h | Alto | Hecho parcial |
+| P2 | Añadir alternativa textual al árbol de knockout | 30-45 min | Alto | Hecho |
+| P2 | Añadir `aria-label` al campo táctico en `lineup-view` | 15-30 min | Medio | Hecho |
 
 ### Sprint 2B — ROI alto con refactor acotado
 
@@ -414,6 +420,26 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 
 ### Próximas 3 tareas recomendadas
 
-1. **Cerrar Sprint 2A**: timezone calendar + hero reactive + helper de modal.
-2. **Extraer reutilizables pequeños**: `score-stepper` y `odds-bar` antes del refactor grande del bracket.
-3. **Entrar al bracket monolítico** solo cuando la superficie compartida ya exista.
+1. **Entrar al refactor estructural de `bracket-knockout.ts`**: extraer piezas desktop/mobile/path/team-picker y bajar complejidad real, no solo deuda estática local.
+2. **Reusar la pieza compartida también en `share-card.ts`** para cerrar la mayor duplicación DRY pendiente del árbol eliminatorio.
+3. **Atacar la arquitectura del torneo**: consolidar best-thirds y recálculo incremental en store/lib.
+
+---
+
+## 15. Pendiente real al cierre de hoy
+
+> Estado actualizado a 22 mayo 2026 para retomar sin rehacer auditoría.
+
+### Lo más importante que queda
+
+- **Bracket monolítico:** `src/components/bracket-knockout.ts` sigue siendo la mayor deuda. Aunque ya se limpiaron ternarias/avisos locales y el build pasa, continúan pendientes la partición en subcomponentes y la reducción de complejidad en `_drawConnectors()`, `_getTeamPath()` y `_renderMobileMatchCard()`.
+- **Duplicación con `share-card.ts`:** sigue pendiente reutilizar una pieza compartida de partido/bracket para cerrar la duplicación de IDs, colores y render del árbol.
+- **Arquitectura del torneo:** continúan pendientes la unificación de `GroupMatch`, la consolidación de best-thirds en una sola ruta y la reducción del recálculo completo en `setGroupMatchResult`.
+- **UX de datos remotos:** faltan banner de modo offline y skeletons/feedback cuando odds o noticias usan seed/fallback.
+- **Cobertura de tests:** siguen faltando tests del store y de componentes Lit clave antes de abordar refactors más agresivos.
+
+### Pendiente menor o residual
+
+- Rematar la unificación completa de apertura de `match-modal` bajo un único patrón.
+- Revisar cadenas hardcodeadas residuales fuera del barrido principal de i18n.
+- Completar noticias EN faltantes y revisar datos/horarios puntuales del feed.
