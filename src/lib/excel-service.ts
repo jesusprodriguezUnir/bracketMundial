@@ -1,10 +1,16 @@
 import ExcelJS from 'exceljs';
 import type { GroupMatchResult, KnockoutMatchResult } from '../store/tournament-store';
+import { getKnockoutMatchOrder } from '../store/tournament-store';
 import type { Locale } from '../i18n/index';
 import type { TranslationKey } from '../i18n/es';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
+import { GROUP_MATCHES } from '../data/match-schedule';
+import { scoreParticipant, rankParticipants, MUNDIAL_POINTS } from './mini-league';
+import type { ParticipantScore } from './mini-league';
+import type { MatchPoints } from './mini-league';
+import type { DecodedBracket } from './bracket-codec';
 
 // ─── Typed import errors ──────────────────────────────────────────────────────
 
@@ -30,6 +36,8 @@ const C = {
   white:   'FFFFFF',
   dim:     '7A6F54',
   red:     'C41E2C',
+  green:   '1F6B3A',
+  blue:    '22418C',
   qualify: 'FEF0F0',
 } as const;
 
@@ -102,6 +110,16 @@ function fmtDate(date?: string): string {
   if (!date) return '';
   const p = date.split('-');
   return p.length === 3 ? `${p[2]}/${p[1]}` : date;
+}
+
+function kindToArgb(kind: MatchPoints['kind']): { bg: string; fg: string } {
+  switch (kind) {
+    case 'exact':   return { bg: C.green,  fg: C.white };
+    case 'diff':    return { bg: C.blue,   fg: C.white };
+    case 'sign':    return { bg: C.yellow, fg: C.ink };
+    case 'miss':    return { bg: C.paper2, fg: C.dim };
+    case 'pending': return { bg: C.paper3, fg: C.dim };
+  }
 }
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
@@ -363,6 +381,271 @@ export class ExcelService {
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
     const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName, flagImages);
     this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells);
+
+    const buffer = await wb.xlsx.writeBuffer();
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+  }
+
+  // ── League predictions export ────────────────────────────────────────────────
+
+  static async exportLeaguePredictions(
+    league: { name: string; participants: Array<{ id: string; name: string; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] }> },
+    realGroupScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
+    realKnockoutScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
+    youParticipant: { id: string; name: string; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] },
+    locale: Locale = 'es',
+  ): Promise<Blob> {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Bracket Mundial 2026';
+    wb.created = new Date();
+    wb.modified = new Date();
+
+    const allParticipants = [youParticipant, ...league.participants];
+    const scored: ParticipantScore[] = [];
+    for (const p of allParticipants) {
+      scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
+    }
+    const ranked = rankParticipants(scored);
+
+    // Sheet 1: Rules / Reglas
+    const rulesSheet = wb.addWorksheet(locale === 'en' ? 'Rules' : 'Reglas', {
+      views: [{ showGridLines: false }],
+    });
+
+    const rulesTitle = rulesSheet.getCell(1, 1);
+    rulesTitle.value = locale === 'en' ? 'Scoring Rules' : 'Reglas de puntuación';
+    rulesTitle.font = { bold: true, size: 16, color: { argb: C.ink } };
+    rulesSheet.mergeCells(1, 1, 1, 4);
+
+    const ruleHeaders = [
+      locale === 'en' ? 'Points' : 'Puntos',
+      locale === 'en' ? 'Type' : 'Tipo',
+      locale === 'en' ? 'Description' : 'Descripción',
+    ];
+    ruleHeaders.forEach((h, i) => {
+      const cell = rulesSheet.getCell(3, i + 1);
+      cell.value = h;
+      cell.font = { bold: true, size: 11, color: { argb: C.yellow } };
+      cell.fill = fill(C.ink);
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    const ruleRows: Array<{ points: number; type: string; desc: string; kind: MatchPoints['kind'] }> = [
+      { points: MUNDIAL_POINTS.exact, type: locale === 'en' ? 'Exact score' : 'Resultado exacto', desc: locale === 'en' ? 'You predict the exact score (e.g., predict 2-1, result 2-1)' : 'Aciertas el marcador exacto (predices 2-1, resultado 2-1)', kind: 'exact' },
+      { points: MUNDIAL_POINTS.diff, type: locale === 'en' ? 'Goal difference' : 'Diferencia correcta', desc: locale === 'en' ? 'You get the goal difference right (e.g., predict 3-1, result 2-0)' : 'Aciertas la diferencia de goles (predices 3-1, resultado 2-0)', kind: 'diff' },
+      { points: MUNDIAL_POINTS.sign, type: locale === 'en' ? 'Correct sign' : 'Signo correcto', desc: locale === 'en' ? 'You get the winner/draw but not the difference (e.g., predict 2-0, result 5-1)' : 'Aciertas el ganador/empate pero no la diferencia (predices 2-0, resultado 5-1)', kind: 'sign' },
+      { points: MUNDIAL_POINTS.miss, type: locale === 'en' ? 'Miss' : 'Fallo', desc: locale === 'en' ? 'Wrong winner or no prediction' : 'Ganador equivocado o sin pronóstico', kind: 'miss' },
+    ];
+
+    ruleRows.forEach((rule, idx) => {
+      const r = 4 + idx;
+      const { bg, fg } = kindToArgb(rule.kind);
+      [rule.points, rule.type, rule.desc].forEach((v, i) => {
+        const cell = rulesSheet.getCell(r, i + 1);
+        cell.value = v;
+        cell.fill = fill(bg);
+        cell.font = { size: 11, color: { argb: fg } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    const rulesNote = rulesSheet.getCell(9, 1);
+    rulesNote.value = locale === 'en'
+      ? 'Total points are split between Group Stage + Knockout. Tiebreaker: number of exact scores.'
+      : 'El total se reparte en Grupos + Eliminatorias. Desempate: nº de aciertos exactos.';
+    rulesNote.font = { italic: true, size: 10, color: { argb: C.dim } };
+    rulesSheet.mergeCells(9, 1, 9, 4);
+
+    rulesSheet.getColumn(1).width = 10;
+    rulesSheet.getColumn(2).width = 22;
+    rulesSheet.getColumn(3).width = 65;
+    rulesSheet.getColumn(4).width = 15;
+
+    // Sheet 2: Ranking / Resume
+    const rankSheet = wb.addWorksheet(locale === 'en' ? 'Ranking' : 'Resumen', {
+      views: [{ showGridLines: false }],
+    });
+
+    const rankHeaders = [
+      locale === 'en' ? 'Pos' : 'Pos.',
+      locale === 'en' ? 'Player' : 'Participante',
+      locale === 'en' ? 'Total' : 'Total',
+      locale === 'en' ? 'Groups' : 'Grupos',
+      locale === 'en' ? 'Knockout' : 'Eliminatorias',
+      locale === 'en' ? 'Exact' : 'Exactos',
+      locale === 'en' ? 'Diff' : 'Dif',
+      locale === 'en' ? 'Sign' : 'Signo',
+    ];
+
+    rankHeaders.forEach((h, i) => {
+      const cell = rankSheet.getCell(1, i + 1);
+      cell.value = h;
+      cell.font = { bold: true, size: 11, color: { argb: 'F0B021' } };
+      cell.fill = fill('1A1933');
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = { bottom: { style: 'thin', color: { argb: '1A1933' } } };
+    });
+
+    ranked.forEach((s, rowIdx) => {
+      const r = rowIdx + 2;
+      const rowBg = rowIdx % 2 === 0 ? 'FFF9EC' : 'E6D6B1';
+
+      const vals = [
+        rowIdx + 1,
+        s.participant.name + (s.participant.id === '__me__' ? ' ★' : ''),
+        s.total,
+        s.byPhase.groups,
+        s.byPhase.knockout,
+        s.exactCount,
+        s.diffCount,
+        s.signCount,
+      ];
+      vals.forEach((v, i) => {
+        const cell = rankSheet.getCell(r, i + 1);
+        cell.value = v;
+        cell.fill = fill(rowBg);
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.font = { size: 11 };
+      });
+
+      if (rowIdx === 0) {
+        for (let i = 1; i <= vals.length; i++) {
+          rankSheet.getCell(r, i).font = { bold: true, size: 13, color: { argb: 'C41E2C' } };
+        }
+      }
+    });
+
+    rankSheet.getColumn(1).width = 6;
+    rankSheet.getColumn(2).width = 25;
+    for (let i = 3; i <= 8; i++) rankSheet.getColumn(i).width = 12;
+
+    // Note about rules sheet
+    const rankNoteRow = ranked.length + 3;
+    const rankNote = rankSheet.getCell(rankNoteRow, 1);
+    rankNote.value = locale === 'en'
+      ? '→ See "Rules" sheet for scoring details'
+      : '→ Ver hoja "Reglas" para el detalle de puntuación';
+    rankNote.font = { italic: true, size: 10, color: { argb: C.dim } };
+    rankSheet.mergeCells(rankNoteRow, 1, rankNoteRow, 8);
+
+    // Sheet 3: Predictions
+    const predSheet = wb.addWorksheet(locale === 'en' ? 'Predictions' : 'Pronósticos', {
+      views: [{ showGridLines: false }],
+    });
+
+    const matchNames: string[] = [];
+    const allMatchOrder: string[] = [];
+
+    for (const gm of GROUP_MATCHES) {
+      allMatchOrder.push(gm.matchId);
+      matchNames.push(`${gm.teamA} vs ${gm.teamB}`);
+    }
+    for (const matchId of getKnockoutMatchOrder()) {
+      allMatchOrder.push(matchId);
+      matchNames.push(matchId);
+    }
+
+    const setPredHeader = (cell: ExcelJS.Cell) => {
+      cell.font = { bold: true, size: 10, color: { argb: 'F0B021' } };
+      cell.fill = fill('1A1933');
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = { bottom: { style: 'thin', color: { argb: '1A1933' } } };
+    };
+
+    setPredHeader(predSheet.getCell(1, 1));
+    predSheet.getCell(1, 1).value = locale === 'en' ? 'Match' : 'Partido';
+
+    setPredHeader(predSheet.getCell(1, 2));
+    predSheet.getCell(1, 2).value = locale === 'en' ? 'Real Result' : 'Resultado real';
+
+    const ptsColLabel = locale === 'en' ? 'Pts' : 'Pts';
+
+    allParticipants.forEach((p, pi) => {
+      const col = 3 + pi * 2;
+      const nameCell = predSheet.getCell(1, col);
+      nameCell.value = p.name + (p.id === '__me__' ? ' ★' : '');
+      setPredHeader(nameCell);
+
+      const ptsCell = predSheet.getCell(1, col + 1);
+      ptsCell.value = ptsColLabel;
+      setPredHeader(ptsCell);
+    });
+
+    const predByParticipant = new Map<string, Map<string, { scoreA: number | null; scoreB: number | null }>>();
+    for (const p of allParticipants) {
+      const m = new Map<string, { scoreA: number | null; scoreB: number | null }>();
+      for (const s of p.groupScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
+      for (const s of p.knockoutScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
+      predByParticipant.set(p.id, m);
+    }
+
+    const breakdownByPid = new Map<string, Map<string, MatchPoints>>();
+    for (const s of scored) {
+      const m = new Map<string, MatchPoints>();
+      for (const b of s.breakdown) m.set(b.matchId, b);
+      breakdownByPid.set(s.participant.id, m);
+    }
+
+    const realByMatchId = new Map<string, { scoreA: number | null; scoreB: number | null }>();
+    for (const r of realGroupScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
+    for (const r of realKnockoutScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
+
+    allMatchOrder.forEach((matchId, rowIdx) => {
+      const r = rowIdx + 2;
+      const rowBg = rowIdx % 2 === 0 ? 'FFF9EC' : 'E6D6B1';
+
+      predSheet.getCell(r, 1).value = matchNames[rowIdx];
+      predSheet.getCell(r, 1).fill = fill(rowBg);
+      predSheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle' };
+      predSheet.getCell(r, 1).font = { size: 10 };
+
+      const real = realByMatchId.get(matchId);
+      const realStr = (real?.scoreA !== null && real?.scoreA !== undefined && real?.scoreB !== null && real?.scoreB !== undefined)
+        ? `${real.scoreA}-${real.scoreB}`
+        : '-';
+      predSheet.getCell(r, 2).value = realStr;
+      predSheet.getCell(r, 2).fill = fill(rowBg);
+      predSheet.getCell(r, 2).alignment = { horizontal: 'center', vertical: 'middle' };
+      predSheet.getCell(r, 2).font = { size: 10 };
+
+      allParticipants.forEach((p, pi) => {
+        const col = 3 + pi * 2;
+        const pred = predByParticipant.get(p.id)?.get(matchId);
+        const predStr = (pred?.scoreA !== null && pred?.scoreA !== undefined && pred?.scoreB !== null && pred?.scoreB !== undefined)
+          ? `${pred.scoreA}-${pred.scoreB}`
+          : '-';
+        predSheet.getCell(r, col).value = predStr;
+        predSheet.getCell(r, col).fill = fill(rowBg);
+        predSheet.getCell(r, col).alignment = { horizontal: 'center', vertical: 'middle' };
+        predSheet.getCell(r, col).font = { size: 10 };
+
+        const bp = breakdownByPid.get(p.id)?.get(matchId);
+        if (bp) {
+          const { bg, fg } = kindToArgb(bp.kind);
+          const ptsCell = predSheet.getCell(r, col + 1);
+          ptsCell.value = bp.points;
+          ptsCell.fill = fill(bg);
+          ptsCell.alignment = { horizontal: 'center', vertical: 'middle' };
+          ptsCell.font = { size: 10, color: { argb: fg }, bold: true };
+        } else {
+          predSheet.getCell(r, col + 1).value = 0;
+          predSheet.getCell(r, col + 1).fill = fill(rowBg);
+          predSheet.getCell(r, col + 1).alignment = { horizontal: 'center', vertical: 'middle' };
+          predSheet.getCell(r, col + 1).font = { size: 10, color: { argb: C.dim } };
+        }
+      });
+    });
+
+    predSheet.getColumn(1).width = 20;
+    predSheet.getColumn(2).width = 16;
+    for (let i = 0; i < allParticipants.length; i++) {
+      predSheet.getColumn(3 + i * 2).width = 14;
+      predSheet.getColumn(3 + i * 2 + 1).width = 7;
+    }
+
+    predSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
     const buffer = await wb.xlsx.writeBuffer();
     return new Blob([buffer], {

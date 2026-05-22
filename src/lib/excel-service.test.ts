@@ -149,3 +149,124 @@ describe('ExcelService round-trip', () => {
     expect((err as ExcelImportError).code).toBe('no_valid_rows');
   });
 });
+
+// ── League predictions export ────────────────────────────────────────────────
+
+describe('ExcelService league predictions export', () => {
+  function mkScores(matchIds: string[], scores: (number | null)[][]): Array<{ matchId: string; scoreA: number | null; scoreB: number | null }> {
+    return matchIds.map((id, i) => ({
+      matchId: id,
+      scoreA: scores[i]?.[0] ?? null,
+      scoreB: scores[i]?.[1] ?? null,
+    }));
+  }
+
+  const groupMatches = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+
+  const emptyKo = (): Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }> => [];
+
+  const you = {
+    id: '__me__',
+    name: 'Me',
+    groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
+    knockoutScores: emptyKo(),
+  };
+
+  const participants = [
+    {
+      id: 'p1',
+      name: 'Alice',
+      groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
+      knockoutScores: emptyKo(),
+    },
+    {
+      id: 'p2',
+      name: 'Bob',
+      groupScores: mkScores(groupMatches, [[1, 0], [2, 1], [1, 0], [1, 1], [0, 1], [2, 2]]),
+      knockoutScores: emptyKo(),
+    },
+  ];
+
+  const realGroupScores = mkScores(groupMatches, [[2, 1], [2, 0], [0, 0], [2, 2], [1, 1], [1, 2]]);
+  const realKnockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }> = [];
+
+  it('produces a non-empty blob', async () => {
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      realGroupScores,
+      realKnockoutScores,
+      you,
+      'es',
+    );
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('export contains both sheets', async () => {
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      realGroupScores,
+      realKnockoutScores,
+      you,
+      'es',
+    );
+    const buffer = await blob.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+    expect(wb.getWorksheet('Resumen')).toBeTruthy();
+    expect(wb.getWorksheet('Pronósticos')).toBeTruthy();
+  });
+
+  it('ranking sheet reflects correct totals', async () => {
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      realGroupScores,
+      realKnockoutScores,
+      you,
+      'es',
+    );
+    const buffer = await blob.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+    const rankSheet = wb.getWorksheet('Resumen');
+    expect(rankSheet).toBeTruthy();
+
+    // Collect all names from column 2
+    const names: string[] = [];
+    for (let r = 2; r <= 10; r++) {
+      const v = String(rankSheet!.getCell(r, 2).value ?? '');
+      if (!v) break;
+      names.push(v);
+    }
+    expect(names.some(n => n.includes('Alice'))).toBe(true);
+    expect(names.some(n => n.includes('Bob'))).toBe(true);
+    expect(names.some(n => n.includes('Me'))).toBe(true);
+  });
+
+  it('predictions sheet has correct column count', async () => {
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      realGroupScores,
+      realKnockoutScores,
+      you,
+      'es',
+    );
+    const buffer = await blob.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+    const predSheet = wb.getWorksheet('Pronósticos');
+    expect(predSheet).toBeTruthy();
+
+    // 1 match column + 1 real result column + 3 participants × 2 cols (prediction + pts) = 8 cols
+    const row1 = predSheet!.getRow(1);
+    // Column 1 = Partido, 2 = Resultado real, 3 = Me ★, 4 = Pts, 5 = Alice, 6 = Pts, 7 = Bob, 8 = Pts
+    expect(String(row1.getCell(1).value ?? '')).toBe('Partido');
+    expect(String(row1.getCell(2).value ?? '')).toBe('Resultado real');
+    expect(String(row1.getCell(3).value ?? '')).toContain('Me');
+    expect(String(row1.getCell(4).value ?? '')).toBe('Pts');
+    expect(String(row1.getCell(5).value ?? '')).toBe('Alice');
+    expect(String(row1.getCell(6).value ?? '')).toBe('Pts');
+    expect(String(row1.getCell(7).value ?? '')).toBe('Bob');
+    expect(String(row1.getCell(8).value ?? '')).toBe('Pts');
+  });
+});

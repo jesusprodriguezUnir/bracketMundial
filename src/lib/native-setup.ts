@@ -18,7 +18,7 @@ function initStatusBar(): void {
 function initBackButton(): void {
   if (!isNativePlatform()) return;
   App.addListener('backButton', ({ canGoBack }) => {
-    const modals = document.querySelectorAll('match-modal, share-modal, auth-modal, stadium-modal, leagues-modal');
+    const modals = document.querySelectorAll('match-modal, share-modal, auth-modal, stadium-modal');
     if (modals.length > 0) {
       const last = modals[modals.length - 1];
       last.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));

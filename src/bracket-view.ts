@@ -10,20 +10,21 @@ import { openMatchModal } from './lib/match-modal-service';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
-  groups:   () => import('./components/groups-view'),
-  knockout: () => import('./components/bracket-knockout'),
-  squads:   () => import('./components/squads-view'),
-  calendar: () => import('./components/calendar-view'),
-  stadiums: () => import('./components/stadiums-view'),
-  tv:       () => import('./components/broadcasting-view'),
-  coaches:  () => import('./components/coaches-view'),
-  guide:    () => import('./components/guide-view'),
+  groups:     () => import('./components/groups-view'),
+  knockout:   () => import('./components/bracket-knockout'),
+  squads:     () => import('./components/squads-view'),
+  calendar:   () => import('./components/calendar-view'),
+  stadiums:   () => import('./components/stadiums-view'),
+  tv:         () => import('./components/broadcasting-view'),
+  coaches:    () => import('./components/coaches-view'),
+  guide:      () => import('./components/guide-view'),
+  league: () => import('./components/leagues-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -36,24 +37,26 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'stadiums') return 'stadiums';
   if (tab === 'coaches') return 'coaches';
   if (tab === 'guide') return 'guide';
+  if (tab === 'league') return 'league';
   return null;
 }
 
 const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
-  hero:     'tabs.hero',
-  groups:   'tabs.groups',
-  knockout: 'tabs.knockout',
-  squads:   'tabs.squads',
-  calendar: 'tabs.calendar',
-  stadiums: 'tabs.stadiums',
-  coaches:  'tabs.coaches',
-  guide:    'tabs.guide',
+  hero:      'tabs.hero',
+  groups:    'tabs.groups',
+  knockout:  'tabs.knockout',
+  squads:    'tabs.squads',
+  calendar:  'tabs.calendar',
+  stadiums:  'tabs.stadiums',
+  coaches:   'tabs.coaches',
+  guide:     'tabs.guide',
+  league: 'tabs.league',
 };
 
-const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide'];
+const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide'];
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -319,7 +322,8 @@ export class BracketView extends LitElement {
     .section-calendar,
     .section-coaches,
     .section-guide,
-    .section-tv {
+    .section-tv,
+    .section-league {
       display: none;
       scroll-margin-top: 120px;
     }
@@ -330,7 +334,8 @@ export class BracketView extends LitElement {
     .section-calendar.visible,
     .section-coaches.visible,
     .section-guide.visible,
-    .section-tv.visible {
+    .section-tv.visible,
+      .section-league.visible {
       display: block;
       animation: viewFadeIn 0.2s ease both;
     }
@@ -449,7 +454,8 @@ export class BracketView extends LitElement {
       .section-calendar,
       .section-coaches,
       .section-guide,
-      .section-tv {
+      .section-tv,
+      .section-league {
         display: none;
       }
       .section-groups.visible,
@@ -460,7 +466,8 @@ export class BracketView extends LitElement {
       .section-calendar.visible,
       .section-coaches.visible,
       .section-guide.visible,
-      .section-tv.visible {
+      .section-tv.visible,
+  .section-league.visible {
         display: block;
         animation: viewFadeIn 0.2s ease both;
       }
@@ -563,6 +570,7 @@ export class BracketView extends LitElement {
       if (tab === 'calendar') targetId = 'section-calendar';
       if (tab === 'coaches') targetId = 'section-coaches';
       if (tab === 'guide') targetId = 'section-guide';
+      if (tab === 'league') targetId = 'section-league';
 
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -653,7 +661,7 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide'];
+    const tabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
     const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
       { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
       { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.groups') },
@@ -879,6 +887,15 @@ export class BracketView extends LitElement {
           class="section-guide ${at === 'guide' ? 'visible' : ''}">
           ${at === 'guide' && loaded.has('guide') ? html`
             <guide-view></guide-view>
+          ` : ''}
+        </div>
+
+        <!-- Liga (lazy) -->
+        <div
+          id="section-league"
+          class="section-league ${at === 'league' ? 'visible' : ''}">
+          ${at === 'league' && loaded.has('league') ? html`
+            <leagues-view></leagues-view>
           ` : ''}
         </div>
 

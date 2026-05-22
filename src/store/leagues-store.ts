@@ -1,232 +1,213 @@
 import { createStore } from 'zustand/vanilla';
-import { getSupabase } from '../lib/supabase-client';
-import { useAuthStore } from './auth-store';
+import { persist } from 'zustand/middleware';
+import { decodeSharedPayload, type DecodedBracket } from '../lib/bracket-codec';
+import { ExcelService, ExcelImportError } from '../lib/excel-service';
+
+export interface LeagueParticipant {
+  id: string;
+  name: string;
+  addedAt: number;
+  source: 'link' | 'excel';
+  groupScores: DecodedBracket['groupScores'];
+  knockoutScores: DecodedBracket['knockoutScores'];
+}
 
 export interface League {
   id: string;
   name: string;
-  code: string;
-  owner_id: string;
-  created_at: string;
+  createdAt: number;
+  participants: LeagueParticipant[];
 }
 
-export interface LeagueMember {
-  user_id: string;
-  display_name: string;
-  joined_at: string;
+let idCounter = 0;
+
+function generatePid(): string {
+  idCounter++;
+  return `p-${Date.now()}-${idCounter}`;
 }
 
-export interface LeaderboardEntry {
-  user_id: string;
-  display_name: string;
-  total: number;
-  byRound: Record<string, number>;
+function generateLid(): string {
+  return crypto.randomUUID ? crypto.randomUUID() : `l-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
-
-type LeaguesStatus = 'idle' | 'loading' | 'error';
 
 interface LeaguesState {
-  displayName: string | null;
-  myLeagues: League[];
+  leagues: League[];
   activeLeagueId: string | null;
-  members: LeagueMember[];
-  leaderboard: LeaderboardEntry[];
-  status: LeaguesStatus;
-  lastError: string | null;
-  loadProfile: () => Promise<void>;
-  setDisplayName: (name: string) => Promise<void>;
-  loadMyLeagues: () => Promise<void>;
-  createLeague: (name: string) => Promise<League | null>;
-  joinByCode: (code: string) => Promise<League | null>;
-  leaveLeague: (id: string) => Promise<void>;
-  deleteLeague: (id: string) => Promise<void>;
-  loadMembers: (leagueId: string) => Promise<void>;
-  loadLeaderboard: (leagueId: string) => Promise<void>;
+
+  createLeague: (name: string) => string;
+  renameLeague: (id: string, name: string) => void;
+  deleteLeague: (id: string) => void;
   setActiveLeague: (id: string | null) => void;
+
+  addParticipantFromUrl: (leagueId: string, name: string, url: string) => boolean;
+  addParticipantFromExcel: (leagueId: string, name: string, file: File) => Promise<boolean>;
+  replaceParticipantFromExcel: (leagueId: string, participantId: string, file: File) => Promise<boolean>;
+  removeParticipant: (leagueId: string, participantId: string) => void;
+  renameParticipant: (leagueId: string, participantId: string, name: string) => void;
+  updateParticipantScores: (
+    leagueId: string,
+    participantId: string,
+    groupScores: DecodedBracket['groupScores'],
+    knockoutScores: DecodedBracket['knockoutScores'],
+  ) => void;
 }
 
-function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  return Array.from(bytes, b => chars[b % chars.length]).join('');
-}
+export const useLeaguesStore = createStore<LeaguesState>()(
+  persist(
+    (set, get) => ({
+      leagues: [],
+      activeLeagueId: null,
 
-export const useLeaguesStore = createStore<LeaguesState>()((set, _get) => ({
-  displayName: null,
-  myLeagues: [],
-  activeLeagueId: null,
-  members: [],
-  leaderboard: [],
-  status: 'idle',
-  lastError: null,
+      createLeague: (name) => {
+        const id = generateLid();
+        const league: League = {
+          id,
+          name: name.trim(),
+          createdAt: Date.now(),
+          participants: [],
+        };
+        set({ leagues: [...get().leagues, league], activeLeagueId: id });
+        return id;
+      },
 
-  loadProfile: async () => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    const { data } = await sb
-      .from('profiles')
-      .select('display_name')
-      .eq('user_id', session.user.id)
-      .maybeSingle();
-    set({ displayName: data?.display_name ?? null });
-  },
+      renameLeague: (id, name) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === id ? { ...l, name } : l,
+          ),
+        });
+      },
 
-  setDisplayName: async (name) => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    set({ status: 'loading', lastError: null });
-    const { error } = await sb.from('profiles').upsert(
-      { user_id: session.user.id, display_name: name, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id' },
-    );
-    if (error) { set({ status: 'error', lastError: error.message }); return; }
-    set({ displayName: name, status: 'idle' });
-  },
+      deleteLeague: (id) => {
+        set({
+          leagues: get().leagues.filter(l => l.id !== id),
+          activeLeagueId: get().activeLeagueId === id ? null : get().activeLeagueId,
+        });
+      },
 
-  loadMyLeagues: async () => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    set({ status: 'loading', lastError: null });
-    const { data, error } = await sb
-      .from('league_members')
-      .select('leagues(id, name, code, owner_id, created_at)')
-      .eq('user_id', session.user.id);
-    if (error) { set({ status: 'error', lastError: error.message }); return; }
-    const leagues: League[] = (data ?? [])
-      .map((row: Record<string, unknown>) => row['leagues'])
-      .filter(Boolean) as League[];
-    set({ myLeagues: leagues, status: 'idle' });
-  },
+      setActiveLeague: (id) => set({ activeLeagueId: id }),
 
-  createLeague: async (name) => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return null;
-    set({ status: 'loading', lastError: null });
-    const code = generateCode();
-    const { data: league, error } = await sb
-      .from('leagues')
-      .insert({ name, code, owner_id: session.user.id })
-      .select('id, name, code, owner_id, created_at')
-      .single();
-    if (error || !league) { set({ status: 'error', lastError: error?.message ?? 'Error' }); return null; }
-    await sb.from('league_members').insert({ league_id: league.id, user_id: session.user.id });
-    set(s => ({ myLeagues: [...s.myLeagues, league as League], status: 'idle' }));
-    return league as League;
-  },
+      addParticipantFromUrl: (leagueId, name, url) => {
+        const bracket = decodeSharedPayload(url);
+        if (!bracket) return false;
 
-  joinByCode: async (code) => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return null;
-    set({ status: 'loading', lastError: null });
-    const { data: league, error: leagueErr } = await sb
-      .from('leagues')
-      .select('id, name, code, owner_id, created_at')
-      .eq('code', code.toUpperCase().trim())
-      .maybeSingle();
-    if (leagueErr || !league) {
-      set({ status: 'error', lastError: leagueErr?.message ?? 'Liga no encontrada' });
-      return null;
-    }
-    const { error: joinErr } = await sb
-      .from('league_members')
-      .upsert({ league_id: league.id, user_id: session.user.id }, { onConflict: 'league_id,user_id' });
-    if (joinErr) { set({ status: 'error', lastError: joinErr.message }); return null; }
-    set(s => ({
-      myLeagues: s.myLeagues.some(l => l.id === (league as League).id)
-        ? s.myLeagues
-        : [...s.myLeagues, league as League],
-      status: 'idle',
-    }));
-    return league as League;
-  },
+        const participant: LeagueParticipant = {
+          id: generatePid(),
+          name: name.trim(),
+          addedAt: Date.now(),
+          source: 'link',
+          groupScores: bracket.groupScores,
+          knockoutScores: bracket.knockoutScores,
+        };
 
-  leaveLeague: async (id) => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    set({ status: 'loading', lastError: null });
-    const { error } = await sb
-      .from('league_members')
-      .delete()
-      .eq('league_id', id)
-      .eq('user_id', session.user.id);
-    if (error) { set({ status: 'error', lastError: error.message }); return; }
-    set(s => ({ myLeagues: s.myLeagues.filter(l => l.id !== id), activeLeagueId: null, status: 'idle' }));
-  },
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? { ...l, participants: [...l.participants, participant] }
+              : l,
+          ),
+        });
+        return true;
+      },
 
-  deleteLeague: async (id) => {
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    set({ status: 'loading', lastError: null });
-    const { error } = await sb
-      .from('leagues')
-      .delete()
-      .eq('id', id)
-      .eq('owner_id', session.user.id);
-    if (error) { set({ status: 'error', lastError: error.message }); return; }
-    set(s => ({ myLeagues: s.myLeagues.filter(l => l.id !== id), activeLeagueId: null, status: 'idle' }));
-  },
+      addParticipantFromExcel: async (leagueId, name, file) => {
+        try {
+          const { groupScores, knockoutScores } = await ExcelService.importFromExcel(file);
+          if (groupScores.length === 0 && knockoutScores.length === 0) return false;
 
-  loadMembers: async (leagueId) => {
-    const sb = getSupabase();
-    if (!sb) return;
-    set({ status: 'loading', lastError: null, members: [] });
-    const { data, error } = await sb
-      .from('league_members')
-      .select('user_id, joined_at, profiles(display_name)')
-      .eq('league_id', leagueId);
-    if (error) { set({ status: 'error', lastError: error.message }); return; }
-    const members: LeagueMember[] = (data ?? []).map((row: Record<string, unknown>) => ({
-      user_id: row['user_id'] as string,
-      display_name: (row['profiles'] as { display_name?: string } | null)?.display_name ?? '???',
-      joined_at: row['joined_at'] as string,
-    }));
-    set({ members, status: 'idle' });
-  },
+          const participant: LeagueParticipant = {
+            id: generatePid(),
+            name: name.trim(),
+            addedAt: Date.now(),
+            source: 'excel',
+            groupScores,
+            knockoutScores,
+          };
 
-  loadLeaderboard: async (leagueId) => {
-    const sb = getSupabase();
-    if (!sb) return;
-    set({ status: 'loading', lastError: null });
+          set({
+            leagues: get().leagues.map(l =>
+              l.id === leagueId
+                ? { ...l, participants: [...l.participants, participant] }
+                : l,
+            ),
+          });
+          return true;
+        } catch (e) {
+          if (e instanceof ExcelImportError) return false;
+          return false;
+        }
+      },
 
-    const { loadOfficialResults } = await import('../lib/official-results');
-    const official = await loadOfficialResults();
-    if (!official) { set({ leaderboard: [], status: 'idle' }); return; }
+      replaceParticipantFromExcel: async (leagueId, participantId, file) => {
+        try {
+          const { groupScores, knockoutScores } = await ExcelService.importFromExcel(file);
+          if (groupScores.length === 0 && knockoutScores.length === 0) return false;
 
-    const { data: memberRows, error: membErr } = await sb
-      .from('league_members')
-      .select('user_id, profiles(display_name)')
-      .eq('league_id', leagueId);
-    if (membErr) { set({ status: 'error', lastError: membErr.message }); return; }
+          set({
+            leagues: get().leagues.map(l =>
+              l.id === leagueId
+                ? {
+                    ...l,
+                    participants: l.participants.map(p =>
+                      p.id === participantId
+                        ? { ...p, groupScores, knockoutScores, source: 'excel' as const }
+                        : p,
+                    ),
+                  }
+                : l,
+            ),
+          });
+          return true;
+        } catch (e) {
+          if (e instanceof ExcelImportError) return false;
+          return false;
+        }
+      },
 
-    const userIds = (memberRows ?? []).map((r: Record<string, unknown>) => r['user_id'] as string);
-    const { data: predRows, error: predErr } = await sb
-      .from('predictions')
-      .select('user_id, payload')
-      .in('user_id', userIds);
-    if (predErr) { set({ status: 'error', lastError: predErr.message }); return; }
+      updateParticipantScores: (leagueId, participantId, groupScores, knockoutScores) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? {
+                  ...l,
+                  participants: l.participants.map(p =>
+                    p.id === participantId
+                      ? { ...p, groupScores, knockoutScores }
+                      : p,
+                  ),
+                }
+              : l,
+          ),
+        });
+      },
 
-    const { scoreBracket } = await import('../lib/scoring');
-    const { decodeBracket } = await import('../lib/bracket-codec');
+      removeParticipant: (leagueId, participantId) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? { ...l, participants: l.participants.filter(p => p.id !== participantId) }
+              : l,
+          ),
+        });
+      },
 
-    const predMap = new Map((predRows ?? []).map((r: Record<string, unknown>) => [r['user_id'] as string, r['payload'] as string]));
-    const entries: LeaderboardEntry[] = (memberRows ?? []).map((r: Record<string, unknown>) => {
-      const userId = r['user_id'] as string;
-      const displayName = (r['profiles'] as { display_name?: string } | null)?.display_name ?? '???';
-      const payload = predMap.get(userId);
-      const pred = payload ? decodeBracket(payload) : null;
-      const score = pred ? scoreBracket(pred, official) : { total: 0, byRound: {} };
-      return { user_id: userId, display_name: displayName, total: score.total, byRound: score.byRound };
-    });
-    entries.sort((a, b) => b.total - a.total);
-    set({ leaderboard: entries, status: 'idle' });
-  },
-
-  setActiveLeague: (id) => set({ activeLeagueId: id }),
-}));
+      renameParticipant: (leagueId, participantId, name) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? {
+                  ...l,
+                  participants: l.participants.map(p =>
+                    p.id === participantId ? { ...p, name } : p,
+                  ),
+                }
+              : l,
+          ),
+        });
+      },
+    }),
+    {
+      name: 'mundial-2026-leagues',
+    },
+  ),
+);

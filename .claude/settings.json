@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"updateParticipantScores\\\\|replaceParticipantFromExcel\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\Personal\\\\bracketMundial\\\\.claude\\\\skills\\\\\" -Recurse -Force | Select-Object FullName, PSIsContainer | Sort-Object FullName)",
+      "Bash(npm --version)"
+    ]
+  }
+}
