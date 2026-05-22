@@ -343,8 +343,8 @@ export class PlayerCard extends LitElement {
 
                 ${(detail?.twitter || detail?.instagram) ? html`
                   <div class="socials">
-                    ${detail.twitter ? html`<a class="social-link" href="${detail.twitter}" target="_blank" rel="noopener noreferrer">𝕏 Twitter</a>` : ''}
-                    ${detail.instagram ? html`<a class="social-link" href="${detail.instagram}" target="_blank" rel="noopener noreferrer">📷 Instagram</a>` : ''}
+                    ${detail.twitter ? html`<a class="social-link" href="${detail.twitter}" target="_blank" rel="noopener noreferrer">𝕏 ${t('player.socialTwitter')}</a>` : ''}
+                    ${detail.instagram ? html`<a class="social-link" href="${detail.instagram}" target="_blank" rel="noopener noreferrer">📷 ${t('player.socialInstagram')}</a>` : ''}
                   </div>
                 ` : ''}
               </div>

@@ -1811,8 +1811,8 @@ export class BracketKnockout extends LitElement {
               : html`<button class="mob-header-action" @click="${this.handleGenerate}">⚡ ${t('knockout.generate')}</button>`
             }
           </div>
-          <div class="mob-header-title">BRACKET</div>
-          <div class="mob-header-sub">${totalMatches} partidos · final 19 jul · MetLife</div>
+          <div class="mob-header-title">${t('knockout.mobileTitle')}</div>
+          <div class="mob-header-sub">${t('knockout.mobileSubtitle', { n: totalMatches })}</div>
         </div>
 
         <!-- Toggle TODO EL BRACKET / MI CAMINO -->
@@ -1821,12 +1821,12 @@ export class BracketKnockout extends LitElement {
             <button
               class="mob-toggle-btn ${this._mobileMode === 'all' ? 'active' : ''}"
               @click="${() => { this._mobileMode = 'all'; }}">
-              TODO EL BRACKET
+              ${t('knockout.mobileViewAll')}
             </button>
             <button
               class="mob-toggle-btn ${this._mobileMode === 'path' ? 'active' : ''}"
               @click="${() => { this._mobileMode = 'path'; }}">
-              ★ MI CAMINO
+              ${t('knockout.mobileViewPath')}
             </button>
           </div>
         </div>
@@ -1850,7 +1850,7 @@ export class BracketKnockout extends LitElement {
             <div class="mob-stage-banner" style="background: ${stage.color};">
               <div class="mob-banner-dots"></div>
               <span class="mob-banner-label">${stage.label}</span>
-              <span class="mob-banner-count">${stage.matchIds.length} ${stage.matchIds.length === 1 ? 'PARTIDO' : 'PARTIDOS'}</span>
+              <span class="mob-banner-count">${stage.matchIds.length} ${stage.matchIds.length === 1 ? t('knockout.matchSingular') : t('knockout.matchPlural')}</span>
             </div>
 
             ${stage.matchIds.map(id => this._renderMobileMatchCard(id, stage.color))}
@@ -1861,18 +1861,18 @@ export class BracketKnockout extends LitElement {
                 <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,0.10) 1.4px,transparent 1.6px);background-size:7px 7px;pointer-events:none;"></div>
                 <div style="position:relative;text-align:center;">
                   <div style="font-size:40px;line-height:1;margin-bottom:4px;">🏆</div>
-                  <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.3em;font-weight:700;color:var(--ink);margin-bottom:8px;">★ CAMPEÓN MUNDIAL 26 ★</div>
+                  <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.3em;font-weight:700;color:var(--ink);margin-bottom:8px;">${t('knockout.worldChampion26')}</div>
               ${champion
                 ? html`
                   <div style="margin-bottom:6px;">${champion.flagUrl ? html`<img src="${champion.flagUrl}" alt="${champion.name}" style="width:48px;height:32px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);">` : html`<span style="font-size:40px">${(champion as any).flag}</span>`}</div>
                   <div style="font-family:var(--font-var);font-size:26px;color:var(--ink);">${champion.name.toUpperCase()}</div>
                 `
-                    : html`<div style="font-family:var(--font-var);font-size:18px;color:var(--ink);opacity:0.4;">POR DEFINIR</div>`
+                    : html`<div style="font-family:var(--font-var);font-size:18px;color:var(--ink);opacity:0.4;">${t('knockout.toBeDefined')}</div>`
                   }
                 </div>
               </div>
               <!-- Tercer puesto -->
-              <div class="mob-third-label">★ TERCER PUESTO ★</div>
+              <div class="mob-third-label">${t('knockout.thirdPlace')}</div>
               ${this._renderMobileMatchCard('TP-01', ROUND_COLORS.sf)}
             ` : ''}
           </div>
@@ -1906,20 +1906,20 @@ export class BracketKnockout extends LitElement {
             }
           </div>
           <div class="hero-info">
-            <div class="hero-label">SIGUIENDO</div>
-            <div class="hero-name">${team?.name.toUpperCase() ?? 'NINGUNO'}</div>
-            ${isChampion ? html`<div style="font-family:var(--font-mono);font-size:10px;opacity:0.9;margin-top:4px;letter-spacing:0.1em;">🏆 CAMPEÓN · ${path.length} PARTIDOS</div>` : ''}
+            <div class="hero-label">${t('knockout.following')}</div>
+            <div class="hero-name">${team?.name.toUpperCase() ?? t('knockout.none')}</div>
+            ${isChampion ? html`<div style="font-family:var(--font-mono);font-size:10px;opacity:0.9;margin-top:4px;letter-spacing:0.1em;">🏆 ${t('knockout.championBadge', { n: path.length })}</div>` : ''}
           </div>
           <button class="mob-hero-change"
             aria-expanded="${this._showTeamPicker}"
             aria-controls="team-picker-panel"
-            @click="${() => { this._showTeamPicker = true; }}">★ CAMBIAR</button>
+            @click="${() => { this._showTeamPicker = true; }}">${t('knockout.changeTeam')}</button>
         </div>
 
         <!-- Timeline -->
         ${path.length === 0
           ? html`<div style="font-family:var(--font-mono);font-size:11px;color:var(--dim);letter-spacing:0.15em;text-align:center;padding:24px 0;">
-              SIN PARTIDOS DISPONIBLES
+              ${t('knockout.noMatchesAvailable')}
             </div>`
           : html`
             <div class="mob-timeline">
@@ -1929,8 +1929,8 @@ export class BracketKnockout extends LitElement {
                 const resultLabel = p.isWin === null
                   ? '—'
                   : p.isWin
-                    ? `GANA ${p.myScore}-${p.oppScore}`
-                    : `PIERDE ${p.myScore}-${p.oppScore}`;
+                    ? t('knockout.resultWin', { score: `${p.myScore}-${p.oppScore}` })
+                    : t('knockout.resultLose', { score: `${p.myScore}-${p.oppScore}` });
                 const resultBg = p.isWin === null
                   ? 'var(--dim)'
                   : p.isWin ? p.color : 'var(--retro-red)';
@@ -1957,7 +1957,7 @@ export class BracketKnockout extends LitElement {
                 <div class="mob-trophy-item">
                   <div class="mob-trophy-node">🏆</div>
                   <div class="mob-trophy-card">
-                    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.25em;font-weight:700;color:var(--ink);">CAMPEÓN MUNDIAL</div>
+                    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.25em;font-weight:700;color:var(--ink);">${t('knockout.worldChampion')}</div>
                     <div style="font-family:var(--font-var);font-size:20px;line-height:1;margin-top:2px;color:var(--ink);">${team?.name.toUpperCase()} 2026</div>
                   </div>
                 </div>
@@ -2000,14 +2000,14 @@ export class BracketKnockout extends LitElement {
       }}">
         <div id="team-picker-panel" class="mob-picker-sheet" role="dialog" aria-modal="true">
           <div class="mob-picker-header">
-            <span class="mob-picker-title">SELECCIONAR EQUIPO</span>
-            <button class="mob-picker-close" @click="${() => { this._showTeamPicker = false; this._pickerSearch = ''; }}">CERRAR</button>
+            <span class="mob-picker-title">${t('knockout.selectTeam')}</span>
+            <button class="mob-picker-close" @click="${() => { this._showTeamPicker = false; this._pickerSearch = ''; }}">${t('knockout.closePicker')}</button>
           </div>
           <div class="mob-picker-search">
             <input
               type="search"
               class="mob-picker-input"
-              placeholder="Buscar equipo..."
+              placeholder="${t('knockout.searchTeamPlaceholder')}"
               .value="${this._pickerSearch}"
               @input="${(e: InputEvent) => { this._pickerSearch = (e.target as HTMLInputElement).value; }}"
             >
@@ -2017,10 +2017,10 @@ export class BracketKnockout extends LitElement {
           </div>
           <div class="mob-picker-list">
             ${q.length > 0 && filtered.length === 0 ? html`
-              <div class="mob-picker-empty">SIN RESULTADOS</div>
+              <div class="mob-picker-empty">${t('knockout.noResults')}</div>
             ` : [...teamsByGroup.entries()].map(([groupLabel, groupTeams]) => html`
               <div class="mob-picker-group">
-                <div class="mob-picker-group-title">${q.length > 0 ? 'RESULTADOS' : `GRUPO ${groupLabel}`}</div>
+                <div class="mob-picker-group-title">${q.length > 0 ? t('knockout.results') : t('knockout.groupLabel', { letter: groupLabel })}</div>
                 <div class="mob-picker-chips">
                   ${groupTeams.map(id => {
                     const team = this.getTeam(id);

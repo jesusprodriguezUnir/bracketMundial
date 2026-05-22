@@ -130,7 +130,8 @@
       "Bash(curl -s http://localhost:5173/)",
       "Bash(node -e \"try{require\\('playwright'\\);console.log\\('playwright ok'\\)}catch\\(e\\){console.log\\('no playwright'\\)}\")",
       "Bash(curl -s http://localhost:5175/ -o /dev/null -w \"%{http_code}\\\\n\")",
-      "Bash(node -e \"const {chromium}=require\\('playwright'\\); chromium.launch\\(\\).then\\(b=>{console.log\\('chromium launches ok'\\);return b.close\\(\\)}\\).catch\\(e=>console.log\\('ERR:',e.message\\)\\)\")"
+      "Bash(node -e \"const {chromium}=require\\('playwright'\\); chromium.launch\\(\\).then\\(b=>{console.log\\('chromium launches ok'\\);return b.close\\(\\)}\\).catch\\(e=>console.log\\('ERR:',e.message\\)\\)\")",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\jesus\\bm-newsdata-tmp",

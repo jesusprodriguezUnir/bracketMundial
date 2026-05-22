@@ -64,10 +64,15 @@ async function sectionToJpeg(
       width: `${pxW}px`,
       transform: 'none',
       animation: 'none',
-    } as Partial<CSSStyleDeclaration>,
+    },
   });
 
   return { imgData, pxW, pxH };
+}
+
+function getGuidePdfFilename(locale: string): string {
+  const baseName = locale === 'en' ? 'world-cup-2026-guide' : 'guia-mundial-2026';
+  return `${baseName}-${locale}.pdf`;
 }
 
 /**
@@ -161,9 +166,9 @@ export async function triggerGuidePdfDownload(
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `guia-mundial-2026-${locale}.pdf`;
+  a.download = getGuidePdfFilename(locale);
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
 }
