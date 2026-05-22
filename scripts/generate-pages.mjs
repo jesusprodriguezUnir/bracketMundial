@@ -60,7 +60,7 @@ function ensureCanonicalSitemapEntries(entries) {
 }
 
 // Carpetas generadas (se limpian en cada build para evitar páginas huérfanas).
-const MANAGED_DIRS = ['grupos', 'calendario', 'estadios', 'plantillas', 'seleccion', 'en'];
+const MANAGED_DIRS = ['grupos', 'calendario', 'estadios', 'plantillas', 'seleccion', 'en', 'porra-mundial-2026', 'plantilla-imprimir', 'simulador-eliminatorias', 'mundial-para-clase'];
 
 function cleanManaged() {
   for (const d of MANAGED_DIRS) {

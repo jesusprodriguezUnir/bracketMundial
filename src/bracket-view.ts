@@ -366,6 +366,74 @@ export class BracketView extends LitElement {
       color: var(--dim);
     }
 
+    .seo-faq {
+      grid-column: 1 / -1;
+      border-top: 3px dashed var(--ink);
+      padding-top: 32px;
+    }
+    .seo-faq h2 {
+      font-family: var(--font-var);
+      font-size: 24px;
+      color: var(--ink);
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--retro-orange);
+      display: inline-block;
+    }
+    .seo-faq details {
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      margin-bottom: 10px;
+      background: var(--paper-3);
+    }
+    .seo-faq summary {
+      font-family: var(--font-var);
+      font-size: 15px;
+      letter-spacing: 0.03em;
+      padding: 14px 18px;
+      cursor: pointer;
+      color: var(--ink);
+      list-style: none;
+      user-select: none;
+    }
+    .seo-faq summary::-webkit-details-marker { display: none; }
+    .seo-faq summary::before {
+      content: '▶ ';
+      color: var(--retro-orange);
+      font-size: 11px;
+    }
+    .seo-faq details[open] summary::before {
+      content: '▼ ';
+    }
+    .seo-faq details[open] summary {
+      background: var(--retro-yellow);
+    }
+    .seo-faq .faq-answer {
+      padding: 0 18px 16px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--dim);
+    }
+
+    .seo-links {
+      grid-column: 1 / -1;
+      border-top: 3px dashed var(--ink);
+      padding-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 32px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+    .seo-links a {
+      color: var(--ink);
+      text-underline-offset: 4px;
+    }
+    .seo-links a:hover {
+      color: var(--retro-orange);
+    }
+
     /* Franja de anuncio entre secciones */
     .ad-inline {
       margin: 32px 0;
@@ -677,6 +745,40 @@ export class BracketView extends LitElement {
               <div class="seo-card">
                 <h2>${t('seo.formatTitle')}</h2>
                 <p>${t('seo.formatText')}</p>
+              </div>
+              <div class="seo-faq" aria-labelledby="seo-faq-title">
+                <h2 id="seo-faq-title">${t('seo.faqTitle')}</h2>
+                <details>
+                  <summary>${t('seo.faqQ1')}</summary>
+                  <div class="faq-answer">${t('seo.faqA1')}</div>
+                </details>
+                <details>
+                  <summary>${t('seo.faqQ2')}</summary>
+                  <div class="faq-answer">${t('seo.faqA2')}</div>
+                </details>
+                <details>
+                  <summary>${t('seo.faqQ3')}</summary>
+                  <div class="faq-answer">${t('seo.faqA3')}</div>
+                </details>
+                <details>
+                  <summary>${t('seo.faqQ4')}</summary>
+                  <div class="faq-answer">${t('seo.faqA4')}</div>
+                </details>
+                <details>
+                  <summary>${t('seo.faqQ5')}</summary>
+                  <div class="faq-answer">${t('seo.faqA5')}</div>
+                </details>
+                <details>
+                  <summary>${t('seo.faqQ6')}</summary>
+                  <div class="faq-answer">${t('seo.faqA6')}</div>
+                </details>
+              </div>
+              <div class="seo-links">
+                <strong>${t('seo.linksTitle')}:</strong>
+                <a href="/porra-mundial-2026/">${t('seo.linkPorra')}</a>
+                <a href="/plantilla-imprimir/">${t('seo.linkPlantilla')}</a>
+                <a href="/simulador-eliminatorias/">${t('seo.linkSimulador')}</a>
+                <a href="/mundial-para-clase/">${t('seo.linkClase')}</a>
               </div>
             </section>
           ` : ''}

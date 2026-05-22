@@ -145,6 +145,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/grupos/grupo-l/" />
   </url>
   <url>
+    <loc>https://bracketmundial.com/en/knockout-simulator/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/simulador-eliminatorias/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/knockout-simulator/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/simulador-eliminatorias/" />
+  </url>
+  <url>
+    <loc>https://bracketmundial.com/en/printable-bracket/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantilla-imprimir/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/printable-bracket/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/plantilla-imprimir/" />
+  </url>
+  <url>
     <loc>https://bracketmundial.com/en/schedule/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>daily</changefreq>
@@ -604,6 +622,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/seleccion/uzbekistan/" />
   </url>
   <url>
+    <loc>https://bracketmundial.com/en/world-cup-classroom/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/mundial-para-clase/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/world-cup-classroom/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/mundial-para-clase/" />
+  </url>
+  <url>
+    <loc>https://bracketmundial.com/en/world-cup-pool/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/porra-mundial-2026/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/world-cup-pool/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/porra-mundial-2026/" />
+  </url>
+  <url>
     <loc>https://bracketmundial.com/estadios/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
@@ -730,6 +766,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/grupos/grupo-l/" />
   </url>
   <url>
+    <loc>https://bracketmundial.com/mundial-para-clase/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/mundial-para-clase/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/world-cup-classroom/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/mundial-para-clase/" />
+  </url>
+  <url>
+    <loc>https://bracketmundial.com/plantilla-imprimir/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantilla-imprimir/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/printable-bracket/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/plantilla-imprimir/" />
+  </url>
+  <url>
     <loc>https://bracketmundial.com/plantillas/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
@@ -737,6 +791,15 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantillas/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/squads/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/plantillas/" />
+  </url>
+  <url>
+    <loc>https://bracketmundial.com/porra-mundial-2026/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/porra-mundial-2026/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/world-cup-pool/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/porra-mundial-2026/" />
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/alemania/</loc>
@@ -1169,5 +1232,14 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/uzbekistan/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/team/uzbekistan/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/seleccion/uzbekistan/" />
+  </url>
+  <url>
+    <loc>https://bracketmundial.com/simulador-eliminatorias/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/simulador-eliminatorias/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://bracketmundial.com/en/knockout-simulator/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bracketmundial.com/simulador-eliminatorias/" />
   </url>
 </urlset>

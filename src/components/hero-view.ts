@@ -117,6 +117,17 @@ export class HeroView extends LitElement {
       z-index: -1;
     }
 
+    .hero-tagline {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.4;
+      color: var(--retro-red);
+      max-width: 460px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin: -10px 0 20px;
+    }
+
     .hero-desc {
       font-family: var(--font-body);
       font-size: 16px;
@@ -444,6 +455,7 @@ export class HeroView extends LitElement {
                 <span style="display:block" class="line-accent">${t('hero.titleLine2')}</span>
                 <span style="display:block"><span class="line-highlight">${t('hero.titleLine3')}</span></span>
               </h1>
+              <p class="hero-tagline">${t('hero.titleSlogan')}</p>
               <p class="hero-desc">
                 ${t('hero.description')}
                 <b>${t('hero.descriptionHighlight')}</b>
