@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
+import { t } from '../i18n';
 import './logo-crest';
 
 /** Opening match: June 11 2026, 21:00 CEST = 19:00 UTC */
@@ -429,7 +430,7 @@ export class HeroView extends LitElement {
   render() {
     const tickerItems = this._getTickerItems();
     const hasPlayed = useTournamentStore.getState().groupMatches.some(m => m.scoreA !== null);
-    const tickerLabel = hasPlayed ? '◉ RESULTADOS' : '◉ PRÓXIMO';
+    const tickerLabel = hasPlayed ? t('hero.tickerResults') : t('hero.tickerNext');
 
     return html`
       <section>
@@ -437,29 +438,29 @@ export class HeroView extends LitElement {
           <!-- Left column -->
           <div class="hero-left">
             <div>
-              <div class="eyebrow">★ ★ ★ COPA DEL MUNDO 2026 ★ ★ ★</div>
+              <div class="eyebrow">${t('hero.eyebrow')}</div>
               <h1>
-                <span style="display:block">PREDICE</span>
-                <span style="display:block" class="line-accent">EL CAMINO</span>
-                <span style="display:block"><span class="line-highlight">AL TÍTULO.</span></span>
+                <span style="display:block">${t('hero.titleLine1')}</span>
+                <span style="display:block" class="line-accent">${t('hero.titleLine2')}</span>
+                <span style="display:block"><span class="line-highlight">${t('hero.titleLine3')}</span></span>
               </h1>
               <p class="hero-desc">
-                Simula la fase de grupos, monta tu bracket eliminatoria y comparte tu predicción del Mundial.
-                <b>48 selecciones, 12 grupos, una copa.</b>
+                ${t('hero.description')}
+                <b>${t('hero.descriptionHighlight')}</b>
               </p>
               <div class="cta-row">
-                <button class="btn-cta-primary" @click="${this._goToBracket}">▶ EMPEZAR MI BRACKET</button>
-                <button class="btn-cta-secondary" @click="${this._goToGroups}">VER GRUPOS</button>
+                <button class="btn-cta-primary" @click="${this._goToBracket}">${t('hero.ctaPrimary')}</button>
+                <button class="btn-cta-secondary" @click="${this._goToGroups}">${t('hero.ctaSecondary')}</button>
               </div>
               ${this._renderCountdown()}
             </div>
             <!-- Stats strip -->
             <div class="stats-strip">
-              <div class="stat-cell"><div class="stat-num">48</div><div class="stat-label">SELECCIONES</div></div>
-              <div class="stat-cell"><div class="stat-num">12</div><div class="stat-label">GRUPOS</div></div>
-              <div class="stat-cell"><div class="stat-num">16</div><div class="stat-label">SEDES</div></div>
-              <div class="stat-cell"><div class="stat-num">104</div><div class="stat-label">PARTIDOS</div></div>
-              <div class="stat-cell"><div class="stat-num">1</div><div class="stat-label">CAMPEÓN</div></div>
+              <div class="stat-cell"><div class="stat-num">48</div><div class="stat-label">${t('hero.statTeams')}</div></div>
+              <div class="stat-cell"><div class="stat-num">12</div><div class="stat-label">${t('hero.statGroups')}</div></div>
+              <div class="stat-cell"><div class="stat-num">16</div><div class="stat-label">${t('hero.statVenues')}</div></div>
+              <div class="stat-cell"><div class="stat-num">104</div><div class="stat-label">${t('hero.statMatches')}</div></div>
+              <div class="stat-cell"><div class="stat-num">1</div><div class="stat-label">${t('hero.statChampion')}</div></div>
             </div>
           </div>
 
@@ -469,8 +470,8 @@ export class HeroView extends LitElement {
             <div class="crest-wrapper">
               <logo-crest size="340"></logo-crest>
             </div>
-            <div class="sticker-new">★ NUEVO</div>
-            <div class="sticker-free">GRATIS · SIN REGISTRO</div>
+            <div class="sticker-new">${t('hero.stickerNew')}</div>
+            <div class="sticker-free">${t('hero.stickerFree')}</div>
           </div>
         </div>
 

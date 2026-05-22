@@ -1646,7 +1646,7 @@ export class BracketKnockout extends LitElement {
     return html`
       <!-- Barra de acciones cromo (Generar / Simular) -->
       <div class="bracket-actions">
-        <div class="bracket-actions-label">★ BRACKET · ELIMINATORIAS</div>
+        <div class="bracket-actions-label">${t('knockout.desktopLabel')}</div>
         <div class="bracket-actions-btns">
           ${showGenerateButton
             ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">${t('knockout.generate')}</button>`
@@ -1657,8 +1657,8 @@ export class BracketKnockout extends LitElement {
 
       <!-- Cabecera tipo póster V3 -->
       <div class="poster-header">
-        <div class="poster-eyebrow">★ MUNDIAL 26 · CUADRO FINAL ★</div>
-        <h1 class="poster-h1">EL CAMINO A LA <span class="gloria">GLORIA</span></h1>
+        <div class="poster-eyebrow">${t('knockout.posterEyebrow')}</div>
+        <h1 class="poster-h1">${t('knockout.posterTitlePrefix')} <span class="gloria">${t('knockout.posterTitleGlory')}</span></h1>
         <span class="poster-corner left">N° 01</span>
         <span class="poster-corner right">USA · MEX · CAN</span>
       </div>
@@ -1736,15 +1736,15 @@ export class BracketKnockout extends LitElement {
               <div class="champion-halftone"></div>
               <div class="champion-inner">
                 <div class="champion-trophy">🏆</div>
-                <div class="champion-title">CAMPEÓN MUNDIAL 2026</div>
+                <div class="champion-title">${t('knockout.desktopChampionTitle')}</div>
                 ${champion
                   ? html`<div class="champion-team">${renderFlag(champion, { size: 'sm', imgClass: 'flag-img-champion', flagClass: 'team-flag' })} ${champion.name.toUpperCase()}</div>`
-                  : html`<div class="champion-team tbd">POR DEFINIR</div>`
+                  : html`<div class="champion-team tbd">${t('knockout.toBeDefined')}</div>`
                 }
               </div>
             </div>
 
-            <div class="third-place-title">★ TERCER PUESTO ★</div>
+            <div class="third-place-title">${t('knockout.thirdPlace')}</div>
             ${this.renderMatch('TP-01', ROUND_COLORS.sf, 1, false)}
           </div>
 
