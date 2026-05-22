@@ -949,6 +949,7 @@ export class GuideView extends LitElement {
       max-width: 720px;
       width: 100%;
       position: relative;
+      margin-bottom: 24px;
     }
     .modal-close {
       all: unset;
@@ -1283,9 +1284,9 @@ export class GuideView extends LitElement {
       border-bottom: 3px solid var(--ink);
     }
 
-    /* ───────── Modal tabs (mobile) ───────── */
+    /* ───────── Modal tabs ───────── */
     .modal-tab-bar {
-      display: none;
+      display: flex;
       gap: 4px;
       padding: 8px 10px;
       border-bottom: 2px solid var(--ink);
@@ -1315,7 +1316,8 @@ export class GuideView extends LitElement {
       font-weight: 700;
       background: var(--paper);
     }
-    .modal-tab-content { display: block; }
+    .modal-tab-content { display: none; }
+    .modal-tab-content.active { display: block; }
 
     /* key-players-by-line label */
     .kp-line {
@@ -1369,17 +1371,6 @@ export class GuideView extends LitElement {
       .compare-grid { grid-template-columns: 1fr; }
       .compare-vs { justify-self: center; }
       .modal-matches { overflow-x: auto; }
-
-      /* Modal tabs — visible only on mobile */
-      .modal-tab-bar {
-        display: flex;
-      }
-      .modal-tab-content {
-        display: none;
-      }
-      .modal-tab-content.active {
-        display: block;
-      }
 
       /* Modal overlay less padding on mobile */
       .modal-overlay {
