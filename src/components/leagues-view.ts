@@ -38,20 +38,23 @@ interface BracketScreenData {
 
 function deriveYouParticipant(): LeagueParticipant {
   const st = useTournamentStore.getState();
-  const groupScores: DecodedBracket['groupScores'] = st.groupMatches.map(m => ({
-    matchId: m.matchId,
-    scoreA: m.scoreA,
-    scoreB: m.scoreB,
-  }));
+  const groupScores: DecodedBracket['groupScores'] = st.groupMatches.map(m => {
+    const pred = st.myGroupPredictions[m.matchId];
+    return {
+      matchId: m.matchId,
+      scoreA: pred?.scoreA ?? null,
+      scoreB: pred?.scoreB ?? null,
+    };
+  });
   const knockoutOrder = getKnockoutMatchOrder();
   const knockoutScores: DecodedBracket['knockoutScores'] = knockoutOrder.map(matchId => {
-    const m = st.knockoutMatches[matchId];
+    const pred = st.myKnockoutPredictions[matchId];
     return {
       matchId,
-      scoreA: m?.scoreA ?? null,
-      scoreB: m?.scoreB ?? null,
-      penaltyScoreA: m?.penaltyScoreA ?? null,
-      penaltyScoreB: m?.penaltyScoreB ?? null,
+      scoreA: pred?.scoreA ?? null,
+      scoreB: pred?.scoreB ?? null,
+      penaltyScoreA: pred?.penaltyScoreA ?? null,
+      penaltyScoreB: pred?.penaltyScoreB ?? null,
     };
   });
   return {
@@ -668,6 +671,12 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.04em;
     }
+    .lg-bracket-real {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+    }
     .lg-bracket-points {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -827,6 +836,7 @@ export class LeaguesView extends LitElement {
 
       this._scores = rankParticipants(scored);
     }
+    this.requestUpdate();
   }
 
   private _goToList() {
@@ -968,11 +978,11 @@ export class LeaguesView extends LitElement {
       const st = useTournamentStore.getState();
       for (const s of p.groupScores) {
         const b = this._editBuffer.get(s.matchId);
-        if (b) st.setGroupMatchResult(s.matchId, b.scoreA, b.scoreB);
+        if (b) st.setMyGroupPrediction(s.matchId, b.scoreA, b.scoreB);
       }
       for (const s of p.knockoutScores) {
         const b = this._editBuffer.get(s.matchId);
-        if (b) st.setKnockoutMatchResult(s.matchId, b.scoreA, b.scoreB, (b as any)?.penaltyScoreA ?? null, (b as any)?.penaltyScoreB ?? null);
+        if (b) st.setMyKnockoutPrediction(s.matchId, b.scoreA, b.scoreB, (b as any)?.penaltyScoreA ?? null, (b as any)?.penaltyScoreB ?? null);
       }
       this._bracketData = { participant: deriveYouParticipant(), name: this._bracketData.name };
       this._editMode = false;
@@ -1415,6 +1425,9 @@ export class LeaguesView extends LitElement {
     );
     const breakdownByMatchId = new Map(predictionScores.breakdown.map(b => [b.matchId, b]));
 
+    const realGroupByMatchId = new Map(realGroupScores.map(r => [r.matchId, r]));
+    const realKoByMatchId = new Map(realKnockoutScores.map(r => [r.matchId, r]));
+
     const renderScoreInputs = (matchId: string, scoreA: number | null, scoreB: number | null) => {
       if (!this._editMode) {
         return html`<div class="lg-bracket-score">${scoreA ?? '-'} - ${scoreB ?? '-'}</div>`;
@@ -1476,6 +1489,8 @@ export class LeaguesView extends LitElement {
         const gm = groupMatchById.get(s.matchId);
         const teamA = gm ? getTeam(gm.teamA) : null;
         const teamB = gm ? getTeam(gm.teamB) : null;
+        const real = realGroupByMatchId.get(s.matchId);
+        const showReal = real && real.scoreA !== null && real.scoreB !== null;
         return html`
           <div class="lg-bracket-match">
             <div class="lg-bracket-teams">
@@ -1484,6 +1499,7 @@ export class LeaguesView extends LitElement {
               ${teamB ? html`${renderFlag(teamB, 'sm')}<span class="lg-bracket-team-name">${teamB.name}</span>` : ''}
             </div>
             ${renderScoreInputs(s.matchId, s.scoreA, s.scoreB)}
+            ${showReal ? html`<span class="lg-bracket-real">(real: ${real!.scoreA}-${real!.scoreB})</span>` : ''}
             ${bd ? html`
               <span class="lg-bracket-result lg-kind-${bd.kind}">${this._kindLabel(bd.kind)} (+${bd.points})</span>
             ` : html`<span class="lg-bracket-result">—</span>`}
@@ -1501,6 +1517,8 @@ export class LeaguesView extends LitElement {
         const teamBId = resolved?.teamB;
         const teamA = typeof teamAId === 'string' ? getTeam(teamAId) : null;
         const teamB = typeof teamBId === 'string' ? getTeam(teamBId) : null;
+        const real = realKoByMatchId.get(s.matchId);
+        const showReal = real && real.scoreA !== null && real.scoreB !== null;
         return html`
           <div class="lg-bracket-match">
             <div class="lg-bracket-teams">
@@ -1510,6 +1528,7 @@ export class LeaguesView extends LitElement {
             </div>
             ${renderScoreInputs(s.matchId, s.scoreA, s.scoreB)}
             ${s.penaltyScoreA !== null && s.penaltyScoreB !== null ? html`<span class="lg-bracket-result">(p. ${s.penaltyScoreA}-${s.penaltyScoreB})</span>` : ''}
+            ${showReal ? html`<span class="lg-bracket-real">(real: ${real!.scoreA}-${real!.scoreB})</span>` : ''}
             ${bd ? html`
               <span class="lg-bracket-result lg-kind-${bd.kind}">${this._kindLabel(bd.kind)} (+${bd.points})</span>
             ` : html`<span class="lg-bracket-result">—</span>`}

@@ -3,7 +3,6 @@ import './app-root';
 import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
-import { initAuth } from './store/auth-store';
 import { useLocaleStore } from './i18n';
 
 inject();
@@ -23,10 +22,6 @@ useLocaleStore.subscribe(state => {
 
 // Locale inicial según la ruta estática (antes del primer render)
 applyLocaleFromRoute();
-
-// Inicializa sesión Supabase (no bloqueante); la limpieza de la URL se hace en
-// onAuthStateChange tras el intercambio PKCE para evitar borrar el code prematuramente.
-initAuth();
 
 // En nativo, escucha el deep link del magic link (custom URL scheme)
 import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => {

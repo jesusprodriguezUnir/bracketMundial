@@ -63,6 +63,9 @@ interface TournamentState {
   activePhase: 'groups' | 'round16' | 'quarterfinals' | 'semifinals' | 'thirdplace' | 'final';
   selectedMatch: string | null;
 
+  myGroupPredictions: Record<string, { scoreA: number | null; scoreB: number | null }>;
+  myKnockoutPredictions: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }>;
+
   setGroupMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setKnockoutMatchResult: (
     matchId: string,
@@ -92,6 +95,8 @@ interface TournamentState {
   }) => void;
   exportExcel: () => Promise<void>;
   importExcel: (file: File) => Promise<boolean>;
+  setMyGroupPrediction: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
+  setMyKnockoutPrediction: (matchId: string, scoreA: number | null, scoreB: number | null, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => void;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -270,6 +275,8 @@ export const useTournamentStore = createStore<TournamentState>()(
       knockoutMatches: {},
       activePhase: 'groups',
       selectedMatch: null,
+      myGroupPredictions: {},
+      myKnockoutPredictions: {},
 
       setGroupMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
@@ -282,6 +289,7 @@ export const useTournamentStore = createStore<TournamentState>()(
             groupMatches: matches,
             groupStandings: standings,
             knockoutMatches: resolveKnockoutMatches(standings, state.knockoutMatches),
+            myGroupPredictions: { ...state.myGroupPredictions, [matchId]: { scoreA, scoreB } },
           };
         });
       },
@@ -312,7 +320,13 @@ export const useTournamentStore = createStore<TournamentState>()(
             },
           };
 
-          return { knockoutMatches: resolveKnockoutMatches(state.groupStandings, updated) };
+          return {
+            knockoutMatches: resolveKnockoutMatches(state.groupStandings, updated),
+            myKnockoutPredictions: {
+              ...state.myKnockoutPredictions,
+              [matchId]: { scoreA, scoreB, penaltyScoreA: resolvedPenaltyScoreA, penaltyScoreB: resolvedPenaltyScoreB },
+            },
+          };
         });
       },
 
@@ -324,6 +338,8 @@ export const useTournamentStore = createStore<TournamentState>()(
         knockoutMatches: {},
         activePhase: 'groups',
         selectedMatch: null,
+        myGroupPredictions: {},
+        myKnockoutPredictions: {},
       }),
 
       autoSimulateGroups: () => {
@@ -542,6 +558,21 @@ export const useTournamentStore = createStore<TournamentState>()(
           return false;
         }
       },
+
+      setMyGroupPrediction: (matchId, scoreA, scoreB) => {
+        set(state => ({
+          myGroupPredictions: { ...state.myGroupPredictions, [matchId]: { scoreA, scoreB } },
+        }));
+      },
+
+      setMyKnockoutPrediction: (matchId, scoreA, scoreB, penaltyScoreA = null, penaltyScoreB = null) => {
+        set(state => ({
+          myKnockoutPredictions: {
+            ...state.myKnockoutPredictions,
+            [matchId]: { scoreA, scoreB, penaltyScoreA, penaltyScoreB },
+          },
+        }));
+      },
     }),
     {
       name: 'mundial-2026-tournament',
@@ -558,7 +589,28 @@ export const useTournamentStore = createStore<TournamentState>()(
         const groupStandings = p.groupStandings ?? recalculateStandings(groupMatches);
         const knockoutMatches = resolveKnockoutMatches(groupStandings, p.knockoutMatches ?? current.knockoutMatches);
 
-        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches };
+        // Migration: copy existing group scores to predictions if predictions are empty
+        let myGroupPredictions = p.myGroupPredictions ?? {};
+        let myKnockoutPredictions = p.myKnockoutPredictions ?? {};
+        if (Object.keys(myGroupPredictions).length === 0 && groupMatches) {
+          for (const m of groupMatches) {
+            if (m.scoreA !== null || m.scoreB !== null) {
+              myGroupPredictions = { ...myGroupPredictions, [m.matchId]: { scoreA: m.scoreA, scoreB: m.scoreB } };
+            }
+          }
+        }
+        if (Object.keys(myKnockoutPredictions).length === 0 && knockoutMatches) {
+          for (const [id, m] of Object.entries(knockoutMatches)) {
+            if (m.scoreA !== null || m.scoreB !== null) {
+              myKnockoutPredictions = {
+                ...myKnockoutPredictions,
+                [id]: { scoreA: m.scoreA, scoreB: m.scoreB, penaltyScoreA: m.penaltyScoreA, penaltyScoreB: m.penaltyScoreB },
+              };
+            }
+          }
+        }
+
+        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions };
       },
     }
   )
