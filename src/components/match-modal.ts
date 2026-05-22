@@ -13,6 +13,7 @@ import { COACHES } from '../data/coaches';
 import { getPreview, type Preview } from '../data/previews';
 import { showToast, lightTap, mediumTap } from '../lib/interaction';
 import type { GoalEvent } from '../types';
+import './odds-bar';
 
 
 @customElement('match-modal')
@@ -1175,16 +1176,17 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
           </span>
           <div class="section-rule"></div>
         </div>
-        <div class="prob-bar-large">
-          <div class="prob-seg-large" style="width:${home}%;background:var(--retro-blue);color:#fff">${home}%</div>
-          <div class="prob-seg-large" style="width:${draw}%;background:var(--paper-2)">${draw}%</div>
-          <div class="prob-seg-large" style="width:${away}%;background:var(--retro-red);color:#fff">${away}%</div>
-        </div>
-        <div class="prob-legend-large">
-          <span style="color:var(--retro-blue)">1 GANA ${tA.shortName}</span>
-          <span>X EMPATE</span>
-          <span style="color:var(--retro-red)">2 GANA ${tB.shortName}</span>
-        </div>
+        <odds-bar
+          .home=${home}
+          .draw=${draw}
+          .away=${away}
+          variant="large"
+          .showLegend=${true}
+          .showFigures=${false}
+          .inBarValues=${true}
+          homeLabel=${`1 GANA ${tA.shortName}`}
+          drawLabel="X EMPATE"
+          awayLabel=${`2 GANA ${tB.shortName}`}></odds-bar>
       </div>
     `;
   }

@@ -34,10 +34,12 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 - `.inline-stepper` en `groups-view.ts` vs `.ko-stepper` en `bracket-knockout.ts`
 - HTML y comportamiento casi idénticos, CSS diferente.
 - **Solución:** Componente `<score-stepper>` reutilizable.
+- **Realizado mayo 2026:** Creado `src/components/score-stepper.ts` con variantes `inline`, `compact` y `mobile`. Integrado en `groups-view.ts` y `bracket-knockout.ts` para unificar interacción, estilos base y eventos `step-change`.
 
 ### 1.6 Barra de odds/probabilidad duplicada
 - `groups-view.ts:650-675`, `bracket-knockout.ts:1377-1387`, `match-modal.ts:924`
 - **Solución:** Componente `<odds-bar>` compartido.
+- **Realizado mayo 2026:** Creado `src/components/odds-bar.ts` con variantes `default`, `compact` y `large`. Integrado en `groups-view.ts`, `bracket-knockout.ts` y `match-modal.ts` para unificar la visualización 1X2.
 
 ### 1.7 Photo fallback chain duplicado
 - `coaches-view.ts:523-527`, `squads-view.ts`, `player-card.ts:40-73`, `lineup-view.ts:261-264`
@@ -366,8 +368,8 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 
 | Prioridad | Mejora | Esfuerzo | Impacto | Estado |
 |---|---|---|---|---|
-| P1 | Extraer `<score-stepper>` desde groups/knockout | 3-5 h | Alto | Pendiente |
-| P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Pendiente |
+| P1 | Extraer `<score-stepper>` desde groups/knockout | 3-5 h | Alto | Hecho |
+| P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Hecho |
 | P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Pendiente |
 | P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Pendiente |
 | P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Pendiente |

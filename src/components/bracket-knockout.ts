@@ -10,6 +10,8 @@ import { isMatchPending } from '../lib/date-utils';
 import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
+import './score-stepper';
+import './odds-bar';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -1350,11 +1352,12 @@ export class BracketKnockout extends LitElement {
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
           </div>
           ${canEdit
-            ? html`<div class="ko-stepper">
-                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, -1)}" aria-label="${t('groups.decScore')}">−</button>
-                <span class="ko-val">${stepVal}</span>
-                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, 1)}" aria-label="${t('groups.incScore')}">+</button>
-              </div>`
+            ? html`<score-stepper
+                .value=${stepVal}
+                decrementLabel=${t('groups.decScore')}
+                incrementLabel=${t('groups.incScore')}
+                variant="compact"
+                @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
             : html`<div class="score ${isPending ? 'pending' : ''}">${isPlayed ? score : '—'}</div>`
           }
         </div>
@@ -1377,17 +1380,19 @@ export class BracketKnockout extends LitElement {
         ${isDraw ? html`
           <div class="ko-pen-row">
             <span class="ko-pen-label">PEN</span>
-            <div class="ko-stepper">
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', -1)}" aria-label="${t('groups.decScore')}">−</button>
-              <span class="ko-val">${penAVal}</span>
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', 1)}" aria-label="${t('groups.incScore')}">+</button>
-            </div>
+            <score-stepper
+              .value=${penAVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="compact"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
             <span class="ko-pen-sep">·</span>
-            <div class="ko-stepper">
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', -1)}" aria-label="${t('groups.decScore')}">−</button>
-              <span class="ko-val">${penBVal}</span>
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', 1)}" aria-label="${t('groups.incScore')}">+</button>
-            </div>
+            <score-stepper
+              .value=${penBVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="compact"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
           </div>
         ` : (decidedOnPenalties ? html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>` : '')}
 
@@ -1395,16 +1400,13 @@ export class BracketKnockout extends LitElement {
           const o = this._getOdds(matchId, m?.teamA, m?.teamB);
           if (!o || m?.isPlayed) return '';
           return html`
-            <div class="ko-odds-bar" title="Probabilidad 1X2${o.source === 'market' ? ` · ${o.bookmakers} casas` : ' · estimado'}">
-              <div class="ko-odds-seg" style="width:${o.home}%;background:var(--retro-blue)"></div>
-              <div class="ko-odds-seg" style="width:${o.draw}%;background:var(--dim)"></div>
-              <div class="ko-odds-seg" style="width:${o.away}%;background:var(--retro-red)"></div>
-            </div>
-            <div class="ko-odds-figs">
-              <span class="odds-home">${o.home}%</span>
-              <span>${o.draw}%</span>
-              <span class="odds-away">${o.away}%</span>
-            </div>
+            <odds-bar
+              title="Probabilidad 1X2${o.source === 'market' ? ` · ${o.bookmakers} casas` : ' · estimado'}"
+              .home=${o.home}
+              .draw=${o.draw}
+              .away=${o.away}
+              variant="compact"
+              .showFigures=${true}></odds-bar>
           `;
         })()}
 
@@ -1525,11 +1527,12 @@ export class BracketKnockout extends LitElement {
             <span class="name">${team?.name ?? ''}</span>
           </div>
           ${canEdit
-            ? html`<div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
-                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, -1)}" aria-label="−">−</button>
-                <span class="mob-stepper-val">${stepVal}</span>
-                <button @click="${(e: Event) => this.adjustInlineKnockout(e, matchId, teamAB, 1)}" aria-label="+">+</button>
-              </div>`
+            ? html`<score-stepper
+                .value=${stepVal}
+                decrementLabel=${t('groups.decScore')}
+                incrementLabel=${t('groups.incScore')}
+                variant="mobile"
+                @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
             : html`<div class="mob-score ${isPending && score === null ? 'pending' : ''}">${m.isPlayed ? score : '—'}</div>`
           }
         </div>
@@ -1550,33 +1553,33 @@ export class BracketKnockout extends LitElement {
         ${isDraw ? html`
           <div class="mob-pen-row">
             <span class="mob-pen-label">PEN</span>
-            <div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', -1)}">−</button>
-              <span class="mob-stepper-val">${penAVal}</span>
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'A', 1)}">+</button>
-            </div>
+            <score-stepper
+              .value=${penAVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="mobile"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
             <span class="mob-pen-sep">·</span>
-            <div class="mob-stepper" @click="${(e: Event) => e.stopPropagation()}">
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', -1)}">−</button>
-              <span class="mob-stepper-val">${penBVal}</span>
-              <button @click="${(e: Event) => this.adjustPenaltyKnockout(e, matchId, 'B', 1)}">+</button>
-            </div>
+            <score-stepper
+              .value=${penBVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="mobile"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
           </div>
         ` : (m.penaltyScoreA !== null && m.penaltyScoreB !== null
           ? html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`
           : '')
         }
         ${mobOdds && !m.isPlayed ? html`
-          <div class="ko-odds-bar" style="margin:2px 4px 3px;" title="Probabilidad 1X2${mobOdds.source === 'market' ? ` · ${mobOdds.bookmakers} casas` : ' · estimado'}">
-            <div class="ko-odds-seg" style="width:${mobOdds.home}%;background:var(--retro-blue)"></div>
-            <div class="ko-odds-seg" style="width:${mobOdds.draw}%;background:var(--dim)"></div>
-            <div class="ko-odds-seg" style="width:${mobOdds.away}%;background:var(--retro-red)"></div>
-          </div>
-          <div class="ko-odds-figs" style="margin:0 6px 3px;">
-            <span class="odds-home">${mobOdds.home}%</span>
-            <span>${mobOdds.draw}%</span>
-            <span class="odds-away">${mobOdds.away}%</span>
-          </div>
+          <odds-bar
+            style="margin:2px 4px 3px;"
+            title="Probabilidad 1X2${mobOdds.source === 'market' ? ` · ${mobOdds.bookmakers} casas` : ' · estimado'}"
+            .home=${mobOdds.home}
+            .draw=${mobOdds.draw}
+            .away=${mobOdds.away}
+            variant="compact"
+            .showFigures=${true}></odds-bar>
         ` : ''}
         ${venueName ? html`
           <div class="mob-match-venue">

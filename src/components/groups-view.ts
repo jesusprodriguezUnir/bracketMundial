@@ -8,6 +8,8 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { formatShortDate, isMatchPending } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
+import './score-stepper';
+import './odds-bar';
 
 function formatDate(iso?: string): string {
   return iso ? formatShortDate(iso) : '';
@@ -29,7 +31,7 @@ export class GroupsView extends LitElement {
   @state() private _odds: Record<string, MatchOdds> = {};
   @state() private _filterGroup: string | null = null;
 
-  static styles = css`
+  static readonly styles = css`
     :host { display: block; }
 
     /* Acciones de grupo */
@@ -630,17 +632,19 @@ export class GroupsView extends LitElement {
                       </div>
                       ${pending ? html`
                         <div class="inline-score-row">
-                          <div class="inline-stepper">
-                            <button @click="${(e: Event) => this.adjustInline(e, m, 'A', -1)}" aria-label="${t('groups.decScore')}">−</button>
-                            <span class="inline-val">${m.scoreA ?? 0}</span>
-                            <button @click="${(e: Event) => this.adjustInline(e, m, 'A', 1)}" aria-label="${t('groups.incScore')}">+</button>
-                          </div>
+                          <score-stepper
+                            .value=${m.scoreA ?? 0}
+                            decrementLabel=${t('groups.decScore')}
+                            incrementLabel=${t('groups.incScore')}
+                            variant="inline"
+                            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInline(e, m, 'A', e.detail.delta)}></score-stepper>
                           <span class="inline-dash">−</span>
-                          <div class="inline-stepper">
-                            <button @click="${(e: Event) => this.adjustInline(e, m, 'B', -1)}" aria-label="${t('groups.decScore')}">−</button>
-                            <span class="inline-val">${m.scoreB ?? 0}</span>
-                            <button @click="${(e: Event) => this.adjustInline(e, m, 'B', 1)}" aria-label="${t('groups.incScore')}">+</button>
-                          </div>
+                          <score-stepper
+                            .value=${m.scoreB ?? 0}
+                            decrementLabel=${t('groups.decScore')}
+                            incrementLabel=${t('groups.incScore')}
+                            variant="inline"
+                            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInline(e, m, 'B', e.detail.delta)}></score-stepper>
                         </div>
                       ` : ''}
 
@@ -652,21 +656,13 @@ export class GroupsView extends LitElement {
                           : 'estimación del modelo';
                         return html`
                           <div class="odds-wrap" title="Probabilidad 1X2 — ${srcLabel}">
-                            <div class="odds-legend">
-                              <span class="odds-home">1</span>
-                              <span>X</span>
-                              <span class="odds-away">2</span>
-                            </div>
-                            <div class="odds-bar">
-                              <div class="odds-seg" style="width:${o.home}%;background:var(--retro-blue)"></div>
-                              <div class="odds-seg" style="width:${o.draw}%;background:var(--dim)"></div>
-                              <div class="odds-seg" style="width:${o.away}%;background:var(--retro-red)"></div>
-                            </div>
-                            <div class="odds-figs">
-                              <span class="odds-home">${o.home}%</span>
-                              <span>${o.draw}%</span>
-                              <span class="odds-away">${o.away}%</span>
-                            </div>
+                            <odds-bar
+                              .home=${o.home}
+                              .draw=${o.draw}
+                              .away=${o.away}
+                              variant="default"
+                              .showLegend=${true}
+                              .showFigures=${true}></odds-bar>
                           </div>
                         `;
                       })()}
