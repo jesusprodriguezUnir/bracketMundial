@@ -5,7 +5,7 @@ import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
 import { coachAge, formatFullDate } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
-import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
+import { resolveCoachPhoto } from '../lib/coach-photo';
 import { getInitials, normalize } from '../lib/text-utils';
 
 @customElement('coaches-view')
@@ -13,7 +13,7 @@ export class CoachesView extends LitElement {
   @state() private selectedTeamId: string | null = null;
   @state() private searchQuery = '';
 
-  static styles = css`
+  static readonly styles = css`
     :host {
       display: block;
     }
@@ -504,19 +504,18 @@ export class CoachesView extends LitElement {
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {
                   const coach = COACHES[team.id];
+                  const photo = resolveCoachPhoto(team.id, coach);
+                  const fallbackName = coach ? coach.name : team.name;
+                  const photoContent = photo
+                    ? html`<img src="${photo}" alt="${fallbackName}" loading="lazy">`
+                    : html`<div class="card-photo-initials">${getInitials(fallbackName)}</div>`;
                   const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
                   return html`
                     <button
                       class="coach-card-btn"
                       style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
                       @click=${() => this.selectTeam(team.id)}>
-                      <div class="card-photo">
-                        ${hasCoachPhoto(team.id)
-                          ? html`<img src="${coachPhotoSrc(team.id)}" alt="${coach?.name ?? team.name}" loading="lazy">`
-                          : coach?.photoUrl
-                            ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
-                            : html`<div class="card-photo-initials">${getInitials(coach ? coach.name : team.name)}</div>`}
-                      </div>
+                      <div class="card-photo">${photoContent}</div>
                       <div class="card-country-stripe">
                         ${renderFlag(team, 'sm')}
                         <span class="card-country-name">${team.name}</span>
@@ -549,6 +548,11 @@ export class CoachesView extends LitElement {
     }
 
     const coach = COACHES[selectedTeam.id];
+  const photo = resolveCoachPhoto(selectedTeam.id, coach);
+    const detailPhotoName = coach ? coach.name : selectedTeam.name;
+    const detailPhotoContent = photo
+      ? html`<img src="${photo}" alt="${detailPhotoName}" loading="lazy">`
+      : html`<div class="detail-photo-initials">${getInitials(detailPhotoName)}</div>`;
     const locale = useLocaleStore.getState().locale;
 
     return html`
@@ -567,13 +571,7 @@ export class CoachesView extends LitElement {
         <div class="detail-body">
           <!-- Photo column -->
           <div class="detail-photo-col">
-            <div class="detail-photo-wrap">
-              ${hasCoachPhoto(selectedTeam.id)
-                ? html`<img src="${coachPhotoSrc(selectedTeam.id)}" alt="${coach?.name ?? selectedTeam.name}" loading="lazy">`
-                : coach?.photoUrl
-                  ? html`<img src="${coach.photoUrl}" alt="${coach?.name}" loading="lazy">`
-                  : html`<div class="detail-photo-initials">${getInitials(coach ? coach.name : selectedTeam.name)}</div>`}
-            </div>
+            <div class="detail-photo-wrap">${detailPhotoContent}</div>
           </div>
 
           <!-- Info column -->

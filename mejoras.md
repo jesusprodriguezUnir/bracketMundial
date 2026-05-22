@@ -44,6 +44,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 ### 1.7 Photo fallback chain duplicado
 - `coaches-view.ts:523-527`, `squads-view.ts`, `player-card.ts:40-73`, `lineup-view.ts:261-264`
 - **Solución:** Función `resolvePhoto(player, teamId)` en `src/lib/player-photo.ts`.
+- **Realizado mayo 2026:** Añadidos `resolvePlayerPhoto()` en `src/lib/player-photo.ts` y `resolveCoachPhoto()` en `src/lib/coach-photo.ts`. Integrados en `squads-view.ts`, `coaches-view.ts`, `lineup-view.ts` y `player-card.ts` para priorizar foto local y caer a remota solo cuando falta el asset local.
 
 ---
 
@@ -370,7 +371,7 @@ Misma lógica `touchstart`/`touchmove`/`touchend` con `deltaY > 120` (o similar)
 |---|---|---|---|---|
 | P1 | Extraer `<score-stepper>` desde groups/knockout | 3-5 h | Alto | Hecho |
 | P1 | Extraer `<odds-bar>` reutilizable | 3-5 h | Alto | Hecho |
-| P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Pendiente |
+| P2 | Consolidar fallback de foto en helper común | 2-3 h | Medio | Hecho |
 | P2 | Reemplazar `svg.innerHTML` por render seguro | 1-2 h | Medio | Pendiente |
 | P2 | Resolver `auth-modal` promise colgada al cerrar | 30-45 min | Medio | Pendiente |
 

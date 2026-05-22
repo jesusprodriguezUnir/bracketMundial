@@ -14,8 +14,8 @@ import { getTeamNews } from '../lib/news-service';
 import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
-import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
-import { hasCoachPhoto, coachPhotoSrc } from '../lib/coach-photo';
+import { resolvePlayerPhoto } from '../lib/player-photo';
+import { resolveCoachPhoto } from '../lib/coach-photo';
 import '../components/player-card';
 import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
@@ -81,7 +81,7 @@ export class SquadsView extends LitElement {
     });
   }
 
-  static styles = css`
+  static readonly styles = css`
     :host {
       display: block;
     }
@@ -1481,6 +1481,11 @@ export class SquadsView extends LitElement {
     const isOfficial = isOfficialSquad(selectedTeam.id);
     const teamMatches = this.getTeamMatches(selectedTeam.id);
     const coach: Coach | null = getCoach(selectedTeam.id);
+    const coachPhoto = resolveCoachPhoto(selectedTeam.id, coach);
+    const coachName = coach ? coach.name : selectedTeam.name;
+    const coachAvatar = coachPhoto
+      ? html`<img src="${coachPhoto}" alt="${coachName}" loading="lazy">`
+      : getInitials(coachName);
     const locale = useLocaleStore.getState().locale;
 
     return html`
@@ -1512,13 +1517,7 @@ export class SquadsView extends LitElement {
 
         ${coach ? html`
           <div class="coach-card">
-            <div class="coach-avatar">
-              ${hasCoachPhoto(selectedTeam.id)
-                ? html`<img src="${coachPhotoSrc(selectedTeam.id)}" alt="${coach.name}" loading="lazy">`
-                : coach.photoUrl
-                  ? html`<img src="${coach.photoUrl}" alt="${coach.name}" loading="lazy">`
-                  : getInitials(coach.name)}
-            </div>
+            <div class="coach-avatar">${coachAvatar}</div>
             <div class="coach-body">
               <div class="coach-label">${t('squads.coach.title')}</div>
               <div class="coach-name">${coach.name}</div>
@@ -1562,14 +1561,16 @@ export class SquadsView extends LitElement {
                   </tr>
                 </thead>
                 <tbody>
-                  ${squad.map(player => html`
+                  ${squad.map(player => {
+                    const photo = resolvePlayerPhoto(selectedTeam.id, player);
+                    return html`
                     <tr
                       class="player-row"
                       @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
                     >
                       <td><div class="player-avatar">
-                        ${hasPlayerPhoto(selectedTeam.id, player.number)
-                          ? html`<img src="${playerPhotoSrc(selectedTeam.id, player.number)}" alt="${player.name}" loading="lazy">`
+                        ${photo
+                          ? html`<img src="${photo}" alt="${player.name}" loading="lazy">`
                           : getInitials(player.name)}
                       </div></td>
                       <td>${player.number}</td>
@@ -1581,19 +1582,22 @@ export class SquadsView extends LitElement {
                       <td>${player.age}</td>
                       <td>${player.club}</td>
                     </tr>
-                  `)}
+                  `;
+                  })}
                 </tbody>
               </table>
             </div>
             <div class="mob-player-cards">
-              ${squad.map(player => html`
+              ${squad.map(player => {
+                const photo = resolvePlayerPhoto(selectedTeam.id, player);
+                return html`
                 <div
                   class="mob-player-card"
                   @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
                 >
                   <div class="mob-player-avatar">
-                    ${hasPlayerPhoto(selectedTeam.id, player.number)
-                      ? html`<img src="${playerPhotoSrc(selectedTeam.id, player.number)}" alt="${player.name}" loading="lazy">`
+                    ${photo
+                      ? html`<img src="${photo}" alt="${player.name}" loading="lazy">`
                       : getInitials(player.name)}
                   </div>
                   <div class="mob-player-info">
@@ -1609,7 +1613,8 @@ export class SquadsView extends LitElement {
                     </div>
                   </div>
                 </div>
-              `)}
+              `;
+              })}
             </div>
             `}
           </div>

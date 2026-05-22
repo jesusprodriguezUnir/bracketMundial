@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { Player } from '../data/squads';
 import { searchPlayer } from '../lib/player-service';
 import type { PlayerDetail } from '../lib/player-service';
-import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
+import { resolvePlayerPhoto } from '../lib/player-photo';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
 import { t } from '../i18n';
@@ -51,24 +51,18 @@ export class PlayerCard extends LitElement {
       this.player.thesportsdbId
     );
 
-    const localPhoto = hasPlayerPhoto(this.teamId, this.player.number)
-      ? playerPhotoSrc(this.teamId, this.player.number)
-      : undefined;
+    const resolvedPhoto = resolvePlayerPhoto(this.teamId, this.player);
 
     if (result) {
-      if (localPhoto) result.photoUrl = localPhoto;
-      else if (this.player.photoUrl) result.photoUrl = this.player.photoUrl;
-    } else {
-      const fallbackPhoto = localPhoto ?? this.player.photoUrl;
-      if (fallbackPhoto) {
-        this._detail = {
-          id: 'local',
-          name: this.player.name,
-          position: this.player.position,
-          photoUrl: fallbackPhoto,
-        };
-        return;
-      }
+      if (resolvedPhoto) result.photoUrl = resolvedPhoto;
+    } else if (resolvedPhoto) {
+      this._detail = {
+        id: 'local',
+        name: this.player.name,
+        position: this.player.position,
+        photoUrl: resolvedPhoto,
+      };
+      return;
     }
 
     this._detail = result;
@@ -88,7 +82,7 @@ export class PlayerCard extends LitElement {
     return map[pos] ?? pos;
   }
 
-  static styles = css`
+  static readonly styles = css`
     .overlay {
       position: fixed;
       inset: 0;

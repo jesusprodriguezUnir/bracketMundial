@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { Player, Lineup } from '../data/squads';
-import { hasPlayerPhoto, playerPhotoSrc } from '../lib/player-photo';
+import { resolvePlayerPhoto } from '../lib/player-photo';
 import { getInitials } from '../lib/text-utils';
 
 function getLastName(name: string): string {
@@ -268,9 +268,7 @@ export class LineupView extends LitElement {
             ${group.map(playerNumber => {
               const player = this.squad.find(p => p.number === playerNumber);
               const name = player ? getLastName(player.name) : '?';
-              const photo = player && hasPlayerPhoto(this.teamId, player.number)
-                ? playerPhotoSrc(this.teamId, player.number)
-                : undefined;
+              const photo = resolvePlayerPhoto(this.teamId, player);
               const fallback = player ? getInitials(player.name) : '?';
 
               return html`
