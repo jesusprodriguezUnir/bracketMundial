@@ -79,7 +79,7 @@ export class BracketView extends LitElement {
     /* Contenedor con touch area para swipe */
     .view-container {
       position: relative;
-      touch-action: pan-y;
+      touch-action: auto;
     }
 
     /* Barra de phase tabs — estética retro, botones Bowlby One (desktop) */
