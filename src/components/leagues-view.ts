@@ -494,6 +494,9 @@ export class LeaguesView extends LitElement {
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
       gap: 18px;
     }
+    .lg-results-board.single-panel {
+      grid-template-columns: minmax(0, 1fr);
+    }
     .lg-section-panel {
       background: var(--paper-3);
       border: 3px solid var(--ink);
@@ -2082,11 +2085,16 @@ export class LeaguesView extends LitElement {
     }));
 
     const { current, next3 } = getCurrentMatchday(realGroupScores, realKnockoutScores);
+    const projectedScores = this._viewMode === 'projection'
+      ? buildProjectedScores(realGroupScores, realKnockoutScores)
+      : null;
+    const editorialGroupScores = projectedScores?.groupScores ?? realGroupScores;
+    const editorialKnockoutScores = projectedScores?.knockoutScores ?? realKnockoutScores;
 
     const leader = this._scores[0];
     const second = this._scores[1];
     const recentResults = [
-      ...realGroupScores
+      ...editorialGroupScores
         .filter(match => match.scoreA !== null && match.scoreB !== null)
         .map(match => {
           const fixture = groupMatchById.get(match.matchId);
@@ -2099,22 +2107,22 @@ export class LeaguesView extends LitElement {
             label: fixture?.matchDay ? `MD${fixture.matchDay}` : 'GR',
           };
         }),
-      ...realKnockoutOrder
-        .map(matchId => {
-          const match = tournament.knockoutMatches[matchId];
-          if (!match || match.scoreA === null || match.scoreB === null) return null;
-          const round = matchId.startsWith('R32') ? '1/16'
-            : matchId.startsWith('R16') ? 'R16'
-            : matchId.startsWith('QF') ? 'QF'
-            : matchId.startsWith('SF') ? 'SF'
-            : matchId === 'TP-01' ? 'TP'
+      ...editorialKnockoutScores
+        .map(matchScore => {
+          if (matchScore.scoreA === null || matchScore.scoreB === null) return null;
+          const match = tournament.knockoutMatches[matchScore.matchId];
+          const round = matchScore.matchId.startsWith('R32') ? '1/16'
+            : matchScore.matchId.startsWith('R16') ? 'R16'
+            : matchScore.matchId.startsWith('QF') ? 'QF'
+            : matchScore.matchId.startsWith('SF') ? 'SF'
+            : matchScore.matchId === 'TP-01' ? 'TP'
             : 'FIN';
           return {
-            matchId,
+            matchId: matchScore.matchId,
             teamA: match.teamA ?? '',
             teamB: match.teamB ?? '',
-            scoreA: match.scoreA,
-            scoreB: match.scoreB,
+            scoreA: matchScore.scoreA,
+            scoreB: matchScore.scoreB,
             label: round,
           };
         })
@@ -2123,6 +2131,18 @@ export class LeaguesView extends LitElement {
     const displayKnockoutByMatchId = new Map(this._knockoutDisplayScores.map(match => [match.matchId, match]));
     const hasRealMatches = played > 0;
     const shouldShowRealEmptyState = this._isReadOnly && !hasRealMatches;
+    const isProjectionMode = this._viewMode === 'projection';
+    const leftPanelKicker = isProjectionMode
+      ? t('league.projectionLabel')
+      : hasRealMatches
+        ? t('league.currentMatchday')
+        : t('league.latestMatches');
+    const leftPanelTitle = isProjectionMode
+      ? t('league.latestSimulatedMatches')
+      : hasRealMatches
+        ? t('league.latestMatches')
+        : t('league.worldCupNotStarted');
+    const resultFootLabel = isProjectionMode ? t('league.latestSimulatedMatches') : t('league.latestMatches');
 
     return html`
       <div class="lg-editorial-shell">
@@ -2257,12 +2277,12 @@ export class LeaguesView extends LitElement {
             </section>
           `}
 
-        <section class="lg-results-board">
+        <section class=${`lg-results-board ${isProjectionMode ? 'single-panel' : ''}`}>
           <div class="lg-section-panel">
             <div class="lg-section-head">
               <div>
-                <div class="lg-section-kicker">${t('league.currentMatchday')}</div>
-                <div class="lg-section-title">${current ? `${current.label} · ${current.lastMatchId}` : t('league.nextMatches')}</div>
+                <div class="lg-section-kicker">${leftPanelKicker}</div>
+                <div class="lg-section-title">${leftPanelTitle}</div>
               </div>
               <div class="lg-section-kicker">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
             </div>
@@ -2294,16 +2314,16 @@ export class LeaguesView extends LitElement {
                       </div>
                     </div>
                     <div class="lg-result-foot">
-                      <span>${t('league.currentMatchday')}</span>
+                      <span>${resultFootLabel}</span>
                       <span>${t('league.points')}</span>
                     </div>
                   </article>
                 `;
-              }) : html`<div class="lg-normal">${this._isReadOnly ? t('league.noMatchesPlayedYet') : t('league.nextMatches')}</div>`}
+              }) : html`<div class="lg-normal">${shouldShowRealEmptyState ? t('league.worldCupNotStarted') : t('league.noMatchesPlayedYet')}</div>`}
             </div>
           </div>
 
-          <div class="lg-section-panel">
+          ${isProjectionMode ? '' : html`<div class="lg-section-panel">
             <div class="lg-section-head">
               <div>
                 <div class="lg-section-kicker">${t('league.nextMatches')}</div>
@@ -2312,7 +2332,7 @@ export class LeaguesView extends LitElement {
             </div>
 
             <div class="lg-next-list">
-              ${shouldShowRealEmptyState ? html`
+              ${next3.length === 0 ? html`
                 <div class="lg-normal">${t('league.noMatchesPlayedYet')}</div>
               ` : next3.map(match => {
                 const teamA = getTeam(match.teamA);
@@ -2329,7 +2349,7 @@ export class LeaguesView extends LitElement {
                 `;
               })}
             </div>
-          </div>
+          </div>`}
         </section>
 
         <div class="lg-add-section">
