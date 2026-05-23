@@ -16,6 +16,7 @@ export class AppRoot extends LitElement {
   @state() private _isOffline = !navigator.onLine;
   @state() private _toastMessage = '';
   @state() private _calendarMenuOpen = false;
+  @state() private _shopMenuOpen = false;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
 
@@ -193,7 +194,8 @@ export class AppRoot extends LitElement {
       letter-spacing: 0.15em;
       text-transform: uppercase;
     }
-    .calendar-dropdown button {
+    .calendar-dropdown button,
+    .calendar-dropdown a {
       all: unset;
       cursor: pointer;
       padding: 10px 14px;
@@ -203,9 +205,12 @@ export class AppRoot extends LitElement {
       letter-spacing: 0.04em;
       text-align: left;
       transition: background 0.1s;
+      text-decoration: none;
+      box-sizing: border-box;
     }
     @media (hover: hover) {
-      .calendar-dropdown button:hover {
+      .calendar-dropdown button:hover,
+      .calendar-dropdown a:hover {
         background: rgba(240,176,33,0.15);
       }
     }
@@ -438,10 +443,12 @@ export class AppRoot extends LitElement {
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
   private _closeCalendarMenuOnOutsideClick = (e: MouseEvent) => {
-    if (!this._calendarMenuOpen) return;
-    const dropdown = this.shadowRoot?.querySelector('.dropdown-wrap');
-    if (dropdown && !e.composedPath().includes(dropdown)) {
+    if (!this._calendarMenuOpen && !this._shopMenuOpen) return;
+    const dropdowns = this.shadowRoot?.querySelectorAll('.dropdown-wrap');
+    const clickedInside = dropdowns ? [...dropdowns].some(d => e.composedPath().includes(d)) : false;
+    if (!clickedInside) {
       this._calendarMenuOpen = false;
+      this._shopMenuOpen = false;
       this.requestUpdate();
     }
   };
@@ -485,6 +492,10 @@ export class AppRoot extends LitElement {
 
   private _toggleCalendarMenu() {
     this._calendarMenuOpen = !this._calendarMenuOpen;
+  }
+
+  private _toggleShopMenu() {
+    this._shopMenuOpen = !this._shopMenuOpen;
   }
 
   private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
@@ -557,9 +568,25 @@ export class AppRoot extends LitElement {
             <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
             <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
             <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
-            <a href="https://amzn.to/3Rtl2KQ" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Álbum Panini en Amazon">
-              🛒 Álbum Panini
-            </a>
+            <div class="dropdown-wrap">
+              <button @click="${this._toggleShopMenu}" class="amzn-btn" title="${t('header.shopTitle')}">🛒 Tienda</button>
+              ${this._shopMenuOpen ? html`
+                <div class="calendar-dropdown">
+                  <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Álbum Panini en Amazon">
+                    🛒 Álbum Panini 2026
+                  </a>
+                  <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Póster Mundial 2026 en Amazon">
+                    🖼 Póster Mundial 2026
+                  </a>
+                  <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Libro Mundial 2026 en Amazon">
+                    📖 Libro Mundial 2026
+                  </a>
+                  <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Libro Oficial FIFA en Amazon">
+                    📕 Libro Oficial FIFA
+                  </a>
+                </div>
+              ` : ''}
+            </div>
             <button @click="${this.handleShare}">${t('header.share')}</button>
             <div class="dropdown-wrap">
               <button @click="${this._toggleCalendarMenu}" title="${t('calendar.exportTitle')}">${t('tabs.calendar')}</button>
@@ -614,8 +641,17 @@ export class AppRoot extends LitElement {
           <div class="footer-section">
             <span class="footer-label">Tienda</span>
             <div class="footer-social">
-              <a href="https://amzn.to/3Rtl2KQ" target="_blank" rel="noopener noreferrer" aria-label="Comprar Álbum Panini en Amazon">
+              <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" aria-label="Comprar Álbum Panini en Amazon">
                 🛒 Álbum Panini 2026
+              </a>
+              <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" aria-label="Comprar Póster Mundial 2026 en Amazon">
+                🖼 Póster Mundial 2026
+              </a>
+              <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" aria-label="Comprar Libro Mundial 2026 en Amazon">
+                📖 Libro Mundial 2026
+              </a>
+              <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" aria-label="Comprar Libro Oficial FIFA en Amazon">
+                📕 Libro Oficial FIFA
               </a>
             </div>
           </div>
