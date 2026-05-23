@@ -161,7 +161,7 @@ describe('ExcelService league predictions export', () => {
     }));
   }
 
-  const groupMatches = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+  const groupMatchIds = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
 
   const emptyKo = (): Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }> => [];
 
@@ -170,42 +170,45 @@ describe('ExcelService league predictions export', () => {
       id: 'p0',
       name: 'Me',
       isOwner: true,
-      groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
+      groupScores: mkScores(groupMatchIds, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
       knockoutScores: emptyKo(),
     },
     {
       id: 'p1',
       name: 'Alice',
-      groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
+      groupScores: mkScores(groupMatchIds, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
       knockoutScores: emptyKo(),
     },
     {
       id: 'p2',
       name: 'Bob',
-      groupScores: mkScores(groupMatches, [[1, 0], [2, 1], [1, 0], [1, 1], [0, 1], [2, 2]]),
+      groupScores: mkScores(groupMatchIds, [[1, 0], [2, 1], [1, 0], [1, 1], [0, 1], [2, 2]]),
       knockoutScores: emptyKo(),
     },
   ];
 
-  const realGroupScores = mkScores(groupMatches, [[2, 1], [2, 0], [0, 0], [2, 2], [1, 1], [1, 2]]);
-  const realKnockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }> = [];
+  const realGroupMatches: GroupMatchResult[] = makeGroupMatches().map((m, i) => {
+    const scores: [number, number][] = [[2, 1], [2, 0], [0, 0], [2, 2], [1, 1], [1, 2]];
+    return { ...m, scoreA: scores[i][0], scoreB: scores[i][1] };
+  });
+  const realKnockoutMatches: Record<string, KnockoutMatchResult> = {};
 
   it('produces a non-empty blob', async () => {
     const blob = await ExcelService.exportLeaguePredictions(
       { name: 'Test League', participants },
-      realGroupScores,
-      realKnockoutScores,
+      realGroupMatches,
+      realKnockoutMatches,
       'es',
     );
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.size).toBeGreaterThan(0);
   });
 
-  it('export contains both sheets (no separate Rules sheet)', async () => {
+  it('export contains expected sheets', async () => {
     const blob = await ExcelService.exportLeaguePredictions(
       { name: 'Test League', participants },
-      realGroupScores,
-      realKnockoutScores,
+      realGroupMatches,
+      realKnockoutMatches,
       'es',
     );
     const buffer = await blob.arrayBuffer();
@@ -213,6 +216,8 @@ describe('ExcelService league predictions export', () => {
     await wb.xlsx.load(buffer);
     expect(wb.getWorksheet('Resumen')).toBeTruthy();
     expect(wb.getWorksheet('Pronósticos')).toBeTruthy();
+    expect(wb.getWorksheet('Fase de Grupos')).toBeTruthy();
+    expect(wb.getWorksheet('Eliminatorias')).toBeTruthy();
     // Verify the old separate Rules sheet no longer exists
     expect(wb.getWorksheet('Reglas')).toBeFalsy();
     expect(wb.getWorksheet('Rules')).toBeFalsy();
@@ -221,8 +226,8 @@ describe('ExcelService league predictions export', () => {
   it('ranking sheet reflects correct totals', async () => {
     const blob = await ExcelService.exportLeaguePredictions(
       { name: 'Test League', participants },
-      realGroupScores,
-      realKnockoutScores,
+      realGroupMatches,
+      realKnockoutMatches,
       'es',
     );
     const buffer = await blob.arrayBuffer();
@@ -243,11 +248,11 @@ describe('ExcelService league predictions export', () => {
     expect(names.some(n => n.includes('Me'))).toBe(true);
   });
 
-  it('predictions sheet has correct column count', async () => {
+  it('predictions sheet has separate flag columns and per-participant columns', async () => {
     const blob = await ExcelService.exportLeaguePredictions(
       { name: 'Test League', participants },
-      realGroupScores,
-      realKnockoutScores,
+      realGroupMatches,
+      realKnockoutMatches,
       'es',
     );
     const buffer = await blob.arrayBuffer();
@@ -256,16 +261,16 @@ describe('ExcelService league predictions export', () => {
     const predSheet = wb.getWorksheet('Pronósticos');
     expect(predSheet).toBeTruthy();
 
-    // 1 match column + 1 real result column + 3 participants × 2 cols (prediction + pts) = 8 cols
+    // Cols: 1=ID, 2=flagA, 3=Partido, 4=flagB, 5=Resultado real, 6+ = participantes (2 cols c/u)
     const row1 = predSheet!.getRow(1);
-    // Column 1 = Partido, 2 = Resultado real, 3 = Me ★, 4 = Pts, 5 = Alice, 6 = Pts, 7 = Bob, 8 = Pts
-    expect(String(row1.getCell(1).value ?? '')).toBe('Partido');
-    expect(String(row1.getCell(2).value ?? '')).toBe('Resultado real');
-    expect(String(row1.getCell(3).value ?? '')).toContain('Me');
-    expect(String(row1.getCell(4).value ?? '')).toBe('Pts');
-    expect(String(row1.getCell(5).value ?? '')).toBe('Alice');
-    expect(String(row1.getCell(6).value ?? '')).toBe('Pts');
-    expect(String(row1.getCell(7).value ?? '')).toBe('Bob');
-    expect(String(row1.getCell(8).value ?? '')).toBe('Pts');
+    expect(String(row1.getCell(1).value ?? '')).toBe('ID');
+    expect(String(row1.getCell(3).value ?? '')).toBe('Partido');
+    expect(String(row1.getCell(5).value ?? '')).toBe('Resultado real');
+    expect(String(row1.getCell(6).value ?? '')).toContain('Me');
+    expect(String(row1.getCell(7).value ?? '')).toBe('Pts');
+    expect(String(row1.getCell(8).value ?? '')).toBe('Alice');
+    expect(String(row1.getCell(9).value ?? '')).toBe('Pts');
+    expect(String(row1.getCell(10).value ?? '')).toBe('Bob');
+    expect(String(row1.getCell(11).value ?? '')).toBe('Pts');
   });
 });

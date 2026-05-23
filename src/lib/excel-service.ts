@@ -392,14 +392,19 @@ export class ExcelService {
 
   static async exportLeaguePredictions(
     league: { name: string; participants: Array<{ id: string; name: string; isOwner?: boolean; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] }> },
-    realGroupScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
-    realKnockoutScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
+    realGroupMatches: GroupMatchResult[],
+    realKnockoutMatches: Record<string, KnockoutMatchResult>,
     locale: Locale = 'es',
   ): Promise<Blob> {
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Bracket Mundial 2026';
     wb.created = new Date();
     wb.modified = new Date();
+
+    const realGroupScores: { matchId: string; scoreA: number | null; scoreB: number | null }[] =
+      realGroupMatches.map(m => ({ matchId: m.matchId, scoreA: m.scoreA, scoreB: m.scoreB }));
+    const realKnockoutScores: { matchId: string; scoreA: number | null; scoreB: number | null }[] =
+      Object.values(realKnockoutMatches).map(m => ({ matchId: m.matchId, scoreA: m.scoreA, scoreB: m.scoreB }));
 
     const allParticipants = league.participants;
     const scored: ParticipantScore[] = [];
@@ -408,7 +413,43 @@ export class ExcelService {
     }
     const ranked = rankParticipants(scored);
 
-    // Sheet 1: Ranking / Resumen (with integrated rules header)
+    // ── Pre-fetch flag images (shared across all sheets) ───────────────────
+    const allTeamIds = new Set<string>();
+    realGroupMatches.forEach(m => { allTeamIds.add(m.teamA); allTeamIds.add(m.teamB); });
+    Object.values(realKnockoutMatches).forEach(m => {
+      if (m.teamA) allTeamIds.add(m.teamA);
+      if (m.teamB) allTeamIds.add(m.teamB);
+    });
+    const flagImages = new Map<string, number>();
+    await Promise.all(Array.from(allTeamIds).map(async id => {
+      const team = TEAMS_2026.find(t => t.id === id);
+      if (!team?.flagUrl) return;
+      const png = await fetchFlagPng(team.flagUrl);
+      if (png == null) return;
+      flagImages.set(id, wb.addImage({ base64: png, extension: 'png' }));
+    }));
+
+    // ── Pre-compute scoring data ───────────────────────────────────────────
+    const predByParticipant = new Map<string, Map<string, { scoreA: number | null; scoreB: number | null }>>();
+    for (const p of allParticipants) {
+      const m = new Map<string, { scoreA: number | null; scoreB: number | null }>();
+      for (const s of p.groupScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
+      for (const s of p.knockoutScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
+      predByParticipant.set(p.id, m);
+    }
+
+    const breakdownByPid = new Map<string, Map<string, MatchPoints>>();
+    for (const s of scored) {
+      const m = new Map<string, MatchPoints>();
+      for (const b of s.breakdown) m.set(b.matchId, b);
+      breakdownByPid.set(s.participant.id, m);
+    }
+
+    const realByMatchId = new Map<string, { scoreA: number | null; scoreB: number | null }>();
+    for (const r of realGroupScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
+    for (const r of realKnockoutScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
+
+    // ── Sheet 1: Resumen ───────────────────────────────────────────────────
     const rankSheet = wb.addWorksheet(locale === 'en' ? 'Ranking' : 'Resumen', {
       views: [{ showGridLines: false }],
     });
@@ -499,7 +540,6 @@ export class ExcelService {
     rankSheet.getColumn(2).width = 25;
     for (let i = 3; i <= 8; i++) rankSheet.getColumn(i).width = 12;
 
-    // Note about rules (referenced above in this sheet)
     const rankNoteRow = ranked.length + RANK_HEADER_ROW + 2;
     const rankNote = rankSheet.getCell(rankNoteRow, 1);
     rankNote.value = locale === 'en'
@@ -508,122 +548,172 @@ export class ExcelService {
     rankNote.font = { italic: true, size: 10, color: { argb: C.dim } };
     rankSheet.mergeCells(rankNoteRow, 1, rankNoteRow, 8);
 
-    // Sheet 3: Predictions
-    const predSheet = wb.addWorksheet(locale === 'en' ? 'Predictions' : 'Pronósticos', {
-      views: [{ showGridLines: false }],
-    });
-
-    const matchNames: string[] = [];
+    // ── Build match order and names ─────────────────────────────────────────
+    const matchNameById = new Map<string, string>();
     const allMatchOrder: string[] = [];
+    const groupMatchIds = new Set<string>();
 
     for (const gm of GROUP_MATCHES) {
       allMatchOrder.push(gm.matchId);
-      matchNames.push(`${gm.teamA} vs ${gm.teamB}`);
+      groupMatchIds.add(gm.matchId);
+      matchNameById.set(gm.matchId, `${tName(gm.teamA)} vs ${tName(gm.teamB)}`);
     }
     for (const matchId of getKnockoutMatchOrder()) {
       allMatchOrder.push(matchId);
-      matchNames.push(matchId);
+      matchNameById.set(matchId, matchId);
     }
 
-    const setPredHeader = (cell: ExcelJS.Cell) => {
-      cell.font = { bold: true, size: 10, color: { argb: 'F0B021' } };
-      cell.fill = fill('1A1933');
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      cell.border = { bottom: { style: 'thin', color: { argb: '1A1933' } } };
-    };
+    // ── Sheets 2 & 3: Grupos + Eliminatorias estilo torneo (mismas que el Excel del torneo) ──
+    const groupsName   = lbl('excel.sheetGroups',   locale);
+    const knockoutName = lbl('excel.sheetKnockout', locale);
 
-    setPredHeader(predSheet.getCell(1, 1));
-    predSheet.getCell(1, 1).value = locale === 'en' ? 'Match' : 'Partido';
+    const drawInfos = this.createGroupsSheet(wb, realGroupMatches, locale, groupsName, flagImages);
+    this.createCalcSheet(wb, drawInfos, groupsName);
+    this.fillStandingsFormulas(wb, drawInfos, groupsName);
+    this.createKnockoutSheet(wb, realKnockoutMatches, locale, knockoutName, flagImages);
 
-    setPredHeader(predSheet.getCell(1, 2));
-    predSheet.getCell(1, 2).value = locale === 'en' ? 'Real Result' : 'Resultado real';
+    // ── Sheet 4: Pronósticos plana — banderas en columnas separadas ─────────
+    const THIN_BORDER = { top: THIN, left: THIN, bottom: THIN, right: THIN };
 
-    const ptsColLabel = locale === 'en' ? 'Pts' : 'Pts';
-
-    allParticipants.forEach((p, pi) => {
-      const col = 3 + pi * 2;
-      const nameCell = predSheet.getCell(1, col);
-      nameCell.value = p.name + (p.isOwner ? ' ★' : '');
-      setPredHeader(nameCell);
-
-      const ptsCell = predSheet.getCell(1, col + 1);
-      ptsCell.value = ptsColLabel;
-      setPredHeader(ptsCell);
+    const predSheet = wb.addWorksheet(locale === 'en' ? 'Predictions' : 'Pronósticos', {
+      views: [{ state: 'frozen', xSplit: 4, ySplit: 2, showGridLines: false }],
     });
 
-    const predByParticipant = new Map<string, Map<string, { scoreA: number | null; scoreB: number | null }>>();
-    for (const p of allParticipants) {
-      const m = new Map<string, { scoreA: number | null; scoreB: number | null }>();
-      for (const s of p.groupScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
-      for (const s of p.knockoutScores) m.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
-      predByParticipant.set(p.id, m);
-    }
+    const predHdr = (cell: ExcelJS.Cell, value: string) => {
+      cell.value = value;
+      cell.font = { bold: true, size: 11, color: { argb: 'F0B021' } };
+      cell.fill = fill('1A1933');
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    };
 
-    const breakdownByPid = new Map<string, Map<string, MatchPoints>>();
-    for (const s of scored) {
-      const m = new Map<string, MatchPoints>();
-      for (const b of s.breakdown) m.set(b.matchId, b);
-      breakdownByPid.set(s.participant.id, m);
-    }
+    // Columnas: 1=ID, 2=banderaA, 3=Partido, 4=banderaB, 5=Real, 6..=participantes
+    predHdr(predSheet.getCell(1, 1), locale === 'en' ? 'Match ID' : 'ID');
+    predHdr(predSheet.getCell(1, 2), '');
+    predHdr(predSheet.getCell(1, 3), locale === 'en' ? 'Match' : 'Partido');
+    predHdr(predSheet.getCell(1, 4), '');
+    predHdr(predSheet.getCell(1, 5), locale === 'en' ? 'Real Result' : 'Resultado real');
 
-    const realByMatchId = new Map<string, { scoreA: number | null; scoreB: number | null }>();
-    for (const r of realGroupScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
-    for (const r of realKnockoutScores) realByMatchId.set(r.matchId, { scoreA: r.scoreA, scoreB: r.scoreB });
+    const ptsColLabel = locale === 'en' ? 'Pts' : 'Pts';
+    const PRED_PARTICIPANT_START_COL = 6;
+
+    allParticipants.forEach((p, pi) => {
+      const col = PRED_PARTICIPANT_START_COL + pi * 2;
+      predHdr(predSheet.getCell(1, col), p.name + (p.isOwner ? ' ★' : ''));
+      predHdr(predSheet.getCell(1, col + 1), ptsColLabel);
+    });
 
     allMatchOrder.forEach((matchId, rowIdx) => {
       const r = rowIdx + 2;
       const rowBg = rowIdx % 2 === 0 ? 'FFF9EC' : 'E6D6B1';
+      const isGroup = groupMatchIds.has(matchId);
 
-      predSheet.getCell(r, 1).value = matchNames[rowIdx];
-      predSheet.getCell(r, 1).fill = fill(rowBg);
-      predSheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle' };
-      predSheet.getCell(r, 1).font = { size: 10 };
+      const baseCell = (col: number, value: string | number, align: 'left' | 'center' = 'center') => {
+        const c = predSheet.getCell(r, col);
+        c.value = value;
+        c.fill = fill(rowBg);
+        c.alignment = { horizontal: align, vertical: 'middle' };
+        c.font = { size: 10 };
+        c.border = THIN_BORDER;
+        return c;
+      };
+
+      baseCell(1, matchId).font = { size: 8, color: { argb: C.dim } };
+
+      let teamAId: string | null = null;
+      let teamBId: string | null = null;
+      let matchLabel = matchId;
+
+      if (isGroup) {
+        const gm = GROUP_MATCHES.find(m => m.matchId === matchId);
+        if (gm) {
+          teamAId = gm.teamA;
+          teamBId = gm.teamB;
+          matchLabel = `${tName(gm.teamA)} vs ${tName(gm.teamB)}`;
+        }
+      } else {
+        const km = realKnockoutMatches[matchId];
+        if (km) {
+          teamAId = km.teamA;
+          teamBId = km.teamB;
+          matchLabel = `${tName(km.teamA)} vs ${tName(km.teamB)}`;
+        }
+      }
+
+      // Bandera A (col 2) en celda separada
+      const flagACell = predSheet.getCell(r, 2);
+      flagACell.fill = fill(rowBg);
+      flagACell.border = THIN_BORDER;
+      flagACell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (teamAId) {
+        const imgIdA = flagImages.get(teamAId);
+        if (imgIdA !== undefined) {
+          const addrA = flagACell.address;
+          predSheet.addImage(imgIdA, `${addrA}:${addrA}`);
+        } else {
+          flagACell.value = tFlag(teamAId);
+        }
+      }
+
+      baseCell(3, matchLabel, 'center');
+
+      // Bandera B (col 4) en celda separada
+      const flagBCell = predSheet.getCell(r, 4);
+      flagBCell.fill = fill(rowBg);
+      flagBCell.border = THIN_BORDER;
+      flagBCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (teamBId) {
+        const imgIdB = flagImages.get(teamBId);
+        if (imgIdB !== undefined) {
+          const addrB = flagBCell.address;
+          predSheet.addImage(imgIdB, `${addrB}:${addrB}`);
+        } else {
+          flagBCell.value = tFlag(teamBId);
+        }
+      }
 
       const real = realByMatchId.get(matchId);
       const realStr = (real?.scoreA !== null && real?.scoreA !== undefined && real?.scoreB !== null && real?.scoreB !== undefined)
         ? `${real.scoreA}-${real.scoreB}`
         : '-';
-      predSheet.getCell(r, 2).value = realStr;
-      predSheet.getCell(r, 2).fill = fill(rowBg);
-      predSheet.getCell(r, 2).alignment = { horizontal: 'center', vertical: 'middle' };
-      predSheet.getCell(r, 2).font = { size: 10 };
+      baseCell(5, realStr).font = { size: 10, bold: true };
 
       allParticipants.forEach((p, pi) => {
-        const col = 3 + pi * 2;
+        const col = PRED_PARTICIPANT_START_COL + pi * 2;
         const pred = predByParticipant.get(p.id)?.get(matchId);
         const predStr = (pred?.scoreA !== null && pred?.scoreA !== undefined && pred?.scoreB !== null && pred?.scoreB !== undefined)
           ? `${pred.scoreA}-${pred.scoreB}`
           : '-';
-        predSheet.getCell(r, col).value = predStr;
-        predSheet.getCell(r, col).fill = fill(rowBg);
-        predSheet.getCell(r, col).alignment = { horizontal: 'center', vertical: 'middle' };
-        predSheet.getCell(r, col).font = { size: 10 };
+        baseCell(col, predStr);
 
         const bp = breakdownByPid.get(p.id)?.get(matchId);
+        const ptsCell = predSheet.getCell(r, col + 1);
         if (bp) {
           const { bg, fg } = kindToArgb(bp.kind);
-          const ptsCell = predSheet.getCell(r, col + 1);
           ptsCell.value = bp.points;
           ptsCell.fill = fill(bg);
           ptsCell.alignment = { horizontal: 'center', vertical: 'middle' };
           ptsCell.font = { size: 10, color: { argb: fg }, bold: true };
         } else {
-          predSheet.getCell(r, col + 1).value = 0;
-          predSheet.getCell(r, col + 1).fill = fill(rowBg);
-          predSheet.getCell(r, col + 1).alignment = { horizontal: 'center', vertical: 'middle' };
-          predSheet.getCell(r, col + 1).font = { size: 10, color: { argb: C.dim } };
+          ptsCell.value = 0;
+          ptsCell.fill = fill(rowBg);
+          ptsCell.alignment = { horizontal: 'center', vertical: 'middle' };
+          ptsCell.font = { size: 10, color: { argb: C.dim } };
         }
+        ptsCell.border = THIN_BORDER;
       });
+
+      predSheet.getRow(r).height = 18;
     });
 
-    predSheet.getColumn(1).width = 20;
-    predSheet.getColumn(2).width = 16;
+    predSheet.getColumn(1).width = 8;
+    predSheet.getColumn(2).width = 5;
+    predSheet.getColumn(3).width = 32;
+    predSheet.getColumn(4).width = 5;
+    predSheet.getColumn(5).width = 14;
     for (let i = 0; i < allParticipants.length; i++) {
-      predSheet.getColumn(3 + i * 2).width = 14;
-      predSheet.getColumn(3 + i * 2 + 1).width = 7;
+      predSheet.getColumn(PRED_PARTICIPANT_START_COL + i * 2).width = 14;
+      predSheet.getColumn(PRED_PARTICIPANT_START_COL + i * 2 + 1).width = 6;
     }
-
-    predSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
     const buffer = await wb.xlsx.writeBuffer();
     return new Blob([buffer], {

@@ -15,7 +15,15 @@
       "Bash(node --check scripts/record-reel.mjs)",
       "Bash(node --check scripts/generate-x-post.mjs)",
       "Bash(node --check scripts/lib/recording-utils.mjs)",
-      "Bash(node --check scripts/record-video.mjs)"
+      "Bash(node --check scripts/record-video.mjs)",
+      "Bash(findstr /R \"\\\\\"photos\\\\\"\\\\|\\\\\"assets\\\\\"\\\\|\\\\\"reel\\\\\"\\\\|\\\\\"play\\\\\"\")",
+      "Bash(python -c \"import json,sys; s=json.load\\(sys.stdin\\)['scripts']; [print\\(f'{k}: {v}'\\) for k,v in s.items\\(\\)]\")",
+      "Bash(mkdir .claude/skills/photos-from-image)",
+      "Edit(/.claude/skills/photos-from-image/**)",
+      "Bash(npx vitest *)"
+    ],
+    "additionalDirectories": [
+      "D:\\Personal\\bracketMundial\\.claude\\skills"
     ]
   }
 }

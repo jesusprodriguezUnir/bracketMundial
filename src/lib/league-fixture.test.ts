@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getCurrentMatchday, computeMovements, simulateEmptyPredictions } from './league-fixture';
-import type { ParticipantScore } from './mini-league';
+import { getCurrentMatchday, simulateEmptyPredictions } from './league-fixture';
 
 describe('getCurrentMatchday', () => {
   it('returns null current and first 3 matches when no results', () => {
@@ -38,49 +37,6 @@ describe('getCurrentMatchday', () => {
     );
     expect(next3.every(m => m.matchId !== 'M1' && m.matchId !== 'M2' && m.matchId !== 'M7')).toBe(true);
     expect(next3.length).toBe(3);
-  });
-});
-
-describe('computeMovements', () => {
-  function makeScore(id: string, name: string, total: number): ParticipantScore {
-    return {
-      participant: { id, name },
-      total,
-      byPhase: { groups: total, knockout: 0 },
-      exactCount: 0,
-      diffCount: 0,
-      signCount: 0,
-      breakdown: [],
-    };
-  }
-
-  it('returns empty map when no snapshot', () => {
-    const scores = [makeScore('a', 'A', 10), makeScore('b', 'B', 5)];
-    const m = computeMovements(scores, undefined);
-    expect(m.size).toBe(0);
-  });
-
-  it('computes movements correctly (up/down/equal)', () => {
-    const scores = [makeScore('b', 'B', 15), makeScore('a', 'A', 10), makeScore('c', 'C', 5)];
-    const snapshot = [
-      { participantId: 'a', position: 1 },
-      { participantId: 'b', position: 2 },
-      { participantId: 'c', position: 3 },
-    ];
-    const m = computeMovements(scores, snapshot);
-    // a went from 1 → 2 = down -1
-    // b went from 2 → 1 = up +1
-    // c stayed at 3
-    expect(m.get('a')).toBe(-1);
-    expect(m.get('b')).toBe(1);
-    expect(m.get('c')).toBe(0);
-  });
-
-  it('returns only tracked participants', () => {
-    const scores = [makeScore('x', 'X', 10)];
-    const snapshot = [{ participantId: 'y', position: 1 }];
-    const m = computeMovements(scores, snapshot);
-    expect(m.size).toBe(0);
   });
 });
 

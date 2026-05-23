@@ -20,8 +20,6 @@ export interface League {
   name: string;
   createdAt: number;
   participants: LeagueParticipant[];
-  rankingSnapshot?: Array<{ participantId: string; position: number }>;
-  rankingSnapshotMatchCount?: number;
 }
 
 let idCounter = 0;
@@ -73,7 +71,6 @@ interface LeaguesState {
     groupScores: DecodedBracket['groupScores'],
     knockoutScores: DecodedBracket['knockoutScores'],
   ) => void;
-  updateRankingSnapshot: (leagueId: string, snapshot: Array<{ participantId: string; position: number }>, matchCount: number) => void;
 }
 
 export const useLeaguesStore = createStore<LeaguesState>()(
@@ -237,15 +234,6 @@ export const useLeaguesStore = createStore<LeaguesState>()(
         });
       },
 
-      updateRankingSnapshot: (leagueId, snapshot, matchCount) => {
-        set({
-          leagues: get().leagues.map(l =>
-            l.id === leagueId
-              ? { ...l, rankingSnapshot: snapshot, rankingSnapshotMatchCount: matchCount }
-              : l,
-          ),
-        });
-      },
     }),
     {
       name: 'mundial-2026-leagues',

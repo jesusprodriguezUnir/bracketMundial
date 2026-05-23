@@ -8,6 +8,7 @@
     "icons": "node scripts/generate-icons.mjs",
     "photos": "node scripts/fetch-squad-assets.mjs",
     "photo": "node scripts/fetch-squad-assets.mjs --type player",
+    "photos:extract": "node scripts/extract-from-image.mjs",
     "assets:report": "node scripts/fetch-squad-assets.mjs --report",
     "pages": "tsx scripts/generate-pages.mjs",
     "previews:build": "node scripts/build-previews.mjs",

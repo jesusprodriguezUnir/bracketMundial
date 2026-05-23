@@ -10,6 +10,7 @@ import { formatShortDate, isMatchPending } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
 import './score-stepper';
 import './odds-bar';
+import './groups-bracket-view';
 
 function formatDate(iso?: string): string {
   return iso ? formatShortDate(iso) : '';
@@ -32,6 +33,7 @@ export class GroupsView extends LitElement {
 
   @state() private _odds: Record<string, MatchOdds> = {};
   @state() private _activeGroup = 'A';
+  @state() private _bracketMode = false;
 
   static readonly styles = css`
     :host { display: block; }
@@ -425,11 +427,6 @@ export class GroupsView extends LitElement {
       align-items: center;
       letter-spacing: 0.05em;
     }
-    .jornada {
-      color: var(--retro-red);
-      font-weight: 700;
-    }
-
     .badge {
       font-family: var(--font-mono);
       font-size: 9px;
@@ -831,7 +828,6 @@ export class GroupsView extends LitElement {
                       ${inlineScoreRow}
                       ${oddsMeta}
                       <div class="match-meta">
-                        <span class="jornada">${t('groups.matchdayShort', { n: String(m.matchDay) })}</span>
                         ${m.date ? html`<span>${formatDate(m.date)}</span>` : ''}
                         ${m.timeSpain ? html`<span style="color: var(--retro-yellow); font-weight: bold;">· ${m.timeSpain} ESP</span>` : ''}
                         ${m.city ? html`<span>· ${m.city}</span>` : ''}
@@ -865,9 +861,12 @@ export class GroupsView extends LitElement {
       <div class="group-actions">
         <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
         <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
+        <button class="btn" style="margin-left:auto" @click=${() => { this._bracketMode = !this._bracketMode; }}>
+          ${this._bracketMode ? t('groups.classicView') : t('groups.resultsBracket')}
+        </button>
       </div>
 
-      <div class="notebook">
+      ${this._bracketMode ? html`<groups-bracket-view></groups-bracket-view>` : html`
         <!-- Solapas tipo carpeta de archivo -->
         <div class="archive-tabs" role="tablist">
           ${GROUPS.map((g, gIdx) => {
@@ -954,6 +953,7 @@ export class GroupsView extends LitElement {
           </table>
         </div>
       ` : ''}
+      `}
     `;
   }
 }

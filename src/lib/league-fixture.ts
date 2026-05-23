@@ -1,10 +1,29 @@
 import { GROUP_MATCHES, KNOCKOUT_SCHEDULE, type ScheduledKnockoutMatch } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from '../store/tournament-store';
-import type { ParticipantScore } from './mini-league';
 import type { DecodedBracket } from './bracket-codec';
 import { TEAM_STRENGTH } from '../data/team-strength';
 import { ODDS_SEED } from '../data/odds/seed';
 import { expectedProbabilities, sampleResult } from './odds-model';
+
+const groupDateById = new Map(GROUP_MATCHES.map(m => [m.matchId, m.date]));
+
+export function hasMatchDatePassed(matchId: string, now: Date = new Date()): boolean {
+  const groupDate = groupDateById.get(matchId);
+  const date = groupDate ?? KNOCKOUT_SCHEDULE[matchId]?.date;
+  if (!date) return false;
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  return date < today;
+}
+
+export function filterRealByDate<T extends { matchId: string; scoreA: number | null; scoreB: number | null }>(
+  scores: readonly T[],
+  now: Date = new Date(),
+): T[] {
+  return scores.map(s => {
+    if (hasMatchDatePassed(s.matchId, now)) return s;
+    return { ...s, scoreA: null, scoreB: null };
+  });
+}
 
 export interface MatchFixture {
   matchId: string;
@@ -129,24 +148,6 @@ export function getCurrentMatchday(
   }
 
   return { current, next3 };
-}
-
-export function computeMovements(
-  rankedParticipants: ParticipantScore[],
-  previousSnapshot: Array<{ participantId: string; position: number }> | undefined,
-): Map<string, number> {
-  const movements = new Map<string, number>();
-  if (!previousSnapshot || previousSnapshot.length === 0) return movements;
-
-  const oldPos = new Map(previousSnapshot.map(s => [s.participantId, s.position]));
-  rankedParticipants.forEach((s, i) => {
-    const old = oldPos.get(s.participant.id);
-    if (old !== undefined) {
-      movements.set(s.participant.id, old - (i + 1));
-    }
-  });
-
-  return movements;
 }
 
 export function simulateEmptyPredictions(
