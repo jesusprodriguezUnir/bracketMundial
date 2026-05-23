@@ -177,7 +177,7 @@ export class BracketKnockout extends LitElement {
 
     .bracket-container {
       display: flex;
-      gap: 14px;
+      gap: 18px;
       padding: 0 12px;
       min-width: fit-content;
       align-items: stretch;
@@ -190,7 +190,7 @@ export class BracketKnockout extends LitElement {
       flex-direction: column;
       gap: 5px;
       justify-content: space-around;
-      min-width: 148px;
+      min-width: 156px;
       scroll-snap-align: start;
     }
     .round-col.is-final {
@@ -210,9 +210,9 @@ export class BracketKnockout extends LitElement {
       padding: 3px 7px;
       text-align: center;
       font-family: var(--font-var);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      border: 1.5px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      border: 2px dashed var(--ink);
       box-shadow: 2px 2px 0 0 var(--retro-orange), 2px 2px 0 1px var(--ink);
       color: var(--paper);
       background-image: radial-gradient(circle, rgba(0,0,0,0.18) 1.2px, transparent 1.4px);
@@ -222,6 +222,7 @@ export class BracketKnockout extends LitElement {
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
+      position: relative;
     }
     .round-title.is-final { color: var(--retro-yellow); }
 
@@ -323,7 +324,26 @@ export class BracketKnockout extends LitElement {
 
       .round-title {
         padding: 3px 5px;
-        font-size: clamp(9px, 0.72vw, 11px);
+        font-size: clamp(9px, 0.72vw, 12px);
+      }
+      .round-title::before,
+      .round-title::after {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 8px;
+      }
+      .round-title::before {
+        top: 3px;
+        left: 3px;
+        border-top: 2px solid var(--round-color);
+        border-left: 2px solid var(--round-color);
+      }
+      .round-title::after {
+        bottom: 3px;
+        right: 3px;
+        border-bottom: 2px solid var(--round-color);
+        border-right: 2px solid var(--round-color);
       }
 
       .matches-wrap {
@@ -1731,7 +1751,7 @@ export class BracketKnockout extends LitElement {
 
           <!-- LADO IZQUIERDO -->
           <div class="round-col" id="col-r32-left">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.r32}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.r32}; background-color: ${ROUND_COLORS.r32}">
               <span>1/16</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
@@ -1740,7 +1760,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-r16-left">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.r16}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.r16}; background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
@@ -1749,7 +1769,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-qf-left">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.qf}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.qf}; background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
@@ -1758,7 +1778,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-sf-left">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.sf}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.sf}; background-color: ${ROUND_COLORS.sf}">
               <span>SEMIS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
@@ -1769,7 +1789,7 @@ export class BracketKnockout extends LitElement {
 
           <!-- CENTRO: Final + Campeón + Tercer puesto -->
           <div class="round-col is-final" id="col-final">
-            <div class="round-title is-final" style="background-color: ${ROUND_COLORS.final}">
+            <div class="round-title is-final" style="--round-color: ${ROUND_COLORS.final}; background-color: ${ROUND_COLORS.final}">
               <span>FINAL</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
@@ -1794,7 +1814,7 @@ export class BracketKnockout extends LitElement {
 
           <!-- LADO DERECHO (espejado) -->
           <div class="round-col" id="col-sf-right">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.sf}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.sf}; background-color: ${ROUND_COLORS.sf}">
               <span>SEMIS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
@@ -1803,7 +1823,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-qf-right">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.qf}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.qf}; background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
@@ -1812,7 +1832,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-r16-right">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.r16}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.r16}; background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
@@ -1821,7 +1841,7 @@ export class BracketKnockout extends LitElement {
             </div>
           </div>
           <div class="round-col" id="col-r32-right">
-            <div class="round-title" style="background-color: ${ROUND_COLORS.r32}">
+            <div class="round-title" style="--round-color: ${ROUND_COLORS.r32}; background-color: ${ROUND_COLORS.r32}">
               <span>1/16</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>

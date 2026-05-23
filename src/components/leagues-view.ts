@@ -64,6 +64,7 @@ export class LeaguesView extends LitElement {
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _editMode = false;
   @state() private _viewMode: 'real' | 'projection' = 'real';
+  @state() private _kebabOpen = false;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _movements: Map<string, number> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
@@ -72,6 +73,7 @@ export class LeaguesView extends LitElement {
   private _unsubTournament?: () => void;
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
+  private _onDocClick?: (e: MouseEvent) => void;
 
   static readonly styles = css`
     :host {
@@ -215,6 +217,28 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.03em;
       box-shadow: 2px 2px 0 0 var(--ink);
     }
+    .lg-kebab-wrap { position: relative; display: inline-block; }
+    .lg-kebab-btn { min-width: 36px; padding: 5px 8px; font-size: 14px; line-height: 1; }
+    .lg-kebab-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 20;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      min-width: 200px;
+      display: grid;
+    }
+    .lg-kebab-menu button {
+      all: unset; cursor: pointer; padding: 10px 14px;
+      font-family: var(--font-var); font-size: 11px;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      border-bottom: 1px solid var(--ink);
+    }
+    .lg-kebab-menu button:last-child { border-bottom: 0; }
+    .lg-kebab-menu button:hover { background: var(--retro-yellow); }
+    .lg-kebab-menu button[disabled] { opacity: 0.4; cursor: not-allowed; }
     .lg-summary-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(150px, 1fr));
@@ -1433,14 +1457,17 @@ export class LeaguesView extends LitElement {
       .lg-participant-summary {
         grid-template-columns: auto minmax(0, 1fr);
         align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
       }
       .lg-participant-mini-stats {
-        grid-column: 1 / -1;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        display: none;
       }
+      .lg-participant-rank-badge { min-width: 36px; min-height: 36px; font-size: 18px; }
+      .lg-participant-name { font-size: clamp(16px, 4.5vw, 20px); }
       .lg-participant-scorebox {
         grid-column: 1 / -1;
-        justify-items: flex-start;
+        justify-items: flex-end;
       }
       .lg-inline-bracket { grid-template-columns: repeat(6, minmax(150px, 1fr)); }
       .lg-add-row { flex-direction: column; }
@@ -1459,12 +1486,19 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._recalc();
+    this._onDocClick = (e: MouseEvent) => {
+      if (this._kebabOpen && !(e.target as HTMLElement).closest('.lg-kebab-wrap')) {
+        this._closeKebab();
+      }
+    };
+    document.addEventListener('click', this._onDocClick);
   }
 
   disconnectedCallback() {
     this._unsubTournament?.();
     this._unsubLeagues?.();
     this._unsubLocale?.();
+    if (this._onDocClick) document.removeEventListener('click', this._onDocClick);
     super.disconnectedCallback();
   }
 
@@ -1564,6 +1598,21 @@ export class LeaguesView extends LitElement {
     }
 
     this.requestUpdate();
+  }
+
+  private _toggleKebab() {
+    this._kebabOpen = !this._kebabOpen;
+  }
+
+  private _closeKebab() {
+    this._kebabOpen = false;
+  }
+
+  private _kebabAction(fn: () => void) {
+    return () => {
+      this._closeKebab();
+      fn();
+    };
   }
 
   private _goToList() {
@@ -2215,9 +2264,16 @@ export class LeaguesView extends LitElement {
             <div class="lg-actions">
               <button class="lg-btn-sm" @click=${this._goToList}>${t('league.myLeagues')}</button>
               <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
-              <button class="lg-btn-sm" @click=${this._simulateAll}>${t('league.simulateAll')}</button>
-              <button class="lg-btn-sm" @click=${this._requestClearResults} ?disabled=${this._playedCount === 0}>${t('league.clearResults')}</button>
-              <button class="lg-btn-sm" @click=${this._markMatchdayViewed} ?disabled=${!hasSnapshot && this._scores.length === 0}>${t('league.markMatchdayViewed')}</button>
+              <div class="lg-kebab-wrap">
+                <button class="lg-btn-sm lg-kebab-btn" @click=${this._toggleKebab}>···</button>
+                ${this._kebabOpen ? html`
+                  <div class="lg-kebab-menu">
+                    <button @click=${this._kebabAction(this._simulateAll)}>${t('league.simulateAll')}</button>
+                    <button @click=${this._kebabAction(this._requestClearResults)} ?disabled=${this._playedCount === 0}>${t('league.clearResults')}</button>
+                    <button @click=${this._kebabAction(this._markMatchdayViewed)} ?disabled=${!hasSnapshot && this._scores.length === 0}>${t('league.markMatchdayViewed')}</button>
+                  </div>
+                ` : ''}
+              </div>
               <button class="lg-danger-btn" @click=${() => this._requestDeleteLeague(league.id)}>${t('league.delete')}</button>
             </div>
           </div>
