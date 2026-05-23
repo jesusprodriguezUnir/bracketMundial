@@ -12,6 +12,8 @@ import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, computeMovements, simulateEmptyPredictions } from '../lib/league-fixture';
+import { buildProjectedScores } from '../lib/league-projection';
+import type { RealScores } from '../lib/league-projection';
 
 const TOTAL_MATCHES = 104;
 
@@ -61,9 +63,11 @@ export class LeaguesView extends LitElement {
   @state() private _confirmClearResults = false;
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _editMode = false;
+  @state() private _viewMode: 'real' | 'projection' = 'real';
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _movements: Map<string, number> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
+  private _knockoutDisplayScores: RealScores[] = [];
 
   private _unsubTournament?: () => void;
   private _unsubLeagues?: () => void;
@@ -1240,6 +1244,35 @@ export class LeaguesView extends LitElement {
       background: color-mix(in srgb, var(--retro-blue) 18%, var(--paper));
     }
 
+    .lg-mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .lg-projection-banner {
+      background: color-mix(in srgb, var(--retro-yellow) 30%, var(--paper-3));
+      border: 2px solid var(--ink);
+      padding: 10px 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .lg-card-simulated {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      color: var(--retro-red);
+      text-transform: uppercase;
+    }
+    .lg-inline-projected {
+      background: color-mix(in srgb, var(--retro-yellow) 16%, transparent);
+      border: 1px solid var(--ink);
+      padding: 2px 5px;
+    }
+
     /* ── BRACKET SCREEN ── */
     .lg-bracket-screen { }
     .lg-bracket-phase-title {
@@ -1418,6 +1451,10 @@ export class LeaguesView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    try {
+      const saved = localStorage.getItem('leagues-view-mode');
+      if (saved === 'real' || saved === 'projection') this._viewMode = saved;
+    } catch { /* localStorage disabled */ }
     this._unsubTournament = useTournamentStore.subscribe(() => this._recalc());
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
@@ -1429,6 +1466,12 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues?.();
     this._unsubLocale?.();
     super.disconnectedCallback();
+  }
+
+  private _setViewMode(mode: 'real' | 'projection') {
+    this._viewMode = mode;
+    try { localStorage.setItem('leagues-view-mode', mode); } catch { /* ignore */ }
+    this._recalc();
   }
 
   private _recalc() {
@@ -1469,6 +1512,19 @@ export class LeaguesView extends LitElement {
       };
     });
 
+    let groupScoresForRanking: readonly RealScores[] = realGroupScores;
+    let knockoutScoresForRanking: readonly RealScores[] = realKnockoutScores;
+
+    if (this._viewMode === 'projection') {
+      const projected = buildProjectedScores(realGroupScores, realKnockoutScores);
+      groupScoresForRanking = projected.groupScores;
+      knockoutScoresForRanking = projected.knockoutScores;
+    }
+
+    this._knockoutDisplayScores = this._viewMode === 'projection'
+      ? [...knockoutScoresForRanking]
+      : realKnockoutScores;
+
     let played = 0;
     for (const r of realGroupScores) {
       if (r.scoreA !== null && r.scoreB !== null) played++;
@@ -1483,7 +1539,7 @@ export class LeaguesView extends LitElement {
       const allParticipants = l.participants;
       const scored: ParticipantScore[] = [];
       for (const p of allParticipants) {
-        scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
+        scored.push(scoreParticipant(p, groupScoresForRanking, knockoutScoresForRanking));
       }
       const ranked = rankParticipants(scored);
       const leader = ranked[0];
@@ -1498,7 +1554,7 @@ export class LeaguesView extends LitElement {
     if (league) {
       const scored: ParticipantScore[] = [];
       for (const participant of league.participants) {
-        scored.push(scoreParticipant(participant, realGroupScores, realKnockoutScores));
+        scored.push(scoreParticipant(participant, groupScoresForRanking, knockoutScoresForRanking));
       }
       this._scores = rankParticipants(scored);
       this._movements = computeMovements(this._scores, league.rankingSnapshot);
@@ -1642,6 +1698,25 @@ export class LeaguesView extends LitElement {
     this._bracketData = { participant: { ...p, groupScores, knockoutScores }, name: this._bracketData.name };
     this._editMode = false;
     this._editBuffer = new Map();
+  }
+
+  private async _handleMeExcelReplace(e: Event, participantId: string) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this._activeLeagueId) { input.value = ''; return; }
+    try {
+      const ok = await useLeaguesStore.getState().replaceParticipantFromExcel(
+        this._activeLeagueId, participantId, file,
+      );
+      if (!ok) {
+        this._uploadError = t('league.errorInvalidExcel');
+      } else {
+        this._uploadError = null;
+      }
+    } catch {
+      this._uploadError = t('league.errorInvalidExcel');
+    }
+    input.value = '';
   }
 
   private _cancelEdits() {
@@ -1789,6 +1864,7 @@ export class LeaguesView extends LitElement {
                         pts: String(summary?.leaderPoints ?? 0),
                         n: String(summary?.participantCount ?? 1),
                       })}
+                      ${this._viewMode === 'projection' ? html` <span class="lg-card-simulated">${t('league.projectionTagSuffix')}</span>` : ''}
                     </div>
                   </div>
                   <div class="lg-card-actions">
@@ -1948,8 +2024,8 @@ export class LeaguesView extends LitElement {
                       ? html`<span class="lg-inline-pen">PEN ${match.penaltyScoreA}-${match.penaltyScoreB}</span>`
                       : html`<span class="lg-inline-real pending">${t('league.kindPending')}</span>`}
                     ${showReal
-                      ? html`<span class="lg-inline-real">Real ${realScore.scoreA}-${realScore.scoreB}</span>`
-                      : html`<span class="lg-inline-real pending">Real —</span>`}
+                      ? html`<span class=${`lg-inline-real ${this._viewMode === 'projection' ? 'lg-inline-projected' : ''}`}>${this._viewMode === 'projection' ? t('league.projectionLabel') : 'Real'} ${realScore.scoreA}-${realScore.scoreB}</span>`
+                      : html`<span class="lg-inline-real pending">${this._viewMode === 'projection' ? t('league.projectionLabel') : 'Real'} —</span>`}
                   </div>
                 </article>
               `;
@@ -2016,6 +2092,12 @@ export class LeaguesView extends LitElement {
               <button class="lg-bracket-btn" @click=${() => this._viewBracket(score.participant.id, score.participant.name)}>
                 ${t('league.viewBracket')}
               </button>
+              ${isOwner ? html`
+                <label class="lg-upload-btn-sm">
+                  ${t('league.replacePrediction')}
+                  <input type="file" accept=".xlsx" hidden @change=${(e: Event) => { void this._handleMeExcelReplace(e, score.participant.id); }} />
+                </label>
+              ` : ''}
               ${!isOwner ? html`
                 <button class="lg-delete-btn" @click=${() => this._removeParticipant(score.participant.id)}>
                   ${t('league.removeBtn')}
@@ -2087,7 +2169,7 @@ export class LeaguesView extends LitElement {
         })
         .filter((match): match is { matchId: string; teamA: string; teamB: string; scoreA: number; scoreB: number; label: string } => match !== null),
     ].slice(-3).reverse();
-    const realKnockoutByMatchId = new Map(realKnockoutScores.map(match => [match.matchId, match]));
+    const displayKnockoutByMatchId = new Map(this._knockoutDisplayScores.map(match => [match.matchId, match]));
 
     return html`
       <div class="lg-editorial-shell">
@@ -2100,6 +2182,21 @@ export class LeaguesView extends LitElement {
                 <span class="lg-hero-chip">${t('league.participants', { n: String(league.participants.length) })}</span>
                 ${leader ? html`<span class="lg-hero-chip">${t('league.leader')}: ${leader.participant.name}</span>` : ''}
                 ${current ? html`<span class="lg-hero-chip">${t('league.currentMatchday')}: ${current.label}</span>` : ''}
+                <span class="lg-hero-chip">${played} / ${TOTAL_MATCHES}</span>
+              </div>
+              <div class="lg-mode-toggle">
+                <button
+                  class=${`lg-league-chip-btn ${this._viewMode === 'real' ? 'active' : ''}`}
+                  @click=${() => this._setViewMode('real')}
+                >
+                  ${t('league.modeReal')}
+                </button>
+                <button
+                  class=${`lg-league-chip-btn ${this._viewMode === 'projection' ? 'active' : ''}`}
+                  @click=${() => this._setViewMode('projection')}
+                >
+                  ${t('league.modeProjection')}
+                </button>
               </div>
               ${this._leagues.length > 1 ? html`
                 <div class="lg-league-switcher">
@@ -2165,6 +2262,12 @@ export class LeaguesView extends LitElement {
           </div>
         </section>
 
+        ${this._viewMode === 'projection' ? html`
+          <div class="lg-projection-banner">
+            <span>${t('league.projectionBanner')}</span>
+          </div>
+        ` : ''}
+
         ${this._confirmClearResults ? html`
           <div class="lg-confirm-box">
             <span>${t('league.confirmClearResults')}</span>
@@ -2212,7 +2315,7 @@ export class LeaguesView extends LitElement {
               </div>
 
               <div class="lg-participants-board">
-                ${this._scores.map((score, index) => this._renderParticipantCard(score, index, hasSnapshot, realKnockoutByMatchId))}
+                ${this._scores.map((score, index) => this._renderParticipantCard(score, index, hasSnapshot, displayKnockoutByMatchId))}
               </div>
 
             </section>
