@@ -1,15 +1,18 @@
 import { createStore } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
-import { decodeSharedPayload, type DecodedBracket } from '../lib/bracket-codec';
 import { ExcelService, ExcelImportError } from '../lib/excel-service';
+import { GROUP_MATCHES } from '../data/match-schedule';
+import { getKnockoutMatchOrder } from './tournament-store';
+import type { DecodedBracket } from '../lib/bracket-codec';
 
 export interface LeagueParticipant {
   id: string;
   name: string;
   addedAt: number;
-  source: 'link' | 'excel';
+  source: 'manual' | 'excel';
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
+  isOwner?: boolean;
 }
 
 export interface League {
@@ -17,6 +20,8 @@ export interface League {
   name: string;
   createdAt: number;
   participants: LeagueParticipant[];
+  rankingSnapshot?: Array<{ participantId: string; position: number }>;
+  rankingSnapshotMatchCount?: number;
 }
 
 let idCounter = 0;
@@ -30,6 +35,24 @@ function generateLid(): string {
   return crypto.randomUUID ? crypto.randomUUID() : `l-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function createEmptyGroupScores(): DecodedBracket['groupScores'] {
+  return GROUP_MATCHES.map(m => ({
+    matchId: m.matchId,
+    scoreA: null as number | null,
+    scoreB: null as number | null,
+  }));
+}
+
+function createEmptyKnockoutScores(): DecodedBracket['knockoutScores'] {
+  return getKnockoutMatchOrder().map(matchId => ({
+    matchId,
+    scoreA: null as number | null,
+    scoreB: null as number | null,
+    penaltyScoreA: null as number | null,
+    penaltyScoreB: null as number | null,
+  }));
+}
+
 interface LeaguesState {
   leagues: League[];
   activeLeagueId: string | null;
@@ -39,8 +62,8 @@ interface LeaguesState {
   deleteLeague: (id: string) => void;
   setActiveLeague: (id: string | null) => void;
 
-  addParticipantFromUrl: (leagueId: string, name: string, url: string) => boolean;
   addParticipantFromExcel: (leagueId: string, name: string, file: File) => Promise<boolean>;
+  addEmptyParticipant: (leagueId: string, name: string) => string;
   replaceParticipantFromExcel: (leagueId: string, participantId: string, file: File) => Promise<boolean>;
   removeParticipant: (leagueId: string, participantId: string) => void;
   renameParticipant: (leagueId: string, participantId: string, name: string) => void;
@@ -50,6 +73,7 @@ interface LeaguesState {
     groupScores: DecodedBracket['groupScores'],
     knockoutScores: DecodedBracket['knockoutScores'],
   ) => void;
+  updateRankingSnapshot: (leagueId: string, snapshot: Array<{ participantId: string; position: number }>, matchCount: number) => void;
 }
 
 export const useLeaguesStore = createStore<LeaguesState>()(
@@ -64,7 +88,17 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           id,
           name: name.trim(),
           createdAt: Date.now(),
-          participants: [],
+          participants: [
+            {
+              id: generatePid(),
+              name: 'Me',
+              addedAt: Date.now(),
+              source: 'manual',
+              groupScores: createEmptyGroupScores(),
+              knockoutScores: createEmptyKnockoutScores(),
+              isOwner: true,
+            },
+          ],
         };
         set({ leagues: [...get().leagues, league], activeLeagueId: id });
         return id;
@@ -86,29 +120,6 @@ export const useLeaguesStore = createStore<LeaguesState>()(
       },
 
       setActiveLeague: (id) => set({ activeLeagueId: id }),
-
-      addParticipantFromUrl: (leagueId, name, url) => {
-        const bracket = decodeSharedPayload(url);
-        if (!bracket) return false;
-
-        const participant: LeagueParticipant = {
-          id: generatePid(),
-          name: name.trim(),
-          addedAt: Date.now(),
-          source: 'link',
-          groupScores: bracket.groupScores,
-          knockoutScores: bracket.knockoutScores,
-        };
-
-        set({
-          leagues: get().leagues.map(l =>
-            l.id === leagueId
-              ? { ...l, participants: [...l.participants, participant] }
-              : l,
-          ),
-        });
-        return true;
-      },
 
       addParticipantFromExcel: async (leagueId, name, file) => {
         try {
@@ -136,6 +147,26 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           if (e instanceof ExcelImportError) return false;
           return false;
         }
+      },
+
+      addEmptyParticipant: (leagueId, name) => {
+        const participant: LeagueParticipant = {
+          id: generatePid(),
+          name: name.trim(),
+          addedAt: Date.now(),
+          source: 'manual',
+          groupScores: createEmptyGroupScores(),
+          knockoutScores: createEmptyKnockoutScores(),
+        };
+
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? { ...l, participants: [...l.participants, participant] }
+              : l,
+          ),
+        });
+        return participant.id;
       },
 
       replaceParticipantFromExcel: async (leagueId, participantId, file) => {
@@ -205,9 +236,32 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           ),
         });
       },
+
+      updateRankingSnapshot: (leagueId, snapshot, matchCount) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === leagueId
+              ? { ...l, rankingSnapshot: snapshot, rankingSnapshotMatchCount: matchCount }
+              : l,
+          ),
+        });
+      },
     }),
     {
       name: 'mundial-2026-leagues',
+      version: 1,
+      migrate: (persisted: unknown) => {
+        const p = persisted as { leagues?: League[] };
+        if (p.leagues) {
+          p.leagues = p.leagues.map(l => ({
+            ...l,
+            participants: l.participants.map((participant, i) =>
+              i === 0 ? { ...participant, isOwner: true } : participant,
+            ),
+          }));
+        }
+        return p as Record<string, unknown>;
+      },
     },
   ),
 );

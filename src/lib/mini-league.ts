@@ -12,6 +12,7 @@ export interface Participant {
   id: string;
   name: string;
   addedAt: number;
+  isOwner?: boolean;
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
 }
@@ -23,7 +24,7 @@ export interface MatchPoints {
 }
 
 export interface ParticipantScore {
-  participant: Pick<Participant, 'id' | 'name'>;
+  participant: Pick<Participant, 'id' | 'name' | 'isOwner'>;
   total: number;
   byPhase: { groups: number; knockout: number };
   exactCount: number;
@@ -67,7 +68,7 @@ interface RealScores {
 }
 
 export function scoreParticipant(
-  participant: Pick<Participant, 'id' | 'name' | 'groupScores' | 'knockoutScores'>,
+  participant: Pick<Participant, 'id' | 'name' | 'isOwner' | 'groupScores' | 'knockoutScores'>,
   realGroupScores: readonly RealScores[],
   realKnockoutScores: readonly RealScores[],
 ): ParticipantScore {
@@ -122,7 +123,7 @@ export function scoreParticipant(
   }
 
   return {
-    participant: { id: participant.id, name: participant.name },
+    participant: { id: participant.id, name: participant.name, isOwner: participant.isOwner },
     total: groupsTotal + knockoutTotal,
     byPhase: { groups: groupsTotal, knockout: knockoutTotal },
     exactCount,

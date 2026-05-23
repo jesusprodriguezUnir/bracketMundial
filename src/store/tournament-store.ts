@@ -81,14 +81,6 @@ interface TournamentState {
   autoSimulateKnockout: () => void;
   initializeKnockoutFromGroups: () => void;
   getBestThirds: () => TeamStats[];
-  getTournamentExportData: () => {
-    groupMatches: GroupMatchResult[];
-    groupStandings: Record<string, GroupStanding[]>;
-    knockoutMatches: Record<string, KnockoutMatchResult>;
-    activePhase: TournamentState['activePhase'];
-  };
-  exportTournament: () => void;
-  importTournament: (jsonData: string) => boolean;
   applySharedBracket: (data: {
     groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>;
     knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }>;
@@ -226,15 +218,6 @@ function hydrateKnockoutMatches(matches: Record<string, KnockoutMatchResult>): R
       ];
     })
   );
-}
-
-function buildTournamentExportData(state: Pick<TournamentState, 'groupMatches' | 'groupStandings' | 'knockoutMatches' | 'activePhase'>) {
-  return {
-    groupMatches: state.groupMatches,
-    groupStandings: state.groupStandings,
-    knockoutMatches: state.knockoutMatches,
-    activePhase: state.activePhase,
-  };
 }
 
 function resolveKnockoutMatches(
@@ -434,19 +417,6 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       getBestThirds: () => calculateBestThirds(mapThirds(_get().groupStandings)),
 
-      getTournamentExportData: () => buildTournamentExportData(_get()),
-
-      exportTournament: () => {
-        const dataStr = JSON.stringify(buildTournamentExportData(_get()), null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        
-        const exportFileDefaultName = 'bracket-mundial-2026.json';
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-      },
-
       applySharedBracket: (data) => {
         set(state => {
           const groupScoreMap = new Map(data.groupScores.map(s => [s.matchId, s]));
@@ -476,47 +446,6 @@ export const useTournamentStore = createStore<TournamentState>()(
           return { groupMatches, groupStandings, knockoutMatches, activePhase: 'groups' as const, selectedMatch: null };
         });
       },
-      importTournament: (jsonData: string) => {
-        try {
-          const parsed = JSON.parse(jsonData);
-          if (!Array.isArray(parsed.groupMatches)) return false;
-
-          for (const m of parsed.groupMatches) {
-            if (typeof m !== 'object' || !m || typeof m.matchId !== 'string') return false;
-            if (m.scoreA !== null && m.scoreA !== undefined && (typeof m.scoreA !== 'number' || m.scoreA < 0)) return false;
-            if (m.scoreB !== null && m.scoreB !== undefined && (typeof m.scoreB !== 'number' || m.scoreB < 0)) return false;
-          }
-
-          if (parsed.knockoutMatches !== undefined && (typeof parsed.knockoutMatches !== 'object' || parsed.knockoutMatches === null)) {
-            return false;
-          }
-
-          const phases = ['groups', 'round16', 'quarterfinals', 'semifinals', 'thirdplace', 'final'];
-          if (parsed.activePhase !== undefined && !phases.includes(parsed.activePhase)) {
-            parsed.activePhase = 'groups';
-          }
-
-          const groupMatches = parsed.groupMatches.map((match: GroupMatchResult) => hydrateGroupMatch(match));
-          const groupStandings = parsed.groupStandings ?? recalculateStandings(groupMatches);
-          const knockoutMatches = resolveKnockoutMatches(
-            groupStandings,
-            hydrateKnockoutMatches(parsed.knockoutMatches || {})
-          );
-
-          set({
-            groupMatches,
-            groupStandings,
-            knockoutMatches,
-            activePhase: parsed.activePhase || 'groups',
-            selectedMatch: null,
-          });
-          return true;
-        } catch (e) {
-          console.error("Error parsing tournament data:", e);
-          return false;
-        }
-      },
-
       exportExcel: async () => {
         const [{ ExcelService }, { useLocaleStore }] = await Promise.all([
           import('../lib/excel-service'),

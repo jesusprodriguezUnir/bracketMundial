@@ -391,10 +391,9 @@ export class ExcelService {
   // ── League predictions export ────────────────────────────────────────────────
 
   static async exportLeaguePredictions(
-    league: { name: string; participants: Array<{ id: string; name: string; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] }> },
+    league: { name: string; participants: Array<{ id: string; name: string; isOwner?: boolean; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] }> },
     realGroupScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
     realKnockoutScores: readonly { matchId: string; scoreA: number | null; scoreB: number | null }[],
-    youParticipant: { id: string; name: string; groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] },
     locale: Locale = 'es',
   ): Promise<Blob> {
     const wb = new ExcelJS.Workbook();
@@ -402,35 +401,22 @@ export class ExcelService {
     wb.created = new Date();
     wb.modified = new Date();
 
-    const allParticipants = [youParticipant, ...league.participants];
+    const allParticipants = league.participants;
     const scored: ParticipantScore[] = [];
     for (const p of allParticipants) {
       scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
     }
     const ranked = rankParticipants(scored);
 
-    // Sheet 1: Rules / Reglas
-    const rulesSheet = wb.addWorksheet(locale === 'en' ? 'Rules' : 'Reglas', {
+    // Sheet 1: Ranking / Resumen (with integrated rules header)
+    const rankSheet = wb.addWorksheet(locale === 'en' ? 'Ranking' : 'Resumen', {
       views: [{ showGridLines: false }],
     });
 
-    const rulesTitle = rulesSheet.getCell(1, 1);
+    const rulesTitle = rankSheet.getCell(1, 1);
     rulesTitle.value = locale === 'en' ? 'Scoring Rules' : 'Reglas de puntuación';
-    rulesTitle.font = { bold: true, size: 16, color: { argb: C.ink } };
-    rulesSheet.mergeCells(1, 1, 1, 4);
-
-    const ruleHeaders = [
-      locale === 'en' ? 'Points' : 'Puntos',
-      locale === 'en' ? 'Type' : 'Tipo',
-      locale === 'en' ? 'Description' : 'Descripción',
-    ];
-    ruleHeaders.forEach((h, i) => {
-      const cell = rulesSheet.getCell(3, i + 1);
-      cell.value = h;
-      cell.font = { bold: true, size: 11, color: { argb: C.yellow } };
-      cell.fill = fill(C.ink);
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    });
+    rulesTitle.font = { bold: true, size: 14, color: { argb: C.ink } };
+    rankSheet.mergeCells(1, 1, 1, 8);
 
     const ruleRows: Array<{ points: number; type: string; desc: string; kind: MatchPoints['kind'] }> = [
       { points: MUNDIAL_POINTS.exact, type: locale === 'en' ? 'Exact score' : 'Resultado exacto', desc: locale === 'en' ? 'You predict the exact score (e.g., predict 2-1, result 2-1)' : 'Aciertas el marcador exacto (predices 2-1, resultado 2-1)', kind: 'exact' },
@@ -440,33 +426,25 @@ export class ExcelService {
     ];
 
     ruleRows.forEach((rule, idx) => {
-      const r = 4 + idx;
+      const r = 2 + idx;
       const { bg, fg } = kindToArgb(rule.kind);
-      [rule.points, rule.type, rule.desc].forEach((v, i) => {
-        const cell = rulesSheet.getCell(r, i + 1);
+      [String(rule.points), rule.type, rule.desc].forEach((v, i) => {
+        const cell = rankSheet.getCell(r, i + 1);
         cell.value = v;
         cell.fill = fill(bg);
-        cell.font = { size: 11, color: { argb: fg } };
+        cell.font = { size: 10, color: { argb: fg } };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     });
 
-    const rulesNote = rulesSheet.getCell(9, 1);
-    rulesNote.value = locale === 'en'
+    const tieNote = rankSheet.getCell(6, 1);
+    tieNote.value = locale === 'en'
       ? 'Total points are split between Group Stage + Knockout. Tiebreaker: number of exact scores.'
       : 'El total se reparte en Grupos + Eliminatorias. Desempate: nº de aciertos exactos.';
-    rulesNote.font = { italic: true, size: 10, color: { argb: C.dim } };
-    rulesSheet.mergeCells(9, 1, 9, 4);
+    tieNote.font = { italic: true, size: 9, color: { argb: C.dim } };
+    rankSheet.mergeCells(6, 1, 6, 8);
 
-    rulesSheet.getColumn(1).width = 10;
-    rulesSheet.getColumn(2).width = 22;
-    rulesSheet.getColumn(3).width = 65;
-    rulesSheet.getColumn(4).width = 15;
-
-    // Sheet 2: Ranking / Resume
-    const rankSheet = wb.addWorksheet(locale === 'en' ? 'Ranking' : 'Resumen', {
-      views: [{ showGridLines: false }],
-    });
+    const RANK_HEADER_ROW = 8;
 
     const rankHeaders = [
       locale === 'en' ? 'Pos' : 'Pos.',
@@ -480,7 +458,7 @@ export class ExcelService {
     ];
 
     rankHeaders.forEach((h, i) => {
-      const cell = rankSheet.getCell(1, i + 1);
+      const cell = rankSheet.getCell(RANK_HEADER_ROW, i + 1);
       cell.value = h;
       cell.font = { bold: true, size: 11, color: { argb: 'F0B021' } };
       cell.fill = fill('1A1933');
@@ -489,12 +467,12 @@ export class ExcelService {
     });
 
     ranked.forEach((s, rowIdx) => {
-      const r = rowIdx + 2;
+      const r = rowIdx + RANK_HEADER_ROW + 1;
       const rowBg = rowIdx % 2 === 0 ? 'FFF9EC' : 'E6D6B1';
 
       const vals = [
         rowIdx + 1,
-        s.participant.name + (s.participant.id === '__me__' ? ' ★' : ''),
+        s.participant.name + (s.participant.isOwner ? ' ★' : ''),
         s.total,
         s.byPhase.groups,
         s.byPhase.knockout,
@@ -521,12 +499,12 @@ export class ExcelService {
     rankSheet.getColumn(2).width = 25;
     for (let i = 3; i <= 8; i++) rankSheet.getColumn(i).width = 12;
 
-    // Note about rules sheet
-    const rankNoteRow = ranked.length + 3;
+    // Note about rules (referenced above in this sheet)
+    const rankNoteRow = ranked.length + RANK_HEADER_ROW + 2;
     const rankNote = rankSheet.getCell(rankNoteRow, 1);
     rankNote.value = locale === 'en'
-      ? '→ See "Rules" sheet for scoring details'
-      : '→ Ver hoja "Reglas" para el detalle de puntuación';
+      ? '→ See scoring rules in the table above'
+      : '→ Ver tabla superior para el detalle de puntuación';
     rankNote.font = { italic: true, size: 10, color: { argb: C.dim } };
     rankSheet.mergeCells(rankNoteRow, 1, rankNoteRow, 8);
 
@@ -565,7 +543,7 @@ export class ExcelService {
     allParticipants.forEach((p, pi) => {
       const col = 3 + pi * 2;
       const nameCell = predSheet.getCell(1, col);
-      nameCell.value = p.name + (p.id === '__me__' ? ' ★' : '');
+      nameCell.value = p.name + (p.isOwner ? ' ★' : '');
       setPredHeader(nameCell);
 
       const ptsCell = predSheet.getCell(1, col + 1);

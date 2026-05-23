@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
 import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
@@ -11,6 +11,7 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { ExcelService } from '../lib/excel-service';
+import { getCurrentMatchday, computeMovements, simulateEmptyPredictions } from '../lib/league-fixture';
 
 const TOTAL_MATCHES = 104;
 
@@ -36,37 +37,6 @@ interface BracketScreenData {
   name: string;
 }
 
-function deriveYouParticipant(): LeagueParticipant {
-  const st = useTournamentStore.getState();
-  const groupScores: DecodedBracket['groupScores'] = st.groupMatches.map(m => {
-    const pred = st.myGroupPredictions[m.matchId];
-    return {
-      matchId: m.matchId,
-      scoreA: pred?.scoreA ?? null,
-      scoreB: pred?.scoreB ?? null,
-    };
-  });
-  const knockoutOrder = getKnockoutMatchOrder();
-  const knockoutScores: DecodedBracket['knockoutScores'] = knockoutOrder.map(matchId => {
-    const pred = st.myKnockoutPredictions[matchId];
-    return {
-      matchId,
-      scoreA: pred?.scoreA ?? null,
-      scoreB: pred?.scoreB ?? null,
-      penaltyScoreA: pred?.penaltyScoreA ?? null,
-      penaltyScoreB: pred?.penaltyScoreB ?? null,
-    };
-  });
-  return {
-    id: '__me__',
-    name: t('league.you'),
-    addedAt: 0,
-    source: 'link' as const,
-    groupScores,
-    knockoutScores,
-  };
-}
-
 function getGroupScores(participant: LeagueParticipant): DecodedBracket['groupScores'] {
   return participant.groupScores;
 }
@@ -78,20 +48,21 @@ function getKnockoutScores(participant: LeagueParticipant): DecodedBracket['knoc
 @customElement('leagues-view')
 export class LeaguesView extends LitElement {
   @state() private _screen: Screen = 'list';
+  @state() private _manualListMode = false;
   @state() private _leagues: League[] = [];
   @state() private _activeLeagueId: string | null = null;
   @state() private _scores: ParticipantScore[] = [];
   @state() private _playedCount = 0;
   @state() private _expandedId: string | null = null;
   @state() private _newName = '';
-  @state() private _newUrl = '';
-  @state() private _error: string | null = null;
   @state() private _uploadError: string | null = null;
   @state() private _newLeagueName = '';
   @state() private _confirmDeleteLeague: string | null = null;
   @state() private _confirmClearResults = false;
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _editMode = false;
+  private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
+  private _movements: Map<string, number> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
 
   private _unsubTournament?: () => void;
@@ -157,6 +128,138 @@ export class LeaguesView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.04em;
       white-space: nowrap;
+    }
+
+    .lg-editorial-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .lg-hero {
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 18%, var(--paper-3)) 0%, var(--paper-3) 100%);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .lg-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: var(--halftone-soft);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .lg-hero > * {
+      position: relative;
+      z-index: 1;
+    }
+    .lg-hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .lg-hero-kicker {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .lg-hero-title {
+      font-family: var(--font-var);
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      max-width: 10ch;
+    }
+    .lg-hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .lg-hero-chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 8px;
+      border: 1px solid var(--ink);
+      background: color-mix(in srgb, var(--paper) 82%, transparent);
+    }
+    .lg-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: flex-start;
+      max-width: 520px;
+    }
+    .lg-actions .lg-btn-sm,
+    .lg-actions .lg-danger-btn {
+      min-height: 30px;
+      padding: 5px 10px;
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+    .lg-summary-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(150px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+    .lg-summary-card {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 14px;
+      min-width: 0;
+    }
+    .lg-summary-card.leader {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 36%, var(--paper)) 0%, var(--paper) 100%);
+    }
+    .lg-summary-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .lg-summary-value {
+      font-family: var(--font-var);
+      font-size: clamp(24px, 4vw, 34px);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+    }
+    .lg-summary-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+      margin-top: 6px;
+    }
+    .lg-summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .lg-summary-inline {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     /* ── LIST ── */
@@ -262,6 +365,273 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.04em;
     }
 
+    .lg-rules-panel {
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .lg-rules-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .lg-rules-chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .lg-rules-chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      padding: 6px 14px;
+      border: 1px solid var(--ink);
+    }
+
+    .lg-rules-chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* ── FANTASY HEADER ── */
+    .lg-fantasy-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 768px) {
+      .lg-fantasy-header {
+        grid-template-columns: 1fr;
+      }
+    }
+    .lg-fantasy-block {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 20px;
+    }
+    .lg-fantasy-block h3 {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin: 0 0 12px 0;
+    }
+    .lg-leader-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lg-leader-card .lg-leader-name {
+      font-family: var(--font-var);
+      font-size: 22px;
+      letter-spacing: 0.04em;
+    }
+    .lg-leader-card .lg-leader-pts {
+      font-family: var(--font-var);
+      font-size: 36px;
+      color: var(--retro-red);
+      letter-spacing: 0.02em;
+    }
+    .lg-leader-card .lg-leader-gap {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--dim);
+    }
+    .lg-leader-card .lg-leader-stats {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .lg-upcoming-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lg-upcoming-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--ink);
+    }
+    .lg-upcoming-item:last-child {
+      border-bottom: none;
+    }
+    .lg-upcoming-teams {
+      flex: 1;
+      font-family: var(--font-var);
+      letter-spacing: 0.03em;
+    }
+    .lg-upcoming-date {
+      font-size: 10px;
+      color: var(--dim);
+      white-space: nowrap;
+    }
+    .lg-normal {
+      font-family: var(--font-var);
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .lg-results-board {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 18px;
+    }
+    .lg-section-panel {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 18px;
+    }
+    .lg-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .lg-section-title {
+      font-family: var(--font-var);
+      font-size: 20px;
+      letter-spacing: 0.02em;
+    }
+    .lg-section-kicker {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-results-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+    .lg-result-card {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .lg-result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+    .lg-result-id {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-result-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      border: 1px solid var(--ink);
+      padding: 2px 6px;
+      background: var(--paper-2);
+    }
+    .lg-result-badge.live {
+      background: var(--retro-yellow);
+    }
+    .lg-result-teams {
+      display: grid;
+      gap: 8px;
+    }
+    .lg-result-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+    .lg-result-team {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      font-family: var(--font-var);
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+    .lg-result-score {
+      font-family: var(--font-var);
+      font-size: 18px;
+      min-width: 18px;
+      text-align: center;
+    }
+    .lg-result-team-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lg-result-foot {
+      border-top: 1px dashed var(--ink);
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+    }
+    .lg-next-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .lg-next-item {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 12px;
+      display: grid;
+      gap: 7px;
+    }
+    .lg-next-item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-next-teams {
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.03em;
+    }
+    .lg-next-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.04em;
+    }
+
     /* ── BUTTONS ── */
     .lg-btn {
       all: unset;
@@ -339,6 +709,12 @@ export class LeaguesView extends LitElement {
     .lg-upload-btn:hover {
       background: var(--retro-blue);
       color: var(--paper);
+    }
+    .lg-upload-btn.compact {
+      padding: 8px 14px;
+      min-height: 36px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
     }
     .lg-upload-btn-sm {
       all: unset;
@@ -459,93 +835,356 @@ export class LeaguesView extends LitElement {
       font-size: 14px;
     }
 
-    /* ── RANKING ── */
+    /* ── PARTICIPANTS ── */
     .lg-ranking {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .lg-ranking-head {
+      padding: 18px;
       border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
-      overflow-x: auto;
+      box-shadow: var(--shadow-hard-md);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-blue) 10%, var(--paper-3)) 0%, var(--paper-3) 100%);
     }
-    .lg-ranking-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    .lg-ranking-table th {
-      background: var(--ink);
-      color: var(--retro-yellow);
+    .lg-ranking-title {
       font-family: var(--font-var);
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      padding: 12px 14px;
-      text-align: left;
-      white-space: nowrap;
-    }
-    .lg-ranking-table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--ink);
-      font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 22px;
       letter-spacing: 0.02em;
     }
-    .lg-ranking-table td.lg-rank-pos,
-    .lg-ranking-table td.lg-rank-total,
-    .lg-ranking-table td.lg-rank-phase { white-space: nowrap; }
-    .lg-ranking-table tr:nth-child(even) td {
-      background: var(--paper-2);
-    }
-    .lg-ranking-table tr:last-child td {
-      border-bottom: none;
-    }
-    .lg-rank-pos {
-      font-family: var(--font-var);
-      font-size: 18px;
-      width: 50px;
-      text-align: center;
-    }
-    .lg-rank-leader td {
-      background: var(--retro-yellow) !important;
-      font-weight: bold;
-    }
-    .lg-rank-me td {
-      background: var(--paper-3) !important;
-    }
-    .lg-rank-silver td {
-      background: var(--paper) !important;
-    }
-    .lg-rank-bronze td {
-      background: var(--paper-2) !important;
-    }
-    .lg-rank-name {
-      font-family: var(--font-var);
-      letter-spacing: 0.04em;
-      font-size: 15px;
-      max-width: 400px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .lg-rank-total {
-      font-family: var(--font-var);
-      font-size: 20px;
-      color: var(--retro-red);
-    }
-    .lg-rank-phase {
-      font-size: 12px;
-      color: var(--dim);
-    }
-    .lg-expand-btn {
-      all: unset;
-      cursor: pointer;
+    .lg-ranking-subtitle {
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 0.06em;
-      padding: 4px 8px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .lg-ranking-overview {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .lg-ranking-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .lg-ranking-stat {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 10px 12px;
+    }
+    .lg-ranking-stat strong {
+      display: block;
+      font-family: var(--font-var);
+      font-size: 22px;
+      line-height: 1;
+      margin-top: 6px;
+    }
+    .lg-participants-board {
+      display: grid;
+      gap: 16px;
+    }
+    .lg-participant-card {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      display: grid;
+      overflow: hidden;
+    }
+    .lg-participant-card.leader {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 25%, var(--paper-3)) 0%, var(--paper-3) 100%);
+    }
+    .lg-participant-card.silver {
+      background: linear-gradient(180deg, color-mix(in srgb, white 28%, var(--paper-3)) 0%, var(--paper-3) 100%);
+    }
+    .lg-participant-card.bronze {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3)) 0%, var(--paper-3) 100%);
+    }
+    .lg-participant-card.me {
+      outline: 2px solid var(--retro-blue);
+      outline-offset: -4px;
+    }
+    .lg-participant-summary {
+      all: unset;
+      box-sizing: border-box;
+      width: 100%;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+    }
+    .lg-participant-summary:hover {
+      background: color-mix(in srgb, var(--retro-yellow) 12%, var(--paper-3));
+    }
+    .lg-participant-rank-badge {
+      min-width: 44px;
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      box-shadow: var(--shadow-hard-sm);
+      font-family: var(--font-var);
+      font-size: 22px;
+      line-height: 1;
+    }
+    .lg-participant-main {
+      min-width: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .lg-participant-kicker {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+    }
+    .lg-participant-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .lg-participant-name {
+      font-family: var(--font-var);
+      font-size: clamp(18px, 2.5vw, 24px);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+    }
+    .lg-participant-source {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 6px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+    .lg-participant-mini-stats {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 8px;
+      align-items: center;
+    }
+    .lg-participant-mini-stat {
+      display: grid;
+      gap: 2px;
+      min-width: 54px;
+      padding: 6px 8px;
       background: var(--paper);
       border: 1px solid var(--ink);
-      margin-right: 6px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-align: center;
     }
-    .lg-expand-btn:hover {
-      background: var(--ink);
-      color: var(--retro-yellow);
+    .lg-participant-mini-stat strong {
+      font-family: var(--font-var);
+      font-size: 18px;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .lg-participant-scorebox {
+      display: grid;
+      gap: 4px;
+      justify-items: end;
+    }
+    .lg-participant-total {
+      font-family: var(--font-var);
+      font-size: clamp(30px, 4vw, 42px);
+      line-height: 0.85;
+      color: var(--retro-red);
+      text-align: right;
+    }
+    .lg-participant-total-unit {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-align: right;
+      margin-top: 4px;
+    }
+    .lg-participant-expanded {
+      display: grid;
+      gap: 12px;
+      padding: 0 16px 16px;
+      border-top: 2px solid var(--ink);
+      background: color-mix(in srgb, var(--paper) 84%, white);
+    }
+    .lg-participant-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 12px;
+    }
+    .lg-move-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border: 1px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      background: var(--paper);
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-move-pill.up {
+      color: var(--retro-green);
+      border-color: var(--retro-green);
+    }
+    .lg-move-pill.down {
+      color: var(--retro-red);
+      border-color: var(--retro-red);
+    }
+    .lg-score-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .lg-score-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      padding: 4px 6px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+    .lg-inline-bracket-wrap {
+      display: grid;
+      gap: 10px;
+      padding-top: 12px;
+    }
+    .lg-inline-bracket {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(160px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .lg-inline-round {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-width: 160px;
+    }
+    .lg-inline-round-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--ink);
+    }
+    .lg-inline-match {
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 9px;
+      display: grid;
+      gap: 6px;
+      min-height: 116px;
+    }
+    .lg-inline-match.tone-exact {
+      background: color-mix(in srgb, var(--retro-green) 16%, var(--paper));
+    }
+    .lg-inline-match.tone-diff {
+      background: color-mix(in srgb, var(--retro-blue) 14%, var(--paper));
+    }
+    .lg-inline-match.tone-sign {
+      background: color-mix(in srgb, var(--retro-yellow) 20%, var(--paper));
+    }
+    .lg-inline-match.tone-miss {
+      background: color-mix(in srgb, var(--paper-2) 88%, white);
+    }
+    .lg-inline-match-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: center;
+    }
+    .lg-inline-match-id,
+    .lg-inline-match-kind,
+    .lg-inline-real,
+    .lg-inline-pen {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-inline-match-kind {
+      border: 1px solid var(--ink);
+      padding: 2px 5px;
+      background: var(--paper-2);
+      color: var(--ink);
+    }
+    .lg-inline-teams {
+      display: grid;
+      gap: 6px;
+    }
+    .lg-inline-team-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .lg-inline-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      font-family: var(--font-var);
+      font-size: 12px;
+    }
+    .lg-inline-team-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lg-inline-score {
+      font-family: var(--font-var);
+      font-size: 19px;
+      line-height: 1;
+      min-width: 34px;
+      text-align: right;
+    }
+    .lg-inline-foot {
+      border-top: 1px dashed var(--ink);
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+    .lg-inline-real.pending {
+      opacity: 0.7;
+    }
+    .lg-expand-btn {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
     }
     .lg-delete-btn {
       all: unset;
@@ -576,48 +1215,30 @@ export class LeaguesView extends LitElement {
       background: var(--retro-blue);
       color: var(--paper);
     }
-
-    /* ── BREAKDOWN ── */
-    .lg-detail {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
-      margin: 0 0 24px 0;
-      padding: 16px;
-    }
-    .lg-detail-header-text {
-      font-family: var(--font-var);
-      font-size: 16px;
-      margin-bottom: 12px;
-      letter-spacing: 0.04em;
-    }
-    .lg-detail-subs {
+    .lg-league-switcher {
       display: flex;
-      gap: 16px;
-      margin-bottom: 12px;
       flex-wrap: wrap;
+      gap: 8px;
     }
-    .lg-detail-sub {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.04em;
-    }
-    .lg-detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 6px;
-    }
-    .lg-detail-item {
+    .lg-league-chip-btn {
+      all: unset;
+      cursor: pointer;
+      box-sizing: border-box;
+      padding: 6px 10px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 0.03em;
-      padding: 6px 8px;
-      border: 1px solid var(--ink);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
-    .lg-kind-exact { background: var(--retro-green); color: var(--paper); }
-    .lg-kind-diff { background: var(--retro-blue); color: var(--paper); }
-    .lg-kind-sign { background: var(--retro-yellow); }
-    .lg-kind-miss { background: var(--paper-2); color: var(--dim); }
-    .lg-kind-pending { background: var(--paper); color: var(--dim); opacity: 0.6; }
+    .lg-league-chip-btn.active {
+      background: var(--retro-blue);
+      color: var(--paper);
+    }
+    .lg-league-chip-btn:hover {
+      background: color-mix(in srgb, var(--retro-blue) 18%, var(--paper));
+    }
 
     /* ── BRACKET SCREEN ── */
     .lg-bracket-screen { }
@@ -770,10 +1391,28 @@ export class LeaguesView extends LitElement {
     @media (max-width: 768px) {
       :host { padding: 16px 12px; }
       .lg-title { font-size: 22px; }
-      .lg-ranking-table th, .lg-ranking-table td { padding: 8px 10px; font-size: 11px; }
+      .lg-hero { padding: 18px; }
+      .lg-summary-grid { grid-template-columns: 1fr; }
+      .lg-results-board { grid-template-columns: 1fr; }
+      .lg-actions { justify-content: flex-start; }
+      .lg-ranking-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lg-ranking-toolbar { flex-direction: column; }
+      .lg-participant-summary {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: flex-start;
+      }
+      .lg-participant-mini-stats {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .lg-participant-scorebox {
+        grid-column: 1 / -1;
+        justify-items: flex-start;
+      }
+      .lg-inline-bracket { grid-template-columns: repeat(6, minmax(150px, 1fr)); }
       .lg-add-row { flex-direction: column; }
       .lg-field { min-width: 100%; }
-      .lg-detail-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+      .lg-league-switcher { width: 100%; }
     }
   `;
 
@@ -797,7 +1436,24 @@ export class LeaguesView extends LitElement {
     this._leagues = leaguesState.leagues;
     this._activeLeagueId = leaguesState.activeLeagueId;
 
-    if (this._screen === 'list') return;
+    if (this._screen !== 'bracket') {
+      if (this._leagues.length === 0) {
+        this._screen = 'list';
+        this._manualListMode = false;
+      } else {
+        const activeLeagueExists = this._activeLeagueId
+          ? this._leagues.some(league => league.id === this._activeLeagueId)
+          : false;
+        if (!activeLeagueExists) {
+          const fallbackLeagueId = this._leagues[0].id;
+          useLeaguesStore.getState().setActiveLeague(fallbackLeagueId);
+          this._activeLeagueId = fallbackLeagueId;
+        }
+        if (!this._manualListMode) {
+          this._screen = 'detail';
+        }
+      }
+    }
 
     const tournament = useTournamentStore.getState();
 
@@ -822,30 +1478,47 @@ export class LeaguesView extends LitElement {
     }
     this._playedCount = played;
 
-    if (this._screen === 'detail') {
-      const league = this._leagues.find(l => l.id === this._activeLeagueId);
-      if (!league) return;
-
-      const you = deriveYouParticipant();
-      const allParticipants = [you, ...league.participants];
-
+    this._leagueSummaries = new Map();
+    for (const l of this._leagues) {
+      const allParticipants = l.participants;
       const scored: ParticipantScore[] = [];
       for (const p of allParticipants) {
         scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
       }
-
-      this._scores = rankParticipants(scored);
+      const ranked = rankParticipants(scored);
+      const leader = ranked[0];
+      this._leagueSummaries.set(l.id, {
+        leaderName: leader?.participant.name ?? '—',
+        leaderPoints: leader?.total ?? 0,
+        participantCount: l.participants.length,
+      });
     }
+
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (league) {
+      const scored: ParticipantScore[] = [];
+      for (const participant of league.participants) {
+        scored.push(scoreParticipant(participant, realGroupScores, realKnockoutScores));
+      }
+      this._scores = rankParticipants(scored);
+      this._movements = computeMovements(this._scores, league.rankingSnapshot);
+    } else {
+      this._scores = [];
+      this._movements = new Map();
+    }
+
     this.requestUpdate();
   }
 
   private _goToList() {
+    this._manualListMode = true;
     this._screen = 'list';
     this._bracketData = null;
   }
 
   private _goToDetail(leagueId: string) {
     useLeaguesStore.getState().setActiveLeague(leagueId);
+    this._manualListMode = false;
     this._screen = 'detail';
     this._bracketData = null;
   }
@@ -855,6 +1528,8 @@ export class LeaguesView extends LitElement {
     if (!name) return;
     useLeaguesStore.getState().createLeague(name);
     this._newLeagueName = '';
+    this._manualListMode = false;
+    this._screen = 'detail';
   }
 
   private _renameLeague(id: string) {
@@ -871,7 +1546,6 @@ export class LeaguesView extends LitElement {
   private _confirmDelete() {
     if (this._confirmDeleteLeague) {
       useLeaguesStore.getState().deleteLeague(this._confirmDeleteLeague);
-      useTournamentStore.getState().resetTournament();
       this._confirmDeleteLeague = null;
       this._screen = 'list';
     }
@@ -879,21 +1553,6 @@ export class LeaguesView extends LitElement {
 
   private _cancelDelete() {
     this._confirmDeleteLeague = null;
-  }
-
-  private _addFromUrl() {
-    const name = this._newName.trim();
-    if (!name) { this._error = t('league.errorNoName'); return; }
-    const url = this._newUrl.trim();
-    if (!url) { this._error = t('league.errorNoLink'); return; }
-    const leagueId = this._activeLeagueId;
-    if (!leagueId) return;
-    const ok = useLeaguesStore.getState().addParticipantFromUrl(leagueId, name, url);
-    if (!ok) { this._error = t('league.errorInvalidLink'); return; }
-    this._newName = '';
-    this._newUrl = '';
-    this._error = null;
-    this._uploadError = null;
   }
 
   private async _handleFileUpload(e: Event) {
@@ -911,7 +1570,6 @@ export class LeaguesView extends LitElement {
       } else {
         this._newName = '';
         this._uploadError = null;
-        this._error = null;
       }
     } catch {
       this._uploadError = t('league.errorInvalidExcel');
@@ -941,15 +1599,10 @@ export class LeaguesView extends LitElement {
   }
 
   private _viewBracket(pid: string, pName: string) {
-    if (pid === '__me__') {
-      const p = deriveYouParticipant();
-      this._bracketData = { participant: p, name: t('league.you') };
-    } else {
-      const league = this._leagues.find(l => l.id === this._activeLeagueId);
-      const p = league?.participants.find(pp => pp.id === pid);
-      if (!p) return;
-      this._bracketData = { participant: p, name: pName };
-    }
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    const p = league?.participants.find(pp => pp.id === pid);
+    if (!p) return;
+    this._bracketData = { participant: p, name: pName };
     this._screen = 'bracket';
     this._editMode = false;
     this._editBuffer = new Map();
@@ -974,22 +1627,6 @@ export class LeaguesView extends LitElement {
     if (!this._bracketData || !this._activeLeagueId) return;
     const p = this._bracketData.participant;
 
-    if (p.id === '__me__') {
-      const st = useTournamentStore.getState();
-      for (const s of p.groupScores) {
-        const b = this._editBuffer.get(s.matchId);
-        if (b) st.setMyGroupPrediction(s.matchId, b.scoreA, b.scoreB);
-      }
-      for (const s of p.knockoutScores) {
-        const b = this._editBuffer.get(s.matchId);
-        if (b) st.setMyKnockoutPrediction(s.matchId, b.scoreA, b.scoreB, (b as any)?.penaltyScoreA ?? null, (b as any)?.penaltyScoreB ?? null);
-      }
-      this._bracketData = { participant: deriveYouParticipant(), name: this._bracketData.name };
-      this._editMode = false;
-      this._editBuffer = new Map();
-      return;
-    }
-
     const groupScores: DecodedBracket['groupScores'] = p.groupScores.map(s => {
       const b = this._editBuffer.get(s.matchId);
       if (b) return { ...s, scoreA: b.scoreA, scoreB: b.scoreB };
@@ -1012,10 +1649,30 @@ export class LeaguesView extends LitElement {
     this._editBuffer = new Map();
   }
 
-  private _simulateDemo() {
+  private _simulateAll() {
     const st = useTournamentStore.getState();
     st.autoSimulateGroups();
     st.autoSimulateKnockout();
+
+    const leagueId = this._activeLeagueId;
+    if (!leagueId) return;
+    const league = useLeaguesStore.getState().leagues.find(l => l.id === leagueId);
+    if (!league) return;
+
+    const tournament = useTournamentStore.getState();
+    const resolvedKo: Record<string, { teamA?: string | null; teamB?: string | null }> = {};
+    for (const [matchId, m] of Object.entries(tournament.knockoutMatches)) {
+      resolvedKo[matchId] = { teamA: m.teamA, teamB: m.teamB };
+    }
+
+    for (const p of league.participants) {
+      const hasEmpty = p.groupScores.some(s => s.scoreA === null && s.scoreB === null)
+        || p.knockoutScores.some(s => s.scoreA === null && s.scoreB === null);
+      if (!hasEmpty) continue;
+
+      const { groupScores, knockoutScores } = simulateEmptyPredictions(p, resolvedKo);
+      useLeaguesStore.getState().updateParticipantScores(leagueId, p.id, groupScores, knockoutScores);
+    }
   }
 
   private _requestClearResults() {
@@ -1036,23 +1693,6 @@ export class LeaguesView extends LitElement {
     const file = input.files?.[0];
     if (!file || !this._bracketData || !this._activeLeagueId) { input.value = ''; return; }
     const p = this._bracketData.participant;
-    if (p.id === '__me__') {
-      try {
-        const data = await ExcelService.importFromExcel(file);
-        if (data.groupScores.length === 0 && data.knockoutScores.length === 0) {
-          this._uploadError = t('league.errorInvalidExcel');
-          input.value = '';
-          return;
-        }
-        useTournamentStore.getState().applySharedBracket(data);
-        this._uploadError = null;
-        this._bracketData = { participant: deriveYouParticipant(), name: this._bracketData.name };
-      } catch {
-        this._uploadError = t('league.errorInvalidExcel');
-      }
-      input.value = '';
-      return;
-    }
     try {
       const ok = await useLeaguesStore.getState().replaceParticipantFromExcel(this._activeLeagueId, p.id, file);
       if (!ok) {
@@ -1071,26 +1711,6 @@ export class LeaguesView extends LitElement {
     input.value = '';
   }
 
-  private _handleImportResults(e: Event) {
-    const input = e.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const content = ev.target?.result as string;
-      if (content) {
-        const ok = useTournamentStore.getState().importTournament(content);
-        if (!ok) {
-          this._uploadError = t('league.errorInvalidJson');
-        } else {
-          this._uploadError = null;
-        }
-      }
-    };
-    reader.readAsText(file);
-    input.value = '';
-  }
-
   private async _exportLeagueExcel() {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
@@ -1103,15 +1723,12 @@ export class LeaguesView extends LitElement {
       return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
     });
 
-    const you = deriveYouParticipant();
-
     try {
       const locale = useLocaleStore.getState().locale;
       const blob = await ExcelService.exportLeaguePredictions(
         league,
         realGroupScores,
         realKnockoutScores,
-        you,
         locale,
       );
       const url = URL.createObjectURL(blob);
@@ -1135,6 +1752,16 @@ export class LeaguesView extends LitElement {
         <div class="lg-subtitle">${t('tabs.league')}</div>
       </div>
 
+      <div class="lg-rules-panel">
+        <div class="lg-rules-title">${t('league.rulesPanelTitle')}</div>
+        <div class="lg-rules-chips">
+          <div class="lg-rules-chip lg-kind-exact">${t('league.kindExact')}</div>
+          <div class="lg-rules-chip lg-kind-diff">${t('league.kindDiff')}</div>
+          <div class="lg-rules-chip lg-kind-sign">${t('league.kindSign')}</div>
+          <div class="lg-rules-chip lg-kind-miss">${t('league.kindMiss')}</div>
+        </div>
+      </div>
+
       <div class="lg-create-section">
         <input
           type="text"
@@ -1151,13 +1778,17 @@ export class LeaguesView extends LitElement {
         : html`
           <div class="lg-list">
             ${leagues.map(l => {
-              const participantCount = l.participants.length + 1;
+              const summary = this._leagueSummaries.get(l.id);
               return html`
                 <div class="lg-card" @click=${() => this._goToDetail(l.id)}>
                   <div class="lg-card-main">
                     <div class="lg-card-name">${l.name}</div>
                     <div class="lg-card-meta">
-                      ${t('league.participants', { n: participantCount })} · ${t('league.leader')}: ${this._getLeaderName(l)}
+                      ${t('league.cardLeaderLine', {
+                        name: summary?.leaderName ?? '—',
+                        pts: String(summary?.leaderPoints ?? 0),
+                        n: String(summary?.participantCount ?? 1),
+                      })}
                     </div>
                   </div>
                   <div class="lg-card-actions">
@@ -1184,24 +1815,217 @@ export class LeaguesView extends LitElement {
     `;
   }
 
-  private _getLeaderName(_l: League): string {
-    const you = deriveYouParticipant();
-    const allParticipants = [you, ..._l.participants];
+  private _markMatchdayViewed() {
+    const leagueId = this._activeLeagueId;
+    if (!leagueId || this._scores.length === 0) return;
+    const snapshot = this._scores.map((s, i) => ({
+      participantId: s.participant.id,
+      position: i + 1,
+    }));
+    useLeaguesStore.getState().updateRankingSnapshot(leagueId, snapshot, this._playedCount);
+    this._movements = new Map();
+    this.requestUpdate();
+  }
 
-    const realGroupScores = realGroupScoresFromStore();
-    const realKnockoutOrder = getKnockoutMatchOrder();
-    const tournament = useTournamentStore.getState();
-    const realKnockoutScores = realKnockoutOrder.map(matchId => {
-      const m = tournament.knockoutMatches[matchId];
-      return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
-    });
-
-    const scored: ParticipantScore[] = [];
-    for (const p of allParticipants) {
-      scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
+  private _renderMovement(delta: number, hasSnapshot: boolean): TemplateResult | string {
+    if (delta > 0) {
+      return html`<span class="lg-move-pill up">▲ ${t('league.movementUp', { n: String(delta) })}</span>`;
     }
-    const ranked = rankParticipants(scored);
-    return ranked.length > 0 ? ranked[0].participant.name : '—';
+    if (delta < 0) {
+      return html`<span class="lg-move-pill down">▼ ${t('league.movementDown', { n: String(Math.abs(delta)) })}</span>`;
+    }
+    if (hasSnapshot) {
+      return html`<span class="lg-move-pill">═</span>`;
+    }
+    return '';
+  }
+
+  private _renderScoreBadges(score: ParticipantScore): TemplateResult {
+    return html`
+      <div class="lg-score-badges">
+        <span class="lg-score-badge lg-kind-exact">${t('league.detailExact')} · ${score.exactCount}</span>
+        <span class="lg-score-badge lg-kind-diff">${t('league.detailDiff')} · ${score.diffCount}</span>
+        <span class="lg-score-badge lg-kind-sign">${t('league.detailSign')} · ${score.signCount}</span>
+      </div>
+    `;
+  }
+
+  private _rankTone(index: number, isOwner: boolean): string {
+    const tones: string[] = [];
+    if (index === 0) tones.push('leader');
+    else if (index === 1) tones.push('silver');
+    else if (index === 2) tones.push('bronze');
+    if (isOwner) tones.push('me');
+    return tones.join(' ');
+  }
+
+  private _getLeagueParticipant(participantId: string): LeagueParticipant | null {
+    const league = this._leagues.find(item => item.id === this._activeLeagueId);
+    return league?.participants.find(participant => participant.id === participantId) ?? null;
+  }
+
+  private _resolveParticipantKnockout(participant: LeagueParticipant) {
+    const decoded: DecodedBracket = {
+      groupScores: participant.groupScores as DecodedBracket['groupScores'],
+      knockoutScores: participant.knockoutScores as DecodedBracket['knockoutScores'],
+    };
+
+    try {
+      const tournament = useTournamentStore.getState();
+      return buildResolvedKnockout(
+        decoded,
+        tournament.groupMatches,
+        recalculateStandings as unknown as (matches: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; teamA: string; teamB: string }>) => Record<string, { teamId: string; points?: number; goalDiff?: number; goalsFor?: number }[]>,
+        getWinnerId as unknown as (teamA: string, teamB: string, scoreA: number, scoreB: number, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => string | null,
+        getKnockoutMatchOrder,
+        KNOCKOUT_BRACKET,
+        {},
+      ) as Record<string, { teamA?: string | null; teamB?: string | null; winnerId?: string | null; scoreA?: number | null; scoreB?: number | null }>;
+    } catch {
+      return {} as Record<string, { teamA?: string | null; teamB?: string | null; winnerId?: string | null; scoreA?: number | null; scoreB?: number | null }>;
+    }
+  }
+
+  private _renderInlineBracket(score: ParticipantScore, realKnockoutByMatchId: Map<string, { matchId: string; scoreA: number | null; scoreB: number | null }>): TemplateResult {
+    const participant = this._getLeagueParticipant(score.participant.id);
+    if (!participant) {
+      return html``;
+    }
+
+    const breakdownByMatchId = new Map(score.breakdown.map(item => [item.matchId, item]));
+    const resolvedKnockout = this._resolveParticipantKnockout(participant);
+    const rounds = [
+      { title: '1/16', matches: participant.knockoutScores.filter(match => match.matchId.startsWith('R32')) },
+      { title: '1/8', matches: participant.knockoutScores.filter(match => match.matchId.startsWith('R16')) },
+      { title: 'QF', matches: participant.knockoutScores.filter(match => match.matchId.startsWith('QF')) },
+      { title: 'SF', matches: participant.knockoutScores.filter(match => match.matchId.startsWith('SF')) },
+      { title: '3P', matches: participant.knockoutScores.filter(match => match.matchId === 'TP-01') },
+      { title: 'FIN', matches: participant.knockoutScores.filter(match => match.matchId === 'FIN-01') },
+    ].filter(round => round.matches.length > 0);
+
+    return html`
+      <div class="lg-inline-bracket">
+        ${rounds.map(round => html`
+          <section class="lg-inline-round">
+            <div class="lg-inline-round-title">${round.title}</div>
+            ${round.matches.map(match => {
+              const resolved = resolvedKnockout[match.matchId];
+              const teamAId = resolved?.teamA;
+              const teamBId = resolved?.teamB;
+              const teamA = typeof teamAId === 'string' ? getTeam(teamAId) : null;
+              const teamB = typeof teamBId === 'string' ? getTeam(teamBId) : null;
+              const breakdown = breakdownByMatchId.get(match.matchId);
+              const realScore = realKnockoutByMatchId.get(match.matchId);
+              const tone = breakdown?.kind ?? 'pending';
+              const showReal = realScore && realScore.scoreA !== null && realScore.scoreB !== null;
+
+              return html`
+                <article class=${`lg-inline-match tone-${tone}`}>
+                  <div class="lg-inline-match-header">
+                    <span class="lg-inline-match-id">${match.matchId}</span>
+                    <span class="lg-inline-match-kind">${breakdown ? `+${breakdown.points}` : t('league.kindPending')}</span>
+                  </div>
+
+                  <div class="lg-inline-teams">
+                    <div class="lg-inline-team-row">
+                      <div class="lg-inline-team">
+                        ${teamA ? renderFlag(teamA, 'xs') : ''}
+                        <span class="lg-inline-team-name">${teamA?.name ?? resolved?.teamA ?? '—'}</span>
+                      </div>
+                      <span class="lg-inline-score">${match.scoreA ?? '-'}</span>
+                    </div>
+                    <div class="lg-inline-team-row">
+                      <div class="lg-inline-team">
+                        ${teamB ? renderFlag(teamB, 'xs') : ''}
+                        <span class="lg-inline-team-name">${teamB?.name ?? resolved?.teamB ?? '—'}</span>
+                      </div>
+                      <span class="lg-inline-score">${match.scoreB ?? '-'}</span>
+                    </div>
+                  </div>
+
+                  <div class="lg-inline-foot">
+                    ${match.penaltyScoreA !== null && match.penaltyScoreB !== null
+                      ? html`<span class="lg-inline-pen">PEN ${match.penaltyScoreA}-${match.penaltyScoreB}</span>`
+                      : html`<span class="lg-inline-real pending">${t('league.kindPending')}</span>`}
+                    ${showReal
+                      ? html`<span class="lg-inline-real">Real ${realScore.scoreA}-${realScore.scoreB}</span>`
+                      : html`<span class="lg-inline-real pending">Real —</span>`}
+                  </div>
+                </article>
+              `;
+            })}
+          </section>
+        `)}
+      </div>
+    `;
+  }
+
+  private _renderParticipantCard(
+    score: ParticipantScore,
+    index: number,
+    hasSnapshot: boolean,
+    realKnockoutByMatchId: Map<string, { matchId: string; scoreA: number | null; scoreB: number | null }>,
+  ): TemplateResult {
+    const isOwner = score.participant.isOwner === true;
+    const delta = this._movements.get(score.participant.id) ?? 0;
+    const participant = this._getLeagueParticipant(score.participant.id);
+    const isExpanded = this._expandedId === score.participant.id;
+
+    return html`
+      <article class=${`lg-participant-card ${this._rankTone(index, isOwner)}`}>
+        <button
+          class="lg-participant-summary"
+          @click=${() => this._toggleExpand(score.participant.id)}
+          aria-expanded=${isExpanded ? 'true' : 'false'}
+        >
+          <div class="lg-participant-rank-badge">${index + 1}</div>
+
+          <div class="lg-participant-main">
+            <div>
+              <div class="lg-participant-kicker">${t('league.colRank')} ${index + 1}</div>
+              <div class="lg-participant-name-row">
+                <div class="lg-participant-name">${score.participant.name}${isOwner ? ' ★' : ''}</div>
+                ${participant ? html`<span class="lg-participant-source">${participant.source}</span>` : ''}
+                ${this._renderMovement(delta, hasSnapshot)}
+              </div>
+            </div>
+            ${this._renderScoreBadges(score)}
+          </div>
+
+          <div class="lg-participant-mini-stats">
+            <div class="lg-participant-mini-stat">${t('league.colGroups')}<strong>${score.byPhase.groups}</strong></div>
+            <div class="lg-participant-mini-stat">${t('league.colKnockout')}<strong>${score.byPhase.knockout}</strong></div>
+            <div class="lg-participant-mini-stat">${t('league.detailExact')}<strong>${score.exactCount}</strong></div>
+            <div class="lg-participant-mini-stat">${t('league.detailSign')}<strong>${score.signCount}</strong></div>
+          </div>
+
+          <div class="lg-participant-scorebox">
+            <div class="lg-participant-total">${score.total}</div>
+            <div class="lg-participant-total-unit">${t('league.points')}</div>
+            <div class="lg-expand-btn">${isExpanded ? 'Ocultar bracket ▲' : 'Ver bracket ▼'}</div>
+          </div>
+        </button>
+
+        ${isExpanded ? html`
+          <div class="lg-participant-expanded">
+            <div class="lg-inline-bracket-wrap">
+              ${this._renderInlineBracket(score, realKnockoutByMatchId)}
+            </div>
+
+            <div class="lg-participant-actions">
+              <button class="lg-bracket-btn" @click=${() => this._viewBracket(score.participant.id, score.participant.name)}>
+                ${t('league.viewBracket')}
+              </button>
+              ${!isOwner ? html`
+                <button class="lg-delete-btn" @click=${() => this._removeParticipant(score.participant.id)}>
+                  ${t('league.removeBtn')}
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+      </article>
+    `;
   }
 
   // ── RENDER DETAIL ──
@@ -1215,168 +2039,294 @@ export class LeaguesView extends LitElement {
     const played = this._playedCount;
     const pct = TOTAL_MATCHES > 0 ? Math.round((played / TOTAL_MATCHES) * 100) : 0;
 
+    const realGroupScores = realGroupScoresFromStore();
+    const realKnockoutOrder = getKnockoutMatchOrder();
+    const tournament = useTournamentStore.getState();
+    const realKnockoutScores = realKnockoutOrder.map(matchId => {
+      const m = tournament.knockoutMatches[matchId];
+      return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
+    });
+
+    const { current, next3 } = getCurrentMatchday(realGroupScores, realKnockoutScores);
+
+    const leader = this._scores[0];
+    const second = this._scores[1];
+    const hasSnapshot = !!(league.rankingSnapshot && league.rankingSnapshot.length > 0);
+    const recentResults = [
+      ...realGroupScores
+        .filter(match => match.scoreA !== null && match.scoreB !== null)
+        .map(match => {
+          const fixture = groupMatchById.get(match.matchId);
+          return {
+            matchId: match.matchId,
+            teamA: fixture?.teamA ?? '',
+            teamB: fixture?.teamB ?? '',
+            scoreA: match.scoreA,
+            scoreB: match.scoreB,
+            label: fixture?.matchDay ? `MD${fixture.matchDay}` : 'GR',
+          };
+        }),
+      ...realKnockoutOrder
+        .map(matchId => {
+          const match = tournament.knockoutMatches[matchId];
+          if (!match || match.scoreA === null || match.scoreB === null) return null;
+          const round = matchId.startsWith('R32') ? '1/16'
+            : matchId.startsWith('R16') ? 'R16'
+            : matchId.startsWith('QF') ? 'QF'
+            : matchId.startsWith('SF') ? 'SF'
+            : matchId === 'TP-01' ? 'TP'
+            : 'FIN';
+          return {
+            matchId,
+            teamA: match.teamA ?? '',
+            teamB: match.teamB ?? '',
+            scoreA: match.scoreA,
+            scoreB: match.scoreB,
+            label: round,
+          };
+        })
+        .filter((match): match is { matchId: string; teamA: string; teamB: string; scoreA: number; scoreB: number; label: string } => match !== null),
+    ].slice(-3).reverse();
+    const realKnockoutByMatchId = new Map(realKnockoutScores.map(match => [match.matchId, match]));
+
     return html`
-      <button class="lg-btn-back" @click=${this._goToList}>← ${t('league.back')}</button>
-
-      <div class="lg-header">
-        <div class="lg-detail-header">
-          <div class="lg-detail-name">${league.name}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
-              <label class="lg-upload-btn-sm">
-                ${t('league.loadOfficialResults')}
-                <input type="file" accept=".json" hidden @change=${this._handleImportResults} />
-              </label>
-              <button class="lg-btn-sm" @click=${this._simulateDemo} ?disabled=${this._playedCount > 0}>
-                ${t('league.simulateDemo')}
-              </button>
-              <button class="lg-btn-sm" @click=${this._requestClearResults} ?disabled=${this._playedCount === 0}>
-                ${t('league.clearResults')}
-              </button>
+      <div class="lg-editorial-shell">
+        <section class="lg-hero">
+          <div class="lg-hero-top">
+            <div>
+              <div class="lg-hero-kicker">${t('league.title')}</div>
+              <div class="lg-hero-title">${league.name}</div>
+              <div class="lg-hero-meta">
+                <span class="lg-hero-chip">${t('league.participants', { n: String(league.participants.length) })}</span>
+                ${leader ? html`<span class="lg-hero-chip">${t('league.leader')}: ${leader.participant.name}</span>` : ''}
+                ${current ? html`<span class="lg-hero-chip">${t('league.currentMatchday')}: ${current.label}</span>` : ''}
+              </div>
+              ${this._leagues.length > 1 ? html`
+                <div class="lg-league-switcher">
+                  ${this._leagues.map(item => html`
+                    <button
+                      class=${`lg-league-chip-btn ${item.id === league.id ? 'active' : ''}`}
+                      @click=${() => this._goToDetail(item.id)}
+                    >
+                      ${item.name}
+                    </button>
+                  `)}
+                </div>
+              ` : ''}
             </div>
-            <button class="lg-danger-btn" @click=${() => this._requestDeleteLeague(league.id)}>${t('league.delete')}</button>
+
+            <div class="lg-actions">
+              <button class="lg-btn-sm" @click=${this._goToList}>${t('league.myLeagues')}</button>
+              <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
+              <button class="lg-btn-sm" @click=${this._simulateAll}>${t('league.simulateAll')}</button>
+              <button class="lg-btn-sm" @click=${this._requestClearResults} ?disabled=${this._playedCount === 0}>${t('league.clearResults')}</button>
+              <button class="lg-btn-sm" @click=${this._markMatchdayViewed} ?disabled=${!hasSnapshot && this._scores.length === 0}>${t('league.markMatchdayViewed')}</button>
+              <button class="lg-danger-btn" @click=${() => this._requestDeleteLeague(league.id)}>${t('league.delete')}</button>
+            </div>
+          </div>
+
+          <div class="lg-summary-grid">
+            <div class="lg-summary-card leader">
+              <div class="lg-summary-label">${t('league.leaderCardTitle')}</div>
+              ${leader ? html`
+                <div class="lg-summary-value">${leader.participant.name}${leader.participant.isOwner ? ' ★' : ''}</div>
+                <div class="lg-summary-line">
+                  <div class="lg-summary-meta">${second ? t('league.leaderLead', { n: String(leader.total - second.total), name: second.participant.name }) : t('league.points')}</div>
+                  ${this._renderMovement(this._movements.get(leader.participant.id) ?? 0, hasSnapshot)}
+                </div>
+                ${this._renderScoreBadges(leader)}
+              ` : html`<div class="lg-normal">—</div>`}
+            </div>
+
+            <div class="lg-summary-card">
+              <div class="lg-summary-label">${t('league.colTotal')}</div>
+              <div class="lg-summary-value">${leader?.total ?? 0}</div>
+              <div class="lg-summary-meta">${t('league.points')}</div>
+            </div>
+
+            <div class="lg-summary-card">
+              <div class="lg-summary-label">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
+              <div class="lg-progress">
+                <div class="lg-progress-bar">
+                  <div class="lg-progress-fill" style="width:${pct}%"></div>
+                </div>
+                <span class="lg-progress-label">${pct}%</span>
+              </div>
+              <div class="lg-summary-meta">${t('league.demoHint')}</div>
+            </div>
+
+            <div class="lg-summary-card">
+              <div class="lg-summary-label">${t('league.markMatchdayViewed')}</div>
+              <div class="lg-summary-value">${league.rankingSnapshotMatchCount ?? 0}</div>
+              <div class="lg-summary-meta">${hasSnapshot
+                ? t('league.snapshotInfo', { count: String(league.rankingSnapshotMatchCount ?? 0) })
+                : t('league.noSnapshot')}</div>
+            </div>
+          </div>
+        </section>
+
+        ${this._confirmClearResults ? html`
+          <div class="lg-confirm-box">
+            <span>${t('league.confirmClearResults')}</span>
+            <button class="lg-danger-btn" @click=${this._confirmClear}>${t('league.confirmYes')}</button>
+            <button class="lg-btn-back" @click=${this._cancelClear}>${t('league.confirmNo')}</button>
+          </div>
+        ` : ''}
+
+        ${this._confirmDeleteLeague ? html`
+          <div class="lg-confirm-box">
+            <span>${t('league.confirmDelete')}</span>
+            <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
+            <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+          </div>
+        ` : ''}
+
+        ${this._scores.length === 0
+          ? html`<div class="lg-empty">${t('league.emptyParticipants2')}</div>`
+          : html`
+            <section class="lg-ranking">
+              <div class="lg-ranking-head">
+                <div class="lg-ranking-title">${t('league.participants', { n: String(this._scores.length) })}</div>
+                <div class="lg-ranking-subtitle">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
+
+                <div class="lg-ranking-toolbar">
+                  <div class="lg-ranking-overview">
+                    <div class="lg-ranking-stat">
+                      <span class="lg-section-kicker">${t('league.leader')}</span>
+                      <strong>${leader?.participant.name ?? '—'}</strong>
+                    </div>
+                    <div class="lg-ranking-stat">
+                      <span class="lg-section-kicker">${t('league.colTotal')}</span>
+                      <strong>${leader?.total ?? 0}</strong>
+                    </div>
+                    <div class="lg-ranking-stat">
+                      <span class="lg-section-kicker">${t('league.detailExact')}</span>
+                      <strong>${leader?.exactCount ?? 0}</strong>
+                    </div>
+                    <div class="lg-ranking-stat">
+                      <span class="lg-section-kicker">${t('league.colKnockout')}</span>
+                      <strong>${leader?.byPhase.knockout ?? 0}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg-participants-board">
+                ${this._scores.map((score, index) => this._renderParticipantCard(score, index, hasSnapshot, realKnockoutByMatchId))}
+              </div>
+
+            </section>
+          `}
+
+        <section class="lg-results-board">
+          <div class="lg-section-panel">
+            <div class="lg-section-head">
+              <div>
+                <div class="lg-section-kicker">${t('league.currentMatchday')}</div>
+                <div class="lg-section-title">${current ? `${current.label} · ${current.lastMatchId}` : t('league.nextMatches')}</div>
+              </div>
+              <div class="lg-section-kicker">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
+            </div>
+
+            <div class="lg-results-list">
+              ${recentResults.length > 0 ? recentResults.map(result => {
+                const teamA = getTeam(result.teamA);
+                const teamB = getTeam(result.teamB);
+                return html`
+                  <article class="lg-result-card">
+                    <div class="lg-result-top">
+                      <span class="lg-result-id">${result.matchId}</span>
+                      <span class="lg-result-badge live">${result.label}</span>
+                    </div>
+                    <div class="lg-result-teams">
+                      <div class="lg-result-row">
+                        <div class="lg-result-team">
+                          ${teamA ? renderFlag(teamA, 'xs') : ''}
+                          <span class="lg-result-team-name">${teamA?.name ?? result.teamA}</span>
+                        </div>
+                        <span class="lg-result-score">${result.scoreA}</span>
+                      </div>
+                      <div class="lg-result-row">
+                        <div class="lg-result-team">
+                          ${teamB ? renderFlag(teamB, 'xs') : ''}
+                          <span class="lg-result-team-name">${teamB?.name ?? result.teamB}</span>
+                        </div>
+                        <span class="lg-result-score">${result.scoreB}</span>
+                      </div>
+                    </div>
+                    <div class="lg-result-foot">
+                      <span>${t('league.currentMatchday')}</span>
+                      <span>${t('league.points')}</span>
+                    </div>
+                  </article>
+                `;
+              }) : html`<div class="lg-normal">${t('league.nextMatches')}</div>`}
+            </div>
+          </div>
+
+          <div class="lg-section-panel">
+            <div class="lg-section-head">
+              <div>
+                <div class="lg-section-kicker">${t('league.nextMatches')}</div>
+                <div class="lg-section-title">${current ? current.label : t('league.nextMatches')}</div>
+              </div>
+            </div>
+
+            <div class="lg-next-list">
+              ${next3.map(match => {
+                const teamA = getTeam(match.teamA);
+                const teamB = getTeam(match.teamB);
+                return html`
+                  <article class="lg-next-item">
+                    <div class="lg-next-item-head">
+                      <span>${match.matchId}</span>
+                      <span>${match.date.slice(5)} · ${match.timeSpain}</span>
+                    </div>
+                    <div class="lg-next-teams">${teamA?.name ?? match.teamA} vs ${teamB?.name ?? match.teamB}</div>
+                    <div class="lg-next-meta">${match.venueId || t('league.phaseGroups')}</div>
+                  </article>
+                `;
+              })}
+            </div>
+          </div>
+        </section>
+
+        <div class="lg-section-panel">
+          <div class="lg-section-head">
+            <div>
+              <div class="lg-section-kicker">${t('league.rulesPanelTitle')}</div>
+              <div class="lg-section-title">${t('league.addTitle')}</div>
+            </div>
+          </div>
+
+          <div class="lg-rules-chip-row">
+            <div class="lg-rules-chip lg-kind-exact">${t('league.kindExact')}</div>
+            <div class="lg-rules-chip lg-kind-diff">${t('league.kindDiff')}</div>
+            <div class="lg-rules-chip lg-kind-sign">${t('league.kindSign')}</div>
+            <div class="lg-rules-chip lg-kind-miss">${t('league.kindMiss')}</div>
           </div>
         </div>
-        <div class="lg-hint">${t('league.demoHint')}</div>
+
+        <div class="lg-add-section">
+          <h3>${t('league.addTitle')}</h3>
+          <div class="lg-add-row">
+            <div class="lg-field">
+              <label>${t('league.nameLabel')}</label>
+              <input
+                type="text"
+                .value=${this._newName}
+                @input=${(e: InputEvent) => { this._newName = (e.target as HTMLInputElement).value; }}
+                placeholder=${t('league.namePlaceholderFriend')}
+              />
+            </div>
+            <label class="lg-upload-btn compact">
+              ${t('league.uploadBtn')}
+              <input type="file" accept=".xlsx" hidden @change=${this._handleFileUpload} />
+            </label>
+          </div>
+          ${this._uploadError ? html`<div class="lg-error">${this._uploadError}</div>` : ''}
+        </div>
       </div>
-
-      ${this._confirmClearResults ? html`
-        <div class="lg-confirm-box">
-          <span>${t('league.confirmClearResults')}</span>
-          <button class="lg-danger-btn" @click=${this._confirmClear}>${t('league.confirmYes')}</button>
-          <button class="lg-btn-back" @click=${this._cancelClear}>${t('league.confirmNo')}</button>
-        </div>
-      ` : ''}
-
-      ${this._confirmDeleteLeague ? html`
-        <div class="lg-confirm-box">
-          <span>${t('league.confirmDelete')}</span>
-          <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
-          <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
-        </div>
-      ` : ''}
-
-      <div class="lg-progress">
-        <div class="lg-progress-bar">
-          <div class="lg-progress-fill" style="width:${pct}%"></div>
-        </div>
-        <span class="lg-progress-label">${t('league.progress', { played, total: TOTAL_MATCHES })}</span>
-      </div>
-
-      <div class="lg-add-section">
-        <h3>${t('league.addTitle')}</h3>
-        <div class="lg-add-row">
-          <div class="lg-field">
-            <label>${t('league.nameLabel')}</label>
-            <input
-              type="text"
-              .value=${this._newName}
-              @input=${(e: InputEvent) => { this._newName = (e.target as HTMLInputElement).value; }}
-              @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._addFromUrl(); }}
-              placeholder=${t('league.namePlaceholderFriend')}
-            />
-          </div>
-          <div class="lg-field">
-            <label>${t('league.linkLabel')}</label>
-            <input
-              type="text"
-              .value=${this._newUrl}
-              @input=${(e: InputEvent) => { this._newUrl = (e.target as HTMLInputElement).value; }}
-              @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._addFromUrl(); }}
-              placeholder=${t('league.linkPlaceholder')}
-            />
-          </div>
-          <button class="lg-btn" @click=${this._addFromUrl}>${t('league.addBtn')}</button>
-          <label class="lg-upload-btn">
-            ${t('league.uploadBtn')}
-            <input type="file" accept=".xlsx" hidden @change=${this._handleFileUpload} />
-          </label>
-        </div>
-        ${this._error ? html`<div class="lg-error">${this._error}</div>` : ''}
-        ${this._uploadError ? html`<div class="lg-error">${this._uploadError}</div>` : ''}
-      </div>
-
-      ${this._scores.length === 0
-        ? html`<div class="lg-empty">${t('league.emptyParticipants')}</div>`
-        : html`
-          <div class="lg-ranking">
-            <table class="lg-ranking-table">
-              <thead>
-                <tr>
-                  <th>${t('league.colRank')}</th>
-                  <th>${t('league.colName')}</th>
-                  <th>${t('league.colTotal')}</th>
-                  <th>${t('league.colGroups')}</th>
-                  <th>${t('league.colKnockout')}</th>
-                  <th>${t('league.colExact')}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${this._scores.map((s, i) => {
-                  const isMe = s.participant.id === '__me__';
-                  let rowClass = '';
-                  if (i === 0) rowClass = 'lg-rank-leader';
-                  else if (i === 1) rowClass = 'lg-rank-silver';
-                  else if (i === 2) rowClass = 'lg-rank-bronze';
-                  if (isMe) rowClass += ' lg-rank-me';
-
-                  return html`
-                    <tr class=${rowClass}>
-                      <td class="lg-rank-pos">${i + 1}</td>
-                      <td class="lg-rank-name">${s.participant.name}${isMe ? ' ★' : ''}</td>
-                      <td class="lg-rank-total">${s.total}</td>
-                      <td class="lg-rank-phase">${s.byPhase.groups}</td>
-                      <td class="lg-rank-phase">${s.byPhase.knockout}</td>
-                      <td class="lg-rank-phase">${s.exactCount}</td>
-                      <td>
-                        <button class="lg-bracket-btn" @click=${() => this._viewBracket(s.participant.id, s.participant.name)}>
-                          ${t('league.viewBracket')}
-                        </button>
-                        <button class="lg-expand-btn" @click=${() => this._toggleExpand(s.participant.id)}>
-                          ${this._expandedId === s.participant.id ? '▲' : '▼'}
-                        </button>
-                        ${!isMe ? html`
-                          <button class="lg-delete-btn" @click=${() => this._removeParticipant(s.participant.id)}>
-                            ${t('league.removeBtn')}
-                          </button>
-                        ` : ''}
-                      </td>
-                    </tr>
-                    ${this._expandedId === s.participant.id ? html`
-                      <tr>
-                        <td colspan="7">
-                          <div class="lg-detail">
-                            <div class="lg-detail-header-text">${s.participant.name} — ${t('league.detailTitle')}</div>
-                            <div class="lg-detail-subs">
-                              <span class="lg-detail-sub">${t('league.detailExact')}: ${s.exactCount}</span>
-                              <span class="lg-detail-sub">${t('league.detailDiff')}: ${s.diffCount}</span>
-                              <span class="lg-detail-sub">${t('league.detailSign')}: ${s.signCount}</span>
-                            </div>
-                            <div class="lg-detail-grid">
-                              ${s.breakdown.map(mp => {
-                                const gm = groupMatchById.get(mp.matchId);
-                                const displayName = gm
-                                  ? `${gm.teamA} vs ${gm.teamB}`
-                                  : mp.matchId;
-                                return html`
-                                  <div class="lg-detail-item lg-kind-${mp.kind}">
-                                    ${displayName} — ${this._kindLabel(mp.kind)}
-                                  </div>
-                                `;
-                              })}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ` : ''}
-                  `;
-                })}
-              </tbody>
-            </table>
-          </div>
-        `}
     `;
   }
 

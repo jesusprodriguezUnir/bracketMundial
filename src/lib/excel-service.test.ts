@@ -165,14 +165,14 @@ describe('ExcelService league predictions export', () => {
 
   const emptyKo = (): Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }> => [];
 
-  const you = {
-    id: '__me__',
-    name: 'Me',
-    groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
-    knockoutScores: emptyKo(),
-  };
-
   const participants = [
+    {
+      id: 'p0',
+      name: 'Me',
+      isOwner: true,
+      groupScores: mkScores(groupMatches, [[2, 1], [3, 1], [1, 0], [2, 2], [0, 0], [1, 2]]),
+      knockoutScores: emptyKo(),
+    },
     {
       id: 'p1',
       name: 'Alice',
@@ -195,19 +195,17 @@ describe('ExcelService league predictions export', () => {
       { name: 'Test League', participants },
       realGroupScores,
       realKnockoutScores,
-      you,
       'es',
     );
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.size).toBeGreaterThan(0);
   });
 
-  it('export contains both sheets', async () => {
+  it('export contains both sheets (no separate Rules sheet)', async () => {
     const blob = await ExcelService.exportLeaguePredictions(
       { name: 'Test League', participants },
       realGroupScores,
       realKnockoutScores,
-      you,
       'es',
     );
     const buffer = await blob.arrayBuffer();
@@ -215,6 +213,9 @@ describe('ExcelService league predictions export', () => {
     await wb.xlsx.load(buffer);
     expect(wb.getWorksheet('Resumen')).toBeTruthy();
     expect(wb.getWorksheet('Pronósticos')).toBeTruthy();
+    // Verify the old separate Rules sheet no longer exists
+    expect(wb.getWorksheet('Reglas')).toBeFalsy();
+    expect(wb.getWorksheet('Rules')).toBeFalsy();
   });
 
   it('ranking sheet reflects correct totals', async () => {
@@ -222,7 +223,6 @@ describe('ExcelService league predictions export', () => {
       { name: 'Test League', participants },
       realGroupScores,
       realKnockoutScores,
-      you,
       'es',
     );
     const buffer = await blob.arrayBuffer();
@@ -231,9 +231,9 @@ describe('ExcelService league predictions export', () => {
     const rankSheet = wb.getWorksheet('Resumen');
     expect(rankSheet).toBeTruthy();
 
-    // Collect all names from column 2
+    // Collect all names from column 2 (ranking starts at row 9 after rules header at row 8)
     const names: string[] = [];
-    for (let r = 2; r <= 10; r++) {
+    for (let r = 9; r <= 15; r++) {
       const v = String(rankSheet!.getCell(r, 2).value ?? '');
       if (!v) break;
       names.push(v);
@@ -248,7 +248,6 @@ describe('ExcelService league predictions export', () => {
       { name: 'Test League', participants },
       realGroupScores,
       realKnockoutScores,
-      you,
       'es',
     );
     const buffer = await blob.arrayBuffer();
