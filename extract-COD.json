@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "type": "player", "number": 7,  "bbox": [0.19, 0.20, 0.13, 0.13], "label": "WISSA" },
+    { "type": "player", "number": 9,  "bbox": [0.44, 0.20, 0.13, 0.13], "label": "BAKAMBU" },
+    { "type": "player", "number": 17, "bbox": [0.69, 0.20, 0.13, 0.13], "label": "ELIA" },
+    { "type": "player", "number": 26, "bbox": [0.19, 0.41, 0.13, 0.13], "label": "SADIKI" },
+    { "type": "player", "number": 6,  "bbox": [0.44, 0.41, 0.13, 0.13], "label": "MOUTOUSSAMY" },
+    { "type": "player", "number": 21, "bbox": [0.69, 0.41, 0.13, 0.13], "label": "MBUKU" },
+    { "type": "player", "number": 3,  "bbox": [0.11, 0.62, 0.13, 0.13], "label": "MASUAKU" },
+    { "type": "player", "number": 24, "bbox": [0.33, 0.62, 0.13, 0.13], "label": "TUANZEBE" },
+    { "type": "player", "number": 4,  "bbox": [0.55, 0.62, 0.13, 0.13], "label": "MBEMBA" },
+    { "type": "player", "number": 25, "bbox": [0.77, 0.62, 0.13, 0.13], "label": "WAN-BISSAKA" },
+    { "type": "player", "number": 1,  "bbox": [0.44, 0.81, 0.13, 0.13], "label": "EPOLO" }
+  ]
+}
