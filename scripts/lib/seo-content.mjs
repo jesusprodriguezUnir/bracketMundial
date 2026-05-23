@@ -16,6 +16,12 @@ function fmtDate(iso, lang) {
 
 const L = (href, text) => `<a href="${href}">${esc(text)}</a>`;
 
+const FIFA_ORGANIZER = {
+  '@type': 'Organization',
+  name: 'FIFA',
+  url: 'https://www.fifa.com',
+};
+
 function breadcrumb(items) {
   return {
     '@type': 'BreadcrumbList',
@@ -75,6 +81,17 @@ function paths(lang) {
 
 function teamName(t, lang) {
   return lang === 'en' ? t.nameEn : t.nameEs;
+}
+
+function sportsEventDescription(match, lang) {
+  const teamA = teamName(match.teamA, lang);
+  const teamB = teamName(match.teamB, lang);
+  const stadium = match.stadium.name;
+  const city = match.stadium.city;
+
+  return lang === 'en'
+    ? `${teamA} vs ${teamB} in the FIFA World Cup 2026 group stage at ${stadium}, ${city}.`
+    : `${teamA} vs ${teamB} en la fase de grupos del Mundial FIFA 2026 en ${stadium}, ${city}.`;
 }
 
 // ---- Builders ------------------------------------------------------------
@@ -202,8 +219,12 @@ ${matchRows}
           item: {
             '@type': 'SportsEvent',
             name: `${teamName(m.teamA, lang)} vs ${teamName(m.teamB, lang)}`,
+            description: sportsEventDescription(m, lang),
             startDate: m.date,
+            endDate: m.date,
+            eventStatus: 'https://schema.org/EventScheduled',
             sport: 'Football',
+            organizer: FIFA_ORGANIZER,
             location: { '@type': 'Place', name: m.stadium.name, address: m.stadium.city },
             performer: [
               { '@type': 'SportsTeam', name: teamName(m.teamA, lang) },

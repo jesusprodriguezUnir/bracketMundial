@@ -217,12 +217,13 @@ export class BracketView extends LitElement {
       border-top: 4px solid var(--ink);
       box-shadow: 0 -6px 0 0 var(--retro-orange);
       padding-bottom: calc(12px + env(safe-area-inset-bottom));
-      max-height: 50vh;
+      max-height: 75vh;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
     .more-sheet.open {
-      display: block;
+      display: flex;
+      flex-direction: column;
       animation: sheetSlideUp 0.25s ease both;
     }
     @keyframes sheetSlideUp {
@@ -253,41 +254,55 @@ export class BracketView extends LitElement {
       letter-spacing: 0.1em;
       min-height: 32px;
     }
+    .more-sheet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 16px;
+      gap: 12px;
+    }
     .more-sheet-item {
       all: unset;
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 8px;
       width: 100%;
-      padding: 16px 18px;
+      padding: 16px 12px;
       font-family: var(--font-var);
-      font-size: 14px;
+      font-size: 13px;
       letter-spacing: 0.04em;
       color: var(--ink);
-      border-bottom: 1px solid rgba(26,25,51,0.12);
-      min-height: 52px;
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      min-height: 70px;
       box-sizing: border-box;
-      transition: background 0.1s;
-    }
-    .more-sheet-item:last-child {
-      border-bottom: none;
+      transition: background 0.1s, transform 0.1s;
+      text-align: center;
     }
     .more-sheet-item:active {
       background: var(--retro-yellow);
+      transform: translate(2px, 2px);
+      box-shadow: 0 0 0 0 var(--ink);
     }
     .more-sheet-item .ms-icon {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+    .more-sheet-item .ms-icon svg {
+      width: 24px;
+      height: 24px;
+    }
     @media (max-width: 375px) {
       .more-sheet-item {
-        padding: 14px 16px;
-        font-size: 13px;
+        padding: 14px 10px;
+        font-size: 12px;
       }
     }
 
@@ -725,20 +740,22 @@ export class BracketView extends LitElement {
             <span class="more-sheet-title">${t('tabs.more')}</span>
             <button class="more-sheet-close" @click="${this._closeMore}">${t('modal.close')}</button>
           </div>
-          ${MORE_TABS.map(tab => html`
-            <button
-              class="more-sheet-item"
-              role="menuitem"
-              @click="${() => this._selectTab(tab)}">
-              <span class="ms-icon">${tab === 'calendar'
-                ? html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-                : tab === 'stadiums'
-                  ? html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2Z"/><path d="M12 10l-2 6h4l-2-6Z"/></svg>`
-                  : html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg>`
-              }</span>
-              ${t(PHASE_TAB_KEYS[tab])}
-            </button>
-          `)}
+          <div class="more-sheet-grid">
+            ${MORE_TABS.map(tab => html`
+              <button
+                class="more-sheet-item"
+                role="menuitem"
+                @click="${() => this._selectTab(tab)}">
+                <span class="ms-icon">${tab === 'calendar'
+                  ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+                  : tab === 'stadiums'
+                    ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2Z"/><path d="M12 10l-2 6h4l-2-6Z"/></svg>`
+                    : html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg>`
+                }</span>
+                ${t(PHASE_TAB_KEYS[tab])}
+              </button>
+            `)}
+          </div>
         </div>
 
         <!-- Hero / Inicio -->

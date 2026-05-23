@@ -1354,8 +1354,8 @@ export class GuideView extends LitElement {
 
     @media (max-width: 768px) {
       .gw-header { grid-template-columns: 1fr; }
-      .gw-search { min-width: 0; }
-      .notebook { box-shadow: var(--shadow-hard-md); }
+      .gw-search { min-width: 0; width: 100%; box-sizing: border-box; }
+      .notebook { box-shadow: var(--shadow-hard-md); min-height: 400px; }
       .notebook-page { padding: 14px 12px 16px; }
       .archive-tabs { padding: 8px 10px 0; gap: 1px; }
       .archive-tab { min-width: 38px; padding: 7px 2px 6px; }

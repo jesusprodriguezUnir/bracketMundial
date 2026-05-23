@@ -27,6 +27,9 @@ scripts/preview_p*.png
 tmp/
 scratch/
 
+# Artefactos de grabación (no versionar)
+recordings/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

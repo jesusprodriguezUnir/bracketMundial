@@ -1451,25 +1451,32 @@ export class LeaguesView extends LitElement {
       .lg-hero { padding: 18px; }
       .lg-summary-grid { grid-template-columns: 1fr; }
       .lg-results-board { grid-template-columns: 1fr; }
-      .lg-actions { justify-content: flex-start; }
-      .lg-ranking-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lg-actions { 
+        justify-content: flex-start; 
+        flex-direction: column; 
+        width: 100%; 
+        align-items: stretch;
+      }
+      .lg-actions button, .lg-actions .lg-btn, .lg-actions .lg-upload-btn, .lg-actions .lg-danger-btn { 
+        width: 100%; 
+        box-sizing: border-box; 
+        justify-content: center; 
+      }
+      .lg-ranking-overview { grid-template-columns: 1fr; }
       .lg-ranking-toolbar { flex-direction: column; }
       .lg-participant-summary {
         grid-template-columns: auto minmax(0, 1fr);
         align-items: flex-start;
-        gap: 10px;
-        padding: 12px 14px;
       }
       .lg-participant-mini-stats {
-        display: none;
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
-      .lg-participant-rank-badge { min-width: 36px; min-height: 36px; font-size: 18px; }
-      .lg-participant-name { font-size: clamp(16px, 4.5vw, 20px); }
       .lg-participant-scorebox {
         grid-column: 1 / -1;
-        justify-items: flex-end;
+        justify-items: flex-start;
       }
-      .lg-inline-bracket { grid-template-columns: repeat(6, minmax(150px, 1fr)); }
+      .lg-inline-bracket { grid-template-columns: repeat(6, minmax(140px, 1fr)); }
       .lg-add-row { flex-direction: column; }
       .lg-field { min-width: 100%; }
       .lg-league-switcher { width: 100%; }
