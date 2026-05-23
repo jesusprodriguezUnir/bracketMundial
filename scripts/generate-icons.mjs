@@ -10,8 +10,9 @@ const SOURCE_IMAGE = 'C:\\Users\\jesus\\.gemini\\antigravity\\brain\\5de23614-4e
 
 async function generateIcons() {
   if (!existsSync(SOURCE_IMAGE)) {
-    console.error(`❌ No se encontró la imagen de origen: ${SOURCE_IMAGE}`);
-    process.exit(1);
+    console.warn(`⚠️ Warning: No se encontró la imagen de origen: ${SOURCE_IMAGE}`);
+    console.warn('Se omitirá la regeneración y se utilizarán los iconos existentes en public/');
+    process.exit(0);
   }
 
   console.log(`🔷 Procesando imagen de origen: ${SOURCE_IMAGE}`);
