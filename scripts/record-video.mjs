@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import { join } from 'path';
 import { existsSync, mkdirSync, unlinkSync } from 'fs';
 import {
-  rootDir, DEV_URL, sleep, ensureDevServer, convertToMp4, smoothScroll,
+  rootDir, DEV_URL, sleep, ensureDevServer, convertToMp4, smoothScroll, gotoView,
 } from './lib/recording-utils.mjs';
 
 const PLATFORMS = {
@@ -13,13 +13,6 @@ const PLATFORMS = {
 };
 
 const DEFAULT_PLATFORM = 'instagram';
-
-// Etiquetas en español (locale por defecto)
-const NAV = {
-  tabs: ['Inicio', 'Grupos', 'Cruces', 'Equipos'],
-  moreLabel: 'Más',
-  moreItems: ['Calendario', 'Estadios', 'Entrenadores'],
-};
 
 // ── core ──
 
@@ -58,34 +51,6 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
     await page.goto(DEV_URL, { waitUntil: 'networkidle' });
     await sleep(2500);
 
-    // ── helpers de interacción para Shadow DOM ──
-    // Playwright cruza Shadow DOM abierto automáticamente.
-
-    /** Click a un botón del bottom-nav que contenga cierto texto */
-    async function tapNav(label) {
-      await page.locator('.bottom-nav-btn').filter({ hasText: label }).click();
-      await sleep(900);
-    }
-
-    /** Abre el menú More y clickea un item */
-    async function tapMoreItem(label) {
-      await page.locator('.bottom-nav-btn').filter({ hasText: NAV.moreLabel }).click();
-      await sleep(400);
-      await page.locator('.more-overlay-item').filter({ hasText: label }).click();
-      await sleep(900);
-    }
-
-    /** Cierra el overlay More si está abierto */
-    async function closeMore() {
-      try {
-        const ov = page.locator('.more-overlay.open');
-        if (await ov.isVisible()) {
-          await page.locator('.more-overlay-backdrop.open').click({ force: true });
-          await sleep(250);
-        }
-      } catch {}
-    }
-
     console.log('🎬 Iniciando secuencia…\n');
 
     // ── CRONOGRAMA 30s ──────────────────────────────────
@@ -101,7 +66,7 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
 
     // 2) GRUPOS  (5s → 9.5s)
     console.log('   (2/7) Grupos');
-    await tapNav(NAV.tabs[1]); // Grupos
+    await gotoView(page, 'groups');
     await smoothScroll(page, 600, 2000);
     await sleep(400);
     await smoothScroll(page, -300, 1000);
@@ -109,7 +74,7 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
 
     // 3) CRUCES / KNOCKOUT  (9.5s → 14s)
     console.log('   (3/7) Cruces');
-    await tapNav(NAV.tabs[2]); // Cruces
+    await gotoView(page, 'knockout');
     await smoothScroll(page, 500, 1500);
     await sleep(600);
     await smoothScroll(page, -500, 1200);
@@ -117,7 +82,7 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
 
     // 4) EQUIPOS / SQUADS  (14s → 18.5s)
     console.log('   (4/7) Equipos');
-    await tapNav(NAV.tabs[3]); // Equipos
+    await gotoView(page, 'squads');
     await smoothScroll(page, 600, 2000);
     await sleep(400);
     await smoothScroll(page, -600, 1200);
@@ -125,28 +90,24 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
 
     // 5) CALENDARIO  (18.5s → 22s)
     console.log('   (5/7) Calendario');
-    await tapMoreItem(NAV.moreItems[0]); // Calendario
+    await gotoView(page, 'calendar');
     await smoothScroll(page, 500, 1500);
     await sleep(500);
 
     // 6) ESTADIOS  (22s → 25.5s)
     console.log('   (6/7) Estadios');
-    await closeMore();
-    await tapMoreItem(NAV.moreItems[1]); // Estadios
+    await gotoView(page, 'stadiums');
     await smoothScroll(page, 400, 1200);
     await sleep(800);
 
     // 7) ENTRENADORES  (25.5s → 28.5s)
     console.log('   (7/7) Entrenadores');
-    await page.locator('.more-overlay-backdrop.open').click({ force: true }).catch(() => {});
-    await sleep(200);
-    await tapMoreItem(NAV.moreItems[2]); // Entrenadores
+    await gotoView(page, 'coaches');
     await smoothScroll(page, 400, 1200);
     await sleep(800);
 
     // Cierre: volver a Inicio  (28.5s → 30s)
-    await closeMore();
-    await tapNav(NAV.tabs[0]); // Inicio
+    await gotoView(page, 'hero');
     await sleep(2000);
 
     // ── finalizar grabación ──

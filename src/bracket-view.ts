@@ -67,6 +67,7 @@ export class BracketView extends LitElement {
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
+  private _swipeBlocked = false;
   private _tabHistory: PhaseTab[] = ['hero'];
 
 
@@ -608,9 +609,25 @@ export class BracketView extends LitElement {
     this._swipeStartX = e.touches[0].clientX;
     this._swipeStartY = e.touches[0].clientY;
     this._isSwiping = false;
+    this._swipeBlocked = this._isInsideHorizontalScroller(e);
+  }
+
+  private _isInsideHorizontalScroller(e: TouchEvent): boolean {
+    // composedPath cruza shadow boundaries — necesario porque el target real
+    // (p.ej. .mob-chips dentro de <bracket-knockout>) vive en otro shadow root.
+    const path = e.composedPath();
+    for (const node of path) {
+      if (node === this) break;
+      if (!(node instanceof HTMLElement)) continue;
+      if (node.scrollWidth <= node.clientWidth) continue;
+      const ox = getComputedStyle(node).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+    return false;
   }
 
   private _onSwipeMove(e: TouchEvent) {
+    if (this._swipeBlocked) return;
     if (!this._isSwiping) {
       const dx = Math.abs(e.touches[0].clientX - this._swipeStartX);
       const dy = Math.abs(e.touches[0].clientY - this._swipeStartY);
@@ -623,6 +640,11 @@ export class BracketView extends LitElement {
   }
 
   private _onSwipeEnd(e: TouchEvent) {
+    if (this._swipeBlocked) {
+      this._swipeBlocked = false;
+      this._isSwiping = false;
+      return;
+    }
     if (!this._isSwiping) return;
     this._isSwiping = false;
     const dx = e.changedTouches[0].clientX - this._swipeStartX;

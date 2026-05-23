@@ -1733,7 +1733,7 @@ export class LeaguesView extends LitElement {
     input.value = '';
   }
 
-  private _simulateWorld() {
+  private _simulateWorld = () => {
     const st = useTournamentStore.getState();
     st.autoSimulateGroups();
     st.autoSimulateKnockout();
@@ -1757,7 +1757,7 @@ export class LeaguesView extends LitElement {
       const { groupScores, knockoutScores } = simulateEmptyPredictions(p, resolvedKo);
       useLeaguesStore.getState().updateParticipantScores(leagueId, p.id, groupScores, knockoutScores);
     }
-  }
+  };
 
   private async _handleReplaceExcel(e: Event) {
     const input = e.target as HTMLInputElement;

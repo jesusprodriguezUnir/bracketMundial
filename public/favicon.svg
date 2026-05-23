@@ -1,80 +1,169 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
   <defs>
-    <pattern id="cst" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <rect width="4" height="8" fill="#c41e2c" opacity="0.08"/>
-    </pattern>
-    <clipPath id="ccc">
-      <circle cx="100" cy="100" r="92"/>
-    </clipPath>
+    <!-- Estilo para las estrellas -->
+    <style>
+      .gold-seg-light { fill: #f6d267; }
+      .gold-seg-dark { fill: #c59218; }
+      .star-color { fill: #fcdb3a; }
+      .dark-ink { fill: #1a1933; stroke: #1a1933; }
+      .line-seam { stroke: #1a1933; stroke-width: 1.0; stroke-dasharray: 1.2, 1.2; }
+    </style>
   </defs>
 
-  <!-- Perforaciones (36 puntos crema en radio 96) -->
-  <circle cx="196.0" cy="100.0" r="4" fill="#fff9ec"/>
-  <circle cx="194.5" cy="116.7" r="4" fill="#fff9ec"/>
-  <circle cx="190.2" cy="132.8" r="4" fill="#fff9ec"/>
-  <circle cx="183.1" cy="148.0" r="4" fill="#fff9ec"/>
-  <circle cx="173.5" cy="161.7" r="4" fill="#fff9ec"/>
-  <circle cx="161.7" cy="173.5" r="4" fill="#fff9ec"/>
-  <circle cx="148.0" cy="183.1" r="4" fill="#fff9ec"/>
-  <circle cx="132.8" cy="190.2" r="4" fill="#fff9ec"/>
-  <circle cx="116.7" cy="194.5" r="4" fill="#fff9ec"/>
-  <circle cx="100.0" cy="196.0" r="4" fill="#fff9ec"/>
-  <circle cx="83.3"  cy="194.5" r="4" fill="#fff9ec"/>
-  <circle cx="67.2"  cy="190.2" r="4" fill="#fff9ec"/>
-  <circle cx="52.0"  cy="183.1" r="4" fill="#fff9ec"/>
-  <circle cx="38.3"  cy="173.5" r="4" fill="#fff9ec"/>
-  <circle cx="26.5"  cy="161.7" r="4" fill="#fff9ec"/>
-  <circle cx="16.9"  cy="148.0" r="4" fill="#fff9ec"/>
-  <circle cx="9.8"   cy="132.8" r="4" fill="#fff9ec"/>
-  <circle cx="5.5"   cy="116.7" r="4" fill="#fff9ec"/>
-  <circle cx="4.0"   cy="100.0" r="4" fill="#fff9ec"/>
-  <circle cx="5.5"   cy="83.3"  r="4" fill="#fff9ec"/>
-  <circle cx="9.8"   cy="67.2"  r="4" fill="#fff9ec"/>
-  <circle cx="16.9"  cy="52.0"  r="4" fill="#fff9ec"/>
-  <circle cx="26.5"  cy="38.3"  r="4" fill="#fff9ec"/>
-  <circle cx="38.3"  cy="26.5"  r="4" fill="#fff9ec"/>
-  <circle cx="52.0"  cy="16.9"  r="4" fill="#fff9ec"/>
-  <circle cx="67.2"  cy="9.8"   r="4" fill="#fff9ec"/>
-  <circle cx="83.3"  cy="5.5"   r="4" fill="#fff9ec"/>
-  <circle cx="100.0" cy="4.0"   r="4" fill="#fff9ec"/>
-  <circle cx="116.7" cy="5.5"   r="4" fill="#fff9ec"/>
-  <circle cx="132.8" cy="9.8"   r="4" fill="#fff9ec"/>
-  <circle cx="148.0" cy="16.9"  r="4" fill="#fff9ec"/>
-  <circle cx="161.7" cy="26.5"  r="4" fill="#fff9ec"/>
-  <circle cx="173.5" cy="38.3"  r="4" fill="#fff9ec"/>
-  <circle cx="183.1" cy="52.0"  r="4" fill="#fff9ec"/>
-  <circle cx="190.2" cy="67.2"  r="4" fill="#fff9ec"/>
-  <circle cx="194.5" cy="83.3"  r="4" fill="#fff9ec"/>
-
-  <!-- Cuerpo principal -->
-  <circle cx="100" cy="100" r="92" fill="#e8541f" stroke="#1a1933" stroke-width="3"/>
-  <!-- Rayas diagonales (rojo translúcido) -->
-  <rect x="8" y="8" width="184" height="184" fill="url(#cst)" clip-path="url(#ccc)"/>
-
-  <!-- Anillos interiores -->
-  <circle cx="100" cy="100" r="82" fill="none" stroke="#f0b021" stroke-width="1.5"/>
-  <circle cx="100" cy="100" r="78" fill="none" stroke="#1a1933" stroke-width="2.5"/>
-
-  <!-- Estrellas (6, amarillo) -->
-  <polygon points="100,31.5 101.06,34.54 104.28,34.61 101.71,36.56 102.65,39.64 100,37.8 97.36,39.64 98.29,36.56 95.72,34.61 98.94,34.54" fill="#f0b021"/>
-  <polygon points="56,59.5 57.06,62.54 60.28,62.61 57.71,64.56 58.65,67.64 56,65.8 53.36,67.64 54.29,64.56 51.72,62.61 54.94,62.54" fill="#f0b021"/>
-  <polygon points="144,59.5 145.06,62.54 148.28,62.61 145.71,64.56 146.65,67.64 144,65.8 141.36,67.64 142.29,64.56 139.72,62.61 142.94,62.54" fill="#f0b021"/>
-  <polygon points="56,127.5 57.06,130.54 60.28,130.61 57.71,132.56 58.65,135.64 56,133.8 53.36,135.64 54.29,132.56 51.72,130.61 54.94,130.54" fill="#f0b021"/>
-  <polygon points="144,127.5 145.06,130.54 148.28,130.61 145.71,132.56 146.65,135.64 144,133.8 141.36,135.64 142.29,132.56 139.72,130.61 142.94,130.54" fill="#f0b021"/>
-  <polygon points="100,155.5 101.06,158.54 104.28,158.61 101.71,160.56 102.65,163.64 100,161.8 97.36,163.64 98.29,160.56 95.72,158.61 98.94,158.54" fill="#f0b021"/>
-
-  <!-- Balón en (100, 96) r=36 -->
-  <circle cx="100" cy="96" r="36" fill="#fff9ec" stroke="#1a1933" stroke-width="2.2"/>
-  <polygon points="100,78 117,90 111,110 89,110 83,90" fill="#1a1933"/>
-  <line x1="100" y1="78" x2="100" y2="60" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="117" y1="90" x2="134" y2="84" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="111" y1="110" x2="122" y2="124" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="89"  y1="110" x2="78"  y2="124" stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="83"  y1="90"  x2="66"  y2="84"  stroke="#1a1933" stroke-width="2.2" stroke-linecap="round"/>
-
-  <!-- Cinta "MUNDIAL · 2026" -->
-  <g transform="translate(100 158)">
-    <path d="M-64,0 L-56,-10 L56,-10 L64,0 L56,10 L-56,10 Z" fill="#1a1933" stroke="#fff9ec" stroke-width="2"/>
-    <text x="0" y="4" text-anchor="middle" font-family="'Bowlby One',Impact,sans-serif" font-size="13" fill="#f0b021" letter-spacing="0.06em">MUNDIAL · 2026</text>
+  <!-- 3D Gold outer bevel segments (36 segments) -->
+  <!-- Segment 0-9 -->
+  <polygon points="198,100 196.48,117.02 184.66,114.94 186.09,98.96" fill="#f6d267" />
+  <polygon points="196.48,117.02 191.97,133.68 180.44,129.4 184.66,114.94" fill="#c59218" />
+  <polygon points="191.97,133.68 184.59,149.58 173.5,143.7 180.44,129.4" fill="#f6d267" />
+  <polygon points="184.59,149.58 174.55,164.35 164.03,157.54 173.5,143.7" fill="#c59218" />
+  <polygon points="174.55,164.35 162.11,177.58 152.29,169.83 164.03,157.54" fill="#f6d267" />
+  <polygon points="162.11,177.58 147.57,188.94 138.61,180.37 152.29,169.83" fill="#c59218" />
+  <polygon points="147.57,188.94 131.29,197.99 123.34,188.79 138.61,180.37" fill="#f6d267" />
+  <polygon points="131.29,197.99 113.68,204.49 106.84,194.88 123.34,188.79" fill="#c59218" />
+  <polygon points="113.68,204.49 95.17,208.19 89.47,198.37 106.84,194.88" fill="#f6d267" />
+  <!-- Para simplificar la escritura manual de los 36 segmentos en el SVG estático, 
+       podemos simplemente copiar la aproximación de Lit, o mejor aún, escribir el generador de SVG estático.
+       De hecho, el navegador renderiza perfectamente los bucles SVG en Lit, pero para el favicon.svg,
+       podemos usar un diseño limpio usando rotaciones SVG (<g transform="rotate(...)">) que hace que el archivo sea súper compacto, limpio y elegante. 
+       ¡Hagamos eso! Es una técnica de código SVG súper profesional y compacta. -->
+  
+  <!-- 3D Gold outer bevel segments mediante rotaciones repetidas -->
+  <g id="gold-bevel">
+    <!-- Un par de segmentos (10 grados cada uno). Total 18 repeticiones para 360 grados -->
+    <!-- Segmento claro de 0 a 10 grados -->
+    <polygon points="198,100 196.48,117.02 184.66,114.94 186.09,98.96" fill="#f6d267" />
+    <!-- Segmento oscuro de 10 a 20 grados -->
+    <polygon points="196.48,117.02 191.97,133.68 180.44,129.4 184.66,114.94" fill="#c59218" />
   </g>
+  <!-- Copias rotadas del bevel para cubrir los 360 grados (18 copias de 20 grados cada una) -->
+  <use href="#gold-bevel" transform="rotate(20 100 100)" />
+  <use href="#gold-bevel" transform="rotate(40 100 100)" />
+  <use href="#gold-bevel" transform="rotate(60 100 100)" />
+  <use href="#gold-bevel" transform="rotate(80 100 100)" />
+  <use href="#gold-bevel" transform="rotate(100 100 100)" />
+  <use href="#gold-bevel" transform="rotate(120 100 100)" />
+  <use href="#gold-bevel" transform="rotate(140 100 100)" />
+  <use href="#gold-bevel" transform="rotate(160 100 100)" />
+  <use href="#gold-bevel" transform="rotate(180 100 100)" />
+  <use href="#gold-bevel" transform="rotate(200 100 100)" />
+  <use href="#gold-bevel" transform="rotate(220 100 100)" />
+  <use href="#gold-bevel" transform="rotate(240 100 100)" />
+  <use href="#gold-bevel" transform="rotate(260 100 100)" />
+  <use href="#gold-bevel" transform="rotate(280 100 100)" />
+  <use href="#gold-bevel" transform="rotate(300 100 100)" />
+  <use href="#gold-bevel" transform="rotate(320 100 100)" />
+  <use href="#gold-bevel" transform="rotate(340 100 100)" />
+
+  <!-- Background under points -->
+  <circle cx="100" cy="100" r="86" fill="#e5b53b" stroke="#1a1933" stroke-width="1.5" />
+
+  <!-- Dark points (perforations - 48 points) -->
+  <g id="dot-pair">
+    <circle cx="181" cy="100" r="2.8" fill="#1a1933" />
+  </g>
+  <use href="#dot-pair" transform="rotate(7.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(15 100 100)" />
+  <use href="#dot-pair" transform="rotate(22.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(30 100 100)" />
+  <use href="#dot-pair" transform="rotate(37.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(45 100 100)" />
+  <use href="#dot-pair" transform="rotate(52.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(60 100 100)" />
+  <use href="#dot-pair" transform="rotate(67.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(75 100 100)" />
+  <use href="#dot-pair" transform="rotate(82.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(90 100 100)" />
+  <use href="#dot-pair" transform="rotate(97.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(105 100 100)" />
+  <use href="#dot-pair" transform="rotate(112.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(120 100 100)" />
+  <use href="#dot-pair" transform="rotate(127.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(135 100 100)" />
+  <use href="#dot-pair" transform="rotate(142.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(150 100 100)" />
+  <use href="#dot-pair" transform="rotate(157.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(165 100 100)" />
+  <use href="#dot-pair" transform="rotate(172.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(180 100 100)" />
+  <use href="#dot-pair" transform="rotate(187.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(195 100 100)" />
+  <use href="#dot-pair" transform="rotate(202.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(210 100 100)" />
+  <use href="#dot-pair" transform="rotate(217.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(225 100 100)" />
+  <use href="#dot-pair" transform="rotate(232.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(240 100 100)" />
+  <use href="#dot-pair" transform="rotate(247.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(255 100 100)" />
+  <use href="#dot-pair" transform="rotate(262.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(270 100 100)" />
+  <use href="#dot-pair" transform="rotate(277.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(285 100 100)" />
+  <use href="#dot-pair" transform="rotate(292.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(300 100 100)" />
+  <use href="#dot-pair" transform="rotate(307.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(315 100 100)" />
+  <use href="#dot-pair" transform="rotate(322.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(330 100 100)" />
+  <use href="#dot-pair" transform="rotate(337.5 100 100)" />
+  <use href="#dot-pair" transform="rotate(345 100 100)" />
+  <use href="#dot-pair" transform="rotate(352.5 100 100)" />
+
+  <!-- Main circle frame -->
+  <circle cx="100" cy="100" r="76" fill="#e8541f" stroke="#1a1933" stroke-width="3" />
+
+  <!-- Inner accent ring -->
+  <circle cx="100" cy="100" r="69" fill="none" stroke="#fcdb3a" stroke-width="1.5" />
+
+  <!-- Stars in arc (5 stars) -->
+  <!-- Estrellas representadas con polígonos calculados -->
+  <!-- Exterior Izquierda (52, 74) r=4.2 -->
+  <polygon points="52,69.8 52.88,71.93 55.16,71.97 53.32,73.34 54.02,75.56 52,74.23 49.98,75.56 50.68,73.34 48.84,71.97 51.12,71.93" fill="#fcdb3a" />
+  <!-- Media Izquierda (74.7, 55.8) r=5.2 -->
+  <polygon points="74.7,50.6 75.79,53.23 78.62,53.28 76.34,54.98 77.21,57.73 74.7,56.08 72.19,57.73 73.06,54.98 70.78,53.28 73.61,53.23" fill="#fcdb3a" />
+  <!-- Central (100, 46) r=6.2 -->
+  <polygon points="100,39.8 101.3,42.94 104.68,43.01 101.96,45.03 102.99,48.32 100,46.35 97.01,48.32 98.04,45.03 95.32,43.01 98.7,42.94" fill="#fcdb3a" />
+  <!-- Media Derecha (125.3, 55.8) r=5.2 -->
+  <polygon points="125.3,50.6 126.39,53.23 129.22,53.28 126.94,54.98 127.81,57.73 125.3,56.08 122.79,57.73 123.66,54.98 121.38,53.28 124.21,53.23" fill="#fcdb3a" />
+  <!-- Exterior Derecha (148, 74) r=4.2 -->
+  <polygon points="148,69.8 148.88,71.93 151.16,71.97 149.32,73.34 150.02,75.56 148,74.23 145.98,75.56 146.68,73.34 144.84,71.97 147.12,71.93" fill="#fcdb3a" />
+
+  <!-- Ball background circle -->
+  <circle cx="100" cy="95" r="27" fill="#fff9ec" stroke="#1a1933" stroke-width="2.5" />
+
+  <!-- Ball pentagons (Central + 5 outer) -->
+  <!-- Pentágono Central en (100, 95) r=7.5, angleOffset=0 -->
+  <polygon points="100,87.5 107.13,92.68 104.41,96.43 95.59,96.43 92.87,92.68" fill="#1a1933" />
+  
+  <!-- Pentágonos exteriores centrados a d=14.5 del centro (100, 95) con r=7.5 y ángulo de orientación radial -->
+  <!-- Exterior 0 (Abajo, ángulo = 90 grados, px=100, py=109.5) -->
+  <polygon points="100,117 92.87,111.82 95.59,108.07 104.41,108.07 107.13,111.82" fill="#1a1933" />
+  <!-- Exterior 1 (px=100 + 14.5*cos(162°), py=95 + 14.5*sin(162°)) -> px=86.2, py=99.5 -->
+  <!-- Exterior 2 (px=100 + 14.5*cos(234°), py=95 + 14.5*sin(234°)) -> px=91.5, py=83.3 -->
+  <!-- Exterior 3 (px=100 + 14.5*cos(306°), py=95 + 14.5*sin(306°)) -> px=108.5, py=83.3 -->
+  <!-- Exterior 4 (px=100 + 14.5*cos(18°), py=95 + 14.5*sin(18°)) -> px=113.8, py=99.5 -->
+  
+  <!-- Usaremos rotaciones del pentágono exterior para mayor simplicidad y simetría -->
+  <g id="outer-pentagon">
+    <!-- Centrado en px=100, py=109.5. Rotación angle + Math.PI = 90 + 180 = 270 grados (apunta hacia abajo) -->
+    <polygon points="100,117 92.87,111.82 95.59,108.07 104.41,108.07 107.13,111.82" fill="#1a1933" />
+  </g>
+  <!-- Rotar los 5 pentágonos exteriores alrededor del centro del balón (100, 95) -->
+  <use href="#outer-pentagon" transform="rotate(72 100 95)" />
+  <use href="#outer-pentagon" transform="rotate(144 100 95)" />
+  <use href="#outer-pentagon" transform="rotate(216 100 95)" />
+  <use href="#outer-pentagon" transform="rotate(288 100 95)" />
+
+  <!-- Ball seams lines (5 lines) -->
+  <g id="seam-line">
+    <line x1="100" y1="87.5" x2="100" y2="84.5" stroke="#1a1933" stroke-width="1.0" stroke-dasharray="1.2, 1.2" />
+  </g>
+  <use href="#seam-line" transform="rotate(72 100 95)" />
+  <use href="#seam-line" transform="rotate(144 100 95)" />
+  <use href="#seam-line" transform="rotate(216 100 95)" />
+  <use href="#seam-line" transform="rotate(288 100 95)" />
+
+  <!-- Banner "BracketMundial" -->
+  <rect x="28" y="136" width="144" height="25" rx="12.5" ry="12.5" fill="#1a1933" stroke="#fcdb3a" stroke-width="2.2" />
+  <text x="100" y="153.5" text-anchor="middle" font-family="'Archivo Black', 'Bowlby One', sans-serif" font-weight="900" font-size="14.2" fill="#fcdb3a" letter-spacing="-0.02em">BracketMundial</text>
 </svg>
