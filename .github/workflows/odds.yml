@@ -56,7 +56,12 @@ jobs:
           {
             "$schema": "https://openapi.vercel.sh/vercel.json",
             "installCommand": "true",
-            "buildCommand": "true"
+            "buildCommand": "true",
+            "git": {
+              "deploymentEnabled": {
+                "odds-data": false
+              }
+            }
           }
           EOF
           git add odds-feed.json vercel.json
