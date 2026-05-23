@@ -627,6 +627,7 @@ export const es = {
   'league.modeSimulation': 'Simulación',
   'league.projectionBanner': '★ MODO SIMULACIÓN · Resultados pendientes proyectados con odds',
   'league.seeResults': 'VER RESULTADOS',
+  'league.noMatchesPlayedYet': 'Todavía no se ha jugado ningún partido real.',
   'league.noResultsRealMode': 'Aún no hay resultados oficiales. Cambia a modo simulación para experimentar.',
   'league.projectionTagSuffix': '(simulado)',
   'league.projectionLabel': 'Proyectado',

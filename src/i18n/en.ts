@@ -619,6 +619,7 @@ export const en: Record<TranslationKey, string> = {
   'league.modeSimulation': 'Simulation',
   'league.projectionBanner': '★ SIMULATION MODE · Pending matches projected from odds',
   'league.seeResults': 'SEE RESULTS',
+  'league.noMatchesPlayedYet': 'No real matches have been played yet.',
   'league.noResultsRealMode': 'No official results yet. Switch to simulation mode to experiment.',
   'league.projectionTagSuffix': '(simulated)',
   'league.projectionLabel': 'Projected',

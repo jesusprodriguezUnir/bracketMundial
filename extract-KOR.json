@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "type": "player", "number": 11, "bbox": [0.19, 0.20, 0.13, 0.13], "label": "H-C HWANG" },
+    { "type": "player", "number": 7,  "bbox": [0.44, 0.20, 0.13, 0.13], "label": "SON" },
+    { "type": "player", "number": 18, "bbox": [0.69, 0.20, 0.13, 0.13], "label": "K-I LEE" },
+    { "type": "player", "number": 24, "bbox": [0.11, 0.41, 0.13, 0.13], "label": "T-S LEE" },
+    { "type": "player", "number": 10, "bbox": [0.33, 0.41, 0.13, 0.13], "label": "J-S LEE" },
+    { "type": "player", "number": 6,  "bbox": [0.55, 0.41, 0.13, 0.13], "label": "I-B HWANG" },
+    { "type": "player", "number": 22, "bbox": [0.77, 0.41, 0.13, 0.13], "label": "Y-W SEOL" },
+    { "type": "player", "number": 15, "bbox": [0.19, 0.62, 0.13, 0.13], "label": "Y-M CHO" },
+    { "type": "player", "number": 4,  "bbox": [0.44, 0.62, 0.13, 0.13], "label": "M-J KIM" },
+    { "type": "player", "number": 3,  "bbox": [0.69, 0.62, 0.13, 0.13], "label": "H-B LEE" },
+    { "type": "player", "number": 21, "bbox": [0.44, 0.81, 0.13, 0.13], "label": "H-W JO" }
+  ]
+}

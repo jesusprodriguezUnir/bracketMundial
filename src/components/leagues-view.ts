@@ -2121,6 +2121,8 @@ export class LeaguesView extends LitElement {
         .filter((match): match is { matchId: string; teamA: string; teamB: string; scoreA: number; scoreB: number; label: string } => match !== null),
     ].slice(-3).reverse();
     const displayKnockoutByMatchId = new Map(this._knockoutDisplayScores.map(match => [match.matchId, match]));
+    const hasRealMatches = played > 0;
+    const shouldShowRealEmptyState = this._isReadOnly && !hasRealMatches;
 
     return html`
       <div class="lg-editorial-shell">
@@ -2297,7 +2299,7 @@ export class LeaguesView extends LitElement {
                     </div>
                   </article>
                 `;
-              }) : html`<div class="lg-normal">${this._isReadOnly ? t('league.noResultsRealMode') : t('league.nextMatches')}</div>`}
+              }) : html`<div class="lg-normal">${this._isReadOnly ? t('league.noMatchesPlayedYet') : t('league.nextMatches')}</div>`}
             </div>
           </div>
 
@@ -2310,7 +2312,9 @@ export class LeaguesView extends LitElement {
             </div>
 
             <div class="lg-next-list">
-              ${next3.map(match => {
+              ${shouldShowRealEmptyState ? html`
+                <div class="lg-normal">${t('league.noMatchesPlayedYet')}</div>
+              ` : next3.map(match => {
                 const teamA = getTeam(match.teamA);
                 const teamB = getTeam(match.teamB);
                 return html`

@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "type": "player", "number": 20, "bbox": [0.19, 0.20, 0.13, 0.13], "label": "DOKU" },
+    { "type": "player", "number": 22, "bbox": [0.44, 0.20, 0.13, 0.13], "label": "LUKAKU" },
+    { "type": "player", "number": 28, "bbox": [0.69, 0.20, 0.13, 0.13], "label": "TROSSARD" },
+    { "type": "player", "number": 16, "bbox": [0.19, 0.41, 0.13, 0.13], "label": "TIELEMANS" },
+    { "type": "player", "number": 14, "bbox": [0.44, 0.41, 0.13, 0.13], "label": "ONANA" },
+    { "type": "player", "number": 13, "bbox": [0.69, 0.41, 0.13, 0.13], "label": "DE BRUYNE" },
+    { "type": "player", "number": 4,  "bbox": [0.11, 0.62, 0.13, 0.13], "label": "CASTAGNE" },
+    { "type": "player", "number": 12, "bbox": [0.33, 0.62, 0.13, 0.13], "label": "THEATE" },
+    { "type": "player", "number": 8,  "bbox": [0.55, 0.62, 0.13, 0.13], "label": "MECHELE" },
+    { "type": "player", "number": 9,  "bbox": [0.77, 0.62, 0.13, 0.13], "label": "MEUNIER" },
+    { "type": "player", "number": 1,  "bbox": [0.44, 0.81, 0.13, 0.13], "label": "COURTOIS" }
+  ]
+}
