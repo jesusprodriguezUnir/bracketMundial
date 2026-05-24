@@ -23,9 +23,11 @@ docs/*.pdf
 # Artefactos de inspección de scripts (no versionar)
 scripts/preview_p*.png
 
-# Directorio temporal de extracción de figuritas
+# Directorios temporales y specs de extracción
+temp/
 tmp/
 scratch/
+extract-*.json
 
 # Artefactos de grabación (no versionar)
 recordings/
