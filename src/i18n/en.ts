@@ -692,4 +692,14 @@ export const en: Record<TranslationKey, string> = {
   'coaches.ageSuffix': '{n} years',
   'coaches.pendingCoach': 'The {team} federation has not yet confirmed their head coach for the tournament.',
 
+  // ─── Loading / error / empty states ───
+  'view.loading': 'Loading…',
+  'squads.news.error': 'Error loading news.',
+  'squads.news.retry': 'Retry',
+  'squads.matchDetail.oddsError': 'Could not load odds.',
+  'modal.unsaved': 'Unsaved changes',
+  'modal.unsavedMessage': 'You have unsaved changes. Save before closing?',
+  'modal.saveClose': 'Save and close',
+  'modal.discard': 'Discard',
+
 };

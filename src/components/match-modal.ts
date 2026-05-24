@@ -40,6 +40,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @state() private _preview: Preview | null = null;
   @state() private _chronicleOpen = false;
   @state() private _infoTab: 'preview' | 'lineups' | 'edit' = 'edit';
+  @state() private _confirmClose = false;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
@@ -60,6 +61,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       this._preview = getPreview(this.matchId);
       this._chronicleOpen = false;
       this._infoTab = 'edit';
+      this._confirmClose = false;
     }
   }
 
@@ -69,7 +71,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   }
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') this.close();
+    if (e.key === 'Escape') {
+      if (this._confirmClose) {
+        this._confirmClose = false;
+        return;
+      }
+      this.close();
+    }
     if (e.key === 'Tab') this._trapFocus(e);
   };
 
@@ -148,7 +156,36 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   }
 
   private close() {
+    if (this._hasUnsavedChanges()) {
+      this._confirmClose = true;
+      return;
+    }
+    this._dispatchClose();
+  }
+
+  private _hasUnsavedChanges(): boolean {
+    const scoreChanged = this._scoreA !== this.initialScoreA || this._scoreB !== this.initialScoreB;
+    const penaltyChanged = this._penaltyScoreA !== this.initialPenaltyScoreA || this._penaltyScoreB !== this.initialPenaltyScoreB;
+    return scoreChanged || penaltyChanged;
+  }
+
+  private _dispatchClose() {
     this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }));
+  }
+
+  private _discardAndClose() {
+    // Auto-save current state to not lose the edit
+    this.dispatchEvent(new CustomEvent('save', {
+      detail: {
+        matchId: this.matchId,
+        scoreA: this._scoreA,
+        scoreB: this._scoreB,
+        penaltyScoreA: this._penaltyScoreA,
+        penaltyScoreB: this._penaltyScoreB,
+      },
+      bubbles: true, composed: true,
+    }));
+    requestAnimationFrame(() => this._dispatchClose());
   }
 
   private clear() {
@@ -173,6 +210,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
   private adjustScore(team: 'A' | 'B', delta: number) {
     lightTap();
+    this._confirmClose = false;
     const nextScoreA = team === 'A'
       ? Math.max(0, (this._scoreA ?? 0) + delta)
       : (this._scoreA ?? 0);
@@ -193,6 +231,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
   private adjustPenalty(team: 'A' | 'B', delta: number) {
     lightTap();
+    this._confirmClose = false;
     const nextPenaltyA = team === 'A'
       ? Math.max(0, (this._penaltyScoreA ?? 0) + delta)
       : (this._penaltyScoreA ?? 0);
@@ -600,6 +639,38 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       background: var(--paper);
     }
     .modal-footer .btn { flex: 1; }
+
+    /* Confirmación cambios sin guardar */
+    .confirm-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--retro-yellow);
+      background: var(--paper-2);
+    }
+    .confirm-msg {
+      font-family: var(--font-var);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .confirm-hint {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: var(--dim);
+      line-height: 1.4;
+    }
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .confirm-actions .btn {
+      flex: 1;
+      font-size: 0.75rem;
+    }
     .limpiar-btn {
       flex: 0;
       min-width: 90px;
@@ -1491,11 +1562,24 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
         <!-- Footer -->
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
-          <button
-            class="btn btn-primary"
-            ?disabled="${!canSave}"
-            @click="${this.save}">${t('modal.save')}</button>
+          ${this._confirmClose
+            ? html`
+              <div class="confirm-bar">
+                <span class="confirm-msg">${t('modal.unsaved')}</span>
+                <span class="confirm-hint">${t('modal.unsavedMessage')}</span>
+                <div class="confirm-actions">
+                  <button class="btn btn-secondary" @click=${() => { this._confirmClose = false; this._dispatchClose(); }}>${t('modal.discard')}</button>
+                  <button class="btn btn-primary" @click=${this._discardAndClose}>${t('modal.saveClose')}</button>
+                </div>
+              </div>
+            `
+            : html`
+              <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
+              <button
+                class="btn btn-primary"
+                ?disabled="${!canSave}"
+                @click="${this.save}">${t('modal.save')}</button>
+            `}
         </div>
       </div>
     `;

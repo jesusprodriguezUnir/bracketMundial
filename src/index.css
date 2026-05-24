@@ -10,6 +10,7 @@
   --retro-blue:    #22418c;
   --retro-yellow:  #f0b021;
   --dim:           #7a6f54;
+  --focus-ring:    3px solid var(--retro-yellow);
 
   /* Sin redondeos — todo es impresión dura */
   --radius-lg: 0;
@@ -52,7 +53,7 @@
   --retro-green:   #2d9c56;
   --retro-blue:    #4570d4;
   --retro-yellow:  #f5c040;
-  --dim:           #8a8070;
+  --dim:           #b8b0a0;
 
   --halftone:      radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
   --halftone-soft: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
@@ -81,6 +82,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s, color 0.3s;
   
   /* Optimizaciones para móvil */
   padding-top: env(safe-area-inset-top);
@@ -89,6 +91,21 @@ body {
   padding-right: env(safe-area-inset-right);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+/* Foco visible global — accesibilidad */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+/* Respetar componentes que gestionan su propio outline */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Superficies con transición de tema */
+button, a, input, select, textarea, nav, .btn {
+  transition: background-color 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
 }
 
 h1, h2, h3 {
@@ -286,5 +303,89 @@ h1, h2, h3 {
     font-size: 11px;
     padding: 10px 16px;
   }
+}
+
+/* ─── Aspect-ratio helpers (anti-CLS) ─── */
+.avatar-img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.stadium-img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.coach-img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* ─── Empty state ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 12px;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.empty-state-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+/* ─── Error state ─── */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  gap: 12px;
+  color: var(--retro-red);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.error-state-message {
+  color: var(--dim);
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+/* ─── Row flash (edit feedback) ─── */
+@keyframes rowFlash {
+  0%   { background-color: var(--retro-green); color: var(--paper); }
+  100% { background-color: transparent; color: inherit; }
+}
+.row-flash {
+  animation: rowFlash 0.6s ease-out;
+}
+
+/* ─── Loading spinner ─── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  min-height: 120px;
+}
+.loading-spinner::after {
+  content: '';
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--paper-2);
+  border-top-color: var(--retro-yellow);
+  animation: spin 0.7s linear infinite;
 }
 

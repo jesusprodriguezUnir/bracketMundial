@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "type": "player", "number": 20, "bbox": [0.15, 0.22, 0.16, 0.16], "label": "CHONG" },
+    { "type": "player", "number": 21, "bbox": [0.42, 0.22, 0.16, 0.16], "label": "LOCADIA" },
+    { "type": "player", "number": 26, "bbox": [0.69, 0.22, 0.16, 0.16], "label": "S. HANSEN" },
+    { "type": "player", "number": 12, "bbox": [0.21, 0.43, 0.16, 0.16], "label": "J. BACUNA" },
+    { "type": "player", "number": 16, "bbox": [0.42, 0.43, 0.16, 0.16], "label": "COMENENCIA" },
+    { "type": "player", "number": 13, "bbox": [0.63, 0.43, 0.16, 0.16], "label": "L. BACUNA" },
+    { "type": "player", "number": 8,  "bbox": [0.11, 0.64, 0.15, 0.15], "label": "FLORANUS" },
+    { "type": "player", "number": 6,  "bbox": [0.33, 0.64, 0.15, 0.15], "label": "OBISPO" },
+    { "type": "player", "number": 11, "bbox": [0.52, 0.64, 0.15, 0.15], "label": "VAN EIJMA" },
+    { "type": "player", "number": 10, "bbox": [0.74, 0.64, 0.15, 0.15], "label": "BRENET" },
+    { "type": "player", "number": 3,  "bbox": [0.42, 0.83, 0.16, 0.16], "label": "ROOM" }
+  ]
+}

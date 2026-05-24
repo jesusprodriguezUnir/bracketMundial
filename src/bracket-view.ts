@@ -62,6 +62,7 @@ const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar
 export class BracketView extends LitElement {
   @state() private _activeTab: PhaseTab = 'hero';
   @state() private _loadedViews = new Set<LazyView>();
+  @state() private _loadingView: LazyView | null = null;
   @state() private _moreOpen = false;
 
   private _swipeStartX = 0;
@@ -523,6 +524,7 @@ export class BracketView extends LitElement {
   `;
 
   private unsubscribeLocale?: () => void;
+  private _hashChangeHandler?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
@@ -530,6 +532,12 @@ export class BracketView extends LitElement {
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     // Pre-cargar groups en idle (el tab más visitado tras hero)
     this._ensureView('groups');
+
+    // Hash routing
+    this._restoreFromHash();
+    this._hashChangeHandler = () => this._restoreFromHash();
+    window.addEventListener('hashchange', this._hashChangeHandler);
+
     this.addEventListener('touchstart', this._onSwipeStart, { passive: true });
     this.addEventListener('touchmove', this._onSwipeMove, { passive: false });
     this.addEventListener('touchend', this._onSwipeEnd, { passive: true });
@@ -538,30 +546,66 @@ export class BracketView extends LitElement {
 
   disconnectedCallback() {
     this.unsubscribeLocale?.();
+    if (this._hashChangeHandler) {
+      window.removeEventListener('hashchange', this._hashChangeHandler);
+    }
     super.disconnectedCallback();
     this.removeEventListener('touchstart', this._onSwipeStart);
     this.removeEventListener('touchmove', this._onSwipeMove);
     this.removeEventListener('touchend', this._onSwipeEnd);
   }
 
+  /** Sincroniza la pestaña activa con location.hash */
+  private _restoreFromHash() {
+    const hash = window.location.hash.replace('#', '');
+    if (!hash) return;
+    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+    if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
+      // Usar requestAnimationFrame para evitar conflictos con el render inicial
+      requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
+    }
+    // Soporte para sub-vistas: #squads/ARG → squads con targetTeamId
+    if (hash.startsWith('squads/')) {
+      const teamId = hash.split('/')[1];
+      if (teamId && this._activeTab !== 'squads') {
+        requestAnimationFrame(() => this._selectTabSquads(teamId));
+      }
+    }
+  }
+
+  private _updateHash(tab: PhaseTab) {
+    const current = window.location.hash.replace('#', '');
+    if (current !== tab) {
+      history.replaceState(null, '', `#${tab}`);
+    }
+  }
+
+  private async _selectTabSquads(teamId: string) {
+    await this._selectTab('squads');
+    this.updateComplete.then(() => {
+      const squadsEl = this.shadowRoot?.querySelector('squads-view') as HTMLElement & { targetTeamId?: string } | null;
+      if (squadsEl) squadsEl.targetTeamId = teamId;
+    });
+  }
+
   /** Carga el módulo de una vista si aún no se cargó */
   private async _ensureView(view: LazyView): Promise<void> {
     if (this._loadedViews.has(view)) return;
-    await VIEW_IMPORTS[view]();
-    // Mutar una copia del Set para disparar @state reactivo
-    this._loadedViews = new Set([...this._loadedViews, view]);
+    this._loadingView = view;
+    try {
+      await VIEW_IMPORTS[view]();
+      this._loadedViews = new Set([...this._loadedViews, view]);
+    } finally {
+      if (this._loadingView === view) this._loadingView = null;
+    }
   }
 
   private async _selectTab(tab: PhaseTab) {
-    const view = tabToView(tab);
-    if (view) {
-      await this._ensureView(view);
-    }
-    if (this._activeTab !== tab && this._tabHistory[this._tabHistory.length - 1] !== tab) {
-      this._tabHistory = [...this._tabHistory.slice(-9), tab];
-    }
+    this._updateHash(tab);
     this._activeTab = tab;
     this._moreOpen = false;
+
+    // Reset internal state for navigable views
     if (tab === 'squads') {
       const squadsEl = this.shadowRoot?.querySelector('squads-view') as HTMLElement & { goBack?: () => void } | null;
       squadsEl?.goBack?.();
@@ -578,6 +622,16 @@ export class BracketView extends LitElement {
       const stadiumsEl = this.shadowRoot?.querySelector('stadiums-view') as HTMLElement & { goBack?: () => void } | null;
       stadiumsEl?.goBack?.();
     }
+
+    if (this._tabHistory[this._tabHistory.length - 1] !== tab) {
+      this._tabHistory = [...this._tabHistory.slice(-9), tab];
+    }
+
+    const view = tabToView(tab);
+    if (view) {
+      await this._ensureView(view);
+    }
+
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';
@@ -844,7 +898,7 @@ export class BracketView extends LitElement {
             <div class="ad-inline">
               <ad-block></ad-block>
             </div>
-          ` : ''}
+          ` : at === 'groups' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Equipos (lazy) -->
@@ -855,7 +909,7 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.squads.title')}</div>
             </div>
             <squads-view></squads-view>
-          ` : ''}
+          ` : at === 'squads' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Calendario (lazy) -->
@@ -866,7 +920,7 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.calendar.title')}</div>
             </div>
             <calendar-view></calendar-view>
-          ` : ''}
+          ` : at === 'calendar' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Eliminatorias (lazy) -->
@@ -884,7 +938,7 @@ export class BracketView extends LitElement {
                 <ad-block></ad-block>
               </div>
             </div>
-          ` : ''}
+          ` : isKnockoutTab ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Vista de Estadios (lazy) -->
@@ -897,7 +951,7 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.stadiums.title')}</div>
             </div>
             <stadiums-view></stadiums-view>
-          ` : ''}
+          ` : at === 'stadiums' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Dónde ver (lazy) -->
@@ -917,7 +971,7 @@ export class BracketView extends LitElement {
               <div class="section-title">${t('section.coaches.title')}</div>
             </div>
             <coaches-view></coaches-view>
-          ` : ''}
+          ` : at === 'coaches' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Guía del Mundial (lazy) -->
@@ -926,7 +980,7 @@ export class BracketView extends LitElement {
           class="section-guide ${at === 'guide' ? 'visible' : ''}">
           ${at === 'guide' && loaded.has('guide') ? html`
             <guide-view></guide-view>
-          ` : ''}
+          ` : at === 'guide' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Liga (lazy) -->
@@ -935,7 +989,7 @@ export class BracketView extends LitElement {
           class="section-league ${at === 'league' ? 'visible' : ''}">
           ${at === 'league' && loaded.has('league') ? html`
             <leagues-view></leagues-view>
-          ` : ''}
+          ` : at === 'league' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
       </div>

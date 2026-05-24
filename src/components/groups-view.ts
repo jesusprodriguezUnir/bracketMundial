@@ -34,6 +34,7 @@ export class GroupsView extends LitElement {
   @state() private _odds: Record<string, MatchOdds> = {};
   @state() private _activeGroup = 'A';
   @state() private _bracketMode = false;
+  @state() private _flashMatchId: string | null = null;
 
   static readonly styles = css`
     :host { display: block; }
@@ -671,6 +672,10 @@ export class GroupsView extends LitElement {
     const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
     const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
     useTournamentStore.getState().setGroupMatchResult(m.matchId, nextA, nextB);
+    this._flashMatchId = m.matchId;
+    setTimeout(() => {
+      if (this._flashMatchId === m.matchId) this._flashMatchId = null;
+    }, 600);
   }
 
   private handleSimulateAll() {
@@ -811,7 +816,7 @@ export class GroupsView extends LitElement {
                   const badgeClass = isPlayed ? 'badge-played' : 'badge-upcoming';
                   const badgeText = isPlayed ? t('groups.badgePlayed') : t('groups.badgeNext');
                   return html`
-                    <div class="match-item" role="button" tabindex="0"
+                    <div class="match-item ${this._flashMatchId === m.matchId ? 'row-flash' : ''}" role="button" tabindex="0"
                       @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
                       @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openMatch(m.matchId, m.date, m.timeSpain); } }}"
                     >

@@ -48,6 +48,7 @@ export class SquadsView extends LitElement {
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
   @state() private _news: NewsItem[] | null = null;
   @state() private _newsLoading = false;
+  @state() private _newsError = false;
   @state() private _newsKey: string | null = null;
   @state() private _openMatchId: string | null = null;
   @state() private _matchOddsCache: Map<string, MatchOdds> = new Map();
@@ -73,12 +74,24 @@ export class SquadsView extends LitElement {
     this._newsKey = key;
     this._news = null;
     this._newsLoading = true;
+    this._newsError = false;
     getTeamNews(teamId, locale).then(items => {
       if (this._newsKey === key) {
         this._news = items;
         this._newsLoading = false;
       }
+    }).catch(() => {
+      if (this._newsKey === key) {
+        this._newsError = true;
+        this._newsLoading = false;
+      }
     });
+  }
+
+  private _retryNews() {
+    if (this.selectedTeamId) {
+      this._loadNewsForTeam(this.selectedTeamId, useLocaleStore.getState().locale);
+    }
   }
 
   static readonly styles = css`
@@ -1484,7 +1497,7 @@ export class SquadsView extends LitElement {
     const coachPhoto = resolveCoachPhoto(selectedTeam.id, coach);
     const coachName = coach ? coach.name : selectedTeam.name;
     const coachAvatar = coachPhoto
-      ? html`<img src="${coachPhoto}" alt="${coachName}" loading="lazy">`
+      ? html`<img src="${coachPhoto}" alt="${coachName}" loading="lazy" decoding="async" class="coach-img">`
       : getInitials(coachName);
     const locale = useLocaleStore.getState().locale;
 
@@ -1570,7 +1583,7 @@ export class SquadsView extends LitElement {
                     >
                       <td><div class="player-avatar">
                         ${photo
-                          ? html`<img src="${photo}" alt="${player.name}" loading="lazy">`
+                          ? html`<img src="${photo}" alt="${player.name}" loading="lazy" decoding="async">`
                           : getInitials(player.name)}
                       </div></td>
                       <td>${player.number}</td>
@@ -1597,7 +1610,7 @@ export class SquadsView extends LitElement {
                 >
                   <div class="mob-player-avatar">
                     ${photo
-                      ? html`<img src="${photo}" alt="${player.name}" loading="lazy">`
+                      ? html`<img src="${photo}" alt="${player.name}" loading="lazy" decoding="async">`
                       : getInitials(player.name)}
                   </div>
                   <div class="mob-player-info">
@@ -1688,7 +1701,10 @@ export class SquadsView extends LitElement {
                                   <span class="match-section-title">${t('squads.matchDetail.oddsLabel')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
-                                <p style="font-family:var(--font-mono);font-size:11px;color:var(--dim);margin:0">${t('squads.matchDetail.oddsLoading')}</p>
+                                <div style="display:flex;flex-direction:column;gap:6px;padding:8px 0">
+                                  <div class="skeleton skeleton-line" style="width:100%"></div>
+                                  <div class="skeleton skeleton-line" style="width:60%"></div>
+                                </div>
                               </div>
                             `}
 
@@ -1737,16 +1753,40 @@ export class SquadsView extends LitElement {
           <div class="panel-block ${this.activeTab !== 'news' ? 'tab-hidden' : ''}">
             <div class="panel-title">${t('squads.tab.news')}</div>
             ${this._newsLoading
-              ? html`<div class="news-loading">${t('squads.news.loading')}</div>`
+              ? html`
+                <div class="news-list">
+                  ${[1, 2, 3].map(() => html`
+                    <div class="news-card skeleton-card">
+                      <div class="skeleton skeleton-img" style="width:100px;height:70px;flex-shrink:0"></div>
+                      <div class="news-body" style="padding:12px">
+                        <div class="skeleton skeleton-line" style="width:80%"></div>
+                        <div class="skeleton skeleton-line" style="width:60%"></div>
+                        <div class="skeleton skeleton-line" style="width:40%"></div>
+                      </div>
+                    </div>
+                  `)}
+                </div>
+              `
+              : this._newsError
+                ? html`
+                  <div class="error-state">
+                    <span class="empty-state-icon">⚠</span>
+                    <span>${t('squads.news.error')}</span>
+                    <button class="btn btn-secondary" @click=${() => this._retryNews()}>${t('squads.news.retry')}</button>
+                  </div>
+                `
               : this._news === null || this._news.length === 0
-                ? html`<div class="empty">${t('squads.news.empty')}</div>`
+                ? html`<div class="empty-state">
+                    <span class="empty-state-icon">📰</span>
+                    <span>${t('squads.news.empty')}</span>
+                  </div>`
                 : html`
                   <div class="news-list">
                     ${this._news.map(item => html`
                       <article class="news-card">
                         ${item.image ? html`
                           <div class="news-thumb">
-                            <img src="${item.image}" alt="" loading="lazy" />
+                            <img src="${item.image}" alt="" loading="lazy" decoding="async" />
                           </div>
                         ` : ''}
                         <div class="news-body">

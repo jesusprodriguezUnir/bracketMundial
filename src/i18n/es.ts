@@ -700,6 +700,16 @@ export const es = {
   'coaches.ageSuffix': '{n} años',
   'coaches.pendingCoach': 'La federación de {team} aún no ha confirmado a su seleccionador oficial para el torneo.',
 
+  // ─── Estados de carga / error / vacío ───
+  'view.loading': 'Cargando…',
+  'squads.news.error': 'Error al cargar noticias.',
+  'squads.news.retry': 'Reintentar',
+  'squads.matchDetail.oddsError': 'No se pudieron cargar las cuotas.',
+  'modal.unsaved': 'Cambios sin guardar',
+  'modal.unsavedMessage': 'Tienes cambios pendientes. ¿Quieres guardarlos antes de cerrar?',
+  'modal.saveClose': 'Guardar y cerrar',
+  'modal.discard': 'Descartar',
+
 } as const;
 
 export type TranslationKey = keyof typeof es;
