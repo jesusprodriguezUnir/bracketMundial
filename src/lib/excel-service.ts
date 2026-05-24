@@ -27,7 +27,7 @@ export class ExcelImportError extends Error {
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
-const C = {
+export const PANINI_COLORS = {
   paper2:  'E6D6B1',
   paper3:  'FFF9EC',
   ink:     '1A1933',
@@ -41,11 +41,15 @@ const C = {
   qualify: 'FEF0F0',
 } as const;
 
-// Group header accent colors — same 4-color cycle as groups-view.ts
-const GROUP_COLORS_HEX = ['E8541F', '22418C', '1F6B3A', 'C41E2C'] as const;
+const C = PANINI_COLORS;
 
-const THICK: ExcelJS.Border = { style: 'thick', color: { argb: C.ink } };
-const THIN:  ExcelJS.Border = { style: 'thin',  color: { argb: C.ink } };
+// Group header accent colors — same 4-color cycle as groups-view.ts
+export const PANINI_GROUP_CYCLE = ['E8541F', '22418C', '1F6B3A', 'C41E2C'] as const;
+
+const GROUP_COLORS_HEX = PANINI_GROUP_CYCLE;
+
+export const THICK: ExcelJS.Border = { style: 'thick', color: { argb: C.ink } };
+export const THIN:  ExcelJS.Border = { style: 'thin',  color: { argb: C.ink } };
 
 // ─── i18n (no Zustand dep — reads dicts directly) ────────────────────────────
 
@@ -73,7 +77,7 @@ function tFlag(id: string | null | undefined): string {
 const FLAG_TIMEOUT_MS = 5000;
 
 /** Fetches the team's SVG flag and rasterizes it to a PNG (base64). Browser-only. */
-async function fetchFlagPng(flagUrl: string): Promise<string | null> {
+export async function fetchFlagPng(flagUrl: string): Promise<string | null> {
   try {
     const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), FLAG_TIMEOUT_MS));
     const work = (async (): Promise<string | null> => {
@@ -271,17 +275,17 @@ function wdl(ti: TeamMatchInfo, sr: string): { w: string; d: string; l: string }
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
-function fill(argb: string): ExcelJS.Fill {
+export function fill(argb: string): ExcelJS.Fill {
   return { type: 'pattern', pattern: 'solid', fgColor: { argb } };
 }
 
-function center(sheet: ExcelJS.Worksheet, r: number, c: number): ExcelJS.Cell {
+export function center(sheet: ExcelJS.Worksheet, r: number, c: number): ExcelJS.Cell {
   const cell = sheet.getCell(r, c);
   cell.alignment = { horizontal: 'center', vertical: 'middle' };
   return cell;
 }
 
-function yellow(sheet: ExcelJS.Worksheet, r: number, c: number): void {
+export function yellow(sheet: ExcelJS.Worksheet, r: number, c: number): void {
   const cell = sheet.getCell(r, c);
   cell.fill = fill(C.yellow);
   cell.border = { top: THIN, left: THIN, bottom: THIN, right: THIN };
@@ -296,7 +300,7 @@ function yellow(sheet: ExcelJS.Worksheet, r: number, c: number): void {
   };
 }
 
-function addBorder(
+export function addBorder(
   sheet: ExcelJS.Worksheet,
   r: number, c: number,
   side: 'top' | 'bottom' | 'left' | 'right',

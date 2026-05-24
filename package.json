@@ -29,7 +29,8 @@
     "record:session": "node scripts/record-session.mjs",
     "reel": "node scripts/record-reel.mjs",
     "play:assets": "node scripts/generate-play-assets.mjs",
-    "x:post": "node scripts/generate-x-post.mjs"
+    "x:post": "node scripts/generate-x-post.mjs",
+    "youtube:promo": "node scripts/generate-youtube-promo.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

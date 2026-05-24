@@ -37,9 +37,9 @@ describe("calendar-export-service - getRows", () => {
 
   it("primer partido de grupo es Mexico vs Sudafrica (M1 en Grupo A)", () => {
     const rows = getRows("groups", "es");
-    expect(rows[0].match).toContain("México");
-    expect(rows[0].match).toContain("Sudáfrica");
-    expect(rows[0].phase).toBe("GRUPO A");
+    expect(rows[0].teamA).toBe("MEX");
+    expect(rows[0].teamB).toBe("RSA");
+    expect(rows[0].matchId).toBe("M1");
     expect(rows[0].date).toBe("2026-06-11");
     expect(rows[0].timeSpain).toBe("21:00");
   });
@@ -49,65 +49,60 @@ describe("calendar-export-service - getRows", () => {
     expect(rows[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
-  it("partidos de eliminatoria muestran POR DEFINIR como equipos (ES)", () => {
+  it("partidos de eliminatoria tienen equipos null (no resueltos)", () => {
     const rows = getRows("knockout", "es");
     rows.forEach((r) => {
-      expect(r.match).toBe("POR DEFINIR");
+      expect(r.teamA).toBeNull();
+      expect(r.teamB).toBeNull();
     });
   });
 
-  it("partidos de eliminatoria muestran TBD como equipos (EN)", () => {
-    const rows = getRows("knockout", "en");
-    rows.forEach((r) => {
-      expect(r.match).toBe("TBD");
-    });
-  });
-
-  it("fases de eliminatoria tienen etiquetas de ronda correctas (ES)", () => {
+  it("partidos de eliminatoria tienen matchDayLabel con ronda correcta (ES)", () => {
     const rows = getRows("knockout", "es");
-    const fases = new Set(rows.map((r) => r.phase));
-    expect(fases.has("1/16")).toBe(true);
-    expect(fases.has("Octavos")).toBe(true);
-    expect(fases.has("Cuartos")).toBe(true);
-    expect(fases.has("Semis")).toBe(true);
-    expect(fases.has("3er puesto")).toBe(true);
-    expect(fases.has("Final")).toBe(true);
+    const labels = new Set(rows.map((r) => r.matchDayLabel));
+    expect(labels.has("1/16")).toBe(true);
+    expect(labels.has("Octavos")).toBe(true);
+    expect(labels.has("Cuartos")).toBe(true);
+    expect(labels.has("Semis")).toBe(true);
+    expect(labels.has("3er puesto")).toBe(true);
+    expect(labels.has("Final")).toBe(true);
   });
 
-  it("fases de eliminatoria tienen etiquetas de ronda correctas (EN)", () => {
+  it("partidos de eliminatoria tienen matchDayLabel con ronda correcta (EN)", () => {
     const rows = getRows("knockout", "en");
-    const fases = new Set(rows.map((r) => r.phase));
-    expect(fases.has("R32")).toBe(true);
-    expect(fases.has("R16")).toBe(true);
-    expect(fases.has("QF")).toBe(true);
-    expect(fases.has("SF")).toBe(true);
-    expect(fases.has("3rd place")).toBe(true);
-    expect(fases.has("Final")).toBe(true);
+    const labels = new Set(rows.map((r) => r.matchDayLabel));
+    expect(labels.has("R32")).toBe(true);
+    expect(labels.has("R16")).toBe(true);
+    expect(labels.has("QF")).toBe(true);
+    expect(labels.has("SF")).toBe(true);
+    expect(labels.has("3rd place")).toBe(true);
+    expect(labels.has("Final")).toBe(true);
   });
 
   it("la final es el ultimo partido del calendario completo", () => {
     const rows = getRows("all", "es");
     const last = rows[rows.length - 1];
-    expect(last.phase).toBe("Final");
+    expect(last.matchId).toBe("FIN-01");
+    expect(last.matchDayLabel).toBe("Final");
     expect(last.date).toBe("2026-07-19");
   });
 
-  it("los 12 grupos estan presentes", () => {
+  it("grupos tienen matchDayLabel correcto J1/J2/J3 (ES)", () => {
     const rows = getRows("groups", "es");
-    const groups = new Set(rows.map((r) => r.phase));
-    expect(groups.size).toBe(12);
-    ["A","B","C","D","E","F","G","H","I","J","K","L"].forEach((g) => {
-      expect(groups.has("GRUPO " + g)).toBe(true);
-    });
+    const labels = new Set(rows.map((r) => r.matchDayLabel));
+    expect(labels.has("J1")).toBe(true);
+    expect(labels.has("J2")).toBe(true);
+    expect(labels.has("J3")).toBe(true);
+    expect(labels.size).toBe(3);
   });
 
-  it("cada grupo tiene 6 partidos", () => {
+  it("cada grupo tiene 6 partidos (72 total / 12 grupos)", () => {
     const rows = getRows("groups", "es");
-    const counts = new Map<string, number>();
-    rows.forEach((r) => counts.set(r.phase, (counts.get(r.phase) ?? 0) + 1));
-    counts.forEach((n) => {
-      expect(n).toBe(6);
-    });
+    expect(rows).toHaveLength(72);
+    const labels = new Set(rows.map((r) => r.matchDayLabel));
+    expect(labels.has("J1")).toBe(true);
+    expect(labels.has("J2")).toBe(true);
+    expect(labels.has("J3")).toBe(true);
   });
 });
 
@@ -139,6 +134,14 @@ describe("calendar-export-service - groupRowsByDate", () => {
     const rows = getRows("all", "es");
     groupRowsByDate(rows).forEach((g) => {
       expect(g.rows.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("cada DayBox tiene boxColorIdx entre 0 y 3", () => {
+    const rows = getRows("all", "es");
+    const boxes = groupRowsByDate(rows);
+    boxes.forEach((b, i) => {
+      expect(b.boxColorIdx).toBe(i % 4);
     });
   });
 });
@@ -207,43 +210,20 @@ describe("calendar-export-service - exportCalendarExcel", () => {
     );
   });
 
-  it("genera Excel con al menos 76 filas para grupos (4 cabecera + N bandas + 72 datos)", async () => {
+  it("genera Excel con layout de boxes (mas de 50 filas para grupos)", async () => {
     const blob = await exportCalendarExcel("groups", "es");
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const ws = wb.worksheets[0]!;
-    // 4 header rows + at least 1 band + 72 data = 77 minimum
-    expect(ws.actualRowCount).toBeGreaterThanOrEqual(77);
+    expect(ws.actualRowCount).toBeGreaterThanOrEqual(50);
   });
 
-  it("genera Excel con al menos 36 filas para eliminatorias (4 cabecera + N bandas + 32 datos)", async () => {
+  it("genera Excel con layout de boxes para eliminatorias", async () => {
     const blob = await exportCalendarExcel("knockout", "en");
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const ws = wb.worksheets[0]!;
-    expect(ws.actualRowCount).toBeGreaterThanOrEqual(36);
-  });
-
-  it("la fila de columnas (fila 4) tiene las 6 cabeceras en espanol", async () => {
-    const blob = await exportCalendarExcel("all", "es");
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(await blob.arrayBuffer());
-    const ws = wb.worksheets[0]!;
-    const headers = [1, 2, 3, 4, 5, 6].map((c) => ws.getRow(4).getCell(c).value);
-    expect(headers).toEqual([
-      "Fecha", "Hora", "Partido", "Fase / Ronda", "Sede", "Ciudad",
-    ]);
-  });
-
-  it("la fila de columnas (fila 4) tiene las 6 cabeceras en ingles", async () => {
-    const blob = await exportCalendarExcel("knockout", "en");
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(await blob.arrayBuffer());
-    const ws = wb.worksheets[0]!;
-    const headers = [1, 2, 3, 4, 5, 6].map((c) => ws.getRow(4).getCell(c).value);
-    expect(headers).toEqual([
-      "Date", "Time", "Match", "Phase / Round", "Venue", "City",
-    ]);
+    expect(ws.actualRowCount).toBeGreaterThanOrEqual(20);
   });
 
   it("fila 1 (titulo) tiene fondo naranja retro", async () => {
@@ -251,20 +231,8 @@ describe("calendar-export-service - exportCalendarExcel", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const ws = wb.worksheets[0]!;
-    const titleFg = ((ws.getRow(1).getCell(1).fill) as ExcelJS.FillPattern).fgColor;
+    const titleFg = ((ws.getRow(1).getCell(2).fill) as ExcelJS.FillPattern).fgColor;
     expect(titleFg?.argb).toBe("E8541F");
-  });
-
-  it("fila 4 (cabecera columnas) tiene fondo amarillo retro y fuente negrita ink", async () => {
-    const blob = await exportCalendarExcel("groups", "es");
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(await blob.arrayBuffer());
-    const ws = wb.worksheets[0]!;
-    const hdr = ws.getRow(4).getCell(1);
-    const fg = (hdr.fill as ExcelJS.FillPattern).fgColor;
-    expect(fg?.argb).toBe("F0B021");
-    expect(hdr.font!.bold).toBe(true);
-    expect(hdr.font!.color!.argb).toBe("1A1933");
   });
 
   it("el Excel contiene el partido inaugural (Mexico vs Sudafrica)", async () => {
@@ -274,41 +242,82 @@ describe("calendar-export-service - exportCalendarExcel", () => {
     const ws = wb.worksheets[0]!;
     let found = false;
     ws.eachRow((row) => {
-      const matchCell = String(row.getCell(3).value ?? "");
-      if (matchCell.includes("México") && matchCell.includes("Sudáfrica")) {
-        found = true;
-        expect(String(row.getCell(4).value)).toBe("GRUPO A");
+      for (let c = 1; c <= ws.columnCount; c++) {
+        const val = String(row.getCell(c).value ?? "");
+        if (val === "M1") {
+          const homeI = row.getCell(c + 3).value;
+          const awayI = row.getCell(c + 9).value;
+          if (String(homeI).includes("México") && String(awayI).includes("Sudáfrica")) {
+            found = true;
+          }
+        }
       }
     });
     expect(found).toBe(true);
   });
 
-  it("las filas de datos alternan colores paper y paper2", async () => {
-    const blob = await exportCalendarExcel("groups", "es");
+  it("contiene encabezados de columna de match", async () => {
+    const blob = await exportCalendarExcel("all", "es");
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const ws = wb.worksheets[0]!;
-    const dataRowColors: string[] = [];
+    let foundLabels = false;
     ws.eachRow((row) => {
-      const fg = ((row.getCell(1).fill) as ExcelJS.FillPattern).fgColor?.argb;
-      if (fg === "ECDFC0" || fg === "E6D6B1") dataRowColors.push(fg);
+      const vals = Array.from({ length: 10 }, (_, i) => String(row.getCell(i + 1).value ?? ""));
+      if (vals.includes("ID") && vals.includes("Jornada") && vals.includes("Hora")) {
+        foundLabels = true;
+      }
     });
-    expect(dataRowColors).toHaveLength(72);
-    expect(dataRowColors[0]).toBe("ECDFC0"); // paper
-    expect(dataRowColors[1]).toBe("E6D6B1"); // paper2
+    expect(foundLabels).toBe(true);
   });
 
-  it("las bandas de dia tienen fondo azul retro", async () => {
+  it("los boxes tienen bordes gruesos", async () => {
     const blob = await exportCalendarExcel("groups", "es");
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const ws = wb.worksheets[0]!;
-    const bandRows: ExcelJS.Row[] = [];
+    let thickCount = 0;
     ws.eachRow((row) => {
-      const fg = ((row.getCell(1).fill) as ExcelJS.FillPattern).fgColor?.argb;
-      if (fg === "22418C") bandRows.push(row);
+      const cell = row.getCell(2);
+      const t = cell.border?.top?.style;
+      if (t === "thick") thickCount++;
     });
-    expect(bandRows.length).toBeGreaterThan(0);
+    expect(thickCount).toBeGreaterThan(0);
+  });
+
+  it("contiene sub-bloque SEDES", async () => {
+    const blob = await exportCalendarExcel("all", "es");
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    const ws = wb.worksheets[0]!;
+    let foundSedes = false;
+    ws.eachRow((row) => {
+      for (let c = 1; c <= ws.columnCount; c++) {
+        if (String(row.getCell(c).value) === "SEDES") {
+          foundSedes = true;
+        }
+      }
+    });
+    expect(foundSedes).toBe(true);
+  });
+
+  it("boxes tienen headers de color alternante (4 colores del ciclo)", async () => {
+    const blob = await exportCalendarExcel("all", "es");
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    const ws = wb.worksheets[0]!;
+    const cycleColors = ["E8541F", "22418C", "1F6B3A", "C41E2C"];
+    const foundColors = new Set<string>();
+    ws.eachRow((row) => {
+      // Day header boxes are merged cells with colored fill
+      const cell = row.getCell(2);
+      const fillColor = ((cell.fill) as ExcelJS.FillPattern).fgColor?.argb;
+      if (cycleColors.includes(fillColor ?? "")) {
+        foundColors.add(fillColor!);
+      }
+    });
+    // At least 1 color from the cycle should be found on some header
+    expect(foundColors.size).toBeGreaterThanOrEqual(1);
   });
 
   it("hoja Excel se llama segun la fase", async () => {

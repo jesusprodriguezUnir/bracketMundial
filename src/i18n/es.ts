@@ -227,6 +227,7 @@ export const es = {
   'calendar.colMatch': 'Partido',
   'calendar.colPhase': 'Fase / Ronda',
   'calendar.colCity': 'Ciudad',
+  'calendar.colVenues': 'SEDES',
   'calendar.r32': '1/16',
   'calendar.r16': 'Octavos',
   'calendar.qf': 'Cuartos',
@@ -235,6 +236,9 @@ export const es = {
   'calendar.final': 'Final',
   'calendar.broadcast': 'Emisión',
   'calendar.exclusive': 'Exclusivo DAZN',
+  'calendar.exportLegendTitle': 'Leyenda',
+  'calendar.exportPhaseLegend': 'Fases',
+  'calendar.exportGeneratedAt': 'Generado el {date}',
 
   // Broadcasting
   'tv.intro': 'En España, los derechos de emisión del Mundial 2026 se dividen entre RTVE (abierto) y DAZN (pago).',
@@ -321,6 +325,7 @@ export const es = {
   'excel.colAway': 'Visitante',
   'excel.colPen': 'Penaltis',
   'excel.sheetRules': 'Reglas',
+  'excel.sheetLegend': 'Leyenda',
   'excel.sheetPredictions': 'Pronósticos',
   'excel.sheetRanking': 'Resumen',
   'excel.sheetCoaches': 'Entrenadores',

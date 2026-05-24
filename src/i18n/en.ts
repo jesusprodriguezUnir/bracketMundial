@@ -219,6 +219,7 @@ export const en: Record<TranslationKey, string> = {
   'calendar.colMatch': 'Match',
   'calendar.colPhase': 'Phase / Round',
   'calendar.colCity': 'City',
+  'calendar.colVenues': 'VENUES',
   'calendar.r32': 'R32',
   'calendar.r16': 'R16',
   'calendar.qf': 'QF',
@@ -227,6 +228,9 @@ export const en: Record<TranslationKey, string> = {
   'calendar.final': 'Final',
   'calendar.broadcast': 'Broadcast',
   'calendar.exclusive': 'Exclusive DAZN',
+  'calendar.exportLegendTitle': 'Legend',
+  'calendar.exportPhaseLegend': 'Phases',
+  'calendar.exportGeneratedAt': 'Generated on {date}',
 
   // Broadcasting
   'tv.intro': 'In Spain, the 2026 World Cup broadcasting rights are split between RTVE (free-to-air) and DAZN (pay-per-view).',
@@ -313,6 +317,7 @@ export const en: Record<TranslationKey, string> = {
   'excel.colAway': 'Away',
   'excel.colPen': 'Pen',
   'excel.sheetRules': 'Rules',
+  'excel.sheetLegend': 'Legend',
   'excel.sheetPredictions': 'Predictions',
   'excel.sheetRanking': 'Ranking',
   'excel.sheetCoaches': 'Coaches',
