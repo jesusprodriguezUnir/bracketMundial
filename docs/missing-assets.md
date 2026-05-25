@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 24/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 25/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 17 fotos faltantes en 11 equipos (1217/1234 cubiertos)  
+**Jugadores:** 17 fotos faltantes en 11 equipos (1213/1230 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -31,7 +31,7 @@
 | BRA | 26 | 26 | ✅ 0 | ✅ |
 | CAN | 27 | 27 | ✅ 0 | ✅ |
 | CIV | 26 | 26 | ✅ 0 | ✅ |
-| COL | 23 | 23 | ✅ 0 | ✅ |
+| COL | 21 | 21 | ✅ 0 | ✅ |
 | CRO | 26 | 26 | ✅ 0 | ✅ |
 | CUW | 26 | 26 | ✅ 0 | ✅ |
 | CZE | 26 | 26 | ✅ 0 | ✅ |
@@ -43,7 +43,7 @@
 | HAI | 26 | 26 | ✅ 0 | ✅ |
 | IRN | 26 | 26 | ✅ 0 | ✅ |
 | IRQ | 23 | 23 | ✅ 0 | ✅ |
-| JPN | 28 | 28 | ✅ 0 | ✅ |
+| JPN | 26 | 26 | ✅ 0 | ✅ |
 | KOR | 26 | 26 | ✅ 0 | ✅ |
 | MAR | 26 | 26 | ✅ 0 | ✅ |
 | MEX | 26 | 26 | ✅ 0 | ✅ |
