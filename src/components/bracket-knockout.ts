@@ -85,17 +85,10 @@ export class BracketKnockout extends LitElement {
   private _connectorSignature = '';
 
   public static readonly styles = css`
-    /* Host ocupa exactamente el espacio disponible bajo topbar + phase-tabs */
     :host {
       display: flex;
       flex-direction: column;
       width: 100%;
-      overflow: hidden;
-    }
-    @media (min-width: 769px) {
-      :host {
-        height: calc(100dvh - 113px); /* topbar 61px + phase-tabs 52px */
-      }
     }
 
     /* ── Acciones desktop (barra compacta sobre el poster) ── */
@@ -158,10 +151,8 @@ export class BracketKnockout extends LitElement {
     .poster-corner.left  { left: 10px; }
     .poster-corner.right { right: 10px; }
 
-    /* ── Scroll del bracket — ocupa el espacio restante ── */
+    /* ── Scroll del bracket ── */
     .bracket-scroll {
-      flex: 1;
-      min-height: 0;
       overflow-x: auto;
       overflow-y: hidden;
       padding: 8px 0 10px;
@@ -181,7 +172,6 @@ export class BracketKnockout extends LitElement {
       padding: 0 12px;
       min-width: fit-content;
       align-items: stretch;
-      height: 100%;
       position: relative;
     }
 
@@ -302,6 +292,7 @@ export class BracketKnockout extends LitElement {
     @media (min-width: 769px) {
       .bracket-scroll {
         overflow-x: hidden;
+        overflow-y: visible;
         padding: 8px 0 10px;
       }
 
@@ -310,6 +301,7 @@ export class BracketKnockout extends LitElement {
         min-width: 0;
         gap: clamp(6px, 0.7vw, 12px);
         padding: 0 8px;
+        min-height: 960px;
       }
 
       .round-col {

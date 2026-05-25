@@ -17,6 +17,8 @@ export default defineConfig({
           '**/seleccion/**',
           'en/**',
         ],
+        skipWaiting: true,
+        clientsClaim: true,
       },
       devOptions: {
         enabled: true
