@@ -22,6 +22,7 @@ import { t, useLocaleStore } from '../i18n';
 import { getOddsForMatch } from '../lib/odds-service';
 import type { MatchOdds } from '../lib/odds-service';
 import { getInitials, normalize } from '../lib/text-utils';
+import { TEAM_COLORS } from '../data/team-colors';
 
 interface TeamMatchSummary {
   id: string;
@@ -148,19 +149,53 @@ export class SquadsView extends LitElement {
     .team-card {
       all: unset;
       cursor: pointer;
-      display: grid;
-      gap: 8px;
-      padding: 16px;
-      border: 3px solid var(--ink);
-      background: var(--paper);
-      box-shadow: var(--shadow-hard-sm);
+      display: flex;
+      flex-direction: column;
+      border-radius: 8px;
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       min-height: 92px;
       touch-action: manipulation;
+      border: none;
     }
-
     .team-card:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 0 var(--ink);
+      transform: scale(0.98);
+    }
+    @media (hover: hover) {
+      .team-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+        transform: translateY(-2px);
+      }
+    }
+    .tc-strip {
+      height: 6px;
+      flex-shrink: 0;
+    }
+    .tc-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    .tc-flag-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #F5F5F5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .tc-flag-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .team-flag-img {
@@ -171,14 +206,12 @@ export class SquadsView extends LitElement {
       box-shadow: 2px 2px 0 0 var(--ink);
     }
 
-    .team-card:hover {
-      background: var(--retro-yellow);
-    }
-
     .team-name {
       font-family: var(--font-display);
-      font-size: 16px;
-      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      color: #1A1933;
+      line-height: 1.2;
     }
 
     .team-meta {
@@ -187,6 +220,18 @@ export class SquadsView extends LitElement {
       color: var(--dim);
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+    .tc-group {
+      font-size: 11px;
+      color: #888888;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-family: var(--font-mono);
+    }
+    .tc-players {
+      font-size: 11px;
+      color: #888888;
+      font-family: var(--font-mono);
     }
 
     /* ── Detail view ── */
@@ -264,13 +309,17 @@ export class SquadsView extends LitElement {
 
     .tabs {
       display: none;
-      border-bottom: 4px solid var(--ink);
+      border-bottom: 3px solid var(--ink);
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .tabs::-webkit-scrollbar { display: none; }
 
     .tabs button {
       all: unset;
       cursor: pointer;
       flex: 1;
+      min-width: 80px;
       padding: 12px 8px;
       text-align: center;
       font-family: var(--font-mono);
@@ -278,8 +327,11 @@ export class SquadsView extends LitElement {
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink);
-      border-right: 3px solid var(--ink);
+      border-right: 2px solid var(--ink);
       background: var(--paper-2);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
     }
 
     .tabs button:last-child {
@@ -287,8 +339,13 @@ export class SquadsView extends LitElement {
     }
 
     .tabs button.active {
-      background: var(--retro-orange);
+      background: #1A1933;
       color: var(--paper);
+      font-weight: 700;
+      border-bottom: 3px solid #E84B1A;
+    }
+    .tabs button.active:last-child {
+      border-bottom: 3px solid #E84B1A;
     }
 
     /* ── Coach card ── */
@@ -370,25 +427,39 @@ export class SquadsView extends LitElement {
     }
 
     .news-card {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: none;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      box-shadow: none;
+      background: transparent;
       overflow: hidden;
       display: flex;
+      transition: background 0.15s;
+    }
+    .news-card:last-child {
+      border-bottom: none;
+    }
+    @media (hover: hover) {
+      .news-card:hover {
+        background: rgba(0,0,0,0.03);
+        cursor: pointer;
+      }
     }
 
     .news-thumb {
-      flex: 0 0 100px;
-      width: 100px;
-      height: 100px;
-      border-right: 3px solid var(--ink);
+      flex: 0 0 60px;
+      width: 60px;
+      height: 60px;
+      border-right: none;
+      border-radius: 6px;
+      margin: 12px 0 12px 12px;
       background: var(--paper-1);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      font-size: 36px;
+      font-size: 24px;
       color: var(--dim);
+      flex-shrink: 0;
     }
 
     .news-thumb img {
@@ -416,10 +487,15 @@ export class SquadsView extends LitElement {
     }
 
     .news-headline {
-      font-family: var(--font-display);
-      font-size: 14px;
-      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: #1A1933;
       line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .news-desc {
@@ -434,14 +510,13 @@ export class SquadsView extends LitElement {
     }
 
     .news-footer {
-      margin-top: 6px;
+      margin-top: 4px;
       display: flex;
       gap: 8px;
       font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--dim);
+      font-size: 11px;
+      color: #888888;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
       flex-wrap: wrap;
     }
 
@@ -691,21 +766,39 @@ export class SquadsView extends LitElement {
     /* ── Buscador ── */
     .search-bar {
       margin-bottom: 18px;
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #E84B1A;
+      font-size: 16px;
+      pointer-events: none;
+      line-height: 1;
+      z-index: 1;
     }
     .search-input {
       width: 100%;
-      padding: 10px 14px;
+      padding: 10px 14px 10px 40px;
       font-family: var(--font-body);
-      font-size: 15px;
-      color: var(--ink);
+      font-size: 14px;
+      color: #1A1933;
       background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid rgba(26,25,51,0.2);
+      border-radius: 8px;
       outline: none;
+      box-shadow: none;
       box-sizing: border-box;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-input::placeholder {
+      color: rgba(26,25,51,0.4);
     }
     .search-input:focus {
-      box-shadow: var(--shadow-hard-md);
+      border-color: #E84B1A;
+      box-shadow: 0 0 0 3px rgba(232,75,26,0.15);
     }
     .player-results {
       margin-top: 10px;
@@ -1784,11 +1877,12 @@ export class SquadsView extends LitElement {
                   <div class="news-list">
                     ${this._news.map(item => html`
                       <article class="news-card">
-                        ${item.image ? html`
-                          <div class="news-thumb">
-                            <img src="${item.image}" alt="" loading="lazy" decoding="async" />
-                          </div>
-                        ` : ''}
+                        <div class="news-thumb" style="${!item.image ? `background: linear-gradient(135deg, ${(TEAM_COLORS[selectedTeam.id] ?? ['#888','#555']).join(',')}); justify-content: center;` : ''}">
+                          ${item.image
+                            ? html`<img src="${item.image}" alt="" loading="lazy" decoding="async" />`
+                            : html`<span style="color: #fff; font-family: var(--font-var); font-size: 18px; font-weight: 700;">${selectedTeam.id.substring(0, 3)}</span>`
+                          }
+                        </div>
                         <div class="news-body">
                           <a class="news-link" href="${item.url}" target="_blank" rel="noopener noreferrer">
                             <div class="news-headline">${item.title}</div>
@@ -1880,6 +1974,7 @@ export class SquadsView extends LitElement {
 
     return html`
       <div class="search-bar">
+        <span class="search-icon">🔍</span>
         <input
           type="search"
           class="search-input"
@@ -1920,20 +2015,27 @@ export class SquadsView extends LitElement {
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {
                   const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
+                  const colors = TEAM_COLORS[team.id] ?? ['#ccc', '#999'];
+                  const squadLen = getSquad(team.id).length;
                   return html`
                     <button
                       class="team-card"
                       style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
                       @click=${() => this.selectTeam(team.id)}>
-                      ${team.flagUrl
-                        ? html`<img src="${team.flagUrl}" alt="${team.name}" class="team-flag-img">`
-                        : html`<span style="font-size:32px">${(team as any).flag ?? '?'}</span>`
-                      }
-                      <div class="team-name">${team.name}</div>
-                      <div class="team-meta">
-                        ${isOfficialSquad(team.id) 
-                          ? html`<span style="color: var(--retro-green);">✓ ${getSquad(team.id).length} ${getSquad(team.id).length !== 1 ? t('squads.officials.many') : t('squads.officials.one')}</span>`
-                          : html`${getSquad(team.id).length} pendientes`}
+                      <div class="tc-strip" style="background: linear-gradient(90deg, ${colors[0]}, ${colors[1]})"></div>
+                      <div class="tc-body">
+                        <div class="tc-flag-circle">
+                          ${team.flagUrl
+                            ? html`<img src="${team.flagUrl}" alt="${team.name}">`
+                            : (team as any).flag ?? '?'}
+                        </div>
+                        <div class="team-name">${team.name}</div>
+                        <div class="tc-group">${t('squads.list.groupTitle', { letter: team.group })}</div>
+                        <div class="tc-players">
+                          ${isOfficialSquad(team.id)
+                            ? html`✓ ${squadLen} ${t('squads.card.playersMany', { n: squadLen })}`
+                            : html`${squadLen} ${t('squads.card.playersMany', { n: squadLen })}`}
+                        </div>
                       </div>
                     </button>
                   `;

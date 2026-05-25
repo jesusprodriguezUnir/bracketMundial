@@ -1,5 +1,5 @@
 :root {
-  /* Paleta Panini retro 80s/90s */
+  /* ── Paleta Panini retro 80s/90s ── */
   --paper:         #ecdfc0;
   --paper-2:       #e6d6b1;
   --paper-3:       #fff9ec;
@@ -11,6 +11,33 @@
   --retro-yellow:  #f0b021;
   --dim:           #7a6f54;
   --focus-ring:    3px solid var(--retro-yellow);
+
+  /* ── Design tokens ampliados (bracketmundial_design_spec v1.0) ── */
+  --color-navy:    #1A1933;
+  --color-orange:  #E84B1A;
+  --color-beige:   #F2DBA8;
+  --color-gold:    #F5D84A;
+  --color-success: #27AE60;
+  --color-error:   #C0392B;
+  --text-primary:    #1A1933;
+  --text-secondary:  rgba(26,25,51,0.55);
+  --text-on-dark:    rgba(255,255,255,0.88);
+  --text-on-dark-soft: rgba(255,255,255,0.75);
+  --text-muted:      rgba(255,255,255,0.5);
+  --text-dim:        rgba(255,255,255,0.2);
+  --font-display: 'Oswald', 'Bowlby One', 'Anton', Impact, sans-serif;
+  --font-ui:       'Open Sans', 'Archivo', 'Space Grotesk', system-ui, sans-serif;
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.16);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+  --space-4: 16px; --space-6: 24px; --space-8: 32px;
+  --transition-fast: all 0.15s ease;
+  --transition-base: all 0.2s ease;
 
   /* Sin redondeos — todo es impresión dura */
   --radius-lg: 0;

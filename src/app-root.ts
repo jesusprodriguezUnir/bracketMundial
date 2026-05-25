@@ -8,6 +8,16 @@ import { t, toggleLocale, useLocaleStore } from './i18n';
 import { onToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+
+const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+
+function hashToTab(hash: string): PhaseTab | null {
+  const clean = hash.replace('#', '');
+  if (PHASE_TABS.includes(clean as PhaseTab)) return clean as PhaseTab;
+  return null;
+}
+
 @customElement('app-root')
 export class AppRoot extends LitElement {
   private unsubscribeStore?: () => void;
@@ -17,8 +27,11 @@ export class AppRoot extends LitElement {
   @state() private _toastMessage = '';
   @state() private _calendarMenuOpen = false;
   @state() private _shopMenuOpen = false;
+  @state() private _moreMenuOpen = false;
+  @state() private _activeTab: PhaseTab = 'hero';
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
+  private _hashChangeHandler?: () => void;
 
   static styles = css`
     :host {
@@ -30,198 +43,278 @@ export class AppRoot extends LitElement {
       position: relative;
     }
 
-    /* Topbar oscura retro Panini v2 */
+    /* ── Topbar oscura ── */
     .topbar {
       display: flex;
-      align-items: stretch;
-      border-bottom: 4px solid #1a1933;
-      background: #1a1933;
+      flex-direction: column;
+      background: #1A1933;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 110;
       padding-top: env(safe-area-inset-top);
     }
 
-    /* Bloque logo lockup: crest + wordmark */
+    .topbar-main {
+      display: flex;
+      align-items: stretch;
+      min-height: 52px;
+    }
+
+    /* ── Bloque logo lockup ── */
     .logo-lockup {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 8px 20px 8px 18px;
-      border-right: 1px solid rgba(236,223,192,0.13);
+      padding: 6px 20px 6px 18px;
       flex-shrink: 0;
       text-decoration: none;
+      margin-right: 32px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #E84B1A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
     }
     .logo-text {
       display: flex;
       flex-direction: column;
-      line-height: 0.85;
+      line-height: 1.1;
     }
     .logo-main {
       font-family: var(--font-var);
-      font-size: 26px;
-      color: #ecdfc0;
-      letter-spacing: -0.02em;
+      font-size: 14px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: 0.04em;
+      line-height: 1;
     }
     .logo-sub {
       font-family: var(--font-var);
-      font-size: 10px;
-      color: #f0b021;
-      letter-spacing: 0.18em;
-      margin-top: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.1em;
+      line-height: 1;
     }
 
-    /* Bloque edición */
-    .edition-badge {
-      padding: 0 18px;
-      display: flex;
-      align-items: center;
-      border-right: 1px solid rgba(236,223,192,0.13);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: rgba(236,223,192,0.6);
-      letter-spacing: 0.2em;
-      flex-shrink: 0;
-    }
-    .edition-badge span {
-      color: #f0b021;
-    }
-
-    /* Stats en la barra */
+    /* ── Stats pill-badges ── */
     .topbar-stats {
       display: flex;
       align-items: center;
       padding: 0 18px;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: rgba(236,223,192,0.5);
-      letter-spacing: 0.1em;
-      gap: 16px;
+      gap: 20px;
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
     }
-    .stats-played {
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .stat-num {
       font-family: var(--font-var);
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .stat-sep {
+      color: rgba(255,255,255,0.2);
+      font-family: var(--font-mono);
       font-size: 14px;
-      color: #ecdfc0;
+      user-select: none;
+      flex-shrink: 0;
     }
 
-    /* Acciones pegadas a la derecha */
+    /* ── Header actions ── */
     .header-actions {
       display: flex;
       align-items: stretch;
       margin-left: auto;
+      flex-shrink: 0;
     }
-    .header-actions button,
-    .header-actions a.header-link {
+    .header-actions > button,
+    .header-actions > a.header-link {
       all: unset;
       cursor: pointer;
-      padding: 0 18px;
-      font-family: var(--font-var);
+      padding: 0 14px;
+      font-family: var(--font-body);
       font-size: 13px;
-      letter-spacing: 0.04em;
-      border-left: 1px solid rgba(236,223,192,0.13);
+      font-weight: 700;
+      letter-spacing: 0.03em;
       display: flex;
       align-items: center;
-      color: #ecdfc0;
+      color: rgba(255,255,255,0.75);
       background: transparent;
-      transition: background 0.1s;
+      transition: background 0.15s, color 0.15s;
       text-decoration: none;
       box-sizing: border-box;
-    }
-    @media (hover: hover) {
-      .header-actions button:hover,
-      .header-actions a.header-link:hover {
-        background: rgba(240,176,33,0.15);
-      }
-    }
-    .header-actions button.primary,
-    .header-actions a.header-link.primary {
-      background: var(--retro-yellow);
-      color: #1a1933;
-      border: 2px solid #1a1933;
-      box-shadow: 2px 2px 0 0 var(--retro-orange);
-      margin: 8px 12px;
-      padding: 0 14px;
-    }
-    @media (hover: hover) {
-      .header-actions button.primary:hover,
-      .header-actions a.header-link.primary:hover {
-        background: var(--retro-orange);
-        color: #ecdfc0;
-      }
-    }
-    .header-actions a.amzn-btn {
-      color: #f0b021;
-    }
-    .header-actions button.account-btn {
-      max-width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
     }
+    @media (hover: hover) {
+      .header-actions > button:hover {
+        background: rgba(255,255,255,0.08);
+        color: #FFFFFF;
+      }
+    }
+    .ha-btn-sm {
+      padding: 0 10px !important;
+      font-size: 14px !important;
+    }
+    /* Primary CTA — Compartir */
+    .ha-btn-primary {
+      background: #E84B1A !important;
+      color: #FFFFFF !important;
+      border-radius: 6px !important;
+      margin: 8px 4px;
+      padding: 0 16px !important;
+      font-weight: 700 !important;
+      border: none !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    @media (hover: hover) {
+      .ha-btn-primary:hover {
+        background: #C43A14 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+      }
+    }
+    /* Secondary CTA — Excel ghost */
+    .ha-btn-ghost {
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+      margin: 8px 4px;
+      padding: 0 14px !important;
+    }
+    @media (hover: hover) {
+      .ha-btn-ghost:hover {
+        border-color: rgba(255,255,255,0.55);
+        color: #FFFFFF !important;
+      }
+    }
 
-    /* Calendar dropdown */
+    /* ── More (...) menu ── */
     .dropdown-wrap {
       position: relative;
       display: flex;
       align-items: stretch;
     }
-    .calendar-dropdown {
+    .more-dropdown {
       position: absolute;
       top: 100%;
       right: 0;
       min-width: 220px;
-      background: #1a1933;
-      border: 3px solid #ecdfc0;
-      box-shadow: 4px 4px 0 0 rgba(26,25,51,0.5);
+      background: #1A1933;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
       z-index: 200;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
     .dropdown-section {
       display: flex;
       flex-direction: column;
-      border-bottom: 1px solid rgba(236,223,192,0.13);
+      border-bottom: 1px solid rgba(236,223,192,0.1);
     }
     .dropdown-section:last-child {
       border-bottom: none;
     }
-    .dropdown-section span {
+    .dropdown-section > span {
       padding: 8px 14px 4px;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: rgba(240,176,33,0.8);
+      color: #E84B1A;
       letter-spacing: 0.15em;
       text-transform: uppercase;
+      font-weight: 700;
     }
-    .calendar-dropdown button,
-    .calendar-dropdown a {
+    .more-dropdown button,
+    .more-dropdown a {
       all: unset;
       cursor: pointer;
       padding: 10px 14px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #ecdfc0;
-      letter-spacing: 0.04em;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
       text-align: left;
       transition: background 0.1s;
       text-decoration: none;
       box-sizing: border-box;
+      display: block;
     }
     @media (hover: hover) {
-      .calendar-dropdown button:hover,
-      .calendar-dropdown a:hover {
-        background: rgba(240,176,33,0.15);
+      .more-dropdown button:hover,
+      .more-dropdown a:hover {
+        background: rgba(255,255,255,0.08);
+        color: #FFFFFF;
       }
     }
 
+    /* ── Nav tabs integradas en el header ── */
+    .topbar-nav {
+      display: flex;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .topbar-nav::-webkit-scrollbar { display: none; }
+    .topbar-nav-btn {
+      all: unset;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.55);
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+      border-bottom: 3px solid transparent;
+      display: flex;
+      align-items: center;
+    }
+    .topbar-nav-btn:first-child { padding-left: 20px; }
+    @media (hover: hover) {
+      .topbar-nav-btn:hover {
+        color: rgba(255,255,255,0.85);
+        background: rgba(255,255,255,0.08);
+      }
+    }
+    .topbar-nav-btn.active {
+      color: #FFFFFF;
+      font-weight: 700;
+      border-bottom-color: #E84B1A;
+    }
+
+    /* ── Content ── */
     .content {
       max-width: 1600px;
       margin: 0 auto;
       padding: 24px 40px;
     }
 
-    /* Offline banner */
+    /* ── Offline banner ── */
     .offline-banner {
       background: var(--retro-yellow);
       color: var(--ink);
@@ -232,17 +325,17 @@ export class AppRoot extends LitElement {
       letter-spacing: 0.06em;
       border-bottom: 2px solid var(--ink);
       position: sticky;
-      top: 61px;
+      top: 88px;
       z-index: 89;
     }
 
-    /* Tournament progress bar */
+    /* ── Tournament progress bar ── */
     .progress-bar {
       height: 5px;
       background: rgba(26,25,51,0.2);
       position: sticky;
       top: 56px;
-      z-index: 99;
+      z-index: 109;
     }
     .progress-fill {
       height: 100%;
@@ -251,7 +344,7 @@ export class AppRoot extends LitElement {
       box-shadow: 0 0 6px rgba(240,176,33,0.5);
     }
 
-    /* ---- FOOTER ---- */
+    /* ── Footer ── */
     .site-footer {
       border-top: 4px solid var(--ink);
       background: var(--paper-2);
@@ -320,9 +413,22 @@ export class AppRoot extends LitElement {
       text-transform: uppercase;
     }
 
+    /* ── Ad strips ── */
+    .ad-strip {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 8px 40px;
+      box-sizing: border-box;
+      min-height: 90px;
+    }
+
+    /* ── Mobile ── */
     @media (max-width: 768px) {
-      .edition-badge,
       .topbar-stats {
+        display: none;
+      }
+      .topbar-nav {
         display: none;
       }
       .content {
@@ -330,20 +436,36 @@ export class AppRoot extends LitElement {
         padding-bottom: calc(16px + env(safe-area-inset-bottom));
       }
       .logo-main {
-        font-size: 20px;
+        font-size: 12px;
       }
       .logo-sub {
-        font-size: 8px;
+        font-size: 9px;
+      }
+      .logo-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 17px;
+      }
+      .logo-lockup {
+        padding: 4px 12px 4px 12px;
+        gap: 8px;
+        margin-right: 0;
       }
       .header-actions {
-        flex-wrap: wrap;
-        max-height: none;
+        overflow: hidden;
       }
-      .header-actions button,
-      .header-actions a.header-link {
-        padding: 0 12px;
+      .header-actions > button,
+      .header-actions > a.header-link {
+        padding: 0 10px;
         font-size: 11px;
-        min-height: 44px;
+      }
+      .ha-btn-primary {
+        margin: 6px 2px;
+        padding: 0 12px !important;
+        font-size: 11px !important;
+      }
+      .ha-btn-ghost {
+        display: none;
       }
       .site-footer {
         flex-direction: column;
@@ -359,32 +481,19 @@ export class AppRoot extends LitElement {
       .footer-social {
         flex-wrap: wrap;
       }
-      .footer-sep {
-        display: none;
-      }
+      .footer-sep { display: none; }
       .footer-email {
         word-break: break-word;
         max-width: 100%;
       }
-      .footer-copy {
-        margin-left: 0;
-      }
-    }
-
-    /* Franja de anuncio global */
-    .ad-strip {
-      width: 100%;
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 8px 40px;
-      box-sizing: border-box;
-      min-height: 90px; /* Reserva espacio mientras AdSense carga */
-    }
-    @media (max-width: 768px) {
+      .footer-copy { margin-left: 0; }
       .ad-strip {
         padding: 8px 16px;
         min-height: 60px;
       }
+      .progress-bar { top: 48px; }
+      .offline-banner { top: 48px; }
+      .more-dropdown { min-width: 180px; }
     }
   `;
 
@@ -392,7 +501,7 @@ export class AppRoot extends LitElement {
     super.connectedCallback();
     window.addEventListener('online', this._onOnline);
     window.addEventListener('offline', this._onOffline);
-    window.addEventListener('click', this._closeCalendarMenuOnOutsideClick);
+    window.addEventListener('click', this._closeMenusOnOutsideClick);
     this.unsubscribeStore = subscribeSlice(
       useTournamentStore,
       s => {
@@ -403,6 +512,10 @@ export class AppRoot extends LitElement {
       () => this.requestUpdate(),
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+
+    this._syncTabFromHash();
+    this._hashChangeHandler = () => { this._syncTabFromHash(); this.requestUpdate(); };
+    window.addEventListener('hashchange', this._hashChangeHandler);
 
     this._loadSharedBracketIfPresent();
     this._unsubscribeToast = onToast(this._onToast.bind(this));
@@ -415,6 +528,21 @@ export class AppRoot extends LitElement {
         splash.classList.add('fade-out');
         splash.addEventListener('transitionend', () => splash.remove(), { once: true });
       });
+    }
+  }
+
+  private _syncTabFromHash() {
+    const tab = hashToTab(window.location.hash);
+    if (tab && tab !== this._activeTab) {
+      this._activeTab = tab;
+    }
+  }
+
+  private _selectTab(tab: PhaseTab) {
+    this._activeTab = tab;
+    this._moreMenuOpen = false;
+    if (window.location.hash !== `#${tab}`) {
+      window.location.hash = `#${tab}`;
     }
   }
 
@@ -432,21 +560,24 @@ export class AppRoot extends LitElement {
   disconnectedCallback() {
     window.removeEventListener('online', this._onOnline);
     window.removeEventListener('offline', this._onOffline);
-    window.removeEventListener('click', this._closeCalendarMenuOnOutsideClick);
+    window.removeEventListener('click', this._closeMenusOnOutsideClick);
+    if (this._hashChangeHandler) {
+      window.removeEventListener('hashchange', this._hashChangeHandler);
+    }
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
-
     this._unsubscribeToast?.();
     super.disconnectedCallback();
   }
 
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
-  private _closeCalendarMenuOnOutsideClick = (e: MouseEvent) => {
-    if (!this._calendarMenuOpen && !this._shopMenuOpen) return;
+  private _closeMenusOnOutsideClick = (e: MouseEvent) => {
+    if (!this._calendarMenuOpen && !this._shopMenuOpen && !this._moreMenuOpen) return;
     const dropdowns = this.shadowRoot?.querySelectorAll('.dropdown-wrap');
     const clickedInside = dropdowns ? [...dropdowns].some(d => e.composedPath().includes(d)) : false;
     if (!clickedInside) {
+      this._moreMenuOpen = false;
       this._calendarMenuOpen = false;
       this._shopMenuOpen = false;
       this.requestUpdate();
@@ -482,7 +613,7 @@ export class AppRoot extends LitElement {
     }
     localStorage.setItem('bm-theme', next);
     const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.content = next === 'dark' ? '#231d3e' : '#1a1933';
+    if (metaTheme) metaTheme.content = next === 'dark' ? '#231d3e' : '#1A1933';
     this.requestUpdate();
   }
 
@@ -490,16 +621,16 @@ export class AppRoot extends LitElement {
     useTournamentStore.getState().exportExcel();
   }
 
-  private _toggleCalendarMenu() {
-    this._calendarMenuOpen = !this._calendarMenuOpen;
-  }
-
-  private _toggleShopMenu() {
-    this._shopMenuOpen = !this._shopMenuOpen;
+  private _toggleMoreMenu(e: Event) {
+    e.stopPropagation();
+    this._moreMenuOpen = !this._moreMenuOpen;
+    this._calendarMenuOpen = false;
+    this._shopMenuOpen = false;
   }
 
   private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
     this._calendarMenuOpen = false;
+    this._moreMenuOpen = false;
     const {
       exportCalendarExcel,
       exportCalendarPdf,
@@ -537,77 +668,126 @@ export class AppRoot extends LitElement {
     const groupPlayed = state.groupMatches.filter(m => m.scoreA !== null).length;
     const knockoutPlayed = Object.values(state.knockoutMatches).filter(m => m.isPlayed).length;
     const totalPlayed = groupPlayed + knockoutPlayed;
+    const at = this._activeTab;
 
     return html`
       <div class="shell">
         <header class="topbar" role="banner">
-          <!-- Logo lockup: crest + wordmark -->
-          <a href="/" class="logo-lockup" aria-label="Bracket Mundial 2026 Home">
-            <logo-crest size="44"></logo-crest>
-            <div class="logo-text">
-              <div class="logo-main">BRACKET</div>
-              <div class="logo-sub">★ MUNDIAL · 2026 ★</div>
+          <!-- Fila principal: logo + stats + acciones -->
+          <div class="topbar-main">
+            <a href="/" class="logo-lockup" aria-label="Bracket Mundial 2026 Home">
+              <div class="logo-icon">⚽</div>
+              <div class="logo-text">
+                <span class="logo-main">BRACKET</span>
+                <span class="logo-sub">MUNDIAL 2026</span>
+              </div>
+            </a>
+
+            <div class="topbar-stats">
+              <div class="stat-pill">
+                <span class="stat-num">48</span>
+                <span class="stat-lbl">${t('header.statsTeams')}</span>
+              </div>
+              <span class="stat-sep">/</span>
+              <div class="stat-pill">
+                <span class="stat-num">12</span>
+                <span class="stat-lbl">${t('header.statsGroups')}</span>
+              </div>
+              <span class="stat-sep">/</span>
+              <div class="stat-pill">
+                <span class="stat-num">104</span>
+                <span class="stat-lbl">${t('header.statsMatches')}</span>
+              </div>
+              <span class="stat-sep">/</span>
+              <div class="stat-pill">
+                <span class="stat-num">${totalPlayed}</span>
+                <span class="stat-lbl">${t('header.played', { n: totalPlayed })}</span>
+              </div>
             </div>
-          </a>
 
-          <!-- Edición -->
-          <div class="edition-badge"><span>★ </span>EDICIÓN XXIII</div>
-
-          <!-- Stats mini -->
-          <div class="topbar-stats">
-            <span>${t('header.stats')}</span>
-            <span class="stats-played">${t('header.played', { n: totalPlayed })}</span>
+            <div class="header-actions">
+              <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
+              <button class="ha-btn-sm" @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
+                ${this._isDark ? html`☀️` : html`🌙`}
+              </button>
+              <button class="ha-btn-sm" @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
+              <button
+                class="ha-btn-primary"
+                @click="${this.handleShare}"
+                title="${t('header.share')}">
+                ${t('header.share')}
+              </button>
+              <button
+                class="ha-btn-ghost"
+                @click="${this.handleExcelExport}"
+                title="${t('header.exportExcelTitle')}">
+                ⬇ ${t('header.excel')}
+              </button>
+              <div class="dropdown-wrap">
+                <button
+                  class="ha-btn-sm"
+                  @click="${this._toggleMoreMenu}"
+                  title="${t('tabs.more')}"
+                  style="font-size:18px;padding:0 12px;">
+                  ⋯
+                </button>
+                ${this._moreMenuOpen ? html`
+                  <div class="more-dropdown">
+                    <div class="dropdown-section">
+                      <span>${t('header.excel')}</span>
+                      <button @click="${() => { this._moreMenuOpen = false; this.handleExcelExport(); }}">
+                        ⬇ ${t('header.exportExcel')}
+                      </button>
+                      <button @click="${() => { this._moreMenuOpen = false; this.triggerImportExcel(); }}">
+                        ⬆ ${t('header.importExcel')}
+                      </button>
+                    </div>
+                    <div class="dropdown-section">
+                      <span>${t('tabs.calendar')}</span>
+                      <button @click="${() => this._exportCalendar('all', 'excel')}">${t('calendar.exportAllExcel')}</button>
+                      <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
+                    </div>
+                    <div class="dropdown-section">
+                      <span>Tienda</span>
+                      <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer">🛒 Álbum Panini 2026</a>
+                      <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer">🖼 Póster Mundial 2026</a>
+                      <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer">📖 Libro Mundial 2026</a>
+                      <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer">📕 Libro Oficial FIFA</a>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
           </div>
 
-          <!-- Acciones -->
-          <div class="header-actions">
-            <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
-            <button @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
-              ${this._isDark ? html`☀️` : html`🌙`}
-            </button>
-            <button @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
-            <button @click="${this.handleExcelExport}" title="${t('header.exportExcelTitle')}">${t('header.exportExcel')}</button>
-            <button @click="${this.triggerImportExcel}" title="${t('header.importExcelTitle')}">${t('header.importExcel')}</button>
-            <div class="dropdown-wrap">
-              <button @click="${this._toggleShopMenu}" class="amzn-btn" title="${t('header.shopTitle')}">🛒 Tienda</button>
-              ${this._shopMenuOpen ? html`
-                <div class="calendar-dropdown">
-                  <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Álbum Panini en Amazon">
-                    🛒 Álbum Panini 2026
-                  </a>
-                  <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Póster Mundial 2026 en Amazon">
-                    🖼 Póster Mundial 2026
-                  </a>
-                  <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Libro Mundial 2026 en Amazon">
-                    📖 Libro Mundial 2026
-                  </a>
-                  <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" class="header-link amzn-btn" title="Comprar Libro Oficial FIFA en Amazon">
-                    📕 Libro Oficial FIFA
-                  </a>
-                </div>
-              ` : ''}
-            </div>
-            <button @click="${this.handleShare}">${t('header.share')}</button>
-            <div class="dropdown-wrap">
-              <button @click="${this._toggleCalendarMenu}" title="${t('calendar.exportTitle')}">${t('tabs.calendar')}</button>
-              ${this._calendarMenuOpen ? html`
-                <div class="calendar-dropdown">
-                  <div class="dropdown-section">
-                    <span>Excel</span>
-                    <button @click="${() => this._exportCalendar('all', 'excel')}">${t('calendar.exportAllExcel')}</button>
-                    <button @click="${() => this._exportCalendar('groups', 'excel')}">${t('calendar.exportGroupsExcel')}</button>
-                    <button @click="${() => this._exportCalendar('knockout', 'excel')}">${t('calendar.exportKnockoutExcel')}</button>
-                  </div>
-                  <div class="dropdown-section">
-                    <span>PDF</span>
-                    <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
-                    <button @click="${() => this._exportCalendar('groups', 'pdf')}">${t('calendar.exportGroupsPdf')}</button>
-                    <button @click="${() => this._exportCalendar('knockout', 'pdf')}">${t('calendar.exportKnockoutPdf')}</button>
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-          </div>
+          <!-- Fila de navegación (desktop) -->
+          <nav class="topbar-nav" aria-label="${t('tabs.label')}">
+            ${PHASE_TABS.map(tab => html`
+              <button
+                class="topbar-nav-btn ${at === tab ? 'active' : ''}"
+                aria-pressed="${at === tab}"
+                @click="${() => this._selectTab(tab)}">
+                ${tab === 'hero' ? '⚽' : ''}
+                ${tab === 'groups' ? '📋' : ''}
+                ${tab === 'knockout' ? '🏆' : ''}
+                ${tab === 'squads' ? '👥' : ''}
+                ${tab === 'calendar' ? '📅' : ''}
+                ${tab === 'stadiums' ? '🏟' : ''}
+                ${tab === 'coaches' ? '👔' : ''}
+                ${tab === 'guide' ? '📖' : ''}
+                ${tab === 'league' ? '📊' : ''}
+                ${tab === 'hero' ? t('tabs.hero')
+                  : tab === 'groups' ? t('tabs.groups')
+                  : tab === 'knockout' ? t('tabs.knockout')
+                  : tab === 'squads' ? t('tabs.squads')
+                  : tab === 'calendar' ? t('tabs.calendar')
+                  : tab === 'stadiums' ? t('tabs.stadiums')
+                  : tab === 'coaches' ? t('tabs.coaches')
+                  : tab === 'guide' ? t('tabs.guide')
+                  : t('tabs.league')}
+              </button>
+            `)}
+          </nav>
         </header>
 
         <!-- Tournament progress -->
@@ -622,7 +802,7 @@ export class AppRoot extends LitElement {
           </div>
         ` : ''}
 
-        <!-- AdSense — debajo del topbar, visible en todas las vistas -->
+        <!-- AdSense -->
         <div class="ad-strip">
           <ad-block></ad-block>
         </div>
@@ -631,13 +811,12 @@ export class AppRoot extends LitElement {
           <bracket-view></bracket-view>
         </main>
 
-        <!-- AdSense — antes del footer -->
+        <!-- AdSense -->
         <div class="ad-strip">
           <ad-block></ad-block>
         </div>
 
         <footer class="site-footer">
-          <!-- Tienda / Afiliados -->
           <div class="footer-section">
             <span class="footer-label">Tienda</span>
             <div class="footer-social">
@@ -658,7 +837,6 @@ export class AppRoot extends LitElement {
 
           <span class="footer-sep">·</span>
 
-          <!-- Redes sociales -->
           <div class="footer-section">
             <span class="footer-label">${t('footer.follow')}</span>
             <div class="footer-social">
@@ -679,7 +857,6 @@ export class AppRoot extends LitElement {
 
           <span class="footer-sep">·</span>
 
-          <!-- Contacto -->
           <div class="footer-section">
             <span class="footer-label">${t('footer.contact')}</span>
             <a class="footer-email" href="mailto:bracketmundial@gmail.com" aria-label="Email bracketmundial@gmail.com">

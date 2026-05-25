@@ -5,7 +5,11 @@ export const en: Record<TranslationKey, string> = {
   'header.subtitle': 'WORLD CUP · 2026',
   'header.edition': 'EDITION',
   'header.stats': '48 teams · 12 groups · 104 matches',
+  'header.statsTeams': 'Teams',
+  'header.statsGroups': 'Groups',
+  'header.statsMatches': 'Matches',
   'header.played': '{n} / 104 played',
+  'header.excel': 'Excel',
   'header.importExcel': 'UPLOAD EXCEL',
   'header.exportExcel': 'DOWNLOAD EXCEL',
   'header.importExcelTitle': 'Import data from an Excel file (.xlsx)',
@@ -674,6 +678,8 @@ export const en: Record<TranslationKey, string> = {
   'squads.matchDetail.dateTBD': 'Date TBD',
 
   // Squads list / search
+  'squads.card.playersOne': '{n} player',
+  'squads.card.playersMany': '{n} players',
   'squads.list.viewList': 'List',
   'squads.list.viewPitch': 'Pitch',
   'squads.list.searchPlaceholder': 'Search team or player…',

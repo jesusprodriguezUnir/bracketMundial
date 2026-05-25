@@ -4,7 +4,11 @@ export const es = {
   'header.subtitle': 'MUNDIAL · 2026',
   'header.edition': 'EDICIÓN',
   'header.stats': '48 selecciones · 12 grupos · 104 partidos',
+  'header.statsTeams': 'Selecciones',
+  'header.statsGroups': 'Grupos',
+  'header.statsMatches': 'Partidos',
   'header.played': '{n} / 104 jugados',
+  'header.excel': 'Excel',
   'header.importExcel': 'SUBIR EXCEL',
   'header.exportExcel': 'BAJAR EXCEL',
   'header.importExcelTitle': 'Importar datos desde un archivo Excel (.xlsx)',
@@ -682,6 +686,8 @@ export const es = {
   'squads.matchDetail.dateTBD': 'Fecha por confirmar',
 
   // Squads list / search
+  'squads.card.playersOne': '{n} jugador',
+  'squads.card.playersMany': '{n} jugadores',
   'squads.list.viewList': 'Lista',
   'squads.list.viewPitch': 'Cancha',
   'squads.list.searchPlaceholder': 'Buscar equipo o jugador…',
