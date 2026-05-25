@@ -36,6 +36,7 @@ interface TeamMatchSummary {
   opponentId: string | null;
   matchDay: number;
   teamId: string;
+  isHome: boolean;
 }
 
 @customElement('squads-view')
@@ -1530,6 +1531,7 @@ export class SquadsView extends LitElement {
           opponentId: match.teamA === teamId ? match.teamB : match.teamA,
           matchDay: match.matchDay,
           teamId,
+          isHome: match.teamA === teamId,
         };
       })
       .sort((a, b) => {
@@ -1769,16 +1771,16 @@ export class SquadsView extends LitElement {
                                 </div>
                                 <div class="odds-bar">
                                   <div class="odds-bar-seg"
-                                    style="width:${odds.home}%;background:var(--retro-orange);color:var(--paper)">
-                                    ${odds.home}%
+                                    style="width:${match.isHome ? odds.home : odds.away}%;background:var(--retro-orange);color:var(--paper)">
+                                    ${match.isHome ? odds.home : odds.away}%
                                   </div>
                                   <div class="odds-bar-seg"
                                     style="width:${odds.draw}%;background:var(--paper-2);color:var(--ink)">
                                     ${odds.draw}%
                                   </div>
                                   <div class="odds-bar-seg"
-                                    style="width:${odds.away}%;background:var(--retro-blue);color:var(--paper)">
-                                    ${odds.away}%
+                                    style="width:${match.isHome ? odds.away : odds.home}%;background:var(--retro-blue);color:var(--paper)">
+                                    ${match.isHome ? odds.away : odds.home}%
                                   </div>
                                 </div>
                                 <div class="odds-legend">
