@@ -19,6 +19,7 @@ type MatchModalElement = HTMLElement & {
   city: string;
   timeSpain: string;
   stadiumImage: string;
+  hideFooter: boolean;
 };
 
 interface OpenMatchModalOptions {
@@ -35,6 +36,7 @@ interface OpenMatchModalOptions {
   city?: string;
   timeSpain?: string;
   stadiumImage?: string;
+  hideFooter?: boolean;
   onSave: (detail: MatchModalSaveDetail) => void;
 }
 
@@ -53,6 +55,7 @@ export function openMatchModal(options: OpenMatchModalOptions): MatchModalElemen
   modal.city = options.city ?? '';
   modal.timeSpain = options.timeSpain ?? '';
   modal.stadiumImage = options.stadiumImage ?? '';
+  modal.hideFooter = options.hideFooter ?? false;
 
   const handleSave = (event: Event) => {
     options.onSave((event as CustomEvent<MatchModalSaveDetail>).detail);

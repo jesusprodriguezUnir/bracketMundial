@@ -568,6 +568,7 @@ export class CalendarView extends LitElement {
       city: row.city,
       timeSpain: row.timeSpain,
       stadiumImage: stadium?.image,
+      hideFooter: true,
       onSave: ({ scoreA, scoreB, penaltyScoreA, penaltyScoreB }) => {
       const store = useTournamentStore.getState();
       if (row.kind === 'group') {

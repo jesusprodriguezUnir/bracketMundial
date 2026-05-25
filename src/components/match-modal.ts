@@ -30,6 +30,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @property() city = '';
   @property() timeSpain = '';
   @property() stadiumImage = '';
+  @property({ type: Boolean }) hideFooter = false;
   @property({ attribute: false }) goalScorers: GoalEvent[] | undefined;
 
   @state() private _scoreA: number | null = null;
@@ -39,7 +40,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @state() private _odds: MatchOdds | null = null;
   @state() private _preview: Preview | null = null;
   @state() private _chronicleOpen = false;
-  @state() private _infoTab: 'preview' | 'lineups' | 'edit' = 'edit';
+  @state() private _infoTab: 'preview' | 'lineups' | 'edit' = 'preview';
   @state() private _confirmClose = false;
 
   get scoreA() { return this._scoreA; }
@@ -60,7 +61,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     if (changedProps.has('matchId')) {
       this._preview = getPreview(this.matchId);
       this._chronicleOpen = false;
-      this._infoTab = 'edit';
+      this._infoTab = 'preview';
       this._confirmClose = false;
     }
   }
@@ -887,22 +888,6 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .player-circle { width: 22px; height: 22px; font-size: 10px; }
       .player-label { font-size: 7px; max-width: 55px; }
       .pitch-dt { font-size: 8px; padding: 3px 5px; }
-
-      /* Info tabs — visible only on mobile */
-      .info-tab-bar {
-        display: flex;
-        gap: 4px;
-        padding: 8px 10px;
-        border-top: 2px solid var(--ink);
-        border-bottom: 2px solid var(--ink);
-        background: var(--paper-2);
-      }
-      .info-tab-content {
-        display: none;
-      }
-      .info-tab-content.active {
-        display: block;
-      }
     }
 
     /* ─── Modal body scrollable ─── */
@@ -913,9 +898,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ─── Info tabs (mobile only) ─── */
+    /* ─── Info tabs ─── */
     .info-tab-bar {
-      display: none;
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px;
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      background: var(--paper-2);
     }
     .info-tab-btn {
       all: unset;
@@ -942,6 +932,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       background: var(--paper);
     }
     .info-tab-content {
+      display: none;
+    }
+    .info-tab-content.active {
       display: block;
     }
 
@@ -1462,7 +1455,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         <!-- Goleadores -->
         ${this._renderGoalScorers(tA, tB)}
 
-        <!-- Info tab bar (mobile only) -->
+        <!-- Info tab bar -->
         <div class="info-tab-bar">
           <button class="info-tab-btn ${this._infoTab === 'preview' ? 'active' : ''}"
                   @click=${() => { this._infoTab = 'preview'; }}>
@@ -1561,6 +1554,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         </div><!-- /modal-body -->
 
         <!-- Footer -->
+        ${!this.hideFooter ? html`
         <div class="modal-footer">
           ${this._confirmClose
             ? html`
@@ -1581,6 +1575,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
                 @click="${this.save}">${t('modal.save')}</button>
             `}
         </div>
+        ` : ''}
       </div>
     `;
   }
