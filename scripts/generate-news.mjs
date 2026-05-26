@@ -196,8 +196,8 @@ async function main() {
   for (const team of teamsToProcess) {
     process.stdout.write(`  ${team.id} ...`);
 
-    const esQuery = `"${team.es}" Mundial 2026`;
-    const enQuery = `"${team.en}" "World Cup 2026"`;
+    const esQuery = `${team.es} Mundial 2026`;
+    const enQuery = `${team.en} "World Cup 2026"`;
 
     const [esNews, enNews] = await Promise.all([
       fetchTeamNews(esQuery, 'es', 'ES', 'ES:es'),
