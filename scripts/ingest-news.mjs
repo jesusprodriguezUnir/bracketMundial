@@ -372,12 +372,12 @@ function filterOfficialForTeam(officialPool, team) {
 // ─── Orquestación por equipo ─────────────────────────────────────────────────
 async function gatherForTeam(team, officialPool) {
   const collected = []; // todos los items, todas las fuentes
-  const esQuery = `"${team.es}" Mundial 2026`;
-  const enQuery = `"${team.en}" "World Cup 2026"`;
+  const esQuery = `${team.es} Mundial 2026`;
+  const enQuery = `${team.en} "World Cup 2026"`;
 
   // 1. GNews — una sola query combinada ES|EN
   if (GNEWS_KEY) {
-    const combined = `("${team.es}" Mundial 2026) OR ("${team.en}" "World Cup 2026")`;
+    const combined = `(${team.es} Mundial 2026) OR (${team.en} "World Cup 2026")`;
     collected.push(...await fetchGNews(combined, 'en', NEWS_PER_TEAM * 2));
     await sleep(300);
   }
