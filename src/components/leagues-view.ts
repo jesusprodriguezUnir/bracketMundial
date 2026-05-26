@@ -10,6 +10,9 @@ import { GROUP_MATCHES } from '../data/match-schedule';
 import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
+import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
+import { refreshLeagueMembers } from '../lib/league-sync';
+import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '../lib/league-fixture';
 import { buildProjectedScores } from '../lib/league-projection';
@@ -63,6 +66,13 @@ export class LeaguesView extends LitElement {
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _editMode = false;
   @state() private _viewMode: 'real' | 'projection' = 'real';
+  @state() private _showInvite = false;
+  @state() private _copiedInvite = false;
+  @state() private _showSharePredictions = false;
+  @state() private _copiedShare = false;
+  @state() private _importUrl = '';
+  @state() private _importFeedback: string | null = null;
+  @state() private _syncing = false;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -70,6 +80,7 @@ export class LeaguesView extends LitElement {
   private _unsubTournament?: () => void;
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
+  private _unsubAuth?: () => void;
   private get _isReadOnly(): boolean { return this._viewMode === 'real'; }
 
   static readonly styles = css`
@@ -1467,6 +1478,7 @@ export class LeaguesView extends LitElement {
     this._unsubTournament = useTournamentStore.subscribe(() => this._recalc());
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this._unsubAuth = useAuthStore.subscribe(() => this.requestUpdate());
     this._recalc();
   }
 
@@ -1474,6 +1486,7 @@ export class LeaguesView extends LitElement {
     this._unsubTournament?.();
     this._unsubLeagues?.();
     this._unsubLocale?.();
+    this._unsubAuth?.();
     super.disconnectedCallback();
   }
 
@@ -1805,6 +1818,99 @@ export class LeaguesView extends LitElement {
     } catch (err) {
       console.error('Error exporting league Excel:', err);
     }
+  }
+
+  private async _showInviteModal() {
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (!league) return;
+
+    if (useAuthStore.getState().session) {
+      this._syncing = true;
+      try {
+        const { getSupabase } = await import('../lib/supabase-client');
+        const sb = getSupabase();
+        const userId = useAuthStore.getState().session?.user.id;
+        if (sb && userId) {
+          await sb.from('leagues').upsert(
+            { id: league.id, name: league.name, owner_id: userId },
+            { onConflict: 'id', ignoreDuplicates: true },
+          );
+        }
+      } catch { /* league may already exist */ }
+      this._syncing = false;
+    }
+
+    this._showInvite = true;
+    this._copiedInvite = false;
+  }
+
+  private _copyInviteLink() {
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (!league) return;
+    const url = `${window.location.origin}${window.location.pathname}#league/join/${league.id}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+    this._copiedInvite = true;
+  }
+
+  private _showSharePredictionsModal() {
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (!league) return;
+    const me = league.participants.find(p => p.isOwner);
+    if (!me) return;
+    const hasPredictions = me.groupScores.some(s => s.scoreA !== null && s.scoreB !== null)
+      || me.knockoutScores.some(s => s.scoreA !== null && s.scoreB !== null);
+    if (!hasPredictions) {
+      this._importFeedback = t('league.importError');
+      return;
+    }
+    this._showSharePredictions = true;
+    this._copiedShare = false;
+  }
+
+  private _copyShareLink() {
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (!league) return;
+    const me = league.participants.find(p => p.isOwner);
+    if (!me) return;
+    const url = buildParticipantShareUrl(league.id, me.name, me.groupScores, me.knockoutScores);
+    navigator.clipboard.writeText(url).catch(() => {});
+    this._copiedShare = true;
+  }
+
+  private async _refreshFromCloud() {
+    if (!this._activeLeagueId) return;
+    this._syncing = true;
+    try {
+      await refreshLeagueMembers(this._activeLeagueId);
+    } finally {
+      this._syncing = false;
+    }
+  }
+
+  private _importFriendPrediction() {
+    const raw = this._importUrl.trim();
+    if (!raw) return;
+
+    const payload = raw.includes('#lp=') ? raw.split('#lp=')[1]?.trim() : raw.trim();
+    if (!payload) { this._importFeedback = t('league.importError'); return; }
+
+    const share = decodeParticipantShare(payload);
+    if (!share) { this._importFeedback = t('league.importError'); return; }
+
+    const leagueId = this._activeLeagueId;
+    if (!leagueId) { this._importFeedback = t('league.importError'); return; }
+
+    const result = useLeaguesStore.getState().importParticipantFromShare(
+      share.leagueId, share.participantName, share.groupScores, share.knockoutScores,
+    );
+    if (!result.created && result.participantId) {
+      this._importFeedback = t('league.importSuccess', { name: share.participantName });
+    } else if (result.created) {
+      this._importFeedback = t('league.importSuccess', { name: share.participantName });
+    } else {
+      this._importFeedback = t('league.importError');
+    }
+    this._importUrl = '';
   }
 
   // ── RENDER LIST ──
@@ -2190,6 +2296,11 @@ export class LeaguesView extends LitElement {
 
             <div class="lg-actions">
               <button class="lg-btn-sm" @click=${this._goToList}>${t('league.myLeagues')}</button>
+              <button class="lg-btn-sm" @click=${this._showInviteModal}>${t('league.inviteTitle')}</button>
+              ${useAuthStore.getState().session
+                ? html`<button class="lg-btn-sm" @click=${this._refreshFromCloud} ?disabled=${this._syncing}>${t(this._syncing ? 'league.syncing' : 'league.refresh')}</button>`
+                : ''}
+              <button class="lg-btn-sm" @click=${this._showSharePredictionsModal}>${t('league.shareMyPredictions')}</button>
               <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
               <button class="lg-danger-btn" @click=${() => this._requestDeleteLeague(league.id)}>${t('league.delete')}</button>
             </div>
@@ -2237,6 +2348,26 @@ export class LeaguesView extends LitElement {
             <span>${t('league.confirmDelete')}</span>
             <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
             <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+          </div>
+        ` : ''}
+
+        ${this._showInvite ? html`
+          <div class="lg-confirm-box" style="border-color: var(--retro-yellow);">
+            <span>${t('league.inviteBody')}</span>
+            ${this._copiedInvite
+              ? html`<button class="lg-btn-sm" disabled>${t('league.copied')}</button>`
+              : html`<button class="lg-btn-sm" @click=${this._copyInviteLink}>${t('league.copyLink')}</button>`}
+            <button class="lg-btn-back" @click=${() => { this._showInvite = false; this._copiedInvite = false; }}>✕</button>
+          </div>
+        ` : ''}
+
+        ${this._showSharePredictions ? html`
+          <div class="lg-confirm-box" style="border-color: var(--retro-green);">
+            <span>${t('league.sharePredictionsBody')}</span>
+            ${this._copiedShare
+              ? html`<button class="lg-btn-sm" disabled>${t('league.copied')}</button>`
+              : html`<button class="lg-btn-sm" @click=${this._copyShareLink}>${t('league.copyLink')}</button>`}
+            <button class="lg-btn-back" @click=${() => { this._showSharePredictions = false; this._copiedShare = false; }}>✕</button>
           </div>
         ` : ''}
 
@@ -2370,6 +2501,23 @@ export class LeaguesView extends LitElement {
             </label>
           </div>
           ${this._uploadError ? html`<div class="lg-error">${this._uploadError}</div>` : ''}
+        </div>
+
+        <div class="lg-add-section">
+          <h3>${t('league.importFriendTitle')}</h3>
+          <div class="lg-add-row">
+            <div class="lg-field">
+              <input
+                type="text"
+                .value=${this._importUrl}
+                @input=${(e: InputEvent) => { this._importUrl = (e.target as HTMLInputElement).value; }}
+                @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._importFriendPrediction(); }}
+                placeholder=${t('league.importPlaceholder')}
+              />
+            </div>
+            <button class="lg-btn-sm" @click=${this._importFriendPrediction}>${t('league.importBtn')}</button>
+          </div>
+          ${this._importFeedback ? html`<div class="lg-error">${this._importFeedback}</div>` : ''}
         </div>
       </div>
     `;

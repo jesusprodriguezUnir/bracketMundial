@@ -86,4 +86,5 @@ function _cleanAuthParams(): void {
 
 function _onSignedIn() {
   import('../lib/prediction-sync').then(({ onSignedIn }) => onSignedIn());
+  import('../lib/league-sync').then(({ onSignedIn: onLeagueSignedIn }) => onLeagueSignedIn());
 }

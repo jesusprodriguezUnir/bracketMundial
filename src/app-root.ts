@@ -5,6 +5,7 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
+import { useAuthStore } from './store/auth-store';
 import { onToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
@@ -29,6 +30,8 @@ export class AppRoot extends LitElement {
   @state() private _shopMenuOpen = false;
   @state() private _moreMenuOpen = false;
   @state() private _activeTab: PhaseTab = 'hero';
+  @state() private _authEmail: string | null = null;
+  private _unsubAuth?: () => void;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
   private _hashChangeHandler?: () => void;
@@ -512,6 +515,11 @@ export class AppRoot extends LitElement {
       () => this.requestUpdate(),
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this._unsubAuth = useAuthStore.subscribe(s => {
+      this._authEmail = s.session?.user.email ?? null;
+      this.requestUpdate();
+    });
+    this._authEmail = useAuthStore.getState().session?.user.email ?? null;
 
     this._syncTabFromHash();
     this._hashChangeHandler = () => { this._syncTabFromHash(); this.requestUpdate(); };
@@ -547,6 +555,63 @@ export class AppRoot extends LitElement {
   }
 
   private async _loadSharedBracketIfPresent() {
+    const hash = window.location.hash;
+
+    // Cloud league join: #league/join/<uuid>
+    if (hash.startsWith('#league/join/')) {
+      const leagueId = hash.slice('#league/join/'.length).trim();
+      if (leagueId) {
+        const name = prompt('¿Quieres unirte a esta liga?\n\nEscribe tu nombre:');
+        if (name && name.trim()) {
+          const { joinLeagueInCloud } = await import('./lib/league-sync');
+          const ok = await joinLeagueInCloud(leagueId, name.trim());
+          if (ok) {
+            const { useLeaguesStore } = await import('./store/leagues-store');
+            useLeaguesStore.getState().joinLeagueFromInvite(leagueId, '', name.trim());
+            const { refreshLeagueMembers } = await import('./lib/league-sync');
+            await refreshLeagueMembers(leagueId);
+          }
+          this._activeTab = 'league';
+          window.location.hash = '#league';
+        }
+      }
+      return;
+    }
+
+    const { detectLeagueHash, decodeLeagueInvite, decodeParticipantShare } = await import('./lib/league-codec');
+    const leagueHash = detectLeagueHash(hash);
+
+    if (leagueHash) {
+      if (leagueHash.type === 'invite') {
+        const invite = decodeLeagueInvite(leagueHash.raw);
+        if (invite) {
+          const name = prompt(`¿Quieres unirte a la liga "${invite.name}"?\n\nEscribe tu nombre:`);
+          if (name && name.trim()) {
+            const { useLeaguesStore } = await import('./store/leagues-store');
+            useLeaguesStore.getState().joinLeagueFromInvite(invite.leagueId, invite.name, name.trim());
+            this._activeTab = 'league';
+            window.location.hash = '#league';
+          }
+        }
+      } else if (leagueHash.type === 'participant') {
+        const share = decodeParticipantShare(leagueHash.raw);
+        if (share) {
+          const ok = window.confirm(`¿Importar las predicciones de "${share.participantName}" a la liga?`);
+          if (ok) {
+            const { useLeaguesStore } = await import('./store/leagues-store');
+            const result = useLeaguesStore.getState().importParticipantFromShare(
+              share.leagueId, share.participantName, share.groupScores, share.knockoutScores,
+            );
+            if (result.created || result.participantId) {
+              this._activeTab = 'league';
+              window.location.hash = '#league';
+            }
+          }
+        }
+      }
+      return;
+    }
+
     const { readSharedBracketFromHash } = await import('./lib/bracket-codec');
     const data = readSharedBracketFromHash();
     if (!data) return;
@@ -566,6 +631,7 @@ export class AppRoot extends LitElement {
     }
     this.unsubscribeStore?.();
     this.unsubscribeLocale?.();
+    this._unsubAuth?.();
     this._unsubscribeToast?.();
     super.disconnectedCallback();
   }
@@ -650,6 +716,15 @@ export class AppRoot extends LitElement {
     openShareModal();
   }
 
+  private async _handleAuth() {
+    if (useAuthStore.getState().session) {
+      await useAuthStore.getState().signOut();
+    } else {
+      const { openAuthModal } = await import('./components/auth-modal');
+      openAuthModal();
+    }
+  }
+
   private triggerImportExcel() {
     const fileInput = this.shadowRoot?.querySelector('#excel-upload') as HTMLInputElement;
     if (fileInput) fileInput.click();
@@ -706,6 +781,9 @@ export class AppRoot extends LitElement {
             </div>
 
             <div class="header-actions">
+              ${this._authEmail
+                ? html`<button class="ha-btn-sm" @click="${this._handleAuth}" title="${this._authEmail}">${this._authEmail}</button>`
+                : html`<button class="ha-btn-primary" @click="${this._handleAuth}">Iniciar sesión</button>`}
               <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
               <button class="ha-btn-sm" @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
                 ${this._isDark ? html`☀️` : html`🌙`}

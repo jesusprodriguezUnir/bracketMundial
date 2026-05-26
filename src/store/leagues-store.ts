@@ -13,6 +13,7 @@ export interface LeagueParticipant {
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
   isOwner?: boolean;
+  userId?: string;
 }
 
 export interface League {
@@ -62,6 +63,13 @@ interface LeaguesState {
 
   addParticipantFromExcel: (leagueId: string, name: string, file: File) => Promise<boolean>;
   addEmptyParticipant: (leagueId: string, name: string) => string;
+  joinLeagueFromInvite: (leagueId: string, name: string, participantName: string) => string;
+  importParticipantFromShare: (
+    leagueId: string,
+    participantName: string,
+    groupScores: DecodedBracket['groupScores'],
+    knockoutScores: DecodedBracket['knockoutScores'],
+  ) => { created: boolean; participantId: string };
   replaceParticipantFromExcel: (leagueId: string, participantId: string, file: File) => Promise<boolean>;
   removeParticipant: (leagueId: string, participantId: string) => void;
   renameParticipant: (leagueId: string, participantId: string, name: string) => void;
@@ -71,6 +79,9 @@ interface LeaguesState {
     groupScores: DecodedBracket['groupScores'],
     knockoutScores: DecodedBracket['knockoutScores'],
   ) => void;
+
+  _addLeague: (league: League) => void;
+  _patchLeague: (id: string, partial: Partial<Omit<League, 'id' | 'participants'>> & { participants?: League['participants'] }) => void;
 }
 
 export const useLeaguesStore = createStore<LeaguesState>()(
@@ -166,6 +177,97 @@ export const useLeaguesStore = createStore<LeaguesState>()(
         return participant.id;
       },
 
+      joinLeagueFromInvite: (leagueId, name, participantName) => {
+        const existing = get().leagues.find(l => l.id === leagueId);
+        if (existing) {
+          const pid = generatePid();
+          const participant: LeagueParticipant = {
+            id: pid,
+            name: participantName.trim(),
+            addedAt: Date.now(),
+            source: 'manual',
+            groupScores: createEmptyGroupScores(),
+            knockoutScores: createEmptyKnockoutScores(),
+          };
+          set({
+            leagues: get().leagues.map(l =>
+              l.id === leagueId
+                ? { ...l, participants: [...l.participants, participant] }
+                : l,
+            ),
+            activeLeagueId: leagueId,
+          });
+          return pid;
+        }
+
+        const league: League = {
+          id: leagueId,
+          name: name.trim(),
+          createdAt: Date.now(),
+          participants: [
+            {
+              id: generatePid(),
+              name: participantName.trim(),
+              addedAt: Date.now(),
+              source: 'manual',
+              groupScores: createEmptyGroupScores(),
+              knockoutScores: createEmptyKnockoutScores(),
+              isOwner: true,
+            },
+          ],
+        };
+        set({ leagues: [...get().leagues, league], activeLeagueId: leagueId });
+        return league.participants[0].id;
+      },
+
+      importParticipantFromShare: (leagueId, participantName, groupScores, knockoutScores) => {
+        const leagues = get().leagues;
+        const league = leagues.find(l => l.id === leagueId);
+
+        if (!league) return { created: false, participantId: '' };
+
+        const existingP = league.participants.find(
+          p => p.name.toLowerCase() === participantName.toLowerCase(),
+        );
+
+        if (existingP) {
+          set({
+            leagues: leagues.map(l =>
+              l.id === leagueId
+                ? {
+                    ...l,
+                    participants: l.participants.map(p =>
+                      p.id === existingP.id
+                        ? { ...p, groupScores, knockoutScores }
+                        : p,
+                    ),
+                  }
+                : l,
+            ),
+          });
+          return { created: false, participantId: existingP.id };
+        }
+
+        const participant: LeagueParticipant = {
+          id: generatePid(),
+          name: participantName.trim(),
+          addedAt: Date.now(),
+          source: 'manual',
+          groupScores,
+          knockoutScores,
+        };
+
+        set({
+          leagues: leagues.map(l =>
+            l.id === leagueId
+              ? { ...l, participants: [...l.participants, participant] }
+              : l,
+          ),
+          activeLeagueId: leagueId,
+        });
+        return { created: true, participantId: participant.id };
+      },
+
       replaceParticipantFromExcel: async (leagueId, participantId, file) => {
         try {
           const { groupScores, knockoutScores } = await ExcelService.importFromExcel(file);
@@ -230,6 +332,20 @@ export const useLeaguesStore = createStore<LeaguesState>()(
                   ),
                 }
               : l,
+          ),
+        });
+      },
+
+      _addLeague: (league) => {
+        set({
+          leagues: [...get().leagues.filter(l => l.id !== league.id), league],
+        });
+      },
+
+      _patchLeague: (id, partial) => {
+        set({
+          leagues: get().leagues.map(l =>
+            l.id === id ? { ...l, ...partial } : l,
           ),
         });
       },

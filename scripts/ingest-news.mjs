@@ -236,7 +236,7 @@ async function fetchWithRetry(url, opts = {}, retries = 2) {
 // ─── Fuente: GNews API ───────────────────────────────────────────────────────
 async function fetchGNews(query, lang, max) {
   if (!GNEWS_KEY) return [];
-  const params = new URLSearchParams({ q: query, lang, max: String(max), apikey: GNEWS_KEY });
+  const params = new URLSearchParams({ q: query, lang, max: String(max), sortby: 'publishedAt', apikey: GNEWS_KEY });
   try {
     const resp = await fetchWithRetry(`https://gnews.io/api/v4/search?${params}`);
     if (!resp.ok) {
@@ -298,7 +298,7 @@ async function fetchNewsAPI(query, lang, max) {
 
 // ─── Fuente: Google News RSS ─────────────────────────────────────────────────
 async function fetchGoogleNews(query, hl, gl, ceid) {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${hl}&gl=${gl}&ceid=${ceid}`;
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query + ' when:14d')}&hl=${hl}&gl=${gl}&ceid=${ceid}`;
   try {
     const resp = await fetchWithRetry(url);
     if (!resp.ok) return [];

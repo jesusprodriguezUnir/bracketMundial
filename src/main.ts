@@ -31,6 +31,9 @@ import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => 
 // Configuración nativa para Android/Capacitor
 import('./lib/native-setup').then(m => m.initNative());
 
+// Inicializar auth de Supabase (PKCE, magic link, session recovery)
+import('./store/auth-store').then(({ initAuth }) => initAuth());
+
 const root = document.getElementById('root');
 if (root) {
   const app = document.createElement('app-root');
