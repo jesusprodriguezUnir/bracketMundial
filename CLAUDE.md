@@ -110,31 +110,48 @@ Los jugadores sin foto en el manifiesto muestran iniciales directamente.
 
 ## Sistema de Noticias
 
-Las noticias se cargan dinámicamente desde Google News y se actualizan diariamente:
+Multi-fuente con upsert a Supabase. Refresco cada 3 h durante el Mundial.
 
 ### Flujo
 
-1. **GitHub Actions cron** (diario a 05:00 UTC) ejecuta [scripts/generate-news.mjs](scripts/generate-news.mjs)
-2. El script obtiene las últimas 3 noticias por equipo y locale (ES/EN) de Google News RSS
-3. Genera [news-feed.json](news-feed.json) y lo pushea a la rama `news-data`
-4. En tiempo de ejecución, [src/lib/news-service.ts](src/lib/news-service.ts) fetch el archivo desde raw.githubusercontent.com
-5. Cache en localStorage por 24 horas; fallback a `NEWS_SEED` si falla el fetch
+1. **GitHub Actions cron** cada 3 h (`.github/workflows/news.yml`) ejecuta [scripts/ingest-news.mjs](scripts/ingest-news.mjs).
+2. El script consulta en cascada cuatro fuentes por equipo y locale:
+   - GNews API (`GNEWS_DATA_KEY`)
+   - NewsAPI.org (`NEWSAPI_KEY`)
+   - Google News RSS (sin key)
+   - RSS oficiales: FIFA, BBC Sport, Marca, AS (sin key, pre-cargados una vez)
+3. Dedupe por URL canonicalizada, detecta idioma con heurística (acentos + tokens) y upsertea en la tabla `team_news` de Supabase. TTL: borra registros con `published_at > 30 días` al final.
+4. **Skip inteligente**: si el último `fetched_at` de un equipo es <1 h, lo salta (evita gastar cuota de APIs).
+5. El cliente [src/lib/news-service.ts](src/lib/news-service.ts) lee de la vista `team_news_top` (top 5 por equipo+locale) y cachea 1 h en localStorage. Fallback al `NEWS_SEED` bundleado si Supabase falla o no está configurado.
+
+### Esquema en Supabase
+
+Migración: [supabase/migrations/20260526120000_team_news.sql](supabase/migrations/20260526120000_team_news.sql)
+
+- `team_news (team_id, locale, url) PK` — RLS lectura pública anon.
+- `team_news_top` — vista con top 5 por `(team_id, locale)` por `published_at desc`.
 
 ### Operación
 
-- **Feed URL**: `https://raw.githubusercontent.com/jesusprodriguez/bracketMundial/news-data/news-feed.json`
-- **Rama remota**: [`news-data`](https://github.com/jesusprodriguez/bracketMundial/tree/news-data) (orfana, solo contiene el JSON)
-- **Seed de fallback**: [src/data/news/seed.ts](src/data/news/seed.ts) (bundleada)
+- **Secretos GitHub** (Settings → Secrets → Actions):
+  - `VITE_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — requeridos.
+  - `GNEWS_DATA_KEY`, `NEWSAPI_KEY` — opcionales (sin ellos, solo RSS).
+- **Sin rama orfana**: ya no se usa `news-data`. El `vercel.json` raíz tiene `git.deploymentEnabled.news-data: false` por compatibilidad con runs antiguos.
 
 ### Mantenimiento manual
 
-Para ejecutar la actualización de noticias localmente:
 ```bash
-node scripts/generate-news.mjs          # Genera news-feed.json
-node scripts/generate-news.mjs --write-seed  # También regenera seed.ts
+npm run news                     # Ingesta los 48 equipos a Supabase
+npm run news -- ARG MEX          # Solo equipos indicados
+npm run news -- --dry-run        # No upsertea, solo log
+npm run news -- --force          # Ignora skip de 1h
+npm run news -- --json-only      # Modo offline: escribe news-feed.json sin tocar Supabase
+npm run news:legacy              # Script viejo (genera JSON solamente)
 ```
 
-Luego crear/actualizar la rama `news-data` (ver CLAUDE.md de commits anteriores o el workflow en `.github/workflows/news.yml`).
+Sin `.env` con credenciales de Supabase, el script cae automáticamente a modo `--json-only`.
+
+La skill `/news` de Claude Code orquesta refresco + verificación.
 
 ## Sistema de Probabilidad 1X2 (Odds de Casas de Apuestas)
 

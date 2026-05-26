@@ -2,27 +2,39 @@ name: Update Live Scores
 
 on:
   schedule:
-    # Se ejecuta en el minuto 0 de cada hora (ej. 14:00, 15:00, etc.)
-    - cron: '0 * * * *'
-  # Permite ejecutarlo manualmente desde la pestaña Actions en GitHub
-  workflow_dispatch: 
+    # Cada 5 min — el script tiene skip inteligente:
+    # - Si hay partido en ventana [-30min, +3h] → procede.
+    # - Si NO hay partido y la última run de auditoría fue hace <1h → salta.
+    # Resultado: cuota baja fuera del Mundial, frescura alta durante partidos.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Ignorar skip inteligente (--force)'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-scores
+  cancel-in-progress: false
 
 jobs:
   update-scores:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 5
+
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
-          
-      - name: Instalar dependencias
-        run: npm ci
+
+      - run: npm ci
 
       - name: Validar secrets requeridos
         env:
@@ -31,31 +43,20 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
         run: |
           missing=0
+          [ -z "$API_FOOTBALL_KEY" ] && { echo "❌ Falta API_FOOTBALL_KEY"; missing=1; }
+          [ -z "$VITE_SUPABASE_URL" ] && { echo "❌ Falta VITE_SUPABASE_URL"; missing=1; }
+          [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && { echo "❌ Falta SUPABASE_SERVICE_ROLE_KEY"; missing=1; }
+          [ "$missing" -eq 1 ] && exit 1
+          echo "✅ Secrets OK"
 
-          if [ -z "$API_FOOTBALL_KEY" ]; then
-            echo "❌ Falta API_FOOTBALL_KEY en GitHub Secrets/Variables (también válido: RAPIDAPI_KEY)."
-            missing=1
-          fi
-
-          if [ -z "$VITE_SUPABASE_URL" ]; then
-            echo "❌ Falta VITE_SUPABASE_URL en GitHub Secrets/Variables (también válido: SUPABASE_URL)."
-            missing=1
-          fi
-
-          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "❌ Falta SUPABASE_SERVICE_ROLE_KEY en GitHub Secrets/Variables (también válido: SUPABASE_SERVICE_KEY)."
-            missing=1
-          fi
-
-          if [ "$missing" -eq 1 ]; then
-            echo "⛔ Abortando workflow por secrets faltantes."
-            exit 1
-          fi
-        
-      - name: Ejecutar script de actualización
+      - name: Ejecutar update-live-scores
         env:
-          # Estas variables deben configurarse en los Settings del repositorio de GitHub
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY || vars.API_FOOTBALL_KEY || secrets.RAPIDAPI_KEY || vars.RAPIDAPI_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL || secrets.SUPABASE_URL || vars.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
-        run: npm run scores:update
+        run: |
+          ARGS=""
+          if [ "${{ inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          npm run scores:update -- $ARGS

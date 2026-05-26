@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +8,7 @@ const ROOT = join(__dirname, '..');
 
 // Importar datos y lógica del torneo
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../src/data/fifa-2026';
-import { KNOCKOUT_SCHEDULE } from '../src/data/match-schedule';
+import { KNOCKOUT_SCHEDULE, GROUP_MATCHES } from '../src/data/match-schedule';
 import { decodeBracket, encodeBracket } from '../src/lib/bracket-codec';
 import { syncKnockoutBracket } from '../src/lib/bracket-logic';
 import { recalculateStandings, getWinnerId, getKnockoutMatchOrder, initialGroupMatches } from '../src/store/tournament-store';
@@ -26,20 +26,56 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const API_FOOTBALL_KEY = ENV.API_FOOTBALL_KEY || process.env.API_FOOTBALL_KEY;
-const SUPABASE_URL = ENV.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = ENV.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY ?? ENV.API_FOOTBALL_KEY;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ENV.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ENV.SUPABASE_SERVICE_ROLE_KEY;
+
+const args = process.argv.slice(2);
+const FORCE = args.includes('--force');
+const TRIGGERED_BY = process.env.GITHUB_EVENT_NAME ?? (process.env.CI ? 'cron' : 'manual');
 
 if (!API_FOOTBALL_KEY) {
-  console.error("❌ ERROR: Falta API_FOOTBALL_KEY (process.env o .env). En GitHub Actions, define el secret/var API_FOOTBALL_KEY (o RAPIDAPI_KEY).");
+  console.error('❌ Falta API_FOOTBALL_KEY (env o .env).');
   process.exit(1);
 }
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error("❌ ERROR: Faltan VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY (process.env o .env). En GitHub Actions, define esos secrets/vars (o SUPABASE_URL / SUPABASE_SERVICE_KEY).");
+  console.error('❌ Faltan VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY.');
   process.exit(1);
 }
 
-// ── name normalization + Levenshtein similarity ────────────────────────────────
+// ── Helpers de log estructurado ──────────────────────────────────────────────
+function logJson(level: 'info' | 'warn' | 'error', event: string, data: Record<string, unknown> = {}) {
+  console.log(JSON.stringify({ t: new Date().toISOString(), level, event, ...data }));
+}
+
+// ── Detección de partido activo (skip inteligente) ───────────────────────────
+/**
+ * Devuelve true si hay al menos un partido programado dentro de la ventana
+ * [-30min, +3h] del momento actual. Eso es "hay fútbol ahora o en breve".
+ *
+ * Si no hay partido en esa ventana y la última run de Supabase tiene <1h,
+ * el caller puede decidir saltarse esta ejecución y ahorrar cuota de API.
+ */
+function hasMatchInProgress(now: Date): boolean {
+  // CEST = UTC+2 en verano 2026. timeSpain es HH:MM CEST.
+  const nowMs = now.getTime();
+  const windowStart = nowMs - 30 * 60 * 1000;
+  const windowEnd = nowMs + 3 * 60 * 60 * 1000;
+
+  for (const m of GROUP_MATCHES) {
+    const iso = `${m.date}T${m.timeSpain}:00+02:00`;
+    const t = new Date(iso).getTime();
+    if (t >= windowStart && t <= windowEnd) return true;
+  }
+  for (const m of KNOCKOUT_SCHEDULE) {
+    const iso = `${m.date}T${m.timeSpain}:00+02:00`;
+    const t = new Date(iso).getTime();
+    if (t >= windowStart && t <= windowEnd) return true;
+  }
+  return false;
+}
+
+// ── name normalization + Levenshtein similarity ──────────────────────────────
 function normalizeStr(s: string) {
   return s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
 }
@@ -62,38 +98,125 @@ function nameSimilarity(a: string, b: string) {
 
 function getTeamIdByApiName(apiName: string): string | null {
   const matches = TEAMS_2026.map(t => {
-    // Check Spanish name, short name, or common variations
     const scoreES = nameSimilarity(t.name, apiName);
     const scoreShort = nameSimilarity(t.shortName, apiName);
     return { id: t.id, score: Math.max(scoreES, scoreShort) };
   }).sort((a, b) => b.score - a.score);
 
-  if (matches[0].score > 0.6) {
-    return matches[0].id;
-  }
-  return null;
+  return matches[0].score > 0.6 ? matches[0].id : null;
 }
 
-async function fetchWorldCupFixtures() {
-  const url = `https://v3.football.api-sports.io/fixtures?league=1&season=2026`;
-  const resp = await fetch(url, {
-    headers: {
-      'x-rapidapi-key': API_FOOTBALL_KEY,
-      'x-apisports-key': API_FOOTBALL_KEY, // API-Football allows both
-    },
+// ── Fetch con reintentos exponenciales ───────────────────────────────────────
+interface ApiFetchResult {
+  fixtures: any[];
+  httpStatus: number;
+}
+
+async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
+  const url = 'https://v3.football.api-sports.io/fixtures?league=1&season=2026';
+  let lastError = '';
+  let lastStatus = 0;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const resp = await fetch(url, {
+        headers: {
+          'x-rapidapi-key': API_FOOTBALL_KEY!,
+          'x-apisports-key': API_FOOTBALL_KEY!,
+        },
+        signal: AbortSignal.timeout(20_000),
+      });
+      lastStatus = resp.status;
+
+      if (resp.ok) {
+        const json = await resp.json();
+        return { fixtures: json.response ?? [], httpStatus: 200 };
+      }
+
+      // Recoverable
+      if (resp.status === 429 || resp.status >= 500) {
+        lastError = `HTTP ${resp.status}`;
+        if (attempt < retries) {
+          const backoff = 1000 * Math.pow(2, attempt);
+          logJson('warn', 'api_retry', { attempt: attempt + 1, status: resp.status, backoff_ms: backoff });
+          await new Promise(r => setTimeout(r, backoff));
+          continue;
+        }
+      } else {
+        lastError = `HTTP ${resp.status}: ${await resp.text()}`;
+        break; // 4xx no recuperables, abortar
+      }
+    } catch (err: any) {
+      lastError = err.message ?? String(err);
+      if (attempt < retries) {
+        const backoff = 1000 * Math.pow(2, attempt);
+        logJson('warn', 'api_retry_network', { attempt: attempt + 1, error: lastError, backoff_ms: backoff });
+        await new Promise(r => setTimeout(r, backoff));
+        continue;
+      }
+    }
+  }
+  throw new Error(`API-Football falló tras ${retries + 1} intentos: ${lastError} (last status ${lastStatus})`);
+}
+
+// ── Auditoría en Supabase ────────────────────────────────────────────────────
+async function recordRun(sb: SupabaseClient, row: {
+  fixtures_seen?: number;
+  fixtures_updated?: number;
+  http_status?: number;
+  error_msg?: string;
+  duration_ms: number;
+}) {
+  const { error } = await sb.from('score_sync_runs').insert({
+    source: 'api-football',
+    triggered_by: TRIGGERED_BY,
+    ...row,
   });
-  if (!resp.ok) {
-    throw new Error(`HTTP Error: ${resp.status} - ${await resp.text()}`);
-  }
-  const json = await resp.json();
-  return json.response; // array of fixtures
+  if (error) logJson('warn', 'audit_insert_failed', { error: error.message });
 }
 
-async function run() {
-  console.log("🌐 Conectando a Supabase...");
-  const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// ── Skip inteligente: si no hay partido en ventana y última run <1h, salta ──
+async function shouldSkip(sb: SupabaseClient): Promise<{ skip: boolean; reason: string }> {
+  if (FORCE) return { skip: false, reason: 'force' };
+  if (hasMatchInProgress(new Date())) return { skip: false, reason: 'match_in_window' };
 
-  // 1. Obtener resultados oficiales actuales
+  const { data } = await sb
+    .from('score_sync_runs')
+    .select('ran_at')
+    .order('ran_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return { skip: false, reason: 'no_previous_run' };
+
+  const ageMs = Date.now() - new Date(data.ran_at).getTime();
+  if (ageMs < 60 * 60 * 1000) {
+    return { skip: true, reason: `last_run_${Math.round(ageMs / 60000)}min_ago` };
+  }
+  return { skip: false, reason: 'last_run_stale' };
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+async function run() {
+  const t0 = Date.now();
+  logJson('info', 'start', { triggered_by: TRIGGERED_BY, force: FORCE });
+
+  const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
+
+  // 1. ¿Debemos saltarnos esta ejecución?
+  const skipDecision = await shouldSkip(sb);
+  if (skipDecision.skip) {
+    logJson('info', 'skip', { reason: skipDecision.reason });
+    await recordRun(sb, {
+      fixtures_seen: 0, fixtures_updated: 0,
+      http_status: 0, error_msg: `skipped:${skipDecision.reason}`,
+      duration_ms: Date.now() - t0,
+    });
+    return;
+  }
+  logJson('info', 'proceed', { reason: skipDecision.reason });
+
+  // 2. Bracket oficial actual
   const { data: resultsRow, error: sbError } = await sb
     .from('official_results')
     .select('payload')
@@ -101,98 +224,78 @@ async function run() {
     .maybeSingle();
 
   if (sbError) {
-    console.error("❌ Error conectando a Supabase:", sbError.message);
+    logJson('error', 'load_official_failed', { error: sbError.message });
+    await recordRun(sb, { error_msg: `load_official: ${sbError.message}`, duration_ms: Date.now() - t0 });
     process.exit(1);
   }
 
   let groupMatches = [...initialGroupMatches];
-  let knockoutMatches = {};
+  let knockoutMatches: Record<string, any> = {};
 
   if (resultsRow?.payload) {
-    console.log("📥 Bracket oficial actual descargado.");
-    const decoded = decodeBracket(resultsRow.payload);
+    const decoded = decodeBracket(resultsRow.payload as string);
     if (decoded) {
       groupMatches = decoded.groupMatches;
       knockoutMatches = decoded.knockoutMatches;
     }
+    logJson('info', 'official_loaded', { has_payload: true });
   } else {
-    console.log("ℹ️ No hay resultados oficiales previos. Empezando de cero.");
+    logJson('info', 'official_loaded', { has_payload: false });
   }
 
-  // 2. Fetch de la API
-  console.log("⚽ Consultando API-Football para World Cup 2026...");
-  let fixtures;
+  // 3. Fetch API-Football con retries
+  let fetchResult: ApiFetchResult;
   try {
-    fixtures = await fetchWorldCupFixtures();
-    console.log(`✅ Obtenidos ${fixtures.length} partidos desde la API.`);
+    fetchResult = await fetchWorldCupFixtures();
   } catch (e: any) {
-    console.error("❌ Error en la API:", e.message);
+    logJson('error', 'api_fetch_failed', { error: e.message });
+    await recordRun(sb, { http_status: 0, error_msg: e.message, duration_ms: Date.now() - t0 });
     process.exit(1);
   }
 
-  if (!fixtures || fixtures.length === 0) {
-    console.log("ℹ️ No hay partidos en la API para la liga 1 y temporada 2026 todavía.");
-    // No error, we just end gracefully
-    process.exit(0);
+  const { fixtures, httpStatus } = fetchResult;
+  logJson('info', 'api_ok', { http_status: httpStatus, fixtures_seen: fixtures.length });
+
+  if (fixtures.length === 0) {
+    // Esperado pre-temporada. No es error.
+    logJson('info', 'no_fixtures', { note: 'API devolvió 0; probable pre-temporada' });
+    await recordRun(sb, {
+      fixtures_seen: 0, fixtures_updated: 0, http_status: httpStatus,
+      duration_ms: Date.now() - t0,
+    });
+    return;
   }
 
+  // 4. Mapeo y actualización
   let updatedCount = 0;
-
-  // 3. Mapeo y actualización
   for (const f of fixtures) {
-    // Only care about matches that are Finished (FT, AET, PEN) or Live (1H, 2H, HT, ET, P)
-    // Actually, maybe only Finished or in-progress if they have a score
     const status = f.fixture.status.short;
-    if (['NS', 'TBD', 'PST'].includes(status)) continue; // Not started or postponed
-    
-    const homeName = f.teams.home.name;
-    const awayName = f.teams.away.name;
+    if (['NS', 'TBD', 'PST'].includes(status)) continue;
 
-    const teamA_id = getTeamIdByApiName(homeName);
-    const teamB_id = getTeamIdByApiName(awayName);
+    const teamA_id = getTeamIdByApiName(f.teams.home.name);
+    const teamB_id = getTeamIdByApiName(f.teams.away.name);
+    if (!teamA_id || !teamB_id) continue;
 
-    if (!teamA_id || !teamB_id) {
-      // It's possible the teams are not set yet (e.g. TBD vs TBD)
-      continue;
-    }
+    const scoreA = f.goals.home ?? 0;
+    const scoreB = f.goals.away ?? 0;
+    const penA = f.score.penalty.home;
+    const penB = f.score.penalty.away;
 
-    // Determine the scores
-    // For finished matches, we use fulltime (which is 90 mins). 
-    // API-Sports structure: 
-    // goals.home / goals.away (includes ET?)
-    // score.fulltime, score.extratime, score.penalty
-    let scoreA = f.goals.home ?? 0;
-    let scoreB = f.goals.away ?? 0;
-    
-    let penA: number | null = null;
-    let penB: number | null = null;
-
-    if (f.score.penalty.home !== null && f.score.penalty.away !== null) {
-      penA = f.score.penalty.home;
-      penB = f.score.penalty.away;
-    }
-
-    // Find the match in group phase
-    const groupMatch = groupMatches.find(m => 
-      (m.teamA === teamA_id && m.teamB === teamB_id) || 
+    const groupMatch = groupMatches.find(m =>
+      (m.teamA === teamA_id && m.teamB === teamB_id) ||
       (m.teamA === teamB_id && m.teamB === teamA_id)
     );
 
     if (groupMatch) {
-      // Ensure correct sides
       const isHomeA = groupMatch.teamA === teamA_id;
       groupMatch.scoreA = isHomeA ? scoreA : scoreB;
       groupMatch.scoreB = isHomeA ? scoreB : scoreA;
       updatedCount++;
     } else {
-      // It must be a knockout match
-      // Knockout matches need the teams to be resolved first!
-      // But we can search the entire knockout matches object for matching teams
-      const koMatches = Object.values(knockoutMatches) as any[];
-      const koMatch = koMatches.find(m => 
-        (m.teamA === teamA_id && m.teamB === teamB_id) || 
+      const koMatch = Object.values(knockoutMatches).find((m: any) =>
+        (m.teamA === teamA_id && m.teamB === teamB_id) ||
         (m.teamA === teamB_id && m.teamB === teamA_id)
-      );
+      ) as any;
 
       if (koMatch) {
         const isHomeA = koMatch.teamA === teamA_id;
@@ -202,44 +305,60 @@ async function run() {
           koMatch.penaltyScoreA = isHomeA ? penA : penB;
           koMatch.penaltyScoreB = isHomeA ? penB : penA;
         }
-        koMatch.winnerId = getWinnerId(koMatch.teamA, koMatch.teamB, koMatch.scoreA, koMatch.scoreB, koMatch.penaltyScoreA, koMatch.penaltyScoreB);
+        koMatch.winnerId = getWinnerId(koMatch.teamA, koMatch.teamB, koMatch.scoreA, koMatch.scoreB, koMatch.penaltyScoreA ?? null, koMatch.penaltyScoreB ?? null);
         koMatch.isPlayed = koMatch.winnerId !== null;
         updatedCount++;
       }
     }
   }
 
-  if (updatedCount > 0) {
-    console.log(`🔄 Se actualizaron ${updatedCount} partidos locales con datos de la API.`);
-    // 4. Recalcular standings y resolver knockout
-    const standings = recalculateStandings(groupMatches);
-    let finalKnockout = syncKnockoutBracket(standings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
-    
-    // We also need to re-apply knockout logic (winners bubble up)
-    for (const matchId of getKnockoutMatchOrder()) {
-      const match = finalKnockout[matchId];
-      if (match?.teamA && match?.teamB && match.scoreA !== null && match.scoreB !== null) {
-        match.winnerId = getWinnerId(match.teamA, match.teamB, match.scoreA, match.scoreB, match.penaltyScoreA ?? null, match.penaltyScoreB ?? null);
-        match.isPlayed = match.winnerId !== null;
-        finalKnockout = syncKnockoutBracket(standings, finalKnockout, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
-      }
-    }
-
-    // 5. Guardar en Supabase
-    const payload = encodeBracket(groupMatches, finalKnockout);
-    const { error: upsertErr } = await sb.from('official_results').upsert(
-      { id: 1, payload, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    );
-
-    if (upsertErr) {
-      console.error("❌ Error guardando en Supabase:", upsertErr.message);
-      process.exit(1);
-    }
-    console.log("✅ Resultados oficiales publicados en Supabase correctamente.");
-  } else {
-    console.log("ℹ️ No hubo cambios que actualizar.");
+  if (updatedCount === 0) {
+    logJson('info', 'no_updates');
+    await recordRun(sb, {
+      fixtures_seen: fixtures.length, fixtures_updated: 0,
+      http_status: httpStatus, duration_ms: Date.now() - t0,
+    });
+    return;
   }
+
+  // 5. Recalcular standings y bracket
+  const standings = recalculateStandings(groupMatches);
+  let finalKnockout = syncKnockoutBracket(standings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+
+  for (const matchId of getKnockoutMatchOrder()) {
+    const match = finalKnockout[matchId];
+    if (match?.teamA && match?.teamB && match.scoreA !== null && match.scoreB !== null) {
+      match.winnerId = getWinnerId(match.teamA, match.teamB, match.scoreA, match.scoreB, match.penaltyScoreA ?? null, match.penaltyScoreB ?? null);
+      match.isPlayed = match.winnerId !== null;
+      finalKnockout = syncKnockoutBracket(standings, finalKnockout, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+    }
+  }
+
+  // 6. Guardar
+  const payload = encodeBracket(groupMatches, finalKnockout);
+  const { error: upsertErr } = await sb.from('official_results').upsert(
+    { id: 1, payload, updated_at: new Date().toISOString() },
+    { onConflict: 'id' }
+  );
+
+  if (upsertErr) {
+    logJson('error', 'save_failed', { error: upsertErr.message });
+    await recordRun(sb, {
+      fixtures_seen: fixtures.length, fixtures_updated: updatedCount,
+      http_status: httpStatus, error_msg: `save: ${upsertErr.message}`,
+      duration_ms: Date.now() - t0,
+    });
+    process.exit(1);
+  }
+
+  logJson('info', 'saved', { fixtures_updated: updatedCount });
+  await recordRun(sb, {
+    fixtures_seen: fixtures.length, fixtures_updated: updatedCount,
+    http_status: httpStatus, duration_ms: Date.now() - t0,
+  });
 }
 
-run().catch(console.error);
+run().catch(err => {
+  logJson('error', 'unhandled', { error: err.message ?? String(err) });
+  process.exit(1);
+});

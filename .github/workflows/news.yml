@@ -1,70 +1,67 @@
-name: Update news feed
+name: Ingest news to Supabase
 
 on:
   schedule:
-    - cron: '0 5 * * *'   # 05:00 UTC daily
-  workflow_dispatch:        # allow manual trigger
+    # Cada 3 h durante el Mundial; el script tiene skip inteligente que evita
+    # llamar a APIs si la última ingesta fue hace <1 h. Fuera del Mundial,
+    # con 8 runs/día y skip activo, gasta ~1-2 runs reales.
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      teams:
+        description: 'Equipos a refrescar (ej: ARG MEX). Vacío = todos.'
+        required: false
+        default: ''
+      force:
+        description: 'Ignorar skip de 1h (--force)'
+        required: false
+        default: 'false'
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ingest-news
+  cancel-in-progress: false
 
 jobs:
-  update-news:
+  ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Generate news feed
-        run: node scripts/generate-news-gnews.mjs
+      - name: Validar secrets requeridos
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "❌ Faltan VITE_SUPABASE_URL y/o SUPABASE_SERVICE_ROLE_KEY en GitHub Secrets."
+            echo "   El script puede correr en modo --json-only pero no es lo que queremos en CI."
+            exit 1
+          fi
+          echo "✅ Supabase configurado."
+
+      - name: Ingest news
         env:
           GNEWS_DATA_KEY: ${{ secrets.GNEWS_DATA_KEY }}
-
-      - name: Publish to news-data branch
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          # Configure git identity
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Check if news-feed.json changed compared to the news-data branch
-          git fetch origin news-data 2>/dev/null || true
-          REMOTE_HASH=$(git show origin/news-data:news-feed.json 2>/dev/null | sha256sum | cut -d' ' -f1 || echo "none")
-          LOCAL_HASH=$(sha256sum news-feed.json | cut -d' ' -f1)
-
-          if [ "$REMOTE_HASH" = "$LOCAL_HASH" ]; then
-            echo "No changes in news feed — skipping commit."
-            exit 0
+          ARGS=""
+          if [ -n "${{ inputs.teams }}" ]; then
+            ARGS="$ARGS ${{ inputs.teams }}"
           fi
-
-          # Safeguard the generated file BEFORE any git branch surgery
-          cp news-feed.json /tmp/news-feed.json
-
-          # Create / update orphan news-data branch with only the JSON
-          git checkout --orphan news-data-tmp
-          git rm -rf . --quiet
-          cp /tmp/news-feed.json news-feed.json
-          cat > vercel.json <<'EOF'
-          {
-            "$schema": "https://openapi.vercel.sh/vercel.json",
-            "installCommand": "true",
-            "buildCommand": "true",
-            "git": {
-              "deploymentEnabled": {
-                "news-data": false
-              }
-            }
-          }
-          EOF
-          git add news-feed.json vercel.json
-          git commit -m "chore: update news feed $(date -u +%Y-%m-%d)"
-          git push origin news-data-tmp:news-data --force
-          echo "✅ news-data branch updated."
+          if [ "${{ inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          node scripts/ingest-news.mjs $ARGS

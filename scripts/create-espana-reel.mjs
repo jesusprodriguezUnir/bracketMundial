@@ -31,11 +31,11 @@ const DARK = '#1a1933';
 const WHITE = '#ffffff';
 const BLACK = '#000000';
 
-const FONT_REL = rel(FONT_BOLD);
-
 function rel(abs) {
   return abs.replace(ROOT + '\\', '').replace(/\\/g, '/');
 }
+
+const FONT_REL = rel(FONT_BOLD);
 
 function run(cmd) {
   console.log(`  → ${cmd.slice(0, 200)}...`);
@@ -90,12 +90,12 @@ async function main() {
   }
   console.log(`  Using: ${VIDEO_PATH}`);
 
-  // Step 2 — Extract clip 1: King Felipe speaking (4s from ~1:45)
-  console.log('\n=== 2/5: Extracting King Felipe clip (4s) ===');
+  // Step 2 — Extract clip 1: King Felipe speaking (15s from ~1:30)
+  console.log('\n=== 2/5: Extracting King Felipe clip (15s) ===');
   const CLIP1 = join(TMP, 'clip1_felipe.mp4');
   run(
-    `ffmpeg -y -ss 105 -i ${q(VIDEO_PATH)} -t 4 ` +
-    `-vf "scale=-1:1920:flags=lanczos,crop=1080:1920" ` +
+    `ffmpeg -y -ss 90 -i ${q(VIDEO_PATH)} -t 15 ` +
+    `-vf "scale=-1:1920:flags=lanczos,crop=1080:1920,setsar=1" ` +
     `-c:v libx264 -preset fast -crf 22 -c:a aac -b:a 128k ${q(CLIP1)}`
   );
 
@@ -103,43 +103,43 @@ async function main() {
   console.log('\n=== 3/5: Building Scene 1 — ¡YA ESTÁ AQUÍ LA LISTA! ===');
   const SCENE1 = join(TMP, 'scene1.mp4');
   const vf1 = buildFilter(`
-[0:v]scale=-1:1920:flags=lanczos,crop=1080:1920
-drawbox=x=0:y=1150:w=1080:h=770:color=${DARK}@0.85:t=fill:enable='gte(t,0)*lte(t,4)'
-drawbox=x=0:y=1150:w=1080:h=4:color=${ORANGE}:t=fill:enable='gte(t,0)*lte(t,4)'
-drawtext=text='¡YA ESTA AQUI LA LISTA!':fontsize=44:fontcolor=${WHITE}:x=(w-text_w)/2:y=1250:enable='gte(t,0)*lte(t,4)':borderw=3:bordercolor=${BLACK}:fontfile=${FONT_REL}
-drawtext=text='¿HAY SORPRESAS?':fontsize=38:fontcolor=${ORANGE}:x=(w-text_w)/2:y=1360:enable='gte(t,0)*lte(t,4)':borderw=2:bordercolor=${BLACK}:fontfile=${FONT_REL}
-drawtext=text='bracketmundial.com':fontsize=18:fontcolor=${WHITE}@0.6:x=1080-tw-15:y=1920-th-15:enable='gte(t,0)*lte(t,4)':fontfile=${FONT_REL}
+[0:v]scale=-1:1920:flags=lanczos,crop=1080:1920,setsar=1
+drawbox=x=0:y=1150:w=1080:h=770:color=${DARK}@0.85:t=fill:enable='gte(t,0)*lte(t,15)'
+drawbox=x=0:y=1150:w=1080:h=4:color=${ORANGE}:t=fill:enable='gte(t,0)*lte(t,15)'
+drawtext=text='¡YA ESTA AQUI LA LISTA!':fontsize=44:fontcolor=${WHITE}:x=(w-text_w)/2:y=1250:enable='gte(t,0)*lte(t,15)':borderw=3:bordercolor=${BLACK}:fontfile=${FONT_REL}
+drawtext=text='¿HAY SORPRESAS?':fontsize=38:fontcolor=${ORANGE}:x=(w-text_w)/2:y=1360:enable='gte(t,0)*lte(t,15)':borderw=2:bordercolor=${BLACK}:fontfile=${FONT_REL}
+drawtext=text='bracketmundial.com':fontsize=18:fontcolor=${WHITE}@0.6:x=1080-tw-15:y=1920-th-15:enable='gte(t,0)*lte(t,15)':fontfile=${FONT_REL}
 [outv]
 `);
   console.log(`  Filter: ${vf1.slice(0, 100)}...`);
-  run(`ffmpeg -y -i ${q(CLIP1)} -filter_complex ${q(vf1)} -map "[outv]" -c:a copy ${q(SCENE1)}`);
+  run(`ffmpeg -y -i ${q(CLIP1)} -filter_complex ${q(vf1)} -map "[outv]" -map 0:a -c:a copy ${q(SCENE1)}`);
 
   // Step 4 — Scene 2: Player montage + debate
   console.log('\n=== 4/5: Building Scene 2 — ¿Nos da para ganar? ===');
   const CLIP2 = join(TMP, 'clip2_players.mp4');
   run(
-    `ffmpeg -y -ss 110 -i ${q(VIDEO_PATH)} -t 5 ` +
-    `-vf "scale=-1:1920:flags=lanczos,crop=1080:1920" ` +
+    `ffmpeg -y -ss 105 -i ${q(VIDEO_PATH)} -t 20 ` +
+    `-vf "scale=-1:1920:flags=lanczos,crop=1080:1920,setsar=1" ` +
     `-c:v libx264 -preset fast -crf 22 -c:a aac -b:a 128k ${q(CLIP2)}`
   );
 
   const SCENE2 = join(TMP, 'scene2.mp4');
   const vf2 = buildFilter(`
-[0:v]scale=-1:1920:flags=lanczos,crop=1080:1920
-drawbox=x=0:y=1150:w=1080:h=770:color=${DARK}@0.85:t=fill:enable='gte(t,0)*lte(t,5)'
-drawbox=x=0:y=1150:w=1080:h=4:color=${ORANGE}:t=fill:enable='gte(t,0)*lte(t,5)'
-drawtext=text='¿Nos da para ganar':fontsize=44:fontcolor=${WHITE}:x=(w-text_w)/2:y=1250:enable='gte(t,0)*lte(t,5)':borderw=3:bordercolor=${BLACK}:fontfile=${FONT_REL}
-drawtext=text='la segunda estrella?':fontsize=38:fontcolor=${ORANGE}:x=(w-text_w)/2:y=1360:enable='gte(t,0)*lte(t,5)':borderw=2:bordercolor=${BLACK}:fontfile=${FONT_REL}
-drawtext=text='bracketmundial.com':fontsize=18:fontcolor=${WHITE}@0.6:x=1080-tw-15:y=1920-th-15:enable='gte(t,0)*lte(t,5)':fontfile=${FONT_REL}
+[0:v]scale=-1:1920:flags=lanczos,crop=1080:1920,setsar=1
+drawbox=x=0:y=1150:w=1080:h=770:color=${DARK}@0.85:t=fill:enable='gte(t,0)*lte(t,20)'
+drawbox=x=0:y=1150:w=1080:h=4:color=${ORANGE}:t=fill:enable='gte(t,0)*lte(t,20)'
+drawtext=text='¿Nos da para ganar':fontsize=44:fontcolor=${WHITE}:x=(w-text_w)/2:y=1250:enable='gte(t,0)*lte(t,20)':borderw=3:bordercolor=${BLACK}:fontfile=${FONT_REL}
+drawtext=text='la segunda estrella?':fontsize=38:fontcolor=${ORANGE}:x=(w-text_w)/2:y=1360:enable='gte(t,0)*lte(t,20)':borderw=2:bordercolor=${BLACK}:fontfile=${FONT_REL}
+drawtext=text='bracketmundial.com':fontsize=18:fontcolor=${WHITE}@0.6:x=1080-tw-15:y=1920-th-15:enable='gte(t,0)*lte(t,20)':fontfile=${FONT_REL}
 [outv]
 `);
-  run(`ffmpeg -y -i ${q(CLIP2)} -filter_complex ${q(vf2)} -map "[outv]" -c:a copy ${q(SCENE2)}`);
+  run(`ffmpeg -y -i ${q(CLIP2)} -filter_complex ${q(vf2)} -map "[outv]" -map 0:a -c:a copy ${q(SCENE2)}`);
 
   // Step 5 — Scene 3: CTA bracketmundial (solid background)
   console.log('\n=== 5/5: Building Scene 3 — CTA bracketmundial ===');
   const SCENE3 = join(TMP, 'scene3.mp4');
   const vf3 = buildFilter(`
-color=c=${DARK}:s=1080x1920:d=6
+color=c=${DARK}:s=1080x1920:d=10,setsar=1
 drawbox=x=0:y=0:w=1080:h=8:color=${ORANGE}:t=fill
 drawbox=x=0:y=1912:w=1080:h=8:color=${ORANGE}:t=fill
 drawbox=x=80:y=180:w=920:h=2:color=${ORANGE}@0.3:t=fill
@@ -153,15 +153,34 @@ drawtext=text='bracketmundial.com':fontsize=40:fontcolor=${DARK}:x=(w-text_w)/2:
 drawtext=text='Link en la Bio':fontsize=22:fontcolor=${WHITE}@0.6:x=(w-text_w)/2:y=720:fontfile=${FONT_REL}
 [outv]
 `);
-  run(`ffmpeg -y -filter_complex ${q(vf3)} -f lavfi -i anullsrc=r=48000:cl=stereo -map "[outv]" -map 1:a -t 6 -c:a aac -b:a 128k ${q(SCENE3)}`);
+  // Scene 3: Generate video first, then add silent audio
+  const vf3only = buildFilter(`
+color=c=${DARK}:s=1080x1920:d=10,setsar=1
+drawbox=x=0:y=0:w=1080:h=8:color=${ORANGE}:t=fill
+drawbox=x=0:y=1912:w=1080:h=8:color=${ORANGE}:t=fill
+drawbox=x=80:y=180:w=920:h=2:color=${ORANGE}@0.3:t=fill
+drawbox=x=80:y=500:w=920:h=2:color=${ORANGE}@0.3:t=fill
+drawbox=x=80:y=900:w=920:h=2:color=${ORANGE}@0.3:t=fill
+drawtext=text='MUNDIAL 2026':fontsize=36:fontcolor=${ORANGE}:x=(w-text_w)/2:y=220:fontfile=${FONT_REL}
+drawtext=text='DEMUÉSTRALO':fontsize=52:fontcolor=${WHITE}:x=(w-text_w)/2:y=340:borderw=3:bordercolor=${BLACK}:fontfile=${FONT_REL}
+drawtext=text='Arma tu bracket GRATIS':fontsize=34:fontcolor=${ORANGE}:x=(w-text_w)/2:y=460:fontfile=${FONT_REL}
+drawbox=x=120:y=580:w=840:h=90:color=${ORANGE}:t=fill
+drawtext=text='bracketmundial.com':fontsize=40:fontcolor=${DARK}:x=(w-text_w)/2:y=595:fontfile=${FONT_REL}
+drawtext=text='Link en la Bio':fontsize=22:fontcolor=${WHITE}@0.6:x=(w-text_w)/2:y=720:fontfile=${FONT_REL}
+[outv]
+`);
+  const SCENE3_VIDEO = join(TMP, 'scene3_video.mp4');
+  run(`ffmpeg -y -filter_complex ${q(vf3only)} -map "[outv]" -t 10 ${q(SCENE3_VIDEO)}`);
+  // Add silent audio
+  run(`ffmpeg -y -i ${q(SCENE3_VIDEO)} -f lavfi -i anullsrc=r=48000:cl=stereo -t 10 -c:v copy -c:a aac -b:a 128k -shortest ${q(SCENE3)}`);
 
   // Step 6 — Concatenate
   console.log('\n=== 6/6: Concatenating all scenes ===');
   const concatVf = buildFilter(`
 [0:v]setpts=PTS-STARTPTS[v0];[0:a]asetpts=PTS-STARTPTS[a0]
 [1:v]setpts=PTS-STARTPTS[v1];[1:a]asetpts=PTS-STARTPTS[a1]
-[2:v]setpts=PTS-STARTPTS[v2]
-[v0][a0][v1][a1][v2]concat=n=3:v=1:a=2[outv][outa]
+[2:v]setpts=PTS-STARTPTS[v2];[2:a]asetpts=PTS-STARTPTS[a2]
+[v0][a0][v1][a1][v2][a2]concat=n=3:v=1:a=1[outv][outa]
 `, true);
   run(
     `ffmpeg -y ` +
