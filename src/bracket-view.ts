@@ -95,7 +95,7 @@ export class BracketView extends LitElement {
       left: 0;
       right: 0;
       z-index: 200;
-      background: var(--ink);
+      background: var(--surface-dark);
       border-top: 4px solid var(--retro-yellow);
       padding: 6px 0;
       padding-bottom: calc(6px + env(safe-area-inset-bottom));
@@ -113,7 +113,7 @@ export class BracketView extends LitElement {
       flex: 1;
       padding: 8px 4px;
       min-width: 0;
-      color: var(--paper);
+      color: var(--on-dark);
       font-family: var(--font-var);
       font-size: 10px;
       position: relative;
@@ -127,7 +127,7 @@ export class BracketView extends LitElement {
     .bottom-nav-btn .nav-icon {
       font-size: 20px;
       line-height: 1;
-      color: rgba(236,223,192,0.5);
+      color: var(--on-dark-soft);
       transition: color 0.15s;
       display: flex;
       align-items: center;
@@ -142,7 +142,7 @@ export class BracketView extends LitElement {
       font-family: var(--font-mono);
       font-size: 8px;
       letter-spacing: 0.08em;
-      color: rgba(236,223,192,0.5);
+      color: var(--on-dark-soft);
       text-transform: uppercase;
       transition: color 0.15s;
     }
@@ -214,7 +214,7 @@ export class BracketView extends LitElement {
       all: unset;
       cursor: pointer;
       padding: 6px 12px;
-      background: var(--ink);
+      background: var(--surface-dark);
       color: var(--retro-yellow);
       font-family: var(--font-mono);
       font-size: 11px;

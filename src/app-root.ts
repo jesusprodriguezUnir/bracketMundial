@@ -47,7 +47,7 @@ export class AppRoot extends LitElement {
     .topbar {
       display: flex;
       flex-direction: column;
-      background: #1A1933;
+      background: var(--surface-dark);
       position: sticky;
       top: 0;
       z-index: 110;
@@ -222,7 +222,7 @@ export class AppRoot extends LitElement {
       top: 100%;
       right: 0;
       min-width: 220px;
-      background: #1A1933;
+      background: var(--surface-dark);
       border: 2px solid rgba(255,255,255,0.2);
       border-radius: 8px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.35);

@@ -132,7 +132,7 @@ export class HeroView extends LitElement {
       font-family: var(--font-body);
       font-size: 16px;
       line-height: 1.45;
-      color: rgba(26,25,51,0.75);
+      color: var(--ink-soft);
       max-width: 460px;
       font-weight: 500;
       margin-bottom: 22px;
@@ -193,8 +193,8 @@ export class HeroView extends LitElement {
       align-items: center;
       min-width: 56px;
       padding: 10px 8px 8px;
-      background: var(--ink);
-      border: 3px solid var(--ink);
+      background: var(--surface-dark);
+      border: 3px solid var(--surface-dark);
       box-shadow: var(--shadow-hard-md);
     }
     .cd-num {
@@ -208,7 +208,7 @@ export class HeroView extends LitElement {
       font-family: var(--font-mono);
       font-size: 8px;
       letter-spacing: 0.2em;
-      color: var(--paper-2);
+      color: var(--on-dark-soft);
       margin-top: 4px;
     }
     .cd-sep {
@@ -261,7 +261,7 @@ export class HeroView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.18em;
-      color: rgba(26,25,51,0.6);
+      color: var(--ink-muted);
       margin-top: 4px;
     }
 
@@ -323,8 +323,8 @@ export class HeroView extends LitElement {
     .ticker {
       position: relative;
       z-index: 1;
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--surface-dark);
+      color: var(--on-dark);
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.14em;
@@ -339,7 +339,7 @@ export class HeroView extends LitElement {
       padding: 0 14px;
       color: var(--retro-yellow);
       z-index: 1;
-      background: var(--ink);
+      background: var(--surface-dark);
       border-right: 2px solid var(--retro-orange);
       height: 100%;
       display: flex;

@@ -12,6 +12,18 @@
   --dim:           #7a6f54;
   --focus-ring:    3px solid var(--retro-yellow);
 
+  /* Superficies que siempre son oscuras (chrome, navs, badges) */
+  --surface-dark:   #1a1933;
+  --surface-dark-2: #231d3e;
+  --surface-dark-3: #2e2750;
+  --on-dark:        rgba(255,255,255,0.88);
+  --on-dark-soft:   rgba(255,255,255,0.55);
+  --on-dark-muted:  rgba(255,255,255,0.35);
+
+  /* Texto adaptativo sobre superficies claras */
+  --ink-soft:  rgba(26,25,51,0.75);
+  --ink-muted: rgba(26,25,51,0.6);
+
   /* ── Design tokens ampliados (bracketmundial_design_spec v1.0) ── */
   --color-navy:    #1A1933;
   --color-orange:  #E84B1A;
@@ -81,6 +93,10 @@
   --retro-blue:    #4570d4;
   --retro-yellow:  #f5c040;
   --dim:           #b8b0a0;
+
+  /* Texto adaptativo — invertido para dark */
+  --ink-soft:  rgba(236,223,192,0.75);
+  --ink-muted: rgba(236,223,192,0.6);
 
   --halftone:      radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
   --halftone-soft: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
