@@ -237,7 +237,14 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
     this._unsubAuth = useAuthStore.subscribe(() => {
-      this._status = useAuthStore.getState().status;
+      const prev = this._status;
+      const next = useAuthStore.getState().status;
+      this._status = next;
+      // Cierre automático cuando se acaba de iniciar sesión correctamente.
+      if (next === 'signed_in' && prev !== 'signed_in' && prev !== 'init') {
+        setTimeout(() => this._close(), 350);
+        return;
+      }
       this.requestUpdate();
     });
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
@@ -277,7 +284,8 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     const auth = useAuthStore.getState();
     if (this._mode === 'magic') {
       await auth.signInWithMagicLink(this._email);
-      if (useAuthStore.getState().status === 'sent') {
+      const st = useAuthStore.getState().status;
+      if (st === 'sent' || st === 'sent_signup') {
         this._startResendCooldown();
       }
       return;
@@ -285,7 +293,8 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     if (!this._password) return;
     if (this._mode === 'signup') {
       await auth.signUpWithPassword(this._email, this._password);
-      if (useAuthStore.getState().status === 'sent') {
+      const st = useAuthStore.getState().status;
+      if (st === 'sent' || st === 'sent_signup') {
         this._startResendCooldown();
       }
       return;
@@ -294,7 +303,12 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
   }
 
   private async _resend() {
-    await useAuthStore.getState().signInWithMagicLink(this._emailForDisplay);
+    const auth = useAuthStore.getState();
+    if (this._status === 'sent_signup' || this._mode === 'signup') {
+      await auth.resendSignupConfirmation(this._emailForDisplay);
+    } else {
+      await auth.signInWithMagicLink(this._emailForDisplay);
+    }
     this._startResendCooldown();
   }
 
@@ -342,16 +356,20 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
       `;
     }
 
-    if (this._status === 'sent') {
+    if (this._status === 'sent' || this._status === 'sent_signup') {
       const canResend = this._resendCountdown <= 0;
       const resendLabel = canResend
         ? t('auth.resend')
         : t('auth.resendIn', { s: this._resendCountdown });
+      const isSignup = this._status === 'sent_signup';
+      const bodyMsg = isSignup
+        ? t('auth.checkInboxSignup', { email: this._emailForDisplay })
+        : t('auth.checkInbox', { email: this._emailForDisplay });
       return html`
         <div class="info-block">
           <div class="info-title">✉</div>
           <div class="info-text">
-            ${t('auth.checkInbox', { email: this._emailForDisplay })}
+            ${bodyMsg}
           </div>
         </div>
         <button class="btn btn-secondary" ?disabled="${!canResend}" @click="${this._resend}">
@@ -442,6 +460,12 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     }
     if (lower.includes('password') && (lower.includes('short') || lower.includes('6 characters') || lower.includes('weak'))) {
       return t('auth.errorWeakPassword');
+    }
+    if (lower.includes('otp_expired') || lower.includes('link is invalid') || lower.includes('link has expired')) {
+      return t('auth.errorOtpExpired');
+    }
+    if (lower.includes('access_denied')) {
+      return t('auth.errorOtpExpired');
     }
     if (lower === 'not_configured') return t('auth.notConfigured');
     return raw;

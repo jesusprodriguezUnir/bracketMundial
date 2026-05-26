@@ -4,7 +4,7 @@ export const squad: Player[] = [
   { number: 12, name: 'Martin Zlomislić', position: 'GK', age: 24, club: 'Rijeka' },
   { number: 23, name: 'Osman Hadžikić', position: 'GK', age: 25, club: 'Slaven Belupo' },
   { number: 2, name: 'Sead Kolašinac', position: 'DF', age: 32, club: 'Atalanta' },
-  { number: 3, name: 'Jusuf Gazibegović', position: 'DF', age: 26, club: 'Sturm Graz' },
+  { number: 3, name: 'Ermin Mahmić', position: 'DF', age: 21, club: 'Lafnitz' },
   { number: 4, name: 'Nikola Katić', position: 'DF', age: 28, club: 'Schalke' },
   { number: 5, name: 'Dennis Hadžikadunić', position: 'DF', age: 26, club: 'Sampdoria' },
   { number: 15, name: 'Amar Dedić', position: 'DF', age: 23, club: 'Benfica' },
@@ -25,7 +25,7 @@ export const squad: Player[] = [
   { number: 9, name: 'Ermedin Demirović', position: 'FW', age: 27, club: 'Stuttgart' },
   { number: 26, name: 'Samed Baždar', position: 'FW', age: 22, club: 'Jagiellonia Białystok' },
   { number: 27, name: 'Haris Tabaković', position: 'FW', age: 26, club: 'Borussia Mönchengladbach' },
-  { number: 25, name: 'Jovo Lukić', position: 'FW', age: 24, club: 'Universitatea Cluj' },
+  { number: 25, name: 'Jovo Lukić', position: 'FW', age: 24, club: 'Universitatea Cluj' }
 ];
 
 export const lineup = {
