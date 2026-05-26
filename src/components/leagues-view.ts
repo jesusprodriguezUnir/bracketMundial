@@ -73,6 +73,9 @@ export class LeaguesView extends LitElement {
   @state() private _importUrl = '';
   @state() private _importFeedback: string | null = null;
   @state() private _syncing = false;
+  @state() private _showJoinModal = false;
+  @state() private _joinCode = '';
+  @state() private _joinError: string | null = null;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -1467,6 +1470,866 @@ export class LeaguesView extends LitElement {
       .lg-field { min-width: 100%; }
       .lg-league-switcher { width: 100%; }
     }
+
+    /* ════════════════════════════════════════════════════════
+       v2 · Rediseño retro-editorial (Ligas - Diseño.html)
+       Prefijo lg-v2-* para no chocar con clases legacy.
+       ════════════════════════════════════════════════════════ */
+    .lg-v2-shell {
+      background: var(--paper);
+      background-image: var(--paper-texture);
+      border: 3px solid var(--ink);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.18), var(--shadow-hard-lg);
+      padding: 28px 32px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .lg-v2-hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 20px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--ink);
+      margin-bottom: 22px;
+    }
+    .lg-v2-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .lg-v2-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--retro-red);
+      color: var(--paper);
+      padding: 3px 9px 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      font-weight: 700;
+    }
+    .lg-v2-live-pill::before {
+      content: "";
+      width: 6px; height: 6px;
+      background: var(--paper);
+      border-radius: 50%;
+      animation: lg-v2-pulse 1.4s infinite;
+    }
+    @keyframes lg-v2-pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    .lg-v2-h1 {
+      font-family: var(--font-var);
+      font-size: 56px;
+      line-height: 0.85;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      margin: 0;
+    }
+    .lg-v2-h1 .accent { color: var(--retro-orange); display: block; }
+    .lg-v2-tagline {
+      margin-top: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 460px;
+      color: var(--ink-soft);
+    }
+    .lg-v2-hero-meta {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      line-height: 1.6;
+    }
+    .lg-v2-hero-meta .bignum {
+      font-family: var(--font-var);
+      font-size: 64px;
+      color: var(--ink);
+      line-height: 0.9;
+      display: block;
+      letter-spacing: -0.02em;
+    }
+    .lg-v2-hero-meta .bignum em {
+      font-style: normal;
+      color: var(--retro-orange);
+    }
+
+    .lg-v2-actions {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .lg-v2-btn {
+      border: 2.5px solid var(--ink);
+      padding: 14px 18px;
+      font-family: var(--font-head);
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-hard-md);
+      background: var(--paper-3);
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      cursor: pointer;
+    }
+    .lg-v2-btn:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--ink); }
+    .lg-v2-btn.primary { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-btn .lg-v2-btn-ic {
+      width: 36px; height: 36px;
+      background: var(--ink);
+      color: var(--retro-yellow);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-var);
+      font-size: 20px;
+    }
+    .lg-v2-btn.primary .lg-v2-btn-ic {
+      background: var(--paper);
+      color: var(--retro-orange);
+    }
+    .lg-v2-btn .lg-v2-btn-sub {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-weight: 400;
+    }
+    .lg-v2-btn.primary .lg-v2-btn-sub { color: rgba(255,255,255,0.78); }
+    .lg-v2-btn-arrow {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: inherit;
+    }
+
+    .lg-v2-section-bar {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 14px;
+      border-bottom: 2px dashed rgba(26,25,51,0.25);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .lg-v2-section-bar h3 {
+      font-family: var(--font-head);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 0;
+    }
+    .lg-v2-section-bar .count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .lg-v2-section-bar .sort {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-v2-section-bar .sort b { color: var(--ink); }
+
+    .lg-v2-list { display: grid; gap: 14px; }
+    .lg-v2-card {
+      background: var(--paper-3);
+      border: 2.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 16px 18px 16px 26px;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr auto;
+      gap: 18px;
+      align-items: center;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      cursor: pointer;
+    }
+    .lg-v2-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    .lg-v2-card::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 10px;
+      background: var(--card-color, var(--retro-orange));
+    }
+    .lg-v2-card-title {
+      font-family: var(--font-var);
+      font-size: 26px;
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .lg-v2-card-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .lg-v2-code {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1.5px dashed var(--ink);
+      padding: 4px 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .lg-v2-members {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .lg-v2-members b { color: var(--ink); font-weight: 700; }
+
+    .lg-v2-leader {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .lg-v2-avatar {
+      width: 38px; height: 38px;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 2px 2px 0 var(--ink);
+      flex: none;
+    }
+    .lg-v2-leader-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .lg-v2-leader-name {
+      font-family: var(--font-head);
+      font-size: 13px;
+      line-height: 1.05;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .lg-v2-leader-points {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--retro-orange);
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    .lg-v2-rosette {
+      display: grid;
+      grid-template-columns: 1fr;
+      justify-items: end;
+      gap: 6px;
+    }
+    .lg-v2-rosette-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .lg-v2-pos {
+      font-family: var(--font-var);
+      font-size: 32px;
+      line-height: 0.85;
+      color: var(--ink);
+      background: var(--paper);
+      border: 2.5px solid var(--ink);
+      padding: 6px 14px 4px;
+      box-shadow: var(--shadow-hard-sm);
+      letter-spacing: -0.02em;
+    }
+    .lg-v2-pos.win { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-pos.podium { background: var(--retro-yellow); color: var(--ink); }
+    .lg-v2-pos .hash {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      vertical-align: top;
+      letter-spacing: 0;
+      margin-right: 2px;
+      opacity: 0.6;
+    }
+
+    .lg-v2-card-status { position: absolute; top: -10px; right: 16px; }
+
+    .lg-v2-delta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--retro-green);
+      margin-top: 4px;
+    }
+    .lg-v2-delta.down { color: var(--retro-red); }
+    .lg-v2-delta.same { color: var(--dim); }
+
+    .lg-v2-card-actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      grid-column: 1 / -1;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(26,25,51,0.18);
+    }
+    .lg-v2-card-actions-row button {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 4px 8px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .lg-v2-card-actions-row button:hover { background: var(--retro-yellow); }
+
+    /* ── Detail ── */
+    .lg-v2-detail-top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--ink);
+      margin-bottom: 22px;
+    }
+    .lg-v2-back {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      display: inline-block;
+      margin-bottom: 12px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .lg-v2-back:hover { color: var(--ink); }
+    .lg-v2-detail-h1 {
+      font-family: var(--font-var);
+      font-size: 52px;
+      line-height: 0.85;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 0;
+    }
+    .lg-v2-stamp {
+      display: inline-block;
+      transform: rotate(-3deg);
+      background: var(--retro-red);
+      color: var(--paper);
+      font-family: var(--font-head);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      padding: 5px 10px;
+      vertical-align: middle;
+      margin-left: 12px;
+      border: 2.5px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+    .lg-v2-codeblock {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .lg-v2-codeblock .label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .lg-v2-codeblock .lg-v2-code { font-size: 13px; padding: 5px 11px; }
+    .lg-v2-copy {
+      width: 30px; height: 30px;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .lg-v2-copy:hover { background: var(--retro-yellow); }
+
+    .lg-v2-detail-stats {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+      line-height: 1.6;
+    }
+    .lg-v2-detail-stats .row { display: flex; justify-content: flex-end; gap: 8px; align-items: baseline; }
+    .lg-v2-detail-stats .v {
+      font-family: var(--font-head);
+      font-size: 14px;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+
+    .lg-v2-legend {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .lg-v2-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 4px 9px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .lg-v2-legend-item .dot {
+      width: 9px; height: 9px;
+      border: 1.5px solid var(--ink);
+      display: inline-block;
+    }
+    .lg-v2-legend-item b {
+      font-family: var(--font-head);
+      font-size: 11px;
+      color: var(--ink);
+    }
+
+    .lg-v2-podium-wrap {
+      background: var(--paper);
+      border: 2.5px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 22px 24px 0;
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+      background-image:
+        repeating-linear-gradient(0deg,
+          transparent 0 22px,
+          rgba(26,25,51,0.05) 22px 23px);
+    }
+    .lg-v2-podium-title {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.32em;
+      color: var(--dim);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .lg-v2-podium {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      align-items: end;
+      padding-top: 26px;
+    }
+    .lg-v2-pod {
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lg-v2-pod .pod-figure {
+      width: 86px; height: 86px;
+      border: 3px solid var(--ink);
+      background: var(--paper-3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+      box-shadow: var(--shadow-hard-md);
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .lg-v2-pod.first .pod-figure {
+      width: 108px; height: 108px;
+      font-size: 60px;
+      background: var(--retro-orange);
+      border-width: 3.5px;
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+    .lg-v2-pod .pod-medal {
+      position: absolute;
+      bottom: -10px; right: -10px;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 2.5px solid var(--ink);
+      background: var(--retro-yellow);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-var);
+      font-size: 14px;
+      color: var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      line-height: 1;
+      padding-top: 1px;
+    }
+    .lg-v2-pod.first .pod-medal {
+      width: 38px; height: 38px;
+      background: var(--retro-red);
+      color: var(--paper);
+      font-size: 17px;
+      border-width: 3px;
+    }
+    .lg-v2-pod.second .pod-medal { background: #d8d8d8; }
+    .lg-v2-pod.third .pod-medal { background: #d4a25a; }
+    .lg-v2-pod-name {
+      font-family: var(--font-var);
+      font-size: 17px;
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+    .lg-v2-pod.first .lg-v2-pod-name { font-size: 20px; }
+    .lg-v2-pod-pts {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--retro-orange);
+      font-weight: 700;
+    }
+    .lg-v2-pod-step {
+      width: 100%;
+      margin-top: 14px;
+      background: var(--paper-2);
+      border: 2px solid var(--ink);
+      border-bottom: none;
+      padding: 10px 0 14px;
+      font-family: var(--font-var);
+      font-size: 38px;
+      line-height: 1;
+      color: var(--ink);
+      background-image:
+        repeating-linear-gradient(45deg,
+          transparent 0 6px,
+          rgba(26,25,51,0.05) 6px 7px);
+    }
+    .lg-v2-pod.first .lg-v2-pod-step {
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 52px;
+      padding: 18px 0 22px;
+      background-image:
+        repeating-linear-gradient(45deg,
+          transparent 0 6px,
+          rgba(255,255,255,0.06) 6px 7px);
+    }
+    .lg-v2-pod.second .lg-v2-pod-step { padding-top: 14px; padding-bottom: 18px; font-size: 44px; }
+    .lg-v2-pod.third .lg-v2-pod-step { padding-top: 8px; padding-bottom: 12px; font-size: 32px; }
+
+    .lg-v2-board {
+      border: 2.5px solid var(--ink);
+      background: var(--paper-3);
+      overflow: hidden;
+      box-shadow: var(--shadow-hard-md);
+      margin-bottom: 18px;
+    }
+    .lg-v2-board .head {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-head);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .lg-v2-board .head .extra {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--retro-yellow);
+      letter-spacing: 0.12em;
+    }
+    .lg-v2-table { width: 100%; border-collapse: collapse; }
+    .lg-v2-table th {
+      background: var(--paper-2);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 2px solid var(--ink);
+    }
+    .lg-v2-table th.num { text-align: right; }
+    .lg-v2-table td {
+      padding: 11px 12px;
+      border-bottom: 1px dashed rgba(26,25,51,0.18);
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .lg-v2-table tr:last-child td { border-bottom: none; }
+    .lg-v2-table tr.row-click { cursor: pointer; }
+    .lg-v2-table tr.row-click:hover td { background: rgba(232,84,31,0.07); }
+    .lg-v2-table .rank {
+      font-family: var(--font-head);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--dim);
+      width: 36px;
+    }
+    .lg-v2-table .user { display: flex; align-items: center; gap: 10px; }
+    .lg-v2-table .av {
+      width: 30px; height: 30px;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex: none;
+    }
+    .lg-v2-table .name {
+      font-family: var(--font-head);
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .lg-v2-table tr.you td {
+      background: rgba(240,176,33,0.18);
+      border-color: var(--retro-orange);
+    }
+    .lg-v2-table tr.you .name { color: var(--retro-orange); }
+    .lg-v2-table tr.you .rank { color: var(--retro-orange); }
+    .lg-v2-table .exact {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--retro-orange);
+      font-weight: 700;
+      text-align: right;
+      letter-spacing: 0.04em;
+    }
+    .lg-v2-table .pts {
+      font-family: var(--font-head);
+      font-size: 14px;
+      text-align: right;
+      letter-spacing: 0.02em;
+    }
+    .lg-v2-table .var {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      width: 60px;
+    }
+    .lg-v2-table .var.up    { color: var(--retro-green); }
+    .lg-v2-table .var.down  { color: var(--retro-red); }
+    .lg-v2-table .var.same  { color: var(--dim); }
+    .lg-v2-table .var.na    { color: var(--dim); }
+
+    .lg-v2-board-foot {
+      background: var(--paper-2);
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 2px solid var(--ink);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .lg-v2-board-foot .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .lg-v2-board-foot .live::before {
+      content: "";
+      width: 7px; height: 7px;
+      background: var(--retro-red);
+      border-radius: 50%;
+      animation: lg-v2-pulse 1.4s infinite;
+    }
+
+    .lg-v2-cta-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .lg-v2-cta-row .lg-v2-btn { padding: 12px 14px; }
+    .lg-v2-cta-row .lg-v2-btn .lg-v2-btn-ic { width: 32px; height: 32px; font-size: 17px; }
+
+    .lg-v2-foot {
+      margin-top: 18px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .lg-v2-foot .star { color: var(--retro-orange); }
+
+    .lg-v2-empty {
+      border: 2.5px dashed var(--ink);
+      padding: 28px 24px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: var(--paper-3);
+    }
+
+    .lg-v2-create-inline {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      align-items: stretch;
+    }
+    .lg-v2-create-inline input {
+      flex: 1;
+      border: 2.5px solid var(--ink);
+      background: var(--paper);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      outline: none;
+    }
+    .lg-v2-create-inline input:focus { background: var(--paper-2); }
+
+    /* Join-by-code modal */
+    .lg-v2-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .lg-v2-modal {
+      background: var(--paper);
+      background-image: var(--paper-texture);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      padding: 24px 26px;
+      max-width: 380px;
+      width: calc(100% - 40px);
+      display: grid;
+      gap: 14px;
+    }
+    .lg-v2-modal h3 {
+      font-family: var(--font-head);
+      font-size: 16px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin: 0;
+      color: var(--ink);
+    }
+    .lg-v2-modal input {
+      border: 2.5px solid var(--ink);
+      background: var(--paper);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      outline: none;
+      text-align: center;
+    }
+    .lg-v2-modal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .lg-v2-modal .modal-actions button {
+      font-family: var(--font-head);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: 2.5px solid var(--ink);
+      background: var(--paper-3);
+      padding: 8px 14px;
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      cursor: pointer;
+    }
+    .lg-v2-modal .modal-actions button.primary { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-modal .modal-error {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--retro-red);
+      letter-spacing: 0.1em;
+    }
+
+    @media (max-width: 768px) {
+      .lg-v2-shell { padding: 20px 18px 22px; }
+      .lg-v2-hero { grid-template-columns: 1fr; align-items: start; }
+      .lg-v2-hero-meta { text-align: left; }
+      .lg-v2-h1 { font-size: 42px; }
+      .lg-v2-detail-h1 { font-size: 36px; }
+      .lg-v2-actions { grid-template-columns: 1fr; }
+      .lg-v2-card { grid-template-columns: 1fr; }
+      .lg-v2-card-status { position: static; margin-bottom: 6px; }
+      .lg-v2-rosette { justify-items: start; }
+      .lg-v2-detail-top { grid-template-columns: 1fr; }
+      .lg-v2-detail-stats { text-align: left; }
+      .lg-v2-detail-stats .row { justify-content: flex-start; }
+      .lg-v2-podium { grid-template-columns: 1fr; gap: 18px; }
+      .lg-v2-pod .pod-figure { width: 72px; height: 72px; font-size: 38px; }
+      .lg-v2-pod.first .pod-figure { width: 92px; height: 92px; font-size: 50px; }
+      .lg-v2-cta-row { grid-template-columns: 1fr; }
+      .lg-v2-create-inline { flex-direction: column; }
+    }
   `;
 
   connectedCallback() {
@@ -1592,6 +2455,82 @@ export class LeaguesView extends LitElement {
     this._editMode = false;
     this._editBuffer = new Map();
   }
+
+  // ── v2 design helpers ──
+  private static readonly _AVATAR_POOL = ['⚽','⭐','🏆','🔥','🎯','🚀','🐯','🐎','🎉','🥇','🎨','🦁','🐺','🐉','⚡'];
+  private static readonly _COLOR_POOL = ['var(--retro-orange)','var(--retro-green)','var(--retro-blue)','var(--retro-red)','var(--retro-yellow)'];
+
+  private _codeForLeague(league: League): string {
+    const slug = league.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    const head = slug.slice(0, 3).padEnd(3, 'X');
+    const tail = slug.slice(3, 7).padEnd(4, 'X');
+    return `${head}-${tail}`;
+  }
+
+  private _hashStr(s: string): number {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  private _avatarForName(name: string): string {
+    const pool = LeaguesView._AVATAR_POOL;
+    return pool[this._hashStr(name) % pool.length];
+  }
+
+  private _paletteForLeague(league: League, idx: number): string {
+    const pool = LeaguesView._COLOR_POOL;
+    const i = (this._hashStr(league.id) + idx) % pool.length;
+    return pool[i];
+  }
+
+  private _isLeagueLive(league: League): boolean {
+    if (this._playedCount > 0 && this._playedCount < TOTAL_MATCHES) return true;
+    if (league.participants.length > 1) return true;
+    return false;
+  }
+
+  private _yourPositionInLeague(leagueId: string): { pos: number; total: number; isOwnerPresent: boolean } | null {
+    const league = this._leagues.find(l => l.id === leagueId);
+    if (!league || league.participants.length === 0) return null;
+    try {
+      const realGroupScores = filterRealByDate(realGroupScoresFromStore());
+      const realKnockoutOrder = getKnockoutMatchOrder();
+      const tournament = useTournamentStore.getState();
+      const realKnockoutScores = filterRealByDate(realKnockoutOrder.map(matchId => {
+        const m = tournament.knockoutMatches[matchId];
+        return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
+      }));
+      const scored = league.participants.map(p => scoreParticipant(p, realGroupScores, realKnockoutScores));
+      const ranked = rankParticipants(scored);
+      const ownerIdx = ranked.findIndex(p => p.participant.isOwner === true);
+      if (ownerIdx === -1) return { pos: ranked.length, total: ranked.length, isOwnerPresent: false };
+      return { pos: ownerIdx + 1, total: ranked.length, isOwnerPresent: true };
+    } catch {
+      return null;
+    }
+  }
+
+  private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; };
+  private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; };
+  private _submitJoinCode = () => {
+    const code = this._joinCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length < 4) { this._joinError = t('league.joinCodeNotFound'); return; }
+    const formatted = code.length <= 3 ? code.padEnd(3, 'X') : `${code.slice(0,3)}-${code.slice(3,7)}`;
+    const match = this._leagues.find(l => this._codeForLeague(l) === formatted);
+    if (!match) { this._joinError = t('league.joinCodeNotFound'); return; }
+    const alreadyOwner = match.participants.some(p => p.isOwner === true);
+    if (alreadyOwner) {
+      this._closeJoinModal();
+      this._goToDetail(match.id);
+      return;
+    }
+    const session = useAuthStore.getState().session;
+    const displayName = session?.user?.email?.split('@')[0] ?? t('league.you');
+    useLeaguesStore.getState().joinLeagueFromInvite(match.id, match.name, displayName);
+    this._closeJoinModal();
+    this._goToDetail(match.id);
+  };
 
   private _goToList() {
     this._manualListMode = true;
@@ -1916,64 +2855,193 @@ export class LeaguesView extends LitElement {
   // ── RENDER LIST ──
   private _renderList() {
     const leagues = this._leagues;
+    const totalMembers = leagues.reduce((s, l) => s + l.participants.length, 0);
+    const anyLive = leagues.some(l => this._isLeagueLive(l));
+    const myPredictionsSummary = (() => {
+      let pts = 0;
+      let exact = 0;
+      for (const l of leagues) {
+        const ranked = this._yourPositionInLeague(l.id);
+        if (!ranked?.isOwnerPresent) continue;
+        const summary = this._leagueSummaries.get(l.id);
+        if (summary) pts = Math.max(pts, summary.leaderPoints);
+        exact += 1;
+      }
+      return { pts, exact };
+    })();
 
     return html`
-      <div class="lg-header">
-        <div class="lg-title">${t('league.title')}</div>
-        <div class="lg-subtitle">${t('tabs.league')}</div>
-      </div>
-
-      <div class="lg-create-section">
-        <input
-          type="text"
-          .value=${this._newLeagueName}
-          @input=${(e: InputEvent) => { this._newLeagueName = (e.target as HTMLInputElement).value; }}
-          @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._createLeague(); }}
-          placeholder=${t('league.namePlaceholder')}
-        />
-        <button class="lg-btn" @click=${this._createLeague}>${t('league.createBtn')}</button>
-      </div>
-
-      ${leagues.length === 0
-        ? html`<div class="lg-empty">${t('league.empty')}</div>`
-        : html`
-          <div class="lg-list">
-            ${leagues.map(l => {
-              const summary = this._leagueSummaries.get(l.id);
-              return html`
-                <div class="lg-card" @click=${() => this._goToDetail(l.id)}>
-                  <div class="lg-card-main">
-                    <div class="lg-card-name">${l.name}</div>
-                    <div class="lg-card-meta">
-                      ${t('league.cardLeaderLine', {
-                        name: summary?.leaderName ?? '—',
-                        pts: String(summary?.leaderPoints ?? 0),
-                        n: String(summary?.participantCount ?? 1),
-                      })}
-                      ${this._viewMode === 'projection' ? html` <span class="lg-card-simulated">${t('league.projectionTagSuffix')}</span>` : ''}
-                    </div>
-                  </div>
-                  <div class="lg-card-actions">
-                    <button class="lg-small-btn" @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>
-                      ${t('league.renameBtn')}
-                    </button>
-                    <button class="lg-small-btn" @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>
-                      ${t('league.delete')}
-                    </button>
-                  </div>
-                </div>
-              `;
-            })}
+      <div class="lg-v2-shell">
+        <header class="lg-v2-hero">
+          <div>
+            <div class="lg-v2-eyebrow">
+              ${anyLive ? html`<span class="lg-v2-live-pill">${t('league.liveLong')}</span>` : ''}
+              <span>${t('league.heroEyebrow')}</span>
+            </div>
+            <h1 class="lg-v2-h1">
+              ${t('league.heroTitleA')}<br/>
+              <span class="accent">${t('league.heroTitleB')}</span>
+            </h1>
+            <p class="lg-v2-tagline">${t('league.heroTagline')}</p>
           </div>
-        `}
+          <div class="lg-v2-hero-meta">
+            <span class="bignum"><em>${leagues.length}</em></span>
+            ${t('league.heroActiveLeagues')}<br/>
+            ${t('league.heroMembersLine', { m: String(totalMembers), n: String(this._playedCount) })}
+          </div>
+        </header>
 
-      ${this._confirmDeleteLeague ? html`
-        <div class="lg-confirm-box">
-          <span>${t('league.confirmDelete')}</span>
-          <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
-          <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+        <div class="lg-v2-actions">
+          <button class="lg-v2-btn primary" @click=${() => { const el = this.renderRoot.querySelector<HTMLInputElement>('.lg-v2-create-inline input'); el?.focus(); }}>
+            <span class="lg-v2-btn-ic">＋</span>
+            <span>
+              ${t('league.actionCreate')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.actionCreateSub')}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+          <button class="lg-v2-btn" @click=${this._openJoinModal}>
+            <span class="lg-v2-btn-ic">⇲</span>
+            <span>
+              ${t('league.actionJoin')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.actionJoinSub')}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+          <button class="lg-v2-btn" @click=${() => { if (leagues.length > 0) this._goToDetail(leagues[0].id); }}>
+            <span class="lg-v2-btn-ic">★</span>
+            <span>
+              ${t('league.actionPredictions')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.actionPredictionsSub', { pts: String(myPredictionsSummary.pts), exact: String(myPredictionsSummary.exact) })}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
         </div>
-      ` : ''}
+
+        <div class="lg-v2-create-inline">
+          <input
+            type="text"
+            .value=${this._newLeagueName}
+            @input=${(e: InputEvent) => { this._newLeagueName = (e.target as HTMLInputElement).value; }}
+            @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._createLeague(); }}
+            placeholder=${t('league.namePlaceholder')}
+          />
+          <button class="lg-v2-btn primary" style="grid-template-columns:auto auto;" @click=${this._createLeague}>
+            <span class="lg-v2-btn-ic">＋</span>
+            <span>${t('league.createBtn')}</span>
+          </button>
+        </div>
+
+        <div class="lg-v2-section-bar">
+          <h3>${t('league.sectionMyLeagues')}</h3>
+          <span class="count">${t('league.sectionCount', { n: String(leagues.length), m: String(totalMembers) })}</span>
+          <span class="sort">${t('league.sortLabel')} <b>${t('league.sortByActivity')}</b></span>
+        </div>
+
+        ${leagues.length === 0
+          ? html`<div class="lg-v2-empty">${t('league.empty')}</div>`
+          : html`
+            <div class="lg-v2-list">
+              ${leagues.map((l, idx) => {
+                const summary = this._leagueSummaries.get(l.id);
+                const live = this._isLeagueLive(l);
+                const myPos = this._yourPositionInLeague(l.id);
+                const leaderName = summary?.leaderName ?? '—';
+                const leaderPts = summary?.leaderPoints ?? 0;
+                const color = this._paletteForLeague(l, idx);
+                const posClass = myPos?.pos === 1 ? 'win' : (myPos && myPos.pos <= 3 ? 'podium' : '');
+                return html`
+                  <article
+                    class="lg-v2-card"
+                    style="--card-color:${color}"
+                    @click=${() => this._goToDetail(l.id)}
+                  >
+                    ${live ? html`<div class="lg-v2-card-status"><span class="lg-v2-live-pill">${t('league.live')}</span></div>` : ''}
+
+                    <div>
+                      <div class="lg-v2-card-title">${l.name}</div>
+                      <div class="lg-v2-card-meta">
+                        <span class="lg-v2-code">${this._codeForLeague(l)}</span>
+                        <span class="lg-v2-members"><b>${l.participants.length}</b> ${t('league.membersWord')}</span>
+                      </div>
+                    </div>
+
+                    <div class="lg-v2-leader">
+                      <div class="lg-v2-avatar">${this._avatarForName(leaderName)}</div>
+                      <div>
+                        <span class="lg-v2-leader-label">${t('league.leaderLabel')}</span>
+                        <div class="lg-v2-leader-name">${leaderName}</div>
+                        <div class="lg-v2-leader-points">${leaderPts} ${t('league.points')}</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span class="lg-v2-leader-label">${t('league.predictionsLabel')}</span>
+                      <div class="lg-v2-leader-name">
+                        ${myPos?.isOwnerPresent
+                          ? (myPos.pos === 1
+                              ? t('league.youLead')
+                              : t('league.youBehindStats', { below: String(myPos.total - myPos.pos), above: String(myPos.pos - 1) }))
+                          : '—'}
+                      </div>
+                      <div class="lg-v2-delta same">${t('league.deltaSame')}</div>
+                    </div>
+
+                    <div class="lg-v2-rosette">
+                      <span class="lg-v2-rosette-label">${t('league.yourPos')}</span>
+                      ${myPos?.isOwnerPresent
+                        ? html`<span class="lg-v2-pos ${posClass}"><span class="hash">#</span>${myPos.pos}</span>`
+                        : html`<span class="lg-v2-pos"><span class="hash">#</span>—</span>`}
+                    </div>
+
+                    <div class="lg-v2-card-actions-row">
+                      <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
+                      <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
+                    </div>
+                  </article>
+                `;
+              })}
+            </div>
+          `}
+
+        ${this._confirmDeleteLeague ? html`
+          <div class="lg-confirm-box">
+            <span>${t('league.confirmDelete')}</span>
+            <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
+            <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+          </div>
+        ` : ''}
+
+        <div class="lg-v2-foot">
+          <span class="star">★</span> ${t('league.footNote')} <span class="star">★</span>
+        </div>
+      </div>
+
+      ${this._renderJoinModal()}
+    `;
+  }
+
+  private _renderJoinModal(): TemplateResult {
+    if (!this._showJoinModal) return html``;
+    return html`
+      <div class="lg-v2-modal-backdrop" @click=${(e: Event) => { if (e.target === e.currentTarget) this._closeJoinModal(); }}>
+        <div class="lg-v2-modal" role="dialog" aria-modal="true">
+          <h3>${t('league.joinModalTitle')}</h3>
+          <input
+            type="text"
+            .value=${this._joinCode}
+            placeholder=${t('league.joinCodePlaceholder')}
+            @input=${(e: InputEvent) => { this._joinCode = (e.target as HTMLInputElement).value; this._joinError = null; }}
+            @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._submitJoinCode(); }}
+            autofocus
+          />
+          ${this._joinError ? html`<div class="modal-error">${this._joinError}</div>` : ''}
+          <div class="modal-actions">
+            <button @click=${this._closeJoinModal}>${t('league.confirmNo')}</button>
+            <button class="primary" @click=${this._submitJoinCode}>${t('league.joinBtn')}</button>
+          </div>
+        </div>
+      </div>
     `;
   }
 
@@ -2180,7 +3248,6 @@ export class LeaguesView extends LitElement {
     }
 
     const played = this._playedCount;
-    const pct = TOTAL_MATCHES > 0 ? Math.round((played / TOTAL_MATCHES) * 100) : 0;
 
     const realGroupScores = filterRealByDate(realGroupScoresFromStore());
     const realKnockoutOrder = getKnockoutMatchOrder();
@@ -2197,8 +3264,6 @@ export class LeaguesView extends LitElement {
     const editorialGroupScores = projectedScores?.groupScores ?? realGroupScores;
     const editorialKnockoutScores = projectedScores?.knockoutScores ?? realKnockoutScores;
 
-    const leader = this._scores[0];
-    const second = this._scores[1];
     const recentResults = [
       ...editorialGroupScores
         .filter(match => match.scoreA !== null && match.scoreB !== null)
@@ -2250,92 +3315,188 @@ export class LeaguesView extends LitElement {
         : t('league.worldCupNotStarted');
     const resultFootLabel = isProjectionMode ? t('league.latestSimulatedMatches') : t('league.latestMatches');
 
-    return html`
-      <div class="lg-editorial-shell">
-        <section class="lg-hero">
-          <div class="lg-hero-top">
-            <div>
-              <div class="lg-hero-kicker">${t('league.title')}</div>
-              <div class="lg-hero-title">${league.name}</div>
-              <div class="lg-hero-meta">
-                <span class="lg-hero-chip">${t('league.participants', { n: String(league.participants.length) })}</span>
-                ${leader ? html`<span class="lg-hero-chip">${t('league.leader')}: ${leader.participant.name}</span>` : ''}
-                ${current ? html`<span class="lg-hero-chip">${t('league.currentMatchday')}: ${current.label}</span>` : ''}
-                <span class="lg-hero-chip">${played} / ${TOTAL_MATCHES}</span>
-              </div>
-              <div class="lg-mode-toggle">
-                <button
-                  class=${`lg-league-chip-btn ${this._viewMode === 'real' ? 'active' : ''}`}
-                  @click=${() => this._setViewMode('real')}
-                >
-                  ${t('league.modeReal')}
-                </button>
-                <button
-                  class=${`lg-league-chip-btn ${this._viewMode === 'projection' ? 'active' : ''}`}
-                  @click=${() => this._setViewMode('projection')}
-                >
-                  ${t('league.modeSimulation')}
-                </button>
-                ${this._viewMode === 'projection' ? html`
-                  <button class="lg-simulate-world-btn" @click=${this._simulateWorld}>${t('league.simulateAll')}</button>
-                ` : ''}
-              </div>
-              ${this._leagues.length > 1 ? html`
-                <div class="lg-league-switcher">
-                  ${this._leagues.map(item => html`
-                    <button
-                      class=${`lg-league-chip-btn ${item.id === league.id ? 'active' : ''}`}
-                      @click=${() => this._goToDetail(item.id)}
-                    >
-                      ${item.name}
-                    </button>
-                  `)}
-                </div>
-              ` : ''}
-            </div>
+    const live = this._isLeagueLive(league);
+    const top3 = this._scores.slice(0, 3);
+    const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean) as typeof top3;
+    const createdLabel = new Date(league.createdAt).toLocaleDateString();
+    const ownerScore = this._scores.find(s => s.participant.isOwner === true);
 
-            <div class="lg-actions">
-              <button class="lg-btn-sm" @click=${this._goToList}>${t('league.myLeagues')}</button>
-              <button class="lg-btn-sm" @click=${this._showInviteModal}>${t('league.inviteTitle')}</button>
-              ${useAuthStore.getState().session
-                ? html`<button class="lg-btn-sm" @click=${this._refreshFromCloud} ?disabled=${this._syncing}>${t(this._syncing ? 'league.syncing' : 'league.refresh')}</button>`
-                : ''}
-              <button class="lg-btn-sm" @click=${this._showSharePredictionsModal}>${t('league.shareMyPredictions')}</button>
-              <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
-              <button class="lg-danger-btn" @click=${() => this._requestDeleteLeague(league.id)}>${t('league.delete')}</button>
+    return html`
+      <div class="lg-v2-shell">
+        <section class="lg-v2-detail-top">
+          <div>
+            <button class="lg-v2-back" @click=${this._goToList}>${t('league.backToLeagues')}</button>
+            <h1 class="lg-v2-detail-h1">
+              ${league.name}
+              ${live ? html`<span class="lg-v2-stamp">${t('league.live')}</span>` : ''}
+            </h1>
+            <div class="lg-v2-codeblock">
+              <span class="label">${t('league.inviteCode')}</span>
+              <span class="lg-v2-code">${this._codeForLeague(league)}</span>
+              <button class="lg-v2-copy" title=${t('league.copyInvite')} @click=${this._showInviteModal}>⎘</button>
             </div>
           </div>
-
-          <div class="lg-summary-grid">
-            <div class="lg-summary-card leader">
-              <div class="lg-summary-label">${t('league.leaderCardTitle')}</div>
-              ${leader ? html`
-                <div class="lg-summary-value">${leader.participant.name}${leader.participant.isOwner ? ' ★' : ''}</div>
-                <div class="lg-summary-line">
-                  <div class="lg-summary-meta">${second ? t('league.leaderLead', { n: String(leader.total - second.total), name: second.participant.name }) : t('league.points')}</div>
-                </div>
-                ${this._renderScoreBadges(leader)}
-              ` : html`<div class="lg-normal">—</div>`}
-            </div>
-
-            <div class="lg-summary-card">
-              <div class="lg-summary-label">${t('league.colTotal')}</div>
-              <div class="lg-summary-value">${leader?.total ?? 0}</div>
-              <div class="lg-summary-meta">${t('league.points')}</div>
-            </div>
-
-            <div class="lg-summary-card">
-              <div class="lg-summary-label">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
-              <div class="lg-progress">
-                <div class="lg-progress-bar">
-                  <div class="lg-progress-fill" style="width:${pct}%"></div>
-                </div>
-                <span class="lg-progress-label">${pct}%</span>
-              </div>
-              <div class="lg-summary-meta">${t('league.demoHint')}</div>
-            </div>
+          <div class="lg-v2-detail-stats">
+            <div class="row"><span>${t('league.matchday')}</span><span class="v">${played} / ${TOTAL_MATCHES}</span></div>
+            <div class="row"><span>${t('league.participants', { n: '' }).trim() || 'Miembros'}</span><span class="v">${league.participants.length}</span></div>
+            <div class="row"><span>${t('league.changesToday')}</span><span class="v">${this._scores.length > 0 ? '—' : '0'}</span></div>
+            <div class="row"><span>${t('league.createdOn')}</span><span class="v">${createdLabel}</span></div>
           </div>
         </section>
+
+        <div class="lg-v2-legend">
+          <span class="lg-v2-legend-item"><span class="dot" style="background:var(--retro-orange)"></span><b>+5</b> · ${t('league.legendExact')}</span>
+          <span class="lg-v2-legend-item"><span class="dot" style="background:var(--retro-yellow)"></span><b>+3</b> · ${t('league.kindDiff')}</span>
+          <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper-2);border:1.5px solid var(--ink);"></span><b>+2</b> · ${t('league.kindSign')}</span>
+          <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper);border:1.5px solid var(--ink);"></span><b>0</b> · ${t('league.legendMiss')}</span>
+          <span class="lg-v2-legend-item" style="margin-left:auto;">${t('league.lastUpdate')} · <b>${live ? t('league.minutesAgo', { n: String(Math.floor((Date.now() % 3600000) / 60000)) }) : '—'}</b></span>
+        </div>
+
+        ${podiumOrder.length === 3 ? html`
+          <div class="lg-v2-podium-wrap">
+            <div class="lg-v2-podium-title">${t('league.podiumTitle')}</div>
+            <div class="lg-v2-podium">
+              ${podiumOrder.map(p => {
+                const place = p === top3[0] ? 'first' : p === top3[1] ? 'second' : 'third';
+                const label = place === 'first' ? '1' : place === 'second' ? '2' : '3';
+                const av = this._avatarForName(p.participant.name);
+                return html`
+                  <div class="lg-v2-pod ${place}">
+                    <div class="pod-figure">
+                      ${place === 'first' ? '⚽' : av}
+                      <span class="pod-medal">${label}</span>
+                    </div>
+                    <div class="lg-v2-pod-name">${p.participant.name}${p.participant.isOwner ? ' ★' : ''}</div>
+                    <div class="lg-v2-pod-pts">${p.total} ${t('league.points')} · ${p.exactCount} ${t('league.colExact').toLowerCase()}</div>
+                    <div class="lg-v2-pod-step">#${label}</div>
+                  </div>
+                `;
+              })}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="lg-v2-board">
+          <div class="head">
+            <span>${t('league.boardTitle')}</span>
+            <span class="extra">${t('league.boardSubtitle', { n: String(this._scores.length) })}</span>
+          </div>
+          ${this._scores.length === 0
+            ? html`<div class="lg-v2-empty" style="border:none;">${t('league.emptyParticipants2')}</div>`
+            : html`
+              <table class="lg-v2-table">
+                <thead>
+                  <tr>
+                    <th>${t('league.colRank')}</th>
+                    <th>${t('league.colName')}</th>
+                    <th class="num">${t('league.detailExact')}</th>
+                    <th class="num">${t('league.colTotal')}</th>
+                    <th class="num">${t('league.colVar')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this._scores.map((row, idx) => {
+                    const av = this._avatarForName(row.participant.name);
+                    const isYou = row.participant.isOwner === true;
+                    const isExpanded = this._expandedId === row.participant.id;
+                    return html`
+                      <tr
+                        class=${`row-click ${isYou ? 'you' : ''}`}
+                        @click=${() => this._toggleExpand(row.participant.id)}
+                      >
+                        <td class="rank">#${String(idx + 1).padStart(2, '0')}</td>
+                        <td>
+                          <div class="user">
+                            <span class="av">${av}</span>
+                            <span class="name">${row.participant.name}${isYou ? ' ★' : ''}</span>
+                          </div>
+                        </td>
+                        <td class="exact">${row.exactCount}</td>
+                        <td class="pts">${row.total}</td>
+                        <td class="var na">—</td>
+                      </tr>
+                      ${isExpanded ? html`
+                        <tr class="expand-row">
+                          <td colspan="5" style="padding:0;background:var(--paper-2);">
+                            ${this._renderParticipantCard(row, idx, false, displayKnockoutByMatchId)}
+                          </td>
+                        </tr>
+                      ` : ''}
+                    `;
+                  })}
+                </tbody>
+              </table>
+            `}
+          <div class="lg-v2-board-foot">
+            <span class="live">${t('league.boardFootLive')}</span>
+            <span>${t('league.boardFootSchedule', { time: '—' })}</span>
+          </div>
+        </div>
+
+        <div class="lg-v2-cta-row">
+          <button class="lg-v2-btn primary" @click=${this._showSharePredictionsModal}>
+            <span class="lg-v2-btn-ic">★</span>
+            <span>
+              ${t('league.shareMyPredictions')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.ctaSharePredictionsSub', { exact: String(ownerScore?.exactCount ?? 0), pts: String(ownerScore?.total ?? 0) })}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+          <button class="lg-v2-btn" @click=${this._showInviteModal}>
+            <span class="lg-v2-btn-ic">⎘</span>
+            <span>
+              ${t('league.inviteTitle')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.ctaShareSub')}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+          <button class="lg-v2-btn" @click=${() => this._requestDeleteLeague(league.id)}>
+            <span class="lg-v2-btn-ic">⚙</span>
+            <span>
+              ${t('league.ctaSettings')}<br/>
+              <span class="lg-v2-btn-sub">${t('league.ctaSettingsSub')}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+        </div>
+
+        <div class="lg-v2-section-bar">
+          <h3>${t('league.modeReal')} / ${t('league.modeSimulation')}</h3>
+          <span class="sort">
+            <button
+              class=${`lg-league-chip-btn ${this._viewMode === 'real' ? 'active' : ''}`}
+              @click=${() => this._setViewMode('real')}
+            >
+              ${t('league.modeReal')}
+            </button>
+            <button
+              class=${`lg-league-chip-btn ${this._viewMode === 'projection' ? 'active' : ''}`}
+              @click=${() => this._setViewMode('projection')}
+            >
+              ${t('league.modeSimulation')}
+            </button>
+            ${this._viewMode === 'projection' ? html`
+              <button class="lg-simulate-world-btn" @click=${this._simulateWorld}>${t('league.simulateAll')}</button>
+            ` : ''}
+            ${useAuthStore.getState().session
+              ? html`<button class="lg-btn-sm" @click=${this._refreshFromCloud} ?disabled=${this._syncing}>${t(this._syncing ? 'league.syncing' : 'league.refresh')}</button>`
+              : ''}
+            <button class="lg-btn-sm" @click=${this._exportLeagueExcel}>${t('league.downloadLeagueExcel')}</button>
+          </span>
+        </div>
+
+        ${this._leagues.length > 1 ? html`
+          <div class="lg-league-switcher">
+            ${this._leagues.map(item => html`
+              <button
+                class=${`lg-league-chip-btn ${item.id === league.id ? 'active' : ''}`}
+                @click=${() => this._goToDetail(item.id)}
+              >
+                ${item.name}
+              </button>
+            `)}
+          </div>
+        ` : ''}
 
         ${this._viewMode === 'projection' ? html`
           <div class="lg-projection-banner">
@@ -2370,43 +3531,6 @@ export class LeaguesView extends LitElement {
             <button class="lg-btn-back" @click=${() => { this._showSharePredictions = false; this._copiedShare = false; }}>✕</button>
           </div>
         ` : ''}
-
-        ${this._scores.length === 0
-          ? html`<div class="lg-empty">${t('league.emptyParticipants2')}</div>`
-          : html`
-            <section class="lg-ranking">
-              <div class="lg-ranking-head">
-                <div class="lg-ranking-title">${t('league.participants', { n: String(this._scores.length) })}</div>
-                <div class="lg-ranking-subtitle">${t('league.progress', { played, total: TOTAL_MATCHES })}</div>
-
-                <div class="lg-ranking-toolbar">
-                  <div class="lg-ranking-overview">
-                    <div class="lg-ranking-stat">
-                      <span class="lg-section-kicker">${t('league.leader')}</span>
-                      <strong>${leader?.participant.name ?? '—'}</strong>
-                    </div>
-                    <div class="lg-ranking-stat">
-                      <span class="lg-section-kicker">${t('league.colTotal')}</span>
-                      <strong>${leader?.total ?? 0}</strong>
-                    </div>
-                    <div class="lg-ranking-stat">
-                      <span class="lg-section-kicker">${t('league.detailExact')}</span>
-                      <strong>${leader?.exactCount ?? 0}</strong>
-                    </div>
-                    <div class="lg-ranking-stat">
-                      <span class="lg-section-kicker">${t('league.colKnockout')}</span>
-                      <strong>${leader?.byPhase.knockout ?? 0}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="lg-participants-board">
-                ${this._scores.map((score, index) => this._renderParticipantCard(score, index, false, displayKnockoutByMatchId))}
-              </div>
-
-            </section>
-          `}
 
         <section class=${`lg-results-board ${isProjectionMode ? 'single-panel' : ''}`}>
           <div class="lg-section-panel">
