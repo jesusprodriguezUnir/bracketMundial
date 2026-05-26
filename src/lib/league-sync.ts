@@ -69,7 +69,11 @@ interface SupabaseMember {
 
 // ── Operations ──
 
-export async function createLeagueInCloud(name: string, id?: string): Promise<{ id: string } | null> {
+export async function createLeagueInCloud(
+  name: string,
+  ownerName: string,
+  id?: string,
+): Promise<{ id: string } | null> {
   const sb = getSupabase();
   const userId = useAuthStore.getState().session?.user.id;
   if (!sb || !userId) return null;
@@ -86,7 +90,7 @@ export async function createLeagueInCloud(name: string, id?: string): Promise<{ 
   const { error: memberErr } = await sb.from('league_members').insert({
     league_id: leagueId,
     user_id: userId,
-    name: 'Yo',
+    name: ownerName.trim() || 'Yo',
     predictions: null,
   });
 
@@ -207,7 +211,27 @@ export async function onSignedIn(): Promise<void> {
   console.log(`[league-sync] onSignedIn: ${cloudMembers?.length ?? 0} miembros cargados`);
   hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
 
+  adoptLocalLeagues(userId);
+
   startSync();
+
+  // Subir ligas locales recién adoptadas sin esperar al debounce.
+  void pushChanges();
+}
+
+function adoptLocalLeagues(userId: string): void {
+  const store = useLeaguesStore.getState();
+  for (const league of store.leagues) {
+    const anyUserId = league.participants.some(p => p.userId);
+    if (anyUserId) continue;
+    const ownerIdx = league.participants.findIndex(p => p.isOwner);
+    if (ownerIdx === -1) continue;
+    const patched = league.participants.map((p, idx) =>
+      idx === ownerIdx ? { ...p, userId } : p,
+    );
+    store._patchLeague(league.id, { participants: patched });
+    console.log(`[league-sync] adopt local league ${league.id} → owner ${userId}`);
+  }
 }
 
 function hydrateStore(

@@ -11,7 +11,9 @@ const RESEND_COOLDOWN = 60;
 @customElement('auth-modal')
 export class AuthModal extends DragToDismissMixin(LitElement) {
   @state() private _status: AuthStatus = useAuthStore.getState().status;
+  @state() private _mode: 'signin' | 'signup' | 'magic' = 'signin';
   @state() private _email = '';
+  @state() private _password = '';
   @state() private _emailForDisplay = '';
   @state() private _resendCountdown = 0;
 
@@ -182,6 +184,45 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
       letter-spacing: 0.2em;
       text-transform: uppercase;
     }
+
+    .toggle-link {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink);
+      text-align: center;
+      padding: 4px 0;
+      letter-spacing: 0.04em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .toggle-link:hover { color: var(--retro-orange); }
+
+    .magic-link {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      text-align: center;
+      padding: 4px 0;
+      letter-spacing: 0.04em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .magic-link:hover { color: var(--retro-orange); }
+
+    .field-stack { display: flex; flex-direction: column; gap: 12px; }
+
+    .success-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--retro-green, #2a8a3a);
+      letter-spacing: 0.06em;
+      border: 2px solid var(--retro-green, #2a8a3a);
+      padding: 8px 12px;
+    }
   `];
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
@@ -220,14 +261,36 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     this._email = (e.target as HTMLInputElement).value;
   }
 
+  private _onPasswordInput(e: Event) {
+    this._password = (e.target as HTMLInputElement).value;
+  }
+
+  private _switchMode(mode: 'signin' | 'signup' | 'magic') {
+    this._mode = mode;
+    useAuthStore.getState().resetError();
+  }
+
   private async _submit(e: Event) {
     e.preventDefault();
     if (!this._email) return;
     this._emailForDisplay = this._email;
-    await useAuthStore.getState().signInWithMagicLink(this._email);
-    if (useAuthStore.getState().status === 'sent') {
-      this._startResendCooldown();
+    const auth = useAuthStore.getState();
+    if (this._mode === 'magic') {
+      await auth.signInWithMagicLink(this._email);
+      if (useAuthStore.getState().status === 'sent') {
+        this._startResendCooldown();
+      }
+      return;
     }
+    if (!this._password) return;
+    if (this._mode === 'signup') {
+      await auth.signUpWithPassword(this._email, this._password);
+      if (useAuthStore.getState().status === 'sent') {
+        this._startResendCooldown();
+      }
+      return;
+    }
+    await auth.signInWithPassword(this._email, this._password);
   }
 
   private async _resend() {
@@ -294,33 +357,94 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
         <button class="btn btn-secondary" ?disabled="${!canResend}" @click="${this._resend}">
           ${resendLabel}
         </button>
+        <button class="toggle-link" @click="${() => this._switchMode('signin')}">${t('auth.toggleToSignIn')}</button>
       `;
     }
 
     const isSending = this._status === 'sending';
     const hasError = this._status === 'error';
-    const errorMsg = useAuthStore.getState().lastError;
+    const errorMsg = this._friendlyError(useAuthStore.getState().lastError);
+    const isMagic = this._mode === 'magic';
+    const isSignUp = this._mode === 'signup';
+
+    const submitDisabled = isSending
+      || !this._email
+      || (!isMagic && !this._password);
+    const submitLabel = isSending
+      ? (isMagic ? t('auth.sending') : isSignUp ? t('auth.signingUp') : t('auth.signingIn'))
+      : (isMagic ? t('auth.sendLink') : isSignUp ? t('auth.signUp') : t('auth.signIn'));
 
     return html`
-      <form @submit="${this._submit}">
-        <div class="field-label">${t('auth.emailLabel')}</div>
-        <input
-          class="field-input"
-          type="email"
-          required
-          autocomplete="email"
-          placeholder="${t('auth.emailPlaceholder')}"
-          .value="${this._email}"
-          @input="${this._onEmailInput}"
-          ?disabled="${isSending}"
-        >
-        ${hasError ? html`<div class="error-text">${errorMsg ?? t('auth.errorGeneric')}</div>` : ''}
-        <br>
-        <button class="btn btn-primary" type="submit" ?disabled="${isSending || !this._email}">
-          ${isSending ? t('auth.sending') : t('auth.sendLink')}
+      <form @submit="${this._submit}" class="field-stack">
+        <div>
+          <div class="field-label">${t('auth.emailLabel')}</div>
+          <input
+            class="field-input"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="${t('auth.emailPlaceholder')}"
+            .value="${this._email}"
+            @input="${this._onEmailInput}"
+            ?disabled="${isSending}"
+          >
+        </div>
+
+        ${isMagic ? '' : html`
+          <div>
+            <div class="field-label">${t('auth.passwordLabel')}</div>
+            <input
+              class="field-input"
+              type="password"
+              required
+              minlength="6"
+              autocomplete="${isSignUp ? 'new-password' : 'current-password'}"
+              placeholder="${t('auth.passwordPlaceholder')}"
+              .value="${this._password}"
+              @input="${this._onPasswordInput}"
+              ?disabled="${isSending}"
+            >
+          </div>
+        `}
+
+        ${hasError ? html`<div class="error-text">${errorMsg}</div>` : ''}
+
+        <button class="btn btn-primary" type="submit" ?disabled="${submitDisabled}">
+          ${submitLabel}
         </button>
+
+        ${isMagic
+          ? html`
+              <button type="button" class="toggle-link" @click="${() => this._switchMode('signin')}">
+                ${t('auth.toggleToSignIn')}
+              </button>
+            `
+          : html`
+              <button type="button" class="toggle-link" @click="${() => this._switchMode(isSignUp ? 'signin' : 'signup')}">
+                ${isSignUp ? t('auth.toggleToSignIn') : t('auth.toggleToSignUp')}
+              </button>
+              <button type="button" class="magic-link" @click="${() => this._switchMode('magic')}">
+                ${t('auth.forgotPassword')}
+              </button>
+            `}
       </form>
     `;
+  }
+
+  private _friendlyError(raw: string | null): string {
+    if (!raw) return t('auth.errorGeneric');
+    const lower = raw.toLowerCase();
+    if (lower.includes('invalid login') || lower.includes('invalid credentials') || lower.includes('email not confirmed')) {
+      return t('auth.errorInvalidCredentials');
+    }
+    if (lower.includes('already registered') || lower.includes('already exists') || lower.includes('user already')) {
+      return t('auth.errorEmailTaken');
+    }
+    if (lower.includes('password') && (lower.includes('short') || lower.includes('6 characters') || lower.includes('weak'))) {
+      return t('auth.errorWeakPassword');
+    }
+    if (lower === 'not_configured') return t('auth.notConfigured');
+    return raw;
   }
 }
 

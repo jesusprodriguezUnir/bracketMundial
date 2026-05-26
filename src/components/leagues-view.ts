@@ -62,6 +62,7 @@ export class LeaguesView extends LitElement {
   @state() private _newName = '';
   @state() private _uploadError: string | null = null;
   @state() private _newLeagueName = '';
+  @state() private _newOwnerName = '';
   @state() private _confirmDeleteLeague: string | null = null;
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _editMode = false;
@@ -2548,10 +2549,21 @@ export class LeaguesView extends LitElement {
   private _createLeague() {
     const name = this._newLeagueName.trim();
     if (!name) return;
-    useLeaguesStore.getState().createLeague(name);
+    const ownerName = this._newOwnerName.trim() || this._defaultOwnerName();
+    useLeaguesStore.getState().createLeague(name, ownerName);
     this._newLeagueName = '';
+    this._newOwnerName = '';
     this._manualListMode = false;
     this._screen = 'detail';
+  }
+
+  private _defaultOwnerName(): string {
+    const email = useAuthStore.getState().email;
+    if (email) {
+      const local = email.split('@')[0];
+      if (local) return local;
+    }
+    return t('league.you');
   }
 
   private _renameLeague(id: string) {
@@ -2604,6 +2616,16 @@ export class LeaguesView extends LitElement {
     if (!leagueId) return;
     useLeaguesStore.getState().removeParticipant(leagueId, participantId);
     if (this._expandedId === participantId) this._expandedId = null;
+  }
+
+  private _renameParticipantPrompt(participantId: string, currentName: string) {
+    const leagueId = this._activeLeagueId;
+    if (!leagueId) return;
+    const next = window.prompt(t('league.editNamePrompt'), currentName);
+    if (next === null) return;
+    const trimmed = next.trim();
+    if (!trimmed || trimmed === currentName) return;
+    useLeaguesStore.getState().renameParticipant(leagueId, participantId, trimmed);
   }
 
   private _toggleExpand(id: string) {
@@ -2763,31 +2785,49 @@ export class LeaguesView extends LitElement {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
 
-    if (useAuthStore.getState().session) {
-      this._syncing = true;
-      try {
-        const { getSupabase } = await import('../lib/supabase-client');
-        const sb = getSupabase();
-        const userId = useAuthStore.getState().session?.user.id;
-        if (sb && userId) {
-          await sb.from('leagues').upsert(
-            { id: league.id, name: league.name, owner_id: userId },
-            { onConflict: 'id', ignoreDuplicates: true },
+    const session = useAuthStore.getState().session;
+    if (!session) {
+      this._importFeedback = t('league.inviteRequiresLogin');
+      const { openAuthModal } = await import('./auth-modal');
+      openAuthModal();
+      return;
+    }
+
+    this._syncing = true;
+    try {
+      const { getSupabase } = await import('../lib/supabase-client');
+      const sb = getSupabase();
+      const userId = session.user.id;
+      if (sb && userId) {
+        await sb.from('leagues').upsert(
+          { id: league.id, name: league.name, owner_id: userId },
+          { onConflict: 'id' },
+        );
+        const me = league.participants.find(p => p.isOwner) ?? league.participants[0];
+        if (me) {
+          await sb.from('league_members').upsert(
+            { league_id: league.id, user_id: userId, name: me.name },
+            { onConflict: 'league_id, user_id' },
           );
         }
-      } catch { /* league may already exist */ }
-      this._syncing = false;
+      }
+    } catch (err) {
+      console.error('[leagues-view] invite upsert failed:', err);
     }
+    this._syncing = false;
 
     this._showInvite = true;
     this._copiedInvite = false;
   }
 
+  private _inviteUrl(leagueId: string): string {
+    return `${window.location.origin}${window.location.pathname}#league/join/${leagueId}`;
+  }
+
   private _copyInviteLink() {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
-    const url = `${window.location.origin}${window.location.pathname}#league/join/${league.id}`;
-    navigator.clipboard.writeText(url).catch(() => {});
+    navigator.clipboard.writeText(this._inviteUrl(league.id)).catch(() => {});
     this._copiedInvite = true;
   }
 
@@ -2925,6 +2965,14 @@ export class LeaguesView extends LitElement {
             @input=${(e: InputEvent) => { this._newLeagueName = (e.target as HTMLInputElement).value; }}
             @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._createLeague(); }}
             placeholder=${t('league.namePlaceholder')}
+          />
+          <input
+            type="text"
+            .value=${this._newOwnerName}
+            @input=${(e: InputEvent) => { this._newOwnerName = (e.target as HTMLInputElement).value; }}
+            @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._createLeague(); }}
+            placeholder=${t('league.ownerNamePlaceholder')}
+            aria-label=${t('league.ownerNameLabel')}
           />
           <button class="lg-v2-btn primary" style="grid-template-columns:auto auto;" @click=${this._createLeague}>
             <span class="lg-v2-btn-ic">＋</span>
@@ -3221,6 +3269,9 @@ export class LeaguesView extends LitElement {
               <button class="lg-bracket-btn" @click=${() => this._viewBracket(score.participant.id, score.participant.name)}>
                 ${t('league.viewBracket')}
               </button>
+              <button class="lg-bracket-btn" @click=${() => this._renameParticipantPrompt(score.participant.id, score.participant.name)}>
+                ${t('league.editNameBtn')}
+              </button>
               ${isOwner ? html`
                 <label class="lg-upload-btn-sm">
                   ${t('league.replacePrediction')}
@@ -3513,12 +3564,15 @@ export class LeaguesView extends LitElement {
         ` : ''}
 
         ${this._showInvite ? html`
-          <div class="lg-confirm-box" style="border-color: var(--retro-yellow);">
+          <div class="lg-confirm-box" style="border-color: var(--retro-yellow); flex-direction: column; align-items: stretch;">
             <span>${t('league.inviteBody')}</span>
-            ${this._copiedInvite
-              ? html`<button class="lg-btn-sm" disabled>${t('league.copied')}</button>`
-              : html`<button class="lg-btn-sm" @click=${this._copyInviteLink}>${t('league.copyLink')}</button>`}
-            <button class="lg-btn-back" @click=${() => { this._showInvite = false; this._copiedInvite = false; }}>✕</button>
+            <code style="font-family: var(--font-mono); font-size: 11px; padding: 8px; background: var(--paper); border: 1px solid var(--ink); word-break: break-all; user-select: all;">${this._inviteUrl(league.id)}</code>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              ${this._copiedInvite
+                ? html`<button class="lg-btn-sm" disabled>${t('league.copied')}</button>`
+                : html`<button class="lg-btn-sm" @click=${this._copyInviteLink}>${t('league.copyLink')}</button>`}
+              <button class="lg-btn-back" @click=${() => { this._showInvite = false; this._copiedInvite = false; }}>✕</button>
+            </div>
           </div>
         ` : ''}
 

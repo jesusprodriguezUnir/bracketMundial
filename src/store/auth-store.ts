@@ -9,9 +9,19 @@ interface AuthState {
   session: Session | null;
   email: string | null;
   lastError: string | null;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (email: string, password: string) => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetError: () => void;
   _setSession: (s: Session | null) => void;
+}
+
+async function buildRedirectUrl(): Promise<string> {
+  const { isNativePlatform, getNativeRedirectUrl } = await import('../lib/native-auth');
+  return isNativePlatform()
+    ? getNativeRedirectUrl()
+    : window.location.origin + window.location.pathname;
 }
 
 export const useAuthStore = createStore<AuthState>()((set, _get) => ({
@@ -20,14 +30,44 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
   email: null,
   lastError: null,
 
+  signInWithPassword: async (email, password) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'sending', lastError: null });
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      set({ status: 'error', lastError: error.message });
+    }
+  },
+
+  signUpWithPassword: async (email, password) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'sending', lastError: null });
+    const emailRedirectTo = await buildRedirectUrl();
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo },
+    });
+    if (error) {
+      set({ status: 'error', lastError: error.message });
+      return;
+    }
+    if (data.session) {
+      // Email confirmation disabled in Supabase — already signed in.
+      // _setSession will be triggered by onAuthStateChange.
+      return;
+    }
+    // Email confirmation enabled — user must check inbox.
+    set({ status: 'sent' });
+  },
+
   signInWithMagicLink: async (email) => {
     const sb = getSupabase();
     if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
     set({ status: 'sending', lastError: null });
-    const { isNativePlatform, getNativeRedirectUrl } = await import('../lib/native-auth');
-    const emailRedirectTo = isNativePlatform()
-      ? getNativeRedirectUrl()
-      : window.location.origin + window.location.pathname;
+    const emailRedirectTo = await buildRedirectUrl();
     const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo } });
     set(error ? { status: 'error', lastError: error.message } : { status: 'sent' });
   },
@@ -36,6 +76,8 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
     const sb = getSupabase();
     await sb?.auth.signOut();
   },
+
+  resetError: () => set({ status: 'signed_out', lastError: null }),
 
   _setSession: (s) => set({
     session: s,

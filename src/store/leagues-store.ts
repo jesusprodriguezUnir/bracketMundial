@@ -56,7 +56,7 @@ interface LeaguesState {
   leagues: League[];
   activeLeagueId: string | null;
 
-  createLeague: (name: string) => string;
+  createLeague: (name: string, ownerName?: string) => string;
   renameLeague: (id: string, name: string) => void;
   deleteLeague: (id: string) => void;
   setActiveLeague: (id: string | null) => void;
@@ -90,8 +90,9 @@ export const useLeaguesStore = createStore<LeaguesState>()(
       leagues: [],
       activeLeagueId: null,
 
-      createLeague: (name) => {
+      createLeague: (name, ownerName) => {
         const id = generateLid();
+        const cleanedOwnerName = (ownerName ?? '').trim() || 'Me';
         const league: League = {
           id,
           name: name.trim(),
@@ -99,7 +100,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           participants: [
             {
               id: generatePid(),
-              name: 'Me',
+              name: cleanedOwnerName,
               addedAt: Date.now(),
               source: 'manual',
               groupScores: createEmptyGroupScores(),
