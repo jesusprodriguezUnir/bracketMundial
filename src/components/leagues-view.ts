@@ -77,6 +77,7 @@ export class LeaguesView extends LitElement {
   @state() private _showJoinModal = false;
   @state() private _joinCode = '';
   @state() private _joinError: string | null = null;
+  @state() private _syncFeedback: string | null = null;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -2856,6 +2857,60 @@ export class LeaguesView extends LitElement {
     this._copiedShare = true;
   }
 
+  private async _forcePushAll() {
+    if (!useAuthStore.getState().session) {
+      this._syncFeedback = '⚠ Inicia sesión primero';
+      this._openAuthFromBanner();
+      return;
+    }
+    this._syncing = true;
+    this._syncFeedback = '⟳ Subiendo a la nube…';
+    try {
+      const { forcePushAll } = await import('../lib/league-sync');
+      const result = await forcePushAll();
+      if (result.ok) {
+        this._syncFeedback = `✓ ${result.count} liga(s) sincronizadas. Revisa la consola si algo falló.`;
+      } else {
+        this._syncFeedback = '✕ No se pudo sincronizar (sin sesión).';
+      }
+    } catch (err) {
+      console.error('[leagues-view] forcePushAll failed:', err);
+      this._syncFeedback = `✕ Error: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    this._syncing = false;
+  }
+
+  private async _openAuthFromBanner() {
+    const { openAuthModal } = await import('./auth-modal');
+    openAuthModal();
+  }
+
+  private _renderSyncBanner() {
+    const session = useAuthStore.getState().session;
+    const email = useAuthStore.getState().email;
+    if (!session) {
+      return html`
+        <div class="lg-confirm-box" style="border-color: var(--retro-orange); background: color-mix(in srgb, var(--retro-orange) 8%, var(--paper));">
+          <span style="flex:1;">
+            ⚠ <strong>Sin sesión</strong> — Tus ligas están solo en este navegador. Inicia sesión para guardarlas en la nube e invitar amigos.
+          </span>
+          <button class="lg-btn-sm" @click=${this._openAuthFromBanner}>Iniciar sesión</button>
+        </div>
+      `;
+    }
+    return html`
+      <div class="lg-confirm-box" style="border-color: var(--retro-green, #2a8a3a); background: color-mix(in srgb, var(--retro-green, #2a8a3a) 8%, var(--paper)); flex-wrap: wrap;">
+        <span style="flex:1; min-width: 200px;">
+          ✓ Sesión: <strong>${email ?? ''}</strong>
+        </span>
+        <button class="lg-btn-sm" @click=${this._forcePushAll} ?disabled=${this._syncing}>
+          ${this._syncing ? '⟳ Subiendo…' : 'Subir a la nube'}
+        </button>
+        ${this._syncFeedback ? html`<span style="flex-basis:100%; font-family:var(--font-mono); font-size:11px;">${this._syncFeedback}</span>` : ''}
+      </div>
+    `;
+  }
+
   private async _refreshFromCloud() {
     if (!this._activeLeagueId) return;
     this._syncing = true;
@@ -2979,6 +3034,8 @@ export class LeaguesView extends LitElement {
             <span>${t('league.createBtn')}</span>
           </button>
         </div>
+
+        ${this._renderSyncBanner()}
 
         <div class="lg-v2-section-bar">
           <h3>${t('league.sectionMyLeagues')}</h3>

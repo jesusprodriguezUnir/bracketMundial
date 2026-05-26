@@ -219,6 +219,18 @@ export async function onSignedIn(): Promise<void> {
   void pushChanges();
 }
 
+export async function forcePushAll(): Promise<{ ok: boolean; count: number; userId: string | null }> {
+  const userId = useAuthStore.getState().session?.user.id ?? null;
+  if (!userId) return { ok: false, count: 0, userId: null };
+  adoptLocalLeagues(userId);
+  const store = useLeaguesStore.getState();
+  const count = store.leagues.filter(l =>
+    l.participants.some(p => p.userId === userId || p.isOwner),
+  ).length;
+  await pushChanges();
+  return { ok: true, count, userId };
+}
+
 function adoptLocalLeagues(userId: string): void {
   const store = useLeaguesStore.getState();
   for (const league of store.leagues) {
@@ -324,13 +336,17 @@ async function pushChanges(): Promise<void> {
       || me.knockoutScores.some(s => s.scoreA !== null);
 
     try {
-      const { error: leagueErr } = await sb.from('leagues').upsert(
+      const { data: leagueData, error: leagueErr } = await sb.from('leagues').upsert(
         { id: league.id, name: league.name, owner_id: userId },
-        { onConflict: 'id', ignoreDuplicates: true },
-      );
-      if (leagueErr) console.error('[league-sync] error upsert league:', leagueErr);
+        { onConflict: 'id' },
+      ).select();
+      if (leagueErr) {
+        console.error('[league-sync] error upsert league:', leagueErr, { leagueId: league.id, name: league.name });
+      } else {
+        console.log('[league-sync] upsert league OK:', leagueData);
+      }
 
-      const { error: memberErr } = await sb.from('league_members').upsert(
+      const { data: memberData, error: memberErr } = await sb.from('league_members').upsert(
         {
           league_id: league.id,
           user_id: userId,
@@ -340,8 +356,12 @@ async function pushChanges(): Promise<void> {
             : null,
         },
         { onConflict: 'league_id, user_id' },
-      );
-      if (memberErr) console.error('[league-sync] error upsert member:', memberErr);
+      ).select();
+      if (memberErr) {
+        console.error('[league-sync] error upsert member:', memberErr, { leagueId: league.id, name: me.name });
+      } else {
+        console.log('[league-sync] upsert member OK:', memberData);
+      }
     } catch (err) {
       console.error('[league-sync] error en pushChanges:', err);
     }
