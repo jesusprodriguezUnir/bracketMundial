@@ -16,8 +16,6 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "news": "node scripts/ingest-news.mjs",
-    "news:legacy": "node scripts/generate-news.mjs",
-    "news:gnews": "node scripts/generate-news-gnews.mjs",
     "odds": "tsx scripts/generate-odds.mjs",
     "scores:update": "tsx scripts/update-live-scores.ts",
     "test": "vitest run",
@@ -31,7 +29,8 @@
     "reel": "node scripts/record-reel.mjs",
     "play:assets": "node scripts/generate-play-assets.mjs",
     "x:post": "node scripts/generate-x-post.mjs",
-    "youtube:promo": "node scripts/generate-youtube-promo.mjs"
+    "youtube:promo": "node scripts/generate-youtube-promo.mjs",
+    "db:inspect": "node scripts/supabase-inspect.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
