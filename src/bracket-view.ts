@@ -167,7 +167,7 @@ export class BracketView extends LitElement {
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 198;
+      z-index: 290;
       background: rgba(26,25,51,0.55);
     }
     .more-sheet-backdrop.open {
@@ -179,11 +179,11 @@ export class BracketView extends LitElement {
       bottom: 0;
       left: 0;
       right: 0;
-      z-index: 199;
+      z-index: 300;
       background: var(--paper-3);
       border-top: 4px solid var(--ink);
       box-shadow: 0 -6px 0 0 var(--retro-orange);
-      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
       max-height: 75vh;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -770,11 +770,16 @@ export class BracketView extends LitElement {
                 class="more-sheet-item"
                 role="menuitem"
                 @click="${() => this._selectTab(tab)}">
-                <span class="ms-icon">${tab === 'calendar'
-                  ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-                  : tab === 'stadiums'
-                    ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2Z"/><path d="M12 10l-2 6h4l-2-6Z"/></svg>`
-                    : html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6M9 16h6"/></svg>`
+                <span class="ms-icon">${
+                  tab === 'calendar'
+                    ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+                    : tab === 'stadiums'
+                      ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="7"/><ellipse cx="12" cy="12" rx="6" ry="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>`
+                      : tab === 'coaches'
+                        ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/><circle cx="7.5" cy="7.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M7.5 16.5l3-3 6 3.5"/></svg>`
+                        : tab === 'guide'
+                          ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`
+                          : html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6M3 20h18"/></svg>`
                 }</span>
                 ${t(PHASE_TAB_KEYS[tab])}
               </button>

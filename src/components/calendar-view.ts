@@ -352,18 +352,6 @@ export class CalendarView extends LitElement {
       flex-shrink: 0;
     }
 
-    @media (max-width: 900px) {
-      .match-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .score {
-        justify-self: start;
-        min-width: 110px;
-      }
-    }
-
     @media (max-width: 768px) {
       .filters {
         padding: 12px;
@@ -373,7 +361,13 @@ export class CalendarView extends LitElement {
       .chips {
         overflow-x: auto;
         flex-wrap: nowrap;
-        padding-bottom: 4px;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .chips::-webkit-scrollbar {
+        display: none;
       }
 
       .chip {
@@ -392,19 +386,101 @@ export class CalendarView extends LitElement {
       }
 
       .match-row {
-        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: 1fr 100px;
+        grid-template-areas:
+          "time venue"
+          "teams score";
+        gap: 8px 12px;
+        padding: 12px;
+        align-items: center;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .time-block {
+        grid-area: time;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .time {
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .phase-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+        border: 1.5px solid var(--ink);
+      }
+
+      .broadcast-badge {
+        margin-top: 0;
+        display: flex;
+        gap: 2px;
+      }
+
+      .badge-tv {
+        padding: 1px 4px;
+        font-size: 8px;
+      }
+
+      .teams-block {
+        grid-area: teams;
+        gap: 6px;
+      }
+
+      .team-line {
+        font-size: 14px;
+        font-weight: 700;
         gap: 8px;
       }
 
       .score {
+        grid-area: score;
         justify-self: stretch;
-        min-height: 48px;
-        font-size: 22px;
+        align-self: center;
+        min-height: 38px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid var(--ink);
+        box-shadow: 2px 2px 0 var(--ink);
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .venue-block {
+        grid-area: venue;
+        justify-self: end;
+        align-self: center;
+        text-align: right;
+        font-size: 11px;
+        gap: 1px;
+        max-width: 140px;
+        overflow: hidden;
+      }
+
+      .venue {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+      }
+
+      .city {
+        font-size: 9px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .gcal-btn {
-        white-space: normal;
-        text-align: center;
+        display: none;
       }
     }
   `;
