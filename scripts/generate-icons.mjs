@@ -6,10 +6,17 @@ import { existsSync } from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
-const SOURCE_IMAGE = 'C:\\Users\\jesus\\.gemini\\antigravity\\brain\\5de23614-4e36-4449-94e4-840dbdd74338\\media__1779557680845.png';
+// La imagen de origen puede colocarse en public/icons/icon-source.png si se desea regenerar
+const SOURCE_IMAGE = join(rootDir, 'public', 'icons', 'icon-source.png');
 
 async function generateIcons() {
   if (!existsSync(SOURCE_IMAGE)) {
+    // Si no hay imagen de origen personalizada, simplemente usamos los iconos ya existentes en public/
+    const requiredIcon = join(rootDir, 'public', 'icons', 'icon-512.png');
+    if (existsSync(requiredIcon)) {
+      console.log('ℹ️ Iconos PWA existentes detectados en public/icons/. Se omite la regeneración.');
+      process.exit(0);
+    }
     console.warn(`⚠️ Warning: No se encontró la imagen de origen: ${SOURCE_IMAGE}`);
     console.warn('Se omitirá la regeneración y se utilizarán los iconos existentes en public/');
     process.exit(0);

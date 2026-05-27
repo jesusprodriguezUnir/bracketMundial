@@ -4,6 +4,7 @@ import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { useLocaleStore } from './i18n';
+import { initAuth } from './store/auth-store';
 
 inject();
 injectSpeedInsights();
@@ -32,7 +33,7 @@ import('./lib/native-auth').then(({ isNativePlatform, initNativeDeepLinks }) => 
 import('./lib/native-setup').then(m => m.initNative());
 
 // Inicializar auth de Supabase (PKCE, magic link, session recovery)
-import('./store/auth-store').then(({ initAuth }) => initAuth());
+initAuth();
 
 const root = document.getElementById('root');
 if (root) {
