@@ -8,11 +8,11 @@ import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
 import { isMatchPending } from '../lib/date-utils';
-import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
 import './score-stepper';
 import './odds-bar';
+import './bracket-match';
 
 // Colores por ronda — retro Panini
 const ROUND_COLORS: Record<string, string> = {
@@ -75,8 +75,6 @@ export class BracketKnockout extends LitElement {
 
   @state() private _pulseId: string | null = null;
   @state() private _isMobile = false;
-  @state() private _odds: Record<string, MatchOdds> = {};
-  private _oddsLoaded = false;
   @state() private _mobileMode: 'all' | 'path' = 'all';
   @state() private _mobileStage = 0;
   @state() private _pathTeamId: string | null = null;
@@ -1373,11 +1371,6 @@ export class BracketKnockout extends LitElement {
     this._mql = globalThis.matchMedia('(max-width: 768px)');
     this._isMobile = this._mql.matches;
     this._mql.addEventListener('change', this._onMqlChange);
-    if (!this._oddsLoaded) {
-      this._oddsLoaded = true;
-      // Preload group-stage odds; knockout odds are fetched on demand via _getOdds()
-      getAllOdds().then(o => { if (this.isConnected) this._odds = o; });
-    }
   }
 
   disconnectedCallback() {
@@ -1594,169 +1587,7 @@ export class BracketKnockout extends LitElement {
     });
   }
 
-  private adjustInlineKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
-    e.stopPropagation();
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
-    if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
-    const curA = m.scoreA ?? 0;
-    const curB = m.scoreB ?? 0;
-    const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
-    const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
-    useTournamentStore.getState().setKnockoutMatchResult(
-      matchId, nextA, nextB,
-      m.penaltyScoreA ?? null, m.penaltyScoreB ?? null,
-    );
-  }
 
-  private adjustPenaltyKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
-    e.stopPropagation();
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
-    if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
-    const curA = m.penaltyScoreA ?? 0;
-    const curB = m.penaltyScoreB ?? 0;
-    const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
-    const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
-    useTournamentStore.getState().setKnockoutMatchResult(
-      matchId, m.scoreA, m.scoreB, nextA, nextB,
-    );
-  }
-
-  private renderMatch(matchId: string, accentColor: string, idx = 0, isRightSide = false) {
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
-    const tA = this.getTeam(m?.teamA ?? null);
-    const tB = this.getTeam(m?.teamB ?? null);
-    const isPlayed = m?.isPlayed ?? false;
-    const winnerId = m?.winnerId ?? null;
-    const penaltyScoreA = m?.penaltyScoreA ?? null;
-    const penaltyScoreB = m?.penaltyScoreB ?? null;
-    const decidedOnPenalties = penaltyScoreA !== null && penaltyScoreB !== null;
-    const isPending = isPlayed === false;
-    const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
-    const canEdit = !!(m?.teamA && m?.teamB && isMatchPending(m?.date ?? '', m?.timeSpain ?? ''));
-    const scoreAVal = m?.scoreA ?? 0;
-    const scoreBVal = m?.scoreB ?? 0;
-    const isDraw = canEdit && m?.scoreA !== null && m?.scoreB !== null && m?.scoreA === m?.scoreB;
-    const penAVal = m?.penaltyScoreA ?? 0;
-    const penBVal = m?.penaltyScoreB ?? 0;
-
-    const renderRow = (teamId: string | null, score: number | null, teamAB: 'A' | 'B') => {
-      const team = this.getTeam(teamId);
-      const isWinner = winnerId !== null && winnerId === teamId;
-      const isLoser  = winnerId !== null && winnerId !== teamId;
-      const stepVal  = teamAB === 'A' ? scoreAVal : scoreBVal;
-      const scoreClass = isPending ? 'pending' : '';
-      const scoreText = isPlayed ? score : '—';
-      const scoreContent = canEdit
-        ? html`<score-stepper
-            .value=${stepVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="compact"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
-        : html`<div class="score ${scoreClass}">${scoreText}</div>`;
-      return html`
-        <div
-          class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
-          style="${isWinner ? `background: ${accentColor};` : ''}">
-          <div class="team-info">
-            ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-            <span class="team-name">${team?.shortName ?? 'TBD'}</span>
-          </div>
-          ${scoreContent}
-        </div>
-      `;
-    };
-
-    const penaltiesSuffix = decidedOnPenalties
-      ? `, penaltis ${penaltyScoreA}-${penaltyScoreB}`
-      : '';
-    const matchAriaLabel = isPlayed
-      ? `Partido ${label}, resultado ${m.scoreA}-${m.scoreB}${penaltiesSuffix}`
-      : `Partido ${label}, click para editar`;
-    let penaltyNote: TemplateResult | string = '';
-    if (isDraw) {
-      penaltyNote = html`
-        <div class="ko-pen-row">
-          <span class="ko-pen-label">PEN</span>
-          <score-stepper
-            .value=${penAVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="compact"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
-          <span class="ko-pen-sep">·</span>
-          <score-stepper
-            .value=${penBVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="compact"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
-        </div>
-      `;
-    } else if (decidedOnPenalties) {
-      penaltyNote = html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>`;
-    }
-    const odds = this._getOdds(matchId, m?.teamA, m?.teamB);
-    let oddsTitle = '';
-    if (odds) {
-      let oddsSourceLabel = ' · estimado';
-      if (odds.source === 'market') {
-        oddsSourceLabel = ` · ${odds.bookmakers} casas`;
-      }
-      oddsTitle = `Probabilidad 1X2${oddsSourceLabel}`;
-    }
-    const oddsContent: TemplateResult | string = !odds || m?.isPlayed
-      ? ''
-      : html`
-          <odds-bar
-            title="${oddsTitle}"
-            .home=${odds.home}
-            .draw=${odds.draw}
-            .away=${odds.away}
-            variant="compact"
-            .showFigures=${true}></odds-bar>
-        `;
-
-    return html`
-      <div
-        data-mid="${matchId}"
-        class="match-box ${this._pulseId === matchId ? 'pulse' : ''} ${isRightSide ? 'right-side' : ''}"
-        style="--i:${idx}; ${isRightSide ? `border-right-color: ${accentColor};` : `border-left-color: ${accentColor};`}"
-        role="button"
-        tabindex="0"
-        aria-label="${matchAriaLabel}"
-        @click="${() => this.openMatch(matchId)}"
-        @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
-        ${renderRow(m?.teamA ?? null, m?.scoreA ?? null, 'A')}
-        <div class="team-separator"></div>
-        ${renderRow(m?.teamB ?? null, m?.scoreB ?? null, 'B')}
-        ${penaltyNote}
-        ${oddsContent}
-
-        ${(m as any)?.venue ? html`
-          <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
-            ${(() => {
-              const st = STADIUMS.find(s => s.name === (m as any).venue);
-              return st ? html`<img src="${st.image}" style="width: 16px; height: 10px; object-fit: cover; border: 1px solid var(--ink);" alt="">` : '';
-            })()}
-            <span style="font-family: var(--font-mono); font-size: 8px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${(m as any).venue} · ${(m as any).city}
-            </span>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }
-
-  /** Returns odds synchronously from cache; if missing, triggers async load and re-render. */
-  private _getOdds(matchId: string, teamA: string | null | undefined, teamB: string | null | undefined): MatchOdds | null {
-    if (this._odds[matchId]) return this._odds[matchId];
-    if (!teamA || !teamB) return null;
-    getOddsForMatch(matchId, teamA, teamB).then(o => {
-      if (o && this.isConnected) this._odds = { ...this._odds, [matchId]: o };
-    });
-    return null;
-  }
 
   private handleSimulate() {
     useTournamentStore.getState().autoSimulateKnockout();
@@ -1825,119 +1656,6 @@ export class BracketKnockout extends LitElement {
     return path;
   }
 
-  private _renderMobileMatchCard(matchId: string, roundColor: string) {
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
-    if (!m) return html``;
-    const tA = this.getTeam(m.teamA ?? null);
-    const tB = this.getTeam(m.teamB ?? null);
-    const winA = m.winnerId !== null && m.winnerId === m.teamA;
-    const winB = m.winnerId !== null && m.winnerId === m.teamB;
-    const isPending = !m.isPlayed;
-    const canEdit = !!(m.teamA && m.teamB && isMatchPending(m.date ?? '', m.timeSpain ?? ''));
-    const isDraw = canEdit && m.scoreA !== null && m.scoreB !== null && m.scoreA === m.scoreB;
-    const penAVal = m.penaltyScoreA ?? 0;
-    const penBVal = m.penaltyScoreB ?? 0;
-
-    const row = (team: ReturnType<typeof this.getTeam>, score: number | null, teamAB: 'A' | 'B', isWin: boolean, isLose: boolean) => {
-      const stepVal = teamAB === 'A' ? (m.scoreA ?? 0) : (m.scoreB ?? 0);
-      const mobileScoreClass = isPending && score === null ? 'pending' : '';
-      const mobileScoreText = m.isPlayed ? score : '—';
-      const mobileScoreContent = canEdit
-        ? html`<score-stepper
-            .value=${stepVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="mobile"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, matchId, teamAB, e.detail.delta)}></score-stepper>`
-        : html`<div class="mob-score ${mobileScoreClass}">${mobileScoreText}</div>`;
-      return html`
-        <div
-          class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
-          style="${isWin ? `background: ${roundColor};` : ''}">
-          <div class="mob-team-info">
-            ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'flag' })}
-            <span class="code">${team?.shortName ?? 'TBD'}</span>
-            <span class="name">${team?.name ?? ''}</span>
-          </div>
-          ${mobileScoreContent}
-        </div>
-      `;
-    };
-
-    const mobOdds = this._getOdds(matchId, m.teamA, m.teamB);
-    const venueName = (m as any).venue;
-    const cityName = (m as any).city;
-    const matchDate = (m as any).date;
-    const matchTime = (m as any).timeSpain;
-    let mobPenaltyNote: TemplateResult | string = '';
-    if (isDraw) {
-      mobPenaltyNote = html`
-        <div class="mob-pen-row">
-          <span class="mob-pen-label">PEN</span>
-          <score-stepper
-            .value=${penAVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="mobile"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
-          <span class="mob-pen-sep">·</span>
-          <score-stepper
-            .value=${penBVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="mobile"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
-        </div>
-      `;
-    } else if (m.penaltyScoreA !== null && m.penaltyScoreB !== null) {
-      mobPenaltyNote = html`<div class="mob-pen-note">PENALTIS · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>`;
-    }
-    let mobOddsTitle = '';
-    if (mobOdds) {
-      let mobOddsSourceLabel = ' · estimado';
-      if (mobOdds.source === 'market') {
-        mobOddsSourceLabel = ` · ${mobOdds.bookmakers} casas`;
-      }
-      mobOddsTitle = `Probabilidad 1X2${mobOddsSourceLabel}`;
-    }
-    const mobOddsContent: TemplateResult | string = mobOdds && !m.isPlayed
-      ? html`
-          <odds-bar
-            style="margin:2px 4px 3px;"
-            title="${mobOddsTitle}"
-            .home=${mobOdds.home}
-            .draw=${mobOdds.draw}
-            .away=${mobOdds.away}
-            variant="compact"
-            .showFigures=${true}></odds-bar>
-        `
-      : '';
-    const venueImage = venueName
-      ? STADIUMS.find(s => s.name === venueName)?.image ?? ''
-      : '';
-    const venueImageContent: TemplateResult | string = venueImage ? html`<img src="${venueImage}" class="mob-venue-img" alt="">` : '';
-    const matchDateLabel = matchDate ? ` · ${matchDate}` : '';
-    const matchTimeLabel = matchTime ? ` · ${matchTime} ESP` : '';
-    const venueContent: TemplateResult | string = venueName
-      ? html`
-          <div class="mob-match-venue">
-            ${venueImageContent}
-            <span>${venueName} · ${cityName}${matchDateLabel}${matchTimeLabel}</span>
-          </div>
-        `
-      : '';
-
-    return html`
-      <div class="mob-match-card" @click="${() => this.openMatch(matchId)}" role="button" tabindex="0"
-           @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
-        ${row(tA, m.scoreA, 'A', winA, winB)}
-        ${row(tB, m.scoreB, 'B', winB, winA)}
-        ${mobPenaltyNote}
-        ${mobOddsContent}
-        ${venueContent}
-      </div>
-    `;
-  }
 
   // ─── Desktop V3 ──────────────────────────────────────────────────
 
@@ -2006,7 +1724,18 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
             <div class="matches-wrap">
-              ${r32L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, false))}
+              ${r32L.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r32}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col" id="col-r16-left">
@@ -2015,7 +1744,18 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
             <div class="matches-wrap">
-              ${r16L.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, false))}
+              ${r16L.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r16}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col" id="col-qf-left">
@@ -2024,7 +1764,18 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
             <div class="matches-wrap">
-              ${qfL.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, false))}
+              ${qfL.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.qf}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col" id="col-sf-left">
@@ -2033,7 +1784,16 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
             <div class="matches-wrap">
-              ${this.renderMatch('SF-01', ROUND_COLORS.sf, 0, false)}
+              <bracket-match
+                .matchId=${'SF-01'}
+                .match=${km['SF-01']}
+                .accentColor=${ROUND_COLORS.sf}
+                .interactive=${true}
+                .showOdds=${true}
+                .showVenue=${true}
+                .pulse=${this._pulseId === 'SF-01'}
+                @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+              </bracket-match>
             </div>
           </div>
 
@@ -2043,7 +1803,16 @@ export class BracketKnockout extends LitElement {
               <span>FINAL</span>
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
-            ${this.renderMatch('FIN-01', ROUND_COLORS.final, 0, false)}
+            <bracket-match
+              .matchId=${'FIN-01'}
+              .match=${km['FIN-01']}
+              .accentColor=${ROUND_COLORS.final}
+              .interactive=${true}
+              .showOdds=${true}
+              .showVenue=${true}
+              .pulse=${this._pulseId === 'FIN-01'}
+              @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+            </bracket-match>
 
             <!-- Caja campeón V3 con halftone overlay y sombra doble -->
             <div class="champion-box">
@@ -2059,7 +1828,16 @@ export class BracketKnockout extends LitElement {
             </div>
 
             <div class="third-place-title">${t('knockout.thirdPlace')}</div>
-            ${this.renderMatch('TP-01', ROUND_COLORS.sf, 1, false)}
+            <bracket-match
+              .matchId=${'TP-01'}
+              .match=${km['TP-01']}
+              .accentColor=${ROUND_COLORS.sf}
+              .interactive=${true}
+              .showOdds=${true}
+              .showVenue=${true}
+              .pulse=${this._pulseId === 'TP-01'}
+              @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+            </bracket-match>
           </div>
 
           <!-- LADO DERECHO (espejado) -->
@@ -2069,7 +1847,17 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
             </div>
             <div class="matches-wrap">
-              ${this.renderMatch('SF-02', ROUND_COLORS.sf, 0, true)}
+              <bracket-match
+                .matchId=${'SF-02'}
+                .match=${km['SF-02']}
+                .accentColor=${ROUND_COLORS.sf}
+                .interactive=${true}
+                .showOdds=${true}
+                .showVenue=${true}
+                .isRightSide=${true}
+                .pulse=${this._pulseId === 'SF-02'}
+                @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+              </bracket-match>
             </div>
           </div>
           <div class="round-col" id="col-qf-right">
@@ -2078,7 +1866,19 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
             </div>
             <div class="matches-wrap">
-              ${qfR.map((id, i) => this.renderMatch(id, ROUND_COLORS.qf, i, true))}
+              ${qfR.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.qf}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .isRightSide=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col" id="col-r16-right">
@@ -2087,7 +1887,19 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
             </div>
             <div class="matches-wrap">
-              ${r16R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r16, i, true))}
+              ${r16R.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r16}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .isRightSide=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col" id="col-r32-right">
@@ -2096,7 +1908,19 @@ export class BracketKnockout extends LitElement {
               <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
             </div>
             <div class="matches-wrap">
-              ${r32R.map((id, i) => this.renderMatch(id, ROUND_COLORS.r32, i, true))}
+              ${r32R.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r32}
+                  .interactive=${true}
+                  .showOdds=${true}
+                  .showVenue=${true}
+                  .isRightSide=${true}
+                  .pulse=${this._pulseId === id}
+                  @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+                </bracket-match>
+              `)}
             </div>
           </div>
         </div>
@@ -2139,7 +1963,16 @@ export class BracketKnockout extends LitElement {
           </div>
         </div>
         <div class="mob-third-label">${t('knockout.thirdPlace')}</div>
-        ${this._renderMobileMatchCard('TP-01', ROUND_COLORS.sf)}
+        <bracket-match
+          .matchId=${'TP-01'}
+          .match=${km['TP-01']}
+          .accentColor=${ROUND_COLORS.sf}
+          .interactive=${true}
+          .showOdds=${true}
+          .showVenue=${true}
+          .pulse=${this._pulseId === 'TP-01'}
+          @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+        </bracket-match>
       `;
     }
     let mobileModeContent: TemplateResult = this._renderPathMode();
@@ -2164,7 +1997,19 @@ export class BracketKnockout extends LitElement {
             <span class="mob-banner-count">${stage.matchIds.length} ${stageMatchLabel}</span>
           </div>
 
-          ${stage.matchIds.map(id => this._renderMobileMatchCard(id, stage.color))}
+          ${stage.matchIds.map(id => html`
+            <bracket-match
+              style="margin-bottom: 10px;"
+              .matchId=${id}
+              .match=${km[id]}
+              .accentColor=${stage.color}
+              .interactive=${true}
+              .showOdds=${true}
+              .showVenue=${true}
+              .pulse=${this._pulseId === id}
+              @match-click=${(e: CustomEvent<{ matchId: string }>) => this.openMatch(e.detail.matchId)}>
+            </bracket-match>
+          `)}
           ${championStageContent}
         </div>
       `;

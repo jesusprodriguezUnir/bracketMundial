@@ -61,6 +61,24 @@ export function calculateBestThirds(thirds: TeamStats[]): TeamStats[] {
   return sorted.slice(0, 8);
 }
 
+export function mapGroupThirds(standings: Record<string, GroupStandingLike[]>): TeamStats[] {
+  const thirds: TeamStats[] = [];
+  for (const group of 'ABCDEFGHIJKL'.split('')) {
+    const gs = standings[group];
+    if (gs && gs.length > 2) {
+      thirds.push({
+        id: gs[2].teamId,
+        points: gs[2].points ?? 0,
+        goalDifference: gs[2].goalDiff ?? 0,
+        goalsFor: gs[2].goalsFor ?? 0,
+        fairPlay: 0,
+        group,
+      });
+    }
+  }
+  return thirds;
+}
+
 function getTeamForSlot(
   slot: string,
   standings: Record<string, GroupStandingLike[]>,
@@ -133,18 +151,7 @@ export function syncKnockoutBracket(
   knockoutStructure: KnockoutStructureLike,
   schedule: MatchScheduleLike = {}
 ): Record<string, KnockoutMatchLike> {
-  const bestThirds = calculateBestThirds(
-    Object.entries(standings)
-      .filter(([, groupStandings]) => groupStandings.length > 2)
-      .map(([group, groupStandings]) => ({
-        id: groupStandings[2].teamId,
-        points: groupStandings[2].points ?? 0,
-        goalDifference: groupStandings[2].goalDiff ?? 0,
-        goalsFor: groupStandings[2].goalsFor ?? 0,
-        fairPlay: 0,
-        group,
-      }))
-  );
+  const bestThirds = calculateBestThirds(mapGroupThirds(standings));
   const thirdsAssignment = assignBestThirds(bestThirds);
   const updated: Record<string, KnockoutMatchLike> = {};
 

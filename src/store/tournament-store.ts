@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
-import { calculateBestThirds, syncKnockoutBracket } from '../lib/bracket-logic';
+import { calculateBestThirds, syncKnockoutBracket, mapGroupThirds } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
 import { TEAM_STRENGTH } from '../data/team-strength';
 import { expectedProbabilities, sampleResult } from '../lib/odds-model';
@@ -156,24 +156,6 @@ export function recalculateStandings(matches: GroupMatchResult[]): Record<string
   }
 
   return newStandings;
-}
-
-function mapThirds(standings: Record<string, GroupStanding[]>): TeamStats[] {
-  const thirds: TeamStats[] = [];
-  for (const group of 'ABCDEFGHIJKL'.split('')) {
-    const gs = standings[group];
-    if (gs && gs.length > 2) {
-      thirds.push({
-        id: gs[2].teamId,
-        points: gs[2].points,
-        goalDifference: gs[2].goalDiff,
-        goalsFor: gs[2].goalsFor,
-        fairPlay: 0,
-        group,
-      });
-    }
-  }
-  return thirds;
 }
 
 export const initialGroupMatches: GroupMatchResult[] = generateGroupMatches();
@@ -425,7 +407,7 @@ export const useTournamentStore = createStore<TournamentState>()(
         set({ knockoutMatches: knockout });
       },
 
-      getBestThirds: () => calculateBestThirds(mapThirds(_get().groupStandings)),
+      getBestThirds: () => calculateBestThirds(mapGroupThirds(_get().groupStandings)),
 
       applySharedBracket: (data) => {
         set(state => {

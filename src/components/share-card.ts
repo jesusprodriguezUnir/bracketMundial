@@ -2,9 +2,10 @@ import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { TEAMS_2026 } from '../data/fifa-2026';
-import type { KnockoutMatchResult } from '../store/tournament-store';
+
 import { t, useLocaleStore } from '../i18n';
 import { renderFlag } from '../lib/render-flag';
+import './bracket-match';
 
 const ROUND_COLORS: Record<string, string> = {
   r32:   'var(--retro-blue)',
@@ -350,40 +351,7 @@ export class ShareCard extends LitElement {
     return TEAMS_2026.find(team => team.id === id);
   }
 
-  private renderMatch(km: Record<string, KnockoutMatchResult>, matchId: string, accentColor: string, isRightSide = false) {
-    const m = km[matchId];
-    const isPlayed = m?.isPlayed ?? false;
-    const winnerId = m?.winnerId ?? null;
-    const penA = m?.penaltyScoreA ?? null;
-    const penB = m?.penaltyScoreB ?? null;
 
-    const renderRow = (teamId: string | null, score: number | null) => {
-      const team = this.getTeam(teamId);
-      const isWinner = winnerId !== null && winnerId === teamId;
-      const isLoser  = winnerId !== null && winnerId !== teamId;
-      return html`
-        <div class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
-          style="${isWinner ? `background:${accentColor};` : ''}">
-          <div class="team-info">
-            ${renderFlag(team, { imgClass: 'flag-img', flagClass: 'team-flag' })}
-            <span class="team-name">${team?.shortName ?? 'TBD'}</span>
-          </div>
-          <div class="score ${!isPlayed ? 'pending' : ''}">${isPlayed ? score : '—'}</div>
-        </div>
-      `;
-    };
-
-    return html`
-      <div
-        class="match-box ${isRightSide ? 'right-side' : ''}"
-        style="${isRightSide ? `border-right-color:${accentColor};` : `border-left-color:${accentColor};`}">
-        ${renderRow(m?.teamA ?? null, m?.scoreA ?? null)}
-        <div class="team-separator"></div>
-        ${renderRow(m?.teamB ?? null, m?.scoreB ?? null)}
-        ${penA !== null && penB !== null ? html`<div class="penalty-note">Pen. ${penA}–${penB}</div>` : ''}
-      </div>
-    `;
-  }
 
   override render() {
     const { knockoutMatches: km, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
@@ -439,7 +407,14 @@ export class ShareCard extends LitElement {
               <span>${t('card.r32')}</span><span class="round-count">[8]</span>
             </div>
             <div class="matches-wrap">
-              ${r32L.map(id => this.renderMatch(km, id, ROUND_COLORS.r32))}
+              ${r32L.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r32}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col">
@@ -447,7 +422,14 @@ export class ShareCard extends LitElement {
               <span>${t('card.r16')}</span><span class="round-count">[4]</span>
             </div>
             <div class="matches-wrap">
-              ${r16L.map(id => this.renderMatch(km, id, ROUND_COLORS.r16))}
+              ${r16L.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r16}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col">
@@ -455,7 +437,14 @@ export class ShareCard extends LitElement {
               <span>${t('card.qf')}</span><span class="round-count">[2]</span>
             </div>
             <div class="matches-wrap">
-              ${qfL.map(id => this.renderMatch(km, id, ROUND_COLORS.qf))}
+              ${qfL.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.qf}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col">
@@ -463,14 +452,24 @@ export class ShareCard extends LitElement {
               <span>${t('card.sf')}</span><span class="round-count">[1]</span>
             </div>
             <div class="matches-wrap">
-              ${this.renderMatch(km, 'SF-01', ROUND_COLORS.sf)}
+              <bracket-match
+                .matchId=${'SF-01'}
+                .match=${km['SF-01']}
+                .accentColor=${ROUND_COLORS.sf}
+                .interactive=${false}>
+              </bracket-match>
             </div>
           </div>
           <div class="round-col is-final">
             <div class="round-title is-final" style="background-color:${ROUND_COLORS.final}">
               <span>${t('card.final')}</span><span class="round-count">[1]</span>
             </div>
-            ${this.renderMatch(km, 'FIN-01', ROUND_COLORS.final)}
+            <bracket-match
+              .matchId=${'FIN-01'}
+              .match=${km['FIN-01']}
+              .accentColor=${ROUND_COLORS.final}
+              .interactive=${false}>
+            </bracket-match>
 
             <div class="champion-box">
               <div class="champion-title">${t('card.champion')}</div>
@@ -480,7 +479,12 @@ export class ShareCard extends LitElement {
             </div>
 
             <div class="third-place-label">${t('card.thirdPlace')}</div>
-            ${this.renderMatch(km, 'TP-01', ROUND_COLORS.sf)}
+            <bracket-match
+              .matchId=${'TP-01'}
+              .match=${km['TP-01']}
+              .accentColor=${ROUND_COLORS.sf}
+              .interactive=${false}>
+            </bracket-match>
           </div>
 
           <div class="round-col">
@@ -488,7 +492,13 @@ export class ShareCard extends LitElement {
               <span>${t('card.sf')}</span><span class="round-count">[1]</span>
             </div>
             <div class="matches-wrap">
-              ${this.renderMatch(km, 'SF-02', ROUND_COLORS.sf, true)}
+              <bracket-match
+                .matchId=${'SF-02'}
+                .match=${km['SF-02']}
+                .accentColor=${ROUND_COLORS.sf}
+                .isRightSide=${true}
+                .interactive=${false}>
+              </bracket-match>
             </div>
           </div>
           <div class="round-col">
@@ -496,7 +506,15 @@ export class ShareCard extends LitElement {
               <span>${t('card.qf')}</span><span class="round-count">[2]</span>
             </div>
             <div class="matches-wrap">
-              ${qfR.map(id => this.renderMatch(km, id, ROUND_COLORS.qf, true))}
+              ${qfR.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.qf}
+                  .isRightSide=${true}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col">
@@ -504,7 +522,15 @@ export class ShareCard extends LitElement {
               <span>${t('card.r16')}</span><span class="round-count">[4]</span>
             </div>
             <div class="matches-wrap">
-              ${r16R.map(id => this.renderMatch(km, id, ROUND_COLORS.r16, true))}
+              ${r16R.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r16}
+                  .isRightSide=${true}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
           <div class="round-col">
@@ -512,7 +538,15 @@ export class ShareCard extends LitElement {
               <span>${t('card.r32')}</span><span class="round-count">[8]</span>
             </div>
             <div class="matches-wrap">
-              ${r32R.map(id => this.renderMatch(km, id, ROUND_COLORS.r32, true))}
+              ${r32R.map(id => html`
+                <bracket-match
+                  .matchId=${id}
+                  .match=${km[id]}
+                  .accentColor=${ROUND_COLORS.r32}
+                  .isRightSide=${true}
+                  .interactive=${false}>
+                </bracket-match>
+              `)}
             </div>
           </div>
         </div>
