@@ -116,11 +116,22 @@ function createInitialStandings(): Record<string, GroupStanding[]> {
   return standings;
 }
 
-export function recalculateStandings(matches: GroupMatchResult[]): Record<string, GroupStanding[]> {
-  const newStandings = createInitialStandings();
+export function recalculateStandings(
+  matches: GroupMatchResult[],
+  currentStandings?: Record<string, GroupStanding[]>,
+  targetGroup?: string
+): Record<string, GroupStanding[]> {
+  const newStandings = (currentStandings && targetGroup)
+    ? { ...currentStandings }
+    : createInitialStandings();
+
+  if (currentStandings && targetGroup) {
+    newStandings[targetGroup] = createInitialStandings()[targetGroup];
+  }
 
   for (const match of matches) {
     if (match.scoreA === null || match.scoreB === null) continue;
+    if (targetGroup && match.group !== targetGroup) continue;
 
     const groupStandings = newStandings[match.group];
     if (!groupStandings) continue;
@@ -147,12 +158,16 @@ export function recalculateStandings(matches: GroupMatchResult[]): Record<string
     }
   }
 
-  for (const group of 'ABCDEFGHIJKL'.split('')) {
-    newStandings[group].sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
-      return b.goalsFor - a.goalsFor;
-    });
+  const groupsToSort = (targetGroup) ? [targetGroup] : 'ABCDEFGHIJKL'.split('');
+  for (const group of groupsToSort) {
+    const standingsToStyle = newStandings[group];
+    if (standingsToStyle) {
+      standingsToStyle.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
+        return b.goalsFor - a.goalsFor;
+      });
+    }
   }
 
   return newStandings;
@@ -253,10 +268,13 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       setGroupMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
+          const targetMatch = state.groupMatches.find(m => m.matchId === matchId);
+          const targetGroup = targetMatch?.group;
+
           const matches = state.groupMatches.map(m =>
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
           );
-          const standings = recalculateStandings(matches);
+          const standings = recalculateStandings(matches, state.groupStandings, targetGroup);
 
           return {
             groupMatches: matches,
