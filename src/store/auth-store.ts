@@ -4,11 +4,15 @@ import { getSupabase, isSupabaseConfigured } from '../lib/supabase-client';
 
 export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'sent_signup' | 'error';
 
+export type SyncStatus = 'none' | 'synced' | 'syncing' | 'offline' | 'error';
+
 interface AuthState {
   status: AuthStatus;
   session: Session | null;
   email: string | null;
   lastError: string | null;
+  syncStatus: SyncStatus;
+  setSyncStatus: (status: SyncStatus) => void;
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signUpWithPassword: (email: string, password: string) => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
@@ -30,6 +34,8 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
   session: null,
   email: null,
   lastError: null,
+  syncStatus: 'none',
+  setSyncStatus: (status) => set({ syncStatus: status }),
 
   signInWithPassword: async (email, password) => {
     const sb = getSupabase();
@@ -114,15 +120,38 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
 
   resetError: () => set({ status: 'signed_out', lastError: null }),
 
-  _setSession: (s) => set({
-    session: s,
-    email: s?.user.email ?? null,
-    status: s ? 'signed_in' : 'signed_out',
-    lastError: null,
-  }),
+  _setSession: (s) => {
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+    set({
+      session: s,
+      email: s?.user.email ?? null,
+      status: s ? 'signed_in' : 'signed_out',
+      syncStatus: s ? (isOffline ? 'offline' : 'synced') : 'none',
+      lastError: null,
+    });
+  },
 }));
 
 export function initAuth(): void {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => {
+      const session = useAuthStore.getState().session;
+      if (session) {
+        useAuthStore.getState().setSyncStatus('synced');
+        import('../lib/prediction-sync').then(({ flushIfPending }) => flushIfPending());
+      } else {
+        useAuthStore.getState().setSyncStatus('none');
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      const session = useAuthStore.getState().session;
+      if (session) {
+        useAuthStore.getState().setSyncStatus('offline');
+      }
+    });
+  }
+
   if (!isSupabaseConfigured) {
     useAuthStore.setState({ status: 'signed_out' });
     return;

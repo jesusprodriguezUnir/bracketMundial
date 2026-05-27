@@ -5,7 +5,7 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
-import { useAuthStore } from './store/auth-store';
+import { useAuthStore, type SyncStatus } from './store/auth-store';
 import { onToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
@@ -31,6 +31,7 @@ export class AppRoot extends LitElement {
   @state() private _moreMenuOpen = false;
   @state() private _activeTab: PhaseTab = 'hero';
   @state() private _authEmail: string | null = null;
+  @state() private _syncStatus: SyncStatus = 'none';
   private _unsubAuth?: () => void;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
@@ -178,6 +179,42 @@ export class AppRoot extends LitElement {
         color: #FFFFFF;
       }
     }
+    .sync-led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #FFFFFF;
+      flex-shrink: 0;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      cursor: help;
+      display: inline-block;
+      align-self: center;
+      margin-right: 10px;
+    }
+    .sync-led.synced {
+      background-color: #27AE60;
+      box-shadow: 0 0 4px rgba(39, 174, 96, 0.6);
+    }
+    .sync-led.syncing {
+      background-color: #22418c;
+      box-shadow: 0 0 6px rgba(34, 65, 140, 0.8);
+      animation: pulseSyncing 1.2s infinite ease-in-out;
+    }
+    .sync-led.offline {
+      background-color: #f0b021;
+      box-shadow: 0 0 4px rgba(240, 176, 33, 0.6);
+    }
+    .sync-led.error {
+      background-color: #c41e2c;
+      box-shadow: 0 0 6px rgba(196, 30, 44, 0.8);
+      animation: pulseSyncing 0.6s infinite ease-in-out;
+    }
+    @keyframes pulseSyncing {
+      0% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.3; transform: scale(0.9); }
+    }
+
     .ha-btn-sm {
       padding: 0 10px !important;
       font-size: 14px !important;
@@ -517,9 +554,11 @@ export class AppRoot extends LitElement {
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._unsubAuth = useAuthStore.subscribe(s => {
       this._authEmail = s.session?.user.email ?? null;
+      this._syncStatus = s.syncStatus;
       this.requestUpdate();
     });
     this._authEmail = useAuthStore.getState().session?.user.email ?? null;
+    this._syncStatus = useAuthStore.getState().syncStatus;
 
     this._syncTabFromHash();
     this._hashChangeHandler = () => { this._syncTabFromHash(); this.requestUpdate(); };
@@ -730,6 +769,35 @@ export class AppRoot extends LitElement {
     if (fileInput) fileInput.click();
   }
 
+  private _renderSyncLed() {
+    const status = this._syncStatus;
+    if (status === 'none') return '';
+
+    let colorClass = '';
+    let isPulse = false;
+    if (status === 'synced') {
+      colorClass = 'synced';
+    } else if (status === 'syncing') {
+      colorClass = 'syncing';
+      isPulse = true;
+    } else if (status === 'offline') {
+      colorClass = 'offline';
+    } else if (status === 'error') {
+      colorClass = 'error';
+    }
+
+    const tooltipKey = `sync.status.${status}`;
+    const tooltipText = t(tooltipKey as any);
+
+    return html`
+      <div 
+        class="sync-led ${colorClass} ${isPulse ? 'pulse' : ''}" 
+        title="${tooltipText}"
+        aria-label="${tooltipText}"
+        role="status"></div>
+    `;
+  }
+
   private handleExcelFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
@@ -781,6 +849,7 @@ export class AppRoot extends LitElement {
             </div>
 
             <div class="header-actions">
+              ${this._renderSyncLed()}
               ${this._authEmail
                 ? html`<button class="ha-btn-sm" @click="${this._handleAuth}" title="${this._authEmail}">${this._authEmail}</button>`
                 : html`<button class="ha-btn-primary" @click="${this._handleAuth}">Iniciar sesión</button>`}

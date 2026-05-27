@@ -253,6 +253,44 @@ export class BracketMatch extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .odds-skeleton-bar {
+      padding: 2px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-top: 1.5px solid var(--ink);
+      background: rgba(0,0,0,0.02);
+    }
+    .odds-skeleton-line {
+      height: 4px;
+      margin-bottom: 0;
+      border: 1px solid var(--ink);
+      background: linear-gradient(
+        90deg,
+        var(--paper-2) 0px,
+        var(--paper-3) 40px,
+        var(--paper-2) 80px
+      );
+      background-size: 300px 100%;
+      animation: skeletonShimmer 1.2s ease-in-out infinite;
+    }
+    .odds-skeleton-figures {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px 2px;
+    }
+    .odds-skeleton-figures .skeleton-text {
+      font-family: var(--font-mono);
+      font-size: 7px;
+      color: var(--dim);
+      opacity: 0.4;
+    }
+
+    @keyframes skeletonShimmer {
+      from { background-position: -300px 0; }
+      to   { background-position: calc(300px + 100%) 0; }
+    }
   `;
 
   override render() {
@@ -340,9 +378,17 @@ export class BracketMatch extends LitElement {
       oddsTitle = `Probabilidad 1X2${oddsSourceLabel}`;
     }
 
-    const oddsContent: TemplateResult | string = !this._odds || isPlayed
-      ? ''
-      : html`
+    let oddsContent: TemplateResult | string = '';
+    if (isPlayed) {
+      oddsContent = '';
+    } else if (this.showOdds && m?.teamA && m?.teamB) {
+      if (this._odds) {
+        let oddsSourceLabel = ' · estimado';
+        if (this._odds.source === 'market') {
+          oddsSourceLabel = ` · ${this._odds.bookmakers} casas`;
+        }
+        oddsTitle = `Probabilidad 1X2${oddsSourceLabel}`;
+        oddsContent = html`
           <odds-bar
             title="${oddsTitle}"
             .home=${this._odds.home}
@@ -351,6 +397,19 @@ export class BracketMatch extends LitElement {
             variant="compact"
             .showFigures=${true}></odds-bar>
         `;
+      } else {
+        oddsContent = html`
+          <div class="odds-skeleton-bar">
+            <div class="skeleton odds-skeleton-line"></div>
+            <div class="odds-skeleton-figures">
+              <span class="skeleton-text">••%</span>
+              <span class="skeleton-text">••%</span>
+              <span class="skeleton-text">••%</span>
+            </div>
+          </div>
+        `;
+      }
+    }
 
     const venueContent: TemplateResult | string = this.showVenue && (m as any)?.venue
       ? html`

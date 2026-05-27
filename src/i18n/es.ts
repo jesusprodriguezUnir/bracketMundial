@@ -595,6 +595,11 @@ export const es = {
   'sync.conflictBody': 'Tienes una predicción guardada en la nube (actualizada el {date}) diferente a la de este dispositivo. ¿Cuál conservar?',
   'sync.keepCloud': 'USAR LA NUBE',
   'sync.keepLocal': 'USAR LA LOCAL',
+  'sync.status.none': 'Predicción local (sin cuenta conectada)',
+  'sync.status.synced': 'Predicciones sincronizadas con la nube',
+  'sync.status.syncing': 'Sincronizando cambios en la nube...',
+  'sync.status.offline': 'Sin conexión - Predicción guardada localmente',
+  'sync.status.error': 'Error de sincronización con la nube',
 
   // Liga local
   'league.title': 'LIGA DE PRONÓSTICOS',

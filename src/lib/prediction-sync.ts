@@ -16,21 +16,37 @@ async function pushNow(): Promise<void> {
   const sb = getSupabase();
   const session = useAuthStore.getState().session;
   if (!sb || !session) return;
+  
+  useAuthStore.getState().setSyncStatus('syncing');
+  
   const { groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
   const payload = encodeBracket(groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction);
-  await sb.from('predictions').upsert(
-    { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id' },
-  );
+  
+  try {
+    const { error } = await sb.from('predictions').upsert(
+      { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+    if (error) {
+      console.error('[sync] Supabase upsert error:', error);
+      useAuthStore.getState().setSyncStatus('error');
+    } else {
+      useAuthStore.getState().setSyncStatus('synced');
+    }
+  } catch (err) {
+    console.error('[sync] Exception during upsert:', err);
+    useAuthStore.getState().setSyncStatus('error');
+  }
 }
 
 function scheduleUpload(): void {
   _pendingUpload = true;
+  useAuthStore.getState().setSyncStatus('syncing');
   if (_timer) clearTimeout(_timer);
   _timer = setTimeout(() => { void pushNow(); }, DEBOUNCE_MS);
 }
 
-function flushIfPending(): void {
+export function flushIfPending(): void {
   if (!_pendingUpload) return;
   if (_timer) { clearTimeout(_timer); _timer = null; }
   void pushNow();
@@ -58,6 +74,7 @@ export function stopSync(): void {
   if (_timer) { clearTimeout(_timer); _timer = null; }
   _pendingUpload = false;
   document.removeEventListener('visibilitychange', _onVisibilityChange);
+  useAuthStore.getState().setSyncStatus('none');
 }
 
 function _onVisibilityChange(): void {
@@ -76,6 +93,8 @@ export async function onSignedIn(): Promise<void> {
   const session = useAuthStore.getState().session;
   if (!sb || !session) return;
 
+  useAuthStore.getState().setSyncStatus('syncing');
+
   const { data, error } = await sb
     .from('predictions')
     .select('payload, updated_at')
@@ -83,6 +102,7 @@ export async function onSignedIn(): Promise<void> {
     .maybeSingle();
 
   if (error) {
+    useAuthStore.getState().setSyncStatus('error');
     startSync();
     return;
   }
@@ -98,6 +118,7 @@ export async function onSignedIn(): Promise<void> {
   const cloudStr = data.payload as string;
 
   if (localStr === cloudStr) {
+    useAuthStore.getState().setSyncStatus('synced');
     startSync();
     return;
   }
@@ -105,6 +126,7 @@ export async function onSignedIn(): Promise<void> {
   if (_isLocalEmpty()) {
     const decoded = decodeBracket(cloudStr);
     if (decoded) useTournamentStore.getState().applySharedBracket(decoded);
+    useAuthStore.getState().setSyncStatus('synced');
     startSync();
     return;
   }
@@ -119,6 +141,7 @@ export async function onSignedIn(): Promise<void> {
   if (choice === 'cloud') {
     const decoded = decodeBracket(cloudStr);
     if (decoded) useTournamentStore.getState().applySharedBracket(decoded);
+    useAuthStore.getState().setSyncStatus('synced');
   } else if (choice === 'local') {
     await pushNow();
   }

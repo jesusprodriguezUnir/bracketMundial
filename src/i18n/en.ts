@@ -587,6 +587,11 @@ export const en: Record<TranslationKey, string> = {
   'sync.conflictBody': 'You have a prediction saved in the cloud (updated {date}) that differs from this device. Which one do you want to keep?',
   'sync.keepCloud': 'USE CLOUD',
   'sync.keepLocal': 'USE LOCAL',
+  'sync.status.none': 'Local prediction (no account connected)',
+  'sync.status.synced': 'Predictions synced with cloud',
+  'sync.status.syncing': 'Syncing changes to cloud...',
+  'sync.status.offline': 'Offline - Prediction saved locally',
+  'sync.status.error': 'Error syncing with cloud',
 
   // Local League
   'league.title': 'PREDICTION LEAGUE',
