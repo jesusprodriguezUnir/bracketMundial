@@ -116,13 +116,12 @@ const OFFICIAL_RSS = [
   { url: 'https://www.fifa.com/fifaplus/api/rss/news', source: 'FIFA', locale: 'en' },
   { url: 'https://feeds.bbci.co.uk/sport/football/rss.xml', source: 'BBC Sport', locale: 'en' },
   { url: 'https://e00-marca.uecdn.es/rss/futbol/seleccion.xml', source: 'Marca', locale: 'es' },
-  { url: 'https://as.com/rss/futbol/seleccion.xml', source: 'AS', locale: 'es' },
 ];
 
 const WHITELIST = [
   'fifa.com', 'uefa.com', 'conmebol.com',
   'espn.com', 'espn.co.uk', 'espndeportes.espn.com',
-  'marca.com', 'as.com', 'sport.es', 'mundodeportivo.com',
+  'marca.com', 'sport.es', 'mundodeportivo.com',
   'bbc.com', 'bbc.co.uk',
   'reuters.com', 'apnews.com',
   'theguardian.com', 'skysports.com',
@@ -304,43 +303,43 @@ async function fetchGoogleNews(query, hl, gl, ceid) {
     if (!resp.ok) return [];
     const xml = await resp.text();
     const blocks = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map(m => m[1]);
-    return blocks.map(b => {
-      const rawTitle = stripCDATA(extractTag(b, 'title'));
-      const { title, source: titleSource } = splitTitleSource(rawTitle);
-      const link = extractTag(b, 'link') || extractAttr(b, 'link', 'href');
-      const pubDate = extractTag(b, 'pubDate');
-      const sourceTag = stripCDATA(extractTag(b, 'source'));
-      return {
-        title, description: '',
-        url: link, image: '',
-        source: sourceTag || titleSource || 'Google News',
-        sourceUrl: '',
-        publishedAt: parseDateISO(pubDate),
-      };
-    }).filter(i => i.title && i.url);
-  } catch (err) {
-    console.warn(`    ⚠ Google News RSS failed: ${err.message}`);
-    return [];
+      return blocks.map(b => {
+        const rawTitle = stripCDATA(extractTag(b, 'title'));
+        const { title, source: titleSource } = splitTitleSource(rawTitle);
+        const link = stripCDATA(extractTag(b, 'link') || extractAttr(b, 'link', 'href'));
+        const pubDate = extractTag(b, 'pubDate');
+        const sourceTag = stripCDATA(extractTag(b, 'source'));
+        return {
+          title, description: '',
+          url: link, image: '',
+          source: sourceTag || titleSource || 'Google News',
+          sourceUrl: '',
+          publishedAt: parseDateISO(pubDate),
+        };
+      }).filter(i => i.title && i.url);
+    } catch (err) {
+      console.warn(`    ⚠ Google News RSS failed: ${err.message}`);
+      return [];
+    }
   }
-}
-
-// ─── Fuente: RSS oficiales (un fetch global, filtrado por equipo) ────────────
-async function fetchAllOfficialRSS() {
-  const all = [];
-  for (const feed of OFFICIAL_RSS) {
-    try {
-      const resp = await fetchWithRetry(feed.url);
-      if (!resp.ok) {
-        console.warn(`    ⚠ ${feed.source} HTTP ${resp.status}`);
-        continue;
-      }
-      const xml = await resp.text();
-      const blocks = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map(m => m[1]);
-      for (const b of blocks) {
-        const title = stripCDATA(extractTag(b, 'title'));
-        const description = stripCDATA(extractTag(b, 'description')).replace(/<[^>]+>/g, '').slice(0, 280);
-        const link = extractTag(b, 'link');
-        const pubDate = extractTag(b, 'pubDate') || extractTag(b, 'dc:date');
+  
+  // ─── Fuente: RSS oficiales (un fetch global, filtrado por equipo) ────────────
+  async function fetchAllOfficialRSS() {
+    const all = [];
+    for (const feed of OFFICIAL_RSS) {
+      try {
+        const resp = await fetchWithRetry(feed.url);
+        if (!resp.ok) {
+          console.warn(`    ⚠ ${feed.source} HTTP ${resp.status}`);
+          continue;
+        }
+        const xml = await resp.text();
+        const blocks = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map(m => m[1]);
+        for (const b of blocks) {
+          const title = stripCDATA(extractTag(b, 'title'));
+          const description = stripCDATA(extractTag(b, 'description')).replace(/<[^>]+>/g, '').slice(0, 280);
+          const link = stripCDATA(extractTag(b, 'link'));
+          const pubDate = extractTag(b, 'pubDate') || extractTag(b, 'dc:date');
         if (!title || !link) continue;
         all.push({
           title, description,
@@ -479,6 +478,39 @@ async function cleanupTTL(sb) {
   else console.log(`🧹 TTL: borrados ${count ?? 0} items con published_at < ${cutoff.slice(0, 10)}`);
 }
 
+async function pruneOldNewsForTeam(sb, teamId) {
+  for (const locale of ['es', 'en']) {
+    const { data, error } = await sb
+      .from('team_news')
+      .select('url')
+      .eq('team_id', teamId)
+      .eq('locale', locale)
+      .order('published_at', { ascending: false })
+      .order('fetched_at', { ascending: false });
+
+    if (error) {
+      console.warn(`  ⚠ Error al buscar noticias para prunear en ${teamId}:${locale}: ${error.message}`);
+      continue;
+    }
+
+    if (data && data.length > 5) {
+      const urlsToDelete = data.slice(5).map(row => row.url);
+      const { error: delErr } = await sb
+        .from('team_news')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('locale', locale)
+        .in('url', urlsToDelete);
+
+      if (delErr) {
+        console.warn(`  ⚠ Error al prunear noticias antiguas de ${teamId}:${locale}: ${delErr.message}`);
+      } else {
+        console.log(`  🧹 Pruned ${urlsToDelete.length} noticias antiguas en ${teamId}:${locale}`);
+      }
+    }
+  }
+}
+
 function writeLocalJson(items) {
   const feed = { updatedAt: new Date().toISOString().slice(0, 10), items };
   const out = join(ROOT, 'news-feed.json');
@@ -520,6 +552,7 @@ async function main() {
 
     if (sb) {
       totalUpserts += await upsertToSupabase(sb, team, news);
+      await pruneOldNewsForTeam(sb, team.id);
     } else {
       localItems[team.id] = {
         es: news.es.map(i => ({ ...i, date: i.publishedAt.slice(0, 10) })),
