@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { STADIUMS } from '../data/stadiums';
 import { renderFlag } from '../lib/render-flag';
@@ -284,6 +284,14 @@ export class CalendarView extends LitElement {
       white-space: nowrap;
     }
 
+    .team-line.placeholder-team {
+      color: var(--dim);
+      font-style: italic;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
     .score {
       display: flex;
       justify-content: center;
@@ -558,8 +566,8 @@ export class CalendarView extends LitElement {
         venue: match?.venue ?? scheduled.venue,
         city: match?.city ?? scheduled.city,
         venueId: scheduled.venueId,
-        teamA: (match?.isPlayed) ? match.teamA : null,
-        teamB: (match?.isPlayed) ? match.teamB : null,
+        teamA: match?.teamA ?? null,
+        teamB: match?.teamB ?? null,
         scoreA: match?.scoreA ?? null,
         scoreB: match?.scoreB ?? null,
         penaltyScoreA: match?.penaltyScoreA ?? null,
@@ -587,6 +595,55 @@ export class CalendarView extends LitElement {
   private getKnockoutPhaseLabel(phaseKey: string) {
     const entry = KNOCKOUT_LABEL_KEYS.find(item => item.key === phaseKey);
     return entry ? t(entry.i18nKey) : phaseKey;
+  }
+
+  private getPlaceholderTeamLabel(matchId: string, teamAB: 'A' | 'B'): string {
+    const locale = useLocaleStore.getState().locale;
+    let slot: string | undefined;
+
+    if (matchId.startsWith('R32')) {
+      const config = KNOCKOUT_BRACKET.roundOf32.find(m => m.id === matchId);
+      slot = teamAB === 'A' ? config?.prevMatchA : config?.prevMatchB;
+    } else if (matchId.startsWith('R16')) {
+      const config = KNOCKOUT_BRACKET.roundOf16.find(m => m.id === matchId);
+      slot = teamAB === 'A' ? config?.prevMatchA : config?.prevMatchB;
+    } else if (matchId.startsWith('QF')) {
+      const config = KNOCKOUT_BRACKET.quarterfinals.find(m => m.id === matchId);
+      slot = teamAB === 'A' ? config?.prevMatchA : config?.prevMatchB;
+    } else if (matchId.startsWith('SF')) {
+      const config = KNOCKOUT_BRACKET.semifinals.find(m => m.id === matchId);
+      slot = teamAB === 'A' ? config?.prevMatchA : config?.prevMatchB;
+    } else if (matchId.startsWith('TP')) {
+      const config = KNOCKOUT_BRACKET.thirdPlace;
+      slot = teamAB === 'A' ? config.prevMatchA : config.prevMatchB;
+    } else if (matchId.startsWith('FIN')) {
+      const config = KNOCKOUT_BRACKET.final;
+      slot = teamAB === 'A' ? config.prevMatchA : config.prevMatchB;
+    }
+
+    if (!slot) return locale === 'es' ? 'Por decidir' : 'TBD';
+
+    if (slot.startsWith('G-')) {
+      const parts = slot.split('-');
+      if (parts[1] === '3') {
+        const slotNum = parts[2];
+        return locale === 'es' ? `3º de Grupo (S${slotNum})` : `3rd Group (S${slotNum})`;
+      } else {
+        const groupLetter = parts[1];
+        const pos = parts[2];
+        if (pos === '1') {
+          return locale === 'es' ? `1º Grupo ${groupLetter}` : `1st Group ${groupLetter}`;
+        } else {
+          return locale === 'es' ? `2º Grupo ${groupLetter}` : `2nd Group ${groupLetter}`;
+        }
+      }
+    }
+
+    if (matchId.startsWith('TP')) {
+      return locale === 'es' ? `Perdedor ${slot}` : `Loser ${slot}`;
+    } else {
+      return locale === 'es' ? `Ganador ${slot}` : `Winner ${slot}`;
+    }
   }
 
   private formatDateLabel(date: string) {
@@ -742,13 +799,13 @@ export class CalendarView extends LitElement {
                   </div>
 
                   <div class="teams-block">
-                    <div class="team-line">
+                    <div class="team-line ${teamA ? '' : 'placeholder-team'}">
                       ${renderFlag(teamA, 'sm')}
-                      <span>${teamA?.name ?? 'Por decidir'}</span>
+                      <span>${teamA?.name ?? this.getPlaceholderTeamLabel(row.id, 'A')}</span>
                     </div>
-                    <div class="team-line">
+                    <div class="team-line ${teamB ? '' : 'placeholder-team'}">
                       ${renderFlag(teamB, 'sm')}
-                      <span>${teamB?.name ?? 'Por decidir'}</span>
+                      <span>${teamB?.name ?? this.getPlaceholderTeamLabel(row.id, 'B')}</span>
                     </div>
                   </div>
 
