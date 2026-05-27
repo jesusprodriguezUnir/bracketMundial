@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * Build previews from content/previews/*.md → src/data/previews/seed.ts
+ * Build previews from content/previews/{lang}/*.md → src/data/previews/seed.ts
  */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 
-const PREVIEWS_DIR = join(process.cwd(), 'content', 'previews');
+const LANGUAGES = ['es', 'en'];
+const PREVIEWS_BASE_DIR = join(process.cwd(), 'content', 'previews');
 const OUT_FILE = join(process.cwd(), 'src', 'data', 'previews', 'seed.ts');
 
 // All valid match IDs in the tournament
@@ -100,54 +101,63 @@ function extractSections(body) {
 }
 
 function run() {
-  let files;
-  try {
-    files = readdirSync(PREVIEWS_DIR).filter(f => extname(f) === '.md' && f !== '_template.md');
-  } catch (e) {
-    console.error(`No se encontró la carpeta ${PREVIEWS_DIR}`);
-    process.exit(1);
-  }
-
-  const previews = [];
+  const allPreviews = {}; // Record<string, Record<string, any>>
   let errors = 0;
+  let compiledCount = 0;
 
-  for (const file of files) {
-    const filePath = join(PREVIEWS_DIR, file);
-    const raw = readFileSync(filePath, 'utf-8');
-    const { meta, body } = parseFrontmatter(raw);
-    const matchId = meta.matchId?.trim();
-
-    if (!matchId) {
-      console.error(`✗ ${file}: falta matchId en el frontmatter`);
-      errors++;
+  for (const lang of LANGUAGES) {
+    const langDir = join(PREVIEWS_BASE_DIR, lang);
+    let files = [];
+    try {
+      files = readdirSync(langDir).filter(f => extname(f) === '.md' && f !== '_template.md');
+    } catch (e) {
+      console.warn(`⚠ Carpeta de idioma no encontrada: ${langDir}`);
       continue;
     }
 
-    if (!VALID_MATCH_IDS.has(matchId)) {
-      console.error(`✗ ${file}: matchId "${matchId}" no es un ID válido del torneo`);
-      errors++;
-      continue;
+    for (const file of files) {
+      const filePath = join(langDir, file);
+      const raw = readFileSync(filePath, 'utf-8');
+      const { meta, body } = parseFrontmatter(raw);
+      const matchId = meta.matchId?.trim();
+
+      if (!matchId) {
+        console.error(`✗ ${file} (${lang}): falta matchId en el frontmatter`);
+        errors++;
+        continue;
+      }
+
+      if (!VALID_MATCH_IDS.has(matchId)) {
+        console.error(`✗ ${file} (${lang}): matchId "${matchId}" no es un ID válido del torneo`);
+        errors++;
+        continue;
+      }
+
+      const expectedName = `${matchId}.md`;
+      if (basename(file) !== expectedName) {
+        console.warn(`⚠ ${file} (${lang}): el nombre de archivo no coincide con matchId (${expectedName})`);
+      }
+
+      const { previewText, chronicleHtml } = extractSections(body);
+
+      if (!previewText) {
+        console.warn(`⚠ ${file} (${lang}): no tiene sección "## Previa"`);
+      }
+
+      if (!allPreviews[matchId]) {
+        allPreviews[matchId] = {};
+      }
+
+      allPreviews[matchId][lang] = {
+        matchId,
+        title: meta.title || undefined,
+        author: meta.author || undefined,
+        publishedAt: meta.publishedAt || undefined,
+        previewText,
+        chronicleHtml: chronicleHtml || undefined,
+      };
+      compiledCount++;
     }
-
-    const expectedName = `${matchId}.md`;
-    if (basename(file) !== expectedName) {
-      console.warn(`⚠ ${file}: el nombre de archivo no coincide con matchId (${expectedName})`);
-    }
-
-    const { previewText, chronicleHtml } = extractSections(body);
-
-    if (!previewText) {
-      console.warn(`⚠ ${file}: no tiene sección "## Previa"`);
-    }
-
-    previews.push({
-      matchId,
-      title: meta.title || undefined,
-      author: meta.author || undefined,
-      publishedAt: meta.publishedAt || undefined,
-      previewText,
-      chronicleHtml: chronicleHtml || undefined,
-    });
   }
 
   if (errors > 0) {
@@ -155,29 +165,36 @@ function run() {
     process.exit(1);
   }
 
-  previews.sort((a, b) => a.matchId.localeCompare(b.matchId));
+  const sortedMatchIds = Object.keys(allPreviews).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+  );
 
   // Build TypeScript seed file
-  const entries = previews.map(p => {
-    const lines = [`    "${p.matchId}": {`];
-    lines.push(`      matchId: "${p.matchId}",`);
-    if (p.title) lines.push(`      title: ${JSON.stringify(p.title)},`);
-    if (p.author) lines.push(`      author: ${JSON.stringify(p.author)},`);
-    if (p.publishedAt) lines.push(`      publishedAt: ${JSON.stringify(p.publishedAt)},`);
-    lines.push(`      previewText: ${JSON.stringify(p.previewText)},`);
-    if (p.chronicleHtml) lines.push(`      chronicleHtml: ${JSON.stringify(p.chronicleHtml)},`);
+  const entries = sortedMatchIds.map(matchId => {
+    const langs = allPreviews[matchId];
+    const lines = [`    "${matchId}": {`];
+    for (const lang of LANGUAGES) {
+      const p = langs[lang];
+      if (p) {
+        lines.push(`      "${lang}": {`);
+        lines.push(`        matchId: "${p.matchId}",`);
+        if (p.title) lines.push(`        title: ${JSON.stringify(p.title)},`);
+        if (p.author) lines.push(`        author: ${JSON.stringify(p.author)},`);
+        if (p.publishedAt) lines.push(`        publishedAt: ${JSON.stringify(p.publishedAt)},`);
+        lines.push(`        previewText: ${JSON.stringify(p.previewText)},`);
+        if (p.chronicleHtml) lines.push(`        chronicleHtml: ${JSON.stringify(p.chronicleHtml)},`);
+        lines.push(`      },`);
+      }
+    }
     lines.push(`    }`);
     return lines.join('\n');
   });
-
-  const totalMatches = VALID_MATCH_IDS.size;
-  const compiled = previews.length;
 
   const seedContent = `// AUTO-GENERATED by scripts/build-previews.mjs
 // Do not edit manually. Regenerate with: npm run previews:build
 import type { Preview } from './index';
 
-export const PREVIEWS: Record<string, Preview> = {
+export const PREVIEWS: Record<string, { es?: Preview; en?: Preview }> = {
 ${entries.join(',\n')}
 };
 `;
@@ -185,7 +202,7 @@ ${entries.join(',\n')}
   mkdirSync(join(process.cwd(), 'src', 'data', 'previews'), { recursive: true });
   writeFileSync(OUT_FILE, seedContent, 'utf-8');
 
-  console.log(`✓ ${compiled} preview${compiled === 1 ? '' : 's'} compilada${compiled === 1 ? '' : 's'}, ${totalMatches - compiled} partido${totalMatches - compiled === 1 ? '' : 's'} sin previa`);
+  console.log(`✓ ${compiledCount} previas/crónicas compiladas en total.`);
 }
 
 run();

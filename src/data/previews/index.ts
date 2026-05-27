@@ -8,8 +8,12 @@ export interface Preview {
 }
 
 import { PREVIEWS } from './seed';
+import { useLocaleStore } from '../../i18n';
 export { PREVIEWS };
 
 export function getPreview(matchId: string): Preview | null {
-  return PREVIEWS[matchId] ?? null;
+  const locale = useLocaleStore.getState().locale;
+  const matchPreviews = PREVIEWS[matchId];
+  if (!matchPreviews) return null;
+  return matchPreviews[locale] ?? null;
 }

@@ -146,7 +146,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     super.connectedCallback();
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
-    this._unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    this._unsubscribeLocale = useLocaleStore.subscribe(() => {
+      this._preview = getPreview(this.matchId);
+      this.requestUpdate();
+    });
   }
 
   override disconnectedCallback() {
