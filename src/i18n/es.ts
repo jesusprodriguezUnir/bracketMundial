@@ -190,6 +190,16 @@ export const es = {
   'knockout.noResults': 'SIN RESULTADOS',
   'knockout.results': 'RESULTADOS',
   'knockout.groupLabel': 'GRUPO {letter}',
+  'knockout.awardsTitle': 'PREDICTOR DE PREMIOS INDIVIDUALES',
+  'knockout.topScorerLabel': 'Máximo Goleador',
+  'knockout.mvpLabel': 'MVP del Campeonato',
+  'knockout.select': 'Seleccionar',
+  'knockout.change': 'Cambiar',
+  'knockout.notSelected': 'Sin seleccionar',
+  'knockout.step1': 'Paso 1: Elige el País de la Selección',
+  'knockout.step2': 'Paso 2: Selecciona el Jugador',
+  'knockout.noPlayers': 'No hay jugadores cargados en esta selección aún.',
+  'knockout.awardsSelectionTitle': 'SELECCIONAR {award}',
 
   // Stadiums
   'stadiums.title': 'SEDES Y ESTADIOS',

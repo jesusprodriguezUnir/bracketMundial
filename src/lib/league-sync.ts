@@ -31,13 +31,20 @@ function createEmptyKnockoutScores(): DecodedBracket['knockoutScores'] {
   }));
 }
 
-function predictionsToJson(groupScores: DecodedBracket['groupScores'], knockoutScores: DecodedBracket['knockoutScores']) {
-  return { groupScores, knockoutScores };
+function predictionsToJson(
+  groupScores: DecodedBracket['groupScores'],
+  knockoutScores: DecodedBracket['knockoutScores'],
+  topScorer?: DecodedBracket['topScorer'],
+  mvp?: DecodedBracket['mvp']
+) {
+  return { groupScores, knockoutScores, topScorer, mvp };
 }
 
 function jsonToPredictions(json: unknown): {
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
+  topScorer: DecodedBracket['topScorer'] | null;
+  mvp: DecodedBracket['mvp'] | null;
 } | null {
   if (!json || typeof json !== 'object') return null;
   const obj = json as Record<string, unknown>;
@@ -45,6 +52,8 @@ function jsonToPredictions(json: unknown): {
   return {
     groupScores: obj.groupScores as DecodedBracket['groupScores'],
     knockoutScores: obj.knockoutScores as DecodedBracket['knockoutScores'],
+    topScorer: (obj.topScorer as DecodedBracket['topScorer']) ?? null,
+    mvp: (obj.mvp as DecodedBracket['mvp']) ?? null,
   };
 }
 
@@ -141,13 +150,15 @@ export async function updateMyPredictionsInCloud(
   leagueId: string,
   groupScores: DecodedBracket['groupScores'],
   knockoutScores: DecodedBracket['knockoutScores'],
+  topScorer?: DecodedBracket['topScorer'],
+  mvp?: DecodedBracket['mvp'],
 ): Promise<boolean> {
   const sb = getSupabase();
   const userId = useAuthStore.getState().session?.user.id;
   if (!sb || !userId) return false;
 
   const { error } = await sb.from('league_members')
-    .update({ predictions: predictionsToJson(groupScores, knockoutScores) })
+    .update({ predictions: predictionsToJson(groupScores, knockoutScores, topScorer, mvp) })
     .eq('league_id', leagueId)
     .eq('user_id', userId);
 
@@ -273,6 +284,8 @@ function hydrateStore(
         knockoutScores: preds?.knockoutScores ?? createEmptyKnockoutScores(),
         isOwner: cl.owner_id === m.user_id,
         userId: m.user_id,
+        topScorer: preds?.topScorer ?? null,
+        mvp: preds?.mvp ?? null,
       };
     });
 
@@ -352,7 +365,7 @@ async function pushChanges(): Promise<void> {
           user_id: userId,
           name: me.name,
           predictions: hasPredictions
-            ? predictionsToJson(me.groupScores, me.knockoutScores)
+            ? predictionsToJson(me.groupScores, me.knockoutScores, me.topScorer, me.mvp)
             : null,
         },
         { onConflict: 'league_id, user_id' },
@@ -448,6 +461,8 @@ export async function refreshLeagueMembers(leagueId: string): Promise<void> {
       knockoutScores: preds?.knockoutScores ?? createEmptyKnockoutScores(),
       isOwner: ownerId === m.user_id,
       userId: m.user_id,
+      topScorer: preds?.topScorer ?? null,
+      mvp: preds?.mvp ?? null,
     };
   });
 

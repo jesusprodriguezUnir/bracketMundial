@@ -15,11 +15,15 @@ export interface DecodedBracket {
     penaltyScoreA: number | null;
     penaltyScoreB: number | null;
   }>;
+  topScorer?: { teamId: string; playerName: string } | null;
+  mvp?: { teamId: string; playerName: string } | null;
 }
 
 export function encodeBracket(
   groupMatches: readonly GroupMatchResult[],
-  knockoutMatches: Record<string, KnockoutMatchResult>
+  knockoutMatches: Record<string, KnockoutMatchResult>,
+  topScorer?: { teamId: string; playerName: string } | null,
+  mvp?: { teamId: string; playerName: string } | null
 ): string {
   const groupPart = initialGroupMatches.map(({ matchId }) => {
     const m = groupMatches.find(g => g.matchId === matchId);
@@ -37,14 +41,17 @@ export function encodeBracket(
     return `${m.scoreA}-${m.scoreB}${pen}`;
   }).join(SEP);
 
-  return `${VERSION}${SECTION}${groupPart}${SECTION}${knockoutPart}`;
+  const tsPart = topScorer ? `TS:${topScorer.teamId}:${encodeURIComponent(topScorer.playerName)}` : '';
+  const mvpPart = mvp ? `MVP:${mvp.teamId}:${encodeURIComponent(mvp.playerName)}` : '';
+
+  return `${VERSION}${SECTION}${groupPart}${SECTION}${knockoutPart}${SECTION}${tsPart}${SECTION}${mvpPart}`;
 }
 
 export function decodeBracket(payload: string): DecodedBracket | null {
   try {
     const parts = payload.split(SECTION);
     if (parts.length < 3 || parts[0] !== VERSION) return null;
-    const [, groupRaw, knockoutRaw] = parts;
+    const [, groupRaw, knockoutRaw, tsRaw, mvpRaw] = parts;
 
     const groupOrder = initialGroupMatches.map(m => m.matchId);
     const groupScores = groupRaw.split(SEP).map((token, i) => {
@@ -69,7 +76,24 @@ export function decodeBracket(payload: string): DecodedBracket | null {
       };
     }).filter(s => s.matchId);
 
-    return { groupScores, knockoutScores };
+    let topScorer: DecodedBracket['topScorer'] = null;
+    let mvp: DecodedBracket['mvp'] = null;
+
+    if (tsRaw) {
+      const tsParts = tsRaw.split(':');
+      if (tsParts.length === 3 && tsParts[0] === 'TS') {
+        topScorer = { teamId: tsParts[1], playerName: decodeURIComponent(tsParts[2]) };
+      }
+    }
+
+    if (mvpRaw) {
+      const mvpParts = mvpRaw.split(':');
+      if (mvpParts.length === 3 && mvpParts[0] === 'MVP') {
+        mvp = { teamId: mvpParts[1], playerName: decodeURIComponent(mvpParts[2]) };
+      }
+    }
+
+    return { groupScores, knockoutScores, topScorer, mvp };
   } catch {
     return null;
   }

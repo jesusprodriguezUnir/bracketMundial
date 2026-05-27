@@ -11,12 +11,13 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
-import { refreshLeagueMembers } from '../lib/league-sync';
+import { refreshLeagueMembers, updateMyPredictionsInCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '../lib/league-fixture';
 import { buildProjectedScores } from '../lib/league-projection';
 import type { RealScores } from '../lib/league-projection';
+import { SQUADS, type Player } from '../data/squads';
 
 const TOTAL_MATCHES = 104;
 
@@ -78,6 +79,8 @@ export class LeaguesView extends LitElement {
   @state() private _joinCode = '';
   @state() private _joinError: string | null = null;
   @state() private _syncFeedback: string | null = null;
+  @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
+  @state() private _selectedTeamIdForSelector = '';
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -3272,6 +3275,76 @@ export class LeaguesView extends LitElement {
     `;
   }
 
+  private _renderAwardsAndProgression(score: ParticipantScore): TemplateResult {
+    const kt = score.koCorrectTeams || { roundOf32: [], roundOf16: [], quarterfinals: [], semifinals: [], final: [], winner: [] };
+    const ac = score.awardsCorrect || { topScorer: false, mvp: false };
+    const participant = score.participant;
+
+    return html`
+      <div class="lg-progression-wrap" style="background:var(--paper); border:2px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:16px; margin: 16px 0; display:flex; flex-direction:column; gap:12px; font-family:var(--font-mono); font-size:11px;">
+        <div style="font-family:var(--font-var); font-size:14px; border-bottom: 2px solid var(--ink); padding-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">
+          🏆 PROGRESIÓN Y PREMIOS INDIVIDUALES
+        </div>
+        
+        <div class="lg-progression-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2);">
+            <div style="color:var(--dim); font-size:9px;">1/16 DE FINAL (R32)</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.roundOf32.length} <span style="font-size:10px; color:var(--dim);">/ 32</span></div>
+          </div>
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2);">
+            <div style="color:var(--dim); font-size:9px;">OCTAVOS (R16)</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.roundOf16.length} <span style="font-size:10px; color:var(--dim);">/ 16</span></div>
+          </div>
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2);">
+            <div style="color:var(--dim); font-size:9px;">CUARTOS DE FINAL</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.quarterfinals.length} <span style="font-size:10px; color:var(--dim);">/ 8</span></div>
+          </div>
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2);">
+            <div style="color:var(--dim); font-size:9px;">SEMIFINALES</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.semifinals.length} <span style="font-size:10px; color:var(--dim);">/ 4</span></div>
+          </div>
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2);">
+            <div style="color:var(--dim); font-size:9px;">FINALISTAS</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.final.length} <span style="font-size:10px; color:var(--dim);">/ 2</span></div>
+          </div>
+          <div style="padding:6px; border:1px dashed var(--ink); background:var(--paper-2); border-color:var(--retro-yellow);">
+            <div style="color:var(--dim); font-size:9px; font-weight:bold;">🏆 CAMPEÓN</div>
+            <div style="font-size:16px; font-family:var(--font-var); margin-top:2px;">${kt.winner.length > 0 ? '¡ACERTADO! 🌟' : 'NO ACERTADO'}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:4px; padding-top:10px; border-top:1px dashed var(--ink);">
+          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">👟</span>
+            <div>
+              <div style="color:var(--dim); font-size:9px; text-transform:uppercase;">Predicción Goleador</div>
+              <div style="font-family:var(--font-var); font-size:12px; display:flex; align-items:center; gap:4px;">
+                ${participant?.topScorer ? html`
+                  <b>${participant.topScorer.playerName}</b>
+                  <span style="color:var(--dim); font-size:10px;">(${participant.topScorer.teamId})</span>
+                  <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
+                ` : '—'}
+              </div>
+            </div>
+          </div>
+          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">⭐</span>
+            <div>
+              <div style="color:var(--dim); font-size:9px; text-transform:uppercase;">Predicción MVP</div>
+              <div style="font-family:var(--font-var); font-size:12px; display:flex; align-items:center; gap:4px;">
+                ${participant?.mvp ? html`
+                  <b>${participant.mvp.playerName}</b>
+                  <span style="color:var(--dim); font-size:10px;">(${participant.mvp.teamId})</span>
+                  <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
+                ` : '—'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   private _renderParticipantCard(
     score: ParticipantScore,
     index: number,
@@ -3305,8 +3378,8 @@ export class LeaguesView extends LitElement {
           <div class="lg-participant-mini-stats">
             <div class="lg-participant-mini-stat">${t('league.colGroups')}<strong>${score.byPhase.groups}</strong></div>
             <div class="lg-participant-mini-stat">${t('league.colKnockout')}<strong>${score.byPhase.knockout}</strong></div>
+            <div class="lg-participant-mini-stat">Premios<strong>${score.byPhase.awards ?? 0}</strong></div>
             <div class="lg-participant-mini-stat">${t('league.detailExact')}<strong>${score.exactCount}</strong></div>
-            <div class="lg-participant-mini-stat">${t('league.detailSign')}<strong>${score.signCount}</strong></div>
           </div>
 
           <div class="lg-participant-scorebox">
@@ -3318,6 +3391,7 @@ export class LeaguesView extends LitElement {
 
         ${isExpanded ? html`
           <div class="lg-participant-expanded">
+            ${this._renderAwardsAndProgression(score)}
             <div class="lg-inline-bracket-wrap">
               ${this._renderInlineBracket(score, realKnockoutByMatchId)}
             </div>
@@ -3758,6 +3832,195 @@ export class LeaguesView extends LitElement {
     `;
   }
 
+  private _openAwardsSelector(type: 'topScorer' | 'mvp') {
+    this._showAwardsModal = type;
+    this._selectedTeamIdForSelector = '';
+    this.requestUpdate();
+  }
+
+  private _closeAwardsSelector() {
+    this._showAwardsModal = null;
+    this._selectedTeamIdForSelector = '';
+    this.requestUpdate();
+  }
+
+  private async _selectPlayer(participant: LeagueParticipant, player: Player) {
+    const type = this._showAwardsModal;
+    if (!type) return;
+
+    const teamId = this._selectedTeamIdForSelector;
+    const awardVal = { teamId, playerName: player.name };
+
+    const store = useTournamentStore.getState();
+    if (type === 'topScorer') {
+      store.setMyTopScorerPrediction(awardVal);
+      participant.topScorer = awardVal;
+    } else {
+      store.setMyMvpPrediction(awardVal);
+      participant.mvp = awardVal;
+    }
+
+    const leaguesStore = useLeaguesStore.getState();
+    leaguesStore.updateParticipantScores(
+      this._activeLeagueId!,
+      participant.id,
+      participant.groupScores,
+      participant.knockoutScores,
+      participant.topScorer,
+      participant.mvp
+    );
+
+    if (useAuthStore.getState().session) {
+      await updateMyPredictionsInCloud(
+        this._activeLeagueId!,
+        participant.groupScores,
+        participant.knockoutScores,
+        participant.topScorer,
+        participant.mvp
+      );
+    }
+
+    this._closeAwardsSelector();
+    this._goToDetail(this._activeLeagueId!);
+  }
+
+  private _renderInteractiveAwardsSelector(participant: LeagueParticipant): TemplateResult {
+    const isYou = participant.isOwner === true || participant.userId === useAuthStore.getState().session?.user?.id;
+    
+    if (!isYou) {
+      return html`
+        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:16px; margin-bottom:20px; display:flex; gap:16px; flex-wrap:wrap; position:relative;">
+          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:24px;">👟</span>
+            <div>
+              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
+              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+                ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin elegir'}
+              </div>
+            </div>
+          </div>
+          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:24px;">⭐</span>
+            <div>
+              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
+              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+                ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin elegir'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return html`
+      <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:18px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; position:relative;">
+        <div style="font-family:var(--font-var); font-size:16px; font-weight:bold; letter-spacing:0.02em; border-bottom:2px solid var(--ink); padding-bottom:6px; display:flex; align-items:center; gap:8px;">
+          🏅 PREDICTOR DE PREMIOS INDIVIDUALES
+        </div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:28px;">👟</span>
+              <div>
+                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
+                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+                  ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin seleccionar'}
+                </div>
+              </div>
+            </div>
+            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('topScorer')}>
+              ${participant.topScorer ? 'Cambiar' : 'Seleccionar'}
+            </button>
+          </div>
+
+          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:28px;">⭐</span>
+              <div>
+                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
+                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+                  ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin seleccionar'}
+                </div>
+              </div>
+            </div>
+            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('mvp')}>
+              ${participant.mvp ? 'Cambiar' : 'Seleccionar'}
+            </button>
+          </div>
+        </div>
+
+        ${this._showAwardsModal ? this._renderAwardsSelectionModal(participant) : ''}
+      </div>
+    `;
+  }
+
+  private _renderAwardsSelectionModal(participant: LeagueParticipant): TemplateResult {
+    const typeLabel = this._showAwardsModal === 'topScorer' ? 'MÁXIMO GOLEADOR' : 'MVP DEL CAMPEONATO';
+    const teams = TEAMS_2026;
+    const selectedTeamId = this._selectedTeamIdForSelector;
+    const squad = selectedTeamId ? SQUADS[selectedTeamId] || [] : [];
+
+    return html`
+      <div style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-lg); width:100%; max-width:600px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
+          <div style="background:var(--retro-yellow); border-bottom:3px solid var(--ink); padding:16px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-family:var(--font-var); font-size:18px; font-weight:bold; letter-spacing:0.02em;">
+              🏅 SELECCIONAR ${typeLabel}
+            </div>
+            <button class="lg-small-btn" @click=${this._closeAwardsSelector} style="font-size:14px; font-weight:bold;">✕</button>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px;">
+            <div>
+              <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 1: Elige el País de la Selección</div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:6px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
+                ${teams.map(t => html`
+                  <button
+                    style="all:unset; cursor:pointer; padding:6px; border:1px solid ${selectedTeamId === t.id ? 'var(--retro-orange)' : 'var(--ink)'}; background:${selectedTeamId === t.id ? 'var(--retro-yellow)' : 'var(--paper)'}; display:flex; align-items:center; gap:6px; font-family:var(--font-var); font-size:11px;"
+                    @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
+                  >
+                    ${renderFlag(t, 'xs')}
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.name}</span>
+                  </button>
+                `)}
+              </div>
+            </div>
+
+            ${selectedTeamId ? html`
+              <div>
+                <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 2: Selecciona el Jugador</div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:8px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
+                  ${squad.length === 0 ? html`
+                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); padding:12px; text-align:center; grid-column: 1 / -1;">No hay jugadores cargados en esta selección aún.</div>
+                  ` : squad.map(p => html`
+                    <button
+                      style="all:unset; cursor:pointer; padding:8px; border:2px solid var(--ink); background:var(--paper-2); box-shadow:2px 2px 0 0 var(--ink); display:flex; flex-direction:column; justify-content:center; gap:2px; font-family:var(--font-mono); font-size:11px;"
+                      @click=${() => this._selectPlayer(participant, p)}
+                    >
+                      <div style="font-family:var(--font-var); font-size:12px; font-weight:bold; color:var(--ink);">${p.name}</div>
+                      <div style="font-size:9px; color:var(--dim); display:flex; justify-content:space-between; width:100%;">
+                        <span>Dorsal: ${p.number}</span>
+                        <span>Pos: ${p.position}</span>
+                      </div>
+                    </button>
+                  `)}
+                </div>
+              </div>
+            ` : html`
+              <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:24px; border:2px dashed var(--ink); background:var(--paper-2);">
+                Por favor, selecciona primero un país en la lista superior para desplegar su plantilla oficial de jugadores.
+              </div>
+            `}
+          </div>
+
+          <div style="border-top:3px solid var(--ink); padding:12px; display:flex; justify-content:flex-end;">
+            <button class="lg-btn-back" @click=${this._closeAwardsSelector} style="margin-bottom:0;">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // ── RENDER BRACKET ──
   private _renderBracket() {
     if (!this._bracketData) {
@@ -3845,6 +4108,8 @@ export class LeaguesView extends LitElement {
         <div class="lg-title">${t('league.bracketOf', { name })}</div>
         <div class="lg-subtitle">${predictionScores.total} ${t('league.points')}</div>
       </div>
+
+      ${this._renderInteractiveAwardsSelector(participant)}
 
       <div class="lg-action-row">
         ${this._editMode ? html`

@@ -14,6 +14,8 @@ export interface LeagueParticipant {
   knockoutScores: DecodedBracket['knockoutScores'];
   isOwner?: boolean;
   userId?: string;
+  topScorer?: DecodedBracket['topScorer'];
+  mvp?: DecodedBracket['mvp'];
 }
 
 export interface League {
@@ -69,6 +71,8 @@ interface LeaguesState {
     participantName: string,
     groupScores: DecodedBracket['groupScores'],
     knockoutScores: DecodedBracket['knockoutScores'],
+    topScorer?: DecodedBracket['topScorer'],
+    mvp?: DecodedBracket['mvp'],
   ) => { created: boolean; participantId: string };
   replaceParticipantFromExcel: (leagueId: string, participantId: string, file: File) => Promise<boolean>;
   removeParticipant: (leagueId: string, participantId: string) => void;
@@ -78,6 +82,8 @@ interface LeaguesState {
     participantId: string,
     groupScores: DecodedBracket['groupScores'],
     knockoutScores: DecodedBracket['knockoutScores'],
+    topScorer?: DecodedBracket['topScorer'],
+    mvp?: DecodedBracket['mvp'],
   ) => void;
 
   _addLeague: (league: League) => void;
@@ -221,7 +227,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
         return league.participants[0].id;
       },
 
-      importParticipantFromShare: (leagueId, participantName, groupScores, knockoutScores) => {
+      importParticipantFromShare: (leagueId, participantName, groupScores, knockoutScores, topScorer, mvp) => {
         const leagues = get().leagues;
         const league = leagues.find(l => l.id === leagueId);
 
@@ -239,7 +245,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
                     ...l,
                     participants: l.participants.map(p =>
                       p.id === existingP.id
-                        ? { ...p, groupScores, knockoutScores }
+                        ? { ...p, groupScores, knockoutScores, topScorer, mvp }
                         : p,
                     ),
                   }
@@ -256,6 +262,8 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           source: 'manual',
           groupScores,
           knockoutScores,
+          topScorer,
+          mvp,
         };
 
         set({
@@ -295,7 +303,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
         }
       },
 
-      updateParticipantScores: (leagueId, participantId, groupScores, knockoutScores) => {
+      updateParticipantScores: (leagueId, participantId, groupScores, knockoutScores, topScorer, mvp) => {
         set({
           leagues: get().leagues.map(l =>
             l.id === leagueId
@@ -303,7 +311,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
                   ...l,
                   participants: l.participants.map(p =>
                     p.id === participantId
-                      ? { ...p, groupScores, knockoutScores }
+                      ? { ...p, groupScores, knockoutScores, topScorer, mvp }
                       : p,
                   ),
                 }

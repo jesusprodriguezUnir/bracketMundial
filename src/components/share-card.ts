@@ -386,7 +386,7 @@ export class ShareCard extends LitElement {
   }
 
   override render() {
-    const { knockoutMatches: km } = useTournamentStore.getState();
+    const { knockoutMatches: km, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
 
     const finMatch = km['FIN-01'];
     const tpMatch  = km['TP-01'];
@@ -397,6 +397,8 @@ export class ShareCard extends LitElement {
     const champion = this.getTeam(championId);
     const runnerUp = this.getTeam(runnerUpId ?? null);
     const third    = this.getTeam(thirdId);
+    const tsTeam   = myTopScorerPrediction ? this.getTeam(myTopScorerPrediction.teamId) : null;
+    const mvpTeam  = myMvpPrediction ? this.getTeam(myMvpPrediction.teamId) : null;
 
     const r32L = ['R32-01','R32-02','R32-03','R32-04','R32-05','R32-06','R32-07','R32-08'];
     const r32R = ['R32-09','R32-10','R32-11','R32-12','R32-13','R32-14','R32-15','R32-16'];
@@ -546,6 +548,30 @@ export class ShareCard extends LitElement {
               </span>
             </div>
           </div>
+          ${myTopScorerPrediction
+            ? html`
+              <div class="podium-item">
+                <span class="podium-medal">⚽</span>
+                <div>
+                  <span class="podium-label">${t('knockout.topScorerLabel')}</span>
+                  <span class="podium-name">
+                    ${tsTeam ? html`${renderFlag(tsTeam, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ` : ''}${myTopScorerPrediction.playerName.toUpperCase()}
+                  </span>
+                </div>
+              </div>`
+            : ''}
+          ${myMvpPrediction
+            ? html`
+              <div class="podium-item">
+                <span class="podium-medal">🌟</span>
+                <div>
+                  <span class="podium-label">${t('knockout.mvpLabel')}</span>
+                  <span class="podium-name">
+                    ${mvpTeam ? html`${renderFlag(mvpTeam, { imgClass: 'footer-flag-img', flagClass: 'team-flag' })} ` : ''}${myMvpPrediction.playerName.toUpperCase()}
+                  </span>
+                </div>
+              </div>`
+            : ''}
         </div>
         <div class="footer-watermark">#MUNDIAL2026 · #FIFAWORLDCUP</div>
       </div>

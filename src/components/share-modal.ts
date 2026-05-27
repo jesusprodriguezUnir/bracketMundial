@@ -261,7 +261,7 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       this._blob = blob;
       if (this._previewUrl) URL.revokeObjectURL(this._previewUrl);
       this._previewUrl = URL.createObjectURL(blob);
-      this._shareText = buildShareText(state.knockoutMatches);
+      this._shareText = buildShareText(state.knockoutMatches, state.myTopScorerPrediction, state.myMvpPrediction);
       this._status = 'ready';
     } catch (_err) {
       this._status = 'error';

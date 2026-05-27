@@ -127,11 +127,23 @@ function makeScore(
   return {
     participant: { id, name },
     total,
-    byPhase: { groups: total, knockout: 0 },
+    byPhase: { groups: total, knockout: 0, awards: 0 },
     exactCount,
     diffCount: 0,
     signCount: 0,
     breakdown: [],
+    koCorrectTeams: {
+      roundOf32: [],
+      roundOf16: [],
+      quarterfinals: [],
+      semifinals: [],
+      final: [],
+      winner: [],
+    },
+    awardsCorrect: {
+      topScorer: false,
+      mvp: false,
+    },
   };
 }
 
@@ -320,5 +332,38 @@ describe('league end-to-end', () => {
     // M1: exact 5, M2: pred 3-0 diff=3, real 2-0 diff=2 → sign (+2) → total 7
     expect(result2.total).toBe(7);
     expect(result2.exactCount).toBe(1);
+  });
+
+  it('calculates progression points and individual awards correctly in real tournament context', () => {
+    // Generate a full set of 72 group matches
+    const dummyGroupMatches = Array.from({ length: 72 }, (_, i) => ({
+      matchId: `M${String(i + 1).padStart(2, '0')}`,
+      scoreA: 2,
+      scoreB: 1,
+    }));
+
+    const dummyKnockoutScores = Array.from({ length: 32 }, (_, i) => ({
+      matchId: `K${i}`,
+      scoreA: 1,
+      scoreB: 0,
+      penaltyScoreA: null,
+      penaltyScoreB: null,
+    }));
+
+    const participant = makeParticipant({
+      groupScores: dummyGroupMatches,
+      knockoutScores: dummyKnockoutScores,
+      topScorer: { teamId: 'FRA', playerName: 'Kylian Mbappé' },
+      mvp: { teamId: 'ARG', playerName: 'Lionel Messi' },
+    });
+
+    // Score participant with 72 matches to trigger isRealBracket branch
+    const result = scoreParticipant(participant, dummyGroupMatches, []);
+
+    // Verify awards were evaluated successfully and are correct (topScorer & mvp are correct)
+    expect(result.awardsCorrect.topScorer).toBe(true);
+    expect(result.awardsCorrect.mvp).toBe(true);
+    expect(result.byPhase.awards).toBe(30); // 15 + 15
+    expect(result.total).toBeGreaterThanOrEqual(30);
   });
 });

@@ -65,6 +65,8 @@ interface TournamentState {
 
   myGroupPredictions: Record<string, { scoreA: number | null; scoreB: number | null }>;
   myKnockoutPredictions: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }>;
+  myTopScorerPrediction: { teamId: string; playerName: string } | null;
+  myMvpPrediction: { teamId: string; playerName: string } | null;
 
   setGroupMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setKnockoutMatchResult: (
@@ -84,11 +86,15 @@ interface TournamentState {
   applySharedBracket: (data: {
     groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>;
     knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }>;
+    topScorer?: { teamId: string; playerName: string } | null;
+    mvp?: { teamId: string; playerName: string } | null;
   }) => void;
   exportExcel: () => Promise<void>;
   importExcel: (file: File) => Promise<boolean>;
   setMyGroupPrediction: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setMyKnockoutPrediction: (matchId: string, scoreA: number | null, scoreB: number | null, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => void;
+  setMyTopScorerPrediction: (topScorer: { teamId: string; playerName: string } | null) => void;
+  setMyMvpPrediction: (mvp: { teamId: string; playerName: string } | null) => void;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -260,6 +266,8 @@ export const useTournamentStore = createStore<TournamentState>()(
       selectedMatch: null,
       myGroupPredictions: {},
       myKnockoutPredictions: {},
+      myTopScorerPrediction: null,
+      myMvpPrediction: null,
 
       setGroupMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
@@ -323,6 +331,8 @@ export const useTournamentStore = createStore<TournamentState>()(
         selectedMatch: null,
         myGroupPredictions: {},
         myKnockoutPredictions: {},
+        myTopScorerPrediction: null,
+        myMvpPrediction: null,
       }),
 
       autoSimulateGroups: () => {
@@ -443,7 +453,15 @@ export const useTournamentStore = createStore<TournamentState>()(
             });
           }
 
-          return { groupMatches, groupStandings, knockoutMatches, activePhase: 'groups' as const, selectedMatch: null };
+          return {
+            groupMatches,
+            groupStandings,
+            knockoutMatches,
+            activePhase: 'groups' as const,
+            selectedMatch: null,
+            myTopScorerPrediction: data.topScorer !== undefined ? data.topScorer : state.myTopScorerPrediction,
+            myMvpPrediction: data.mvp !== undefined ? data.mvp : state.myMvpPrediction,
+          };
         });
       },
       exportExcel: async () => {
@@ -502,6 +520,14 @@ export const useTournamentStore = createStore<TournamentState>()(
           },
         }));
       },
+
+      setMyTopScorerPrediction: (topScorer) => {
+        set({ myTopScorerPrediction: topScorer });
+      },
+
+      setMyMvpPrediction: (mvp) => {
+        set({ myMvpPrediction: mvp });
+      },
     }),
     {
       name: 'mundial-2026-tournament',
@@ -539,7 +565,10 @@ export const useTournamentStore = createStore<TournamentState>()(
           }
         }
 
-        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions };
+        const myTopScorerPrediction = p.myTopScorerPrediction ?? null;
+        const myMvpPrediction = p.myMvpPrediction ?? null;
+
+        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions, myTopScorerPrediction, myMvpPrediction };
       },
     }
   )

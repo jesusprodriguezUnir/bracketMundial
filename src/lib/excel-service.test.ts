@@ -218,6 +218,7 @@ describe('ExcelService league predictions export', () => {
     expect(wb.getWorksheet('Pronósticos')).toBeTruthy();
     expect(wb.getWorksheet('Fase de Grupos')).toBeTruthy();
     expect(wb.getWorksheet('Eliminatorias')).toBeTruthy();
+    expect(wb.getWorksheet('Reglas de Puntuación')).toBeTruthy();
     // Verify the old separate Rules sheet no longer exists
     expect(wb.getWorksheet('Reglas')).toBeFalsy();
     expect(wb.getWorksheet('Rules')).toBeFalsy();
@@ -236,9 +237,9 @@ describe('ExcelService league predictions export', () => {
     const rankSheet = wb.getWorksheet('Resumen');
     expect(rankSheet).toBeTruthy();
 
-    // Collect all names from column 2 (ranking starts at row 9 after rules header at row 8)
+    // Collect all names from column 2 (ranking starts at row 11 after rules header at row 10)
     const names: string[] = [];
-    for (let r = 9; r <= 15; r++) {
+    for (let r = 11; r <= 18; r++) {
       const v = String(rankSheet!.getCell(r, 2).value ?? '');
       if (!v) break;
       names.push(v);

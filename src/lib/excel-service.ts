@@ -461,13 +461,15 @@ export class ExcelService {
     const rulesTitle = rankSheet.getCell(1, 1);
     rulesTitle.value = locale === 'en' ? 'Scoring Rules' : 'Reglas de puntuación';
     rulesTitle.font = { bold: true, size: 14, color: { argb: C.ink } };
-    rankSheet.mergeCells(1, 1, 1, 8);
+    rankSheet.mergeCells(1, 1, 1, 12);
 
     const ruleRows: Array<{ points: number; type: string; desc: string; kind: MatchPoints['kind'] }> = [
-      { points: MUNDIAL_POINTS.exact, type: locale === 'en' ? 'Exact score' : 'Resultado exacto', desc: locale === 'en' ? 'You predict the exact score (e.g., predict 2-1, result 2-1)' : 'Aciertas el marcador exacto (predices 2-1, resultado 2-1)', kind: 'exact' },
-      { points: MUNDIAL_POINTS.diff, type: locale === 'en' ? 'Goal difference' : 'Diferencia correcta', desc: locale === 'en' ? 'You get the goal difference right (e.g., predict 3-1, result 2-0)' : 'Aciertas la diferencia de goles (predices 3-1, resultado 2-0)', kind: 'diff' },
-      { points: MUNDIAL_POINTS.sign, type: locale === 'en' ? 'Correct sign' : 'Signo correcto', desc: locale === 'en' ? 'You get the winner/draw but not the difference (e.g., predict 2-0, result 5-1)' : 'Aciertas el ganador/empate pero no la diferencia (predices 2-0, resultado 5-1)', kind: 'sign' },
-      { points: MUNDIAL_POINTS.miss, type: locale === 'en' ? 'Miss' : 'Fallo', desc: locale === 'en' ? 'Wrong winner or no prediction' : 'Ganador equivocado o sin pronóstico', kind: 'miss' },
+      { points: MUNDIAL_POINTS.groupExact, type: locale === 'en' ? 'Exact score' : 'Resultado exacto', desc: locale === 'en' ? 'You predict the exact score (e.g., predict 2-1, result 2-1)' : 'Aciertas el marcador exacto (predices 2-1, resultado 2-1)', kind: 'exact' },
+      { points: MUNDIAL_POINTS.groupDiff, type: locale === 'en' ? 'Goal difference' : 'Diferencia correcta', desc: locale === 'en' ? 'You get the goal difference right (e.g., predict 3-1, result 2-0)' : 'Aciertas la diferencia de goles (predices 3-1, resultado 2-0)', kind: 'diff' },
+      { points: MUNDIAL_POINTS.groupSign, type: locale === 'en' ? 'Correct sign' : 'Signo correcto', desc: locale === 'en' ? 'You get the winner/draw but not the difference (e.g., predict 2-0, result 5-1)' : 'Aciertas el ganador/empate pero no la diferencia (predices 2-0, resultado 5-1)', kind: 'sign' },
+      { points: MUNDIAL_POINTS.groupMiss, type: locale === 'en' ? 'Miss' : 'Fallo', desc: locale === 'en' ? 'Wrong winner or no prediction' : 'Ganador equivocado o sin pronóstico', kind: 'miss' },
+      { points: MUNDIAL_POINTS.topScorer, type: locale === 'en' ? 'Tournament Top Scorer' : 'Máximo Goleador', desc: locale === 'en' ? 'Predict the official top scorer of the tournament' : 'Aciertas el máximo goleador oficial del campeonato (+15 pts)', kind: 'exact' },
+      { points: MUNDIAL_POINTS.mvp, type: locale === 'en' ? 'Tournament MVP' : 'MVP del Campeonato', desc: locale === 'en' ? 'Predict the official MVP of the tournament' : 'Aciertas el mejor jugador (MVP) oficial del campeonato (+15 pts)', kind: 'exact' },
     ];
 
     ruleRows.forEach((rule, idx) => {
@@ -482,14 +484,14 @@ export class ExcelService {
       });
     });
 
-    const tieNote = rankSheet.getCell(6, 1);
+    const tieNote = rankSheet.getCell(8, 1);
     tieNote.value = locale === 'en'
-      ? 'Total points are split between Group Stage + Knockout. Tiebreaker: number of exact scores.'
-      : 'El total se reparte en Grupos + Eliminatorias. Desempate: nº de aciertos exactos.';
+      ? 'Total points are split between Group Stage + Knockout + Individual Awards. Tiebreaker: number of exact scores.'
+      : 'El total se reparte en Grupos + Eliminatorias + Premios Individuales. Desempate: nº de aciertos exactos.';
     tieNote.font = { italic: true, size: 9, color: { argb: C.dim } };
-    rankSheet.mergeCells(6, 1, 6, 8);
+    rankSheet.mergeCells(8, 1, 8, 12);
 
-    const RANK_HEADER_ROW = 8;
+    const RANK_HEADER_ROW = 10;
 
     const rankHeaders = [
       locale === 'en' ? 'Pos' : 'Pos.',
@@ -500,6 +502,10 @@ export class ExcelService {
       locale === 'en' ? 'Exact' : 'Exactos',
       locale === 'en' ? 'Diff' : 'Dif',
       locale === 'en' ? 'Sign' : 'Signo',
+      locale === 'en' ? 'Top Scorer' : 'Máximo Goleador',
+      locale === 'en' ? 'Top Scorer Pts' : 'Pts Goleador',
+      locale === 'en' ? 'Tournament MVP' : 'MVP del Campeonato',
+      locale === 'en' ? 'MVP Pts' : 'Pts MVP',
     ];
 
     rankHeaders.forEach((h, i) => {
@@ -524,6 +530,10 @@ export class ExcelService {
         s.exactCount,
         s.diffCount,
         s.signCount,
+        s.participant.topScorer ? `${s.participant.topScorer.playerName} (${s.participant.topScorer.teamId})` : '-',
+        s.awardsCorrect.topScorer ? `+${MUNDIAL_POINTS.topScorer}` : '0',
+        s.participant.mvp ? `${s.participant.mvp.playerName} (${s.participant.mvp.teamId})` : '-',
+        s.awardsCorrect.mvp ? `+${MUNDIAL_POINTS.mvp}` : '0',
       ];
       vals.forEach((v, i) => {
         const cell = rankSheet.getCell(r, i + 1);
@@ -543,14 +553,18 @@ export class ExcelService {
     rankSheet.getColumn(1).width = 6;
     rankSheet.getColumn(2).width = 25;
     for (let i = 3; i <= 8; i++) rankSheet.getColumn(i).width = 12;
+    rankSheet.getColumn(9).width = 25; // Máximo Goleador
+    rankSheet.getColumn(10).width = 12; // Pts Goleador
+    rankSheet.getColumn(11).width = 25; // MVP
+    rankSheet.getColumn(12).width = 12; // Pts MVP
 
     const rankNoteRow = ranked.length + RANK_HEADER_ROW + 2;
     const rankNote = rankSheet.getCell(rankNoteRow, 1);
     rankNote.value = locale === 'en'
-      ? '→ See scoring rules in the table above'
-      : '→ Ver tabla superior para el detalle de puntuación';
+      ? '→ See detailed scoring rules in the Scoring Rules tab'
+      : '→ Ver pestaña Reglas de Puntuación para el detalle de puntos';
     rankNote.font = { italic: true, size: 10, color: { argb: C.dim } };
-    rankSheet.mergeCells(rankNoteRow, 1, rankNoteRow, 8);
+    rankSheet.mergeCells(rankNoteRow, 1, rankNoteRow, 12);
 
     // ── Build match order and names ─────────────────────────────────────────
     const matchNameById = new Map<string, string>();
@@ -575,6 +589,7 @@ export class ExcelService {
     this.createCalcSheet(wb, drawInfos, groupsName);
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
     this.createKnockoutSheet(wb, realKnockoutMatches, locale, knockoutName, flagImages);
+    this.createRulesExplanationSheet(wb, locale);
 
     // ── Sheet 4: Pronósticos plana — banderas en columnas separadas ─────────
     const THIN_BORDER = { top: THIN, left: THIN, bottom: THIN, right: THIN };
@@ -1359,5 +1374,182 @@ export class ExcelService {
     const b = parseInt(str.slice(dashIdx + 1).trim(), 10);
     if (isNaN(a) || isNaN(b) || a < 0 || b < 0) return [null, null];
     return [a, b];
+  }
+
+  private static createRulesExplanationSheet(wb: ExcelJS.Workbook, locale: Locale) {
+    const sheetName = locale === 'en' ? 'Scoring Rules' : 'Reglas de Puntuación';
+    const sheet = wb.addWorksheet(sheetName, {
+      views: [{ showGridLines: false }],
+    });
+
+    const THIN_BORDER = { top: THIN, left: THIN, bottom: THIN, right: THIN };
+
+    // Column widths
+    sheet.getColumn(1).width = 25; // Categoría
+    sheet.getColumn(2).width = 25; // Concepto
+    sheet.getColumn(3).width = 15; // Puntos
+    sheet.getColumn(4).width = 60; // Descripción
+
+    // Título Principal
+    const titleCell = sheet.getCell(1, 1);
+    titleCell.value = locale === 'en' ? '★ SYSTEM OF POINTS AND RULES ★' : '★ SISTEMA DE PUNTOS Y REGLAS ★';
+    titleCell.font = { bold: true, size: 14, color: { argb: C.white } };
+    titleCell.fill = fill('1A1933');
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.mergeCells(1, 1, 1, 4);
+    sheet.getRow(1).height = 30;
+
+    const headers = [
+      locale === 'en' ? 'Category / Phase' : 'Categoría / Fase',
+      locale === 'en' ? 'Concept' : 'Concepto',
+      locale === 'en' ? 'Points' : 'Puntos',
+      locale === 'en' ? 'Description / Example' : 'Descripción / Ejemplo',
+    ];
+    headers.forEach((h, i) => {
+      const cell = sheet.getCell(2, i + 1);
+      cell.value = h;
+      cell.font = { bold: true, size: 10, color: { argb: C.white } };
+      cell.fill = fill('22418C');
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = THIN_BORDER;
+    });
+    sheet.getRow(2).height = 20;
+
+    const rulesData = [
+      // Fase de Grupos
+      {
+        cat: locale === 'en' ? 'Group Stage Matches' : 'Fase de Grupos (Marcador)',
+        concept: locale === 'en' ? 'Exact Score' : 'Resultado Exacto',
+        pts: `+${MUNDIAL_POINTS.groupExact}`,
+        desc: locale === 'en' ? 'Predict the exact final score (e.g. Predict 2-1, Result 2-1).' : 'Aciertas el marcador final exacto (ej. Pronóstico 2-1, Resultado 2-1).',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Goal Difference' : 'Diferencia de Goles',
+        pts: `+${MUNDIAL_POINTS.groupDiff}`,
+        desc: locale === 'en' ? 'Predict correct winner and goal difference, but incorrect score (e.g. Predict 3-1, Result 2-0).' : 'Aciertas el ganador y la diferencia de goles exacta, pero no el marcador (ej. Pronóstico 3-1, Resultado 2-0).',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Correct Winner/Draw' : 'Signo / Ganador',
+        pts: `+${MUNDIAL_POINTS.groupSign}`,
+        desc: locale === 'en' ? 'Predict correct winner or draw, but incorrect difference (e.g. Predict 2-0, Result 5-1).' : 'Aciertas el ganador o empate, pero no la diferencia ni el marcador (ej. Pronóstico 2-0, Resultado 5-1).',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Miss / Failure' : 'Fallo / Sin Pronóstico',
+        pts: '0',
+        desc: locale === 'en' ? 'Incorrect winner or no prediction was filled.' : 'Ganador incorrecto o partido sin pronosticar.',
+      },
+      // Fase Eliminatoria
+      {
+        cat: locale === 'en' ? 'Knockout Stage (Progression)' : 'Eliminatorias (Progresión)',
+        concept: locale === 'en' ? 'Round of 32 (1/16)' : 'Dieciseisavos (1/16)',
+        pts: `+${MUNDIAL_POINTS.koRoundOf32} / equipo`,
+        desc: locale === 'en' ? 'Points per correct team placed in the Round of 32.' : 'Puntos por cada equipo real que colocaste correctamente en la ronda de Dieciseisavos.',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Round of 16 (1/8)' : 'Octavos de Final (1/8)',
+        pts: `+${MUNDIAL_POINTS.koRoundOf16} / equipo`,
+        desc: locale === 'en' ? 'Points per correct team placed in the Round of 16.' : 'Puntos por cada equipo real que colocaste correctamente en la ronda de Octavos.',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Quarterfinals (1/4)' : 'Cuartos de Final (1/4)',
+        pts: `+${MUNDIAL_POINTS.koQuarterfinals} / equipo`,
+        desc: locale === 'en' ? 'Points per correct team placed in the Quarterfinals.' : 'Puntos por cada equipo real que colocaste correctamente en la ronda de Cuartos.',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Semifinals (1/2)' : 'Semifinales (1/2)',
+        pts: `+${MUNDIAL_POINTS.koSemifinals} / equipo`,
+        desc: locale === 'en' ? 'Points per correct team placed in the Semifinals.' : 'Puntos por cada equipo real que colocaste correctamente en la ronda de Semifinales.',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Final (Finalists)' : 'Final (Finalistas)',
+        pts: `+${MUNDIAL_POINTS.koFinal} / equipo`,
+        desc: locale === 'en' ? 'Points per correct team placed in the Grand Final.' : 'Puntos por cada equipo real que colocaste correctamente en la gran Final.',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'World Champion' : 'Campeón del Mundo',
+        pts: `+${MUNDIAL_POINTS.koWinner}`,
+        desc: locale === 'en' ? 'Points for guessing the exact champion team of the 2026 World Cup.' : 'Puntos adicionales por acertar la selección campeona absoluta del torneo.',
+      },
+      // Premios Individuales
+      {
+        cat: locale === 'en' ? 'Individual Awards' : 'Premios Individuales',
+        concept: locale === 'en' ? 'Tournament Top Scorer' : 'Máximo Goleador',
+        pts: `+${MUNDIAL_POINTS.topScorer}`,
+        desc: locale === 'en' ? 'Points for guessing the official Pichichi (Top Scorer) of the World Cup.' : 'Puntos por acertar el goleador oficial del torneo (Pichichi).',
+      },
+      {
+        cat: '',
+        concept: locale === 'en' ? 'Tournament MVP' : 'MVP del Campeonato',
+        pts: `+${MUNDIAL_POINTS.mvp}`,
+        desc: locale === 'en' ? 'Points for guessing the official Best Player (Golden Ball / MVP) of the World Cup.' : 'Puntos por acertar el mejor jugador (MVP) oficial del torneo.',
+      },
+    ];
+
+    let currentCat = '';
+    let startCatRow = 3;
+
+    rulesData.forEach((row, idx) => {
+      const r = 3 + idx;
+      sheet.getRow(r).height = 20;
+
+      const isEvenRow = idx % 2 === 0;
+      const rowBg = isEvenRow ? 'FFF9EC' : 'E6D6B1';
+
+      // Concept, Points, Desc
+      const cells = [
+        sheet.getCell(r, 2),
+        sheet.getCell(r, 3),
+        sheet.getCell(r, 4)
+      ];
+
+      cells[0].value = row.concept;
+      cells[0].font = { bold: true, size: 9 };
+      cells[1].value = row.pts;
+      cells[1].font = { bold: true, size: 10, color: { argb: 'C41E2C' } };
+      cells[1].alignment = { horizontal: 'center', vertical: 'middle' };
+      cells[2].value = row.desc;
+      cells[2].font = { size: 9 };
+      cells[2].alignment = { horizontal: 'left', vertical: 'middle' };
+
+      for (let i = 2; i <= 4; i++) {
+        sheet.getCell(r, i).fill = fill(rowBg);
+        sheet.getCell(r, i).border = THIN_BORDER;
+      }
+
+      // Category merging
+      if (row.cat) {
+        if (currentCat) {
+          sheet.mergeCells(startCatRow, 1, r - 1, 1);
+        }
+        currentCat = row.cat;
+        startCatRow = r;
+        const catCell = sheet.getCell(r, 1);
+        catCell.value = currentCat;
+        catCell.font = { bold: true, size: 10, color: { argb: C.white } };
+        catCell.fill = fill('1A1933');
+        catCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      }
+
+      const catCell = sheet.getCell(r, 1);
+      catCell.border = THIN_BORDER;
+    });
+
+    sheet.mergeCells(startCatRow, 1, 3 + rulesData.length - 1, 1);
+
+    const footR = 4 + rulesData.length;
+    const footCell = sheet.getCell(footR, 1);
+    footCell.value = locale === 'en'
+      ? '★ Knockout scores are calculated dynamically based on real progression, not rigid match IDs.'
+      : '★ La puntuación de eliminatorias se calcula dinámicamente según la progresión real de los equipos, no por IDs fijos de partido.';
+    footCell.font = { italic: true, size: 9, color: { argb: C.dim } };
+    sheet.mergeCells(footR, 1, footR, 4);
   }
 }

@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
+import { SQUADS, type Player } from '../data/squads/index';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
@@ -83,6 +84,8 @@ export class BracketKnockout extends LitElement {
   @state() private _pickerSearch = '';
   @state() private _connectorPaths: ConnectorPath[] = [];
   private _connectorSignature = '';
+  @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
+  @state() private _selectedTeamIdForSelector = '';
 
   public static readonly styles = css`
     :host {
@@ -1104,14 +1107,267 @@ export class BracketKnockout extends LitElement {
       padding: 12px 16px;
       -webkit-overflow-scrolling: touch;
     }
+
+    /* ── Barra / Panel de Premios Individuales ── */
+    .awards-panel {
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      margin: 8px 10px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .awards-title {
+      font-family: var(--font-var);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 4px;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+    .awards-grid {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .award-card {
+      flex: 1;
+      min-width: 220px;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .award-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .award-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .award-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .award-category {
+      color: var(--dim);
+      font-size: 8px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+    }
+    .award-value {
+      font-family: var(--font-var);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink);
+    }
+    .award-btn {
+      all: unset;
+      cursor: pointer;
+      padding: 4px 8px;
+      background: var(--ink);
+      color: var(--retro-yellow);
+      border: 1.5px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 1.5px 1.5px 0 0 var(--retro-orange);
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .award-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: none;
+    }
+
+    /* ── Modal de Selección de Premios ── */
+    .awards-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(26,25,51,0.65);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .awards-modal {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .awards-modal-header {
+      background: var(--retro-yellow);
+      border-bottom: 3px solid var(--ink);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .awards-modal-title {
+      font-family: var(--font-var);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+    }
+    .awards-modal-close {
+      all: unset;
+      cursor: pointer;
+      padding: 4px 10px;
+      background: var(--ink);
+      color: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .awards-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .awards-modal-step {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+    .teams-grid-scroll {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 2px solid var(--ink);
+      padding: 8px;
+      background: var(--paper);
+    }
+    .team-picker-item {
+      all: unset;
+      cursor: pointer;
+      padding: 6px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-var);
+      font-size: 11px;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .team-picker-item.active {
+      background: var(--retro-yellow);
+      border-color: var(--retro-orange);
+      box-shadow: inset 0 0 0 1px var(--retro-orange);
+    }
+    .team-picker-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .players-grid-scroll {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      border: 2px solid var(--ink);
+      padding: 8px;
+      background: var(--paper);
+    }
+    .no-players-placeholder {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      padding: 12px;
+      text-align: center;
+      grid-column: 1 / -1;
+    }
+    .player-picker-item {
+      all: unset;
+      cursor: pointer;
+      padding: 8px;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .player-picker-item:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+    .player-picker-name {
+      font-family: var(--font-var);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .player-picker-sub {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   `;
 
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeStore = subscribeSlice(
       useTournamentStore,
-      s => s.knockoutMatches,
+      s => [
+        s.knockoutMatches,
+        s.myTopScorerPrediction ? `${s.myTopScorerPrediction.teamId}:${s.myTopScorerPrediction.playerName}` : '',
+        s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : ''
+      ] as const,
       () => this.requestUpdate(),
+      (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2],
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._mql = globalThis.matchMedia('(max-width: 768px)');
@@ -1719,6 +1975,8 @@ export class BracketKnockout extends LitElement {
         <span class="poster-corner right">USA · MEX · CAN</span>
       </div>
 
+      ${this._renderAwardsPanel()}
+
       <!-- Bracket con fondo cromo fuerte -->
       <div class="bracket-scroll" style="
         background: var(--paper);
@@ -1950,6 +2208,8 @@ export class BracketKnockout extends LitElement {
           </div>
         </div>
 
+        ${this._renderAwardsPanel()}
+
         ${mobileModeContent}
 
         <!-- Team picker overlay -->
@@ -2126,12 +2386,146 @@ export class BracketKnockout extends LitElement {
     `;
   }
 
+  private _openAwardsSelector(type: 'topScorer' | 'mvp') {
+    this._showAwardsModal = type;
+    this._selectedTeamIdForSelector = '';
+    this.requestUpdate();
+  }
+
+  private _closeAwardsSelector() {
+    this._showAwardsModal = null;
+    this._selectedTeamIdForSelector = '';
+    this.requestUpdate();
+  }
+
+  private _selectPlayer(player: Player) {
+    const type = this._showAwardsModal;
+    if (!type) return;
+
+    const teamId = this._selectedTeamIdForSelector;
+    const awardVal = { teamId, playerName: player.name };
+
+    const store = useTournamentStore.getState();
+    if (type === 'topScorer') {
+      store.setMyTopScorerPrediction(awardVal);
+    } else {
+      store.setMyMvpPrediction(awardVal);
+    }
+
+    this._closeAwardsSelector();
+  }
+
+  private _renderAwardsPanel() {
+    const store = useTournamentStore.getState();
+    const topScorer = store.myTopScorerPrediction;
+    const mvp = store.myMvpPrediction;
+
+    return html`
+      <div class="awards-panel">
+        <div class="awards-title">
+          🏅 ${t('knockout.awardsTitle')}
+        </div>
+        <div class="awards-grid">
+          <div class="award-card">
+            <div class="award-main">
+              <span class="award-icon">👟</span>
+              <div class="award-info">
+                <div class="award-category">${t('knockout.topScorerLabel')}</div>
+                <div class="award-value">
+                  ${topScorer ? `${topScorer.playerName} (${topScorer.teamId})` : t('knockout.notSelected')}
+                </div>
+              </div>
+            </div>
+            <button class="award-btn" @click=${() => this._openAwardsSelector('topScorer')}>
+              ${topScorer ? t('knockout.change') : t('knockout.select')}
+            </button>
+          </div>
+
+          <div class="award-card">
+            <div class="award-main">
+              <span class="award-icon">⭐</span>
+              <div class="award-info">
+                <div class="award-category">${t('knockout.mvpLabel')}</div>
+                <div class="award-value">
+                  ${mvp ? `${mvp.playerName} (${mvp.teamId})` : t('knockout.notSelected')}
+                </div>
+              </div>
+            </div>
+            <button class="award-btn" @click=${() => this._openAwardsSelector('mvp')}>
+              ${mvp ? t('knockout.change') : t('knockout.select')}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderAwardsSelectionModal() {
+    if (!this._showAwardsModal) return '';
+    const typeLabel = this._showAwardsModal === 'topScorer'
+      ? t('knockout.topScorerLabel').toUpperCase()
+      : t('knockout.mvpLabel').toUpperCase();
+    const teams = TEAMS_2026;
+    const selectedTeamId = this._selectedTeamIdForSelector;
+    const squad = selectedTeamId ? SQUADS[selectedTeamId] || [] : [];
+
+    return html`
+      <div class="awards-modal-backdrop" @click=${this._closeAwardsSelector}>
+        <div class="awards-modal" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="awards-modal-header">
+            <span class="awards-modal-title">
+              🏅 ${t('knockout.awardsSelectionTitle', { award: typeLabel })}
+            </span>
+            <button class="awards-modal-close" @click=${this._closeAwardsSelector}>✕</button>
+          </div>
+
+          <div class="awards-modal-body">
+            <div>
+              <div class="awards-modal-step">${t('knockout.step1')}</div>
+              <div class="teams-grid-scroll">
+                ${teams.map(t => html`
+                  <button
+                    class="team-picker-item ${selectedTeamId === t.id ? 'active' : ''}"
+                    @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
+                  >
+                    ${renderFlag(t, { size: 'xs' })}
+                    <span class="team-picker-name">${t.name}</span>
+                  </button>
+                `)}
+              </div>
+            </div>
+
+            ${selectedTeamId ? html`
+              <div>
+                <div class="awards-modal-step">${t('knockout.step2')}</div>
+                <div class="players-grid-scroll">
+                  ${squad.length === 0 ? html`
+                    <div class="no-players-placeholder">${t('knockout.noPlayers')}</div>
+                  ` : squad.map(p => html`
+                    <button
+                      class="player-picker-item"
+                      @click=${() => this._selectPlayer(p)}
+                    >
+                      <span class="player-picker-name">${p.name}</span>
+                      <span class="player-picker-sub">${p.club} · ${p.position}</span>
+                    </button>
+                  `)}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   render() {
     const bracketSummary = this._getBracketAccessibleSummary();
     return html`
       <section aria-label="Bracket eliminatorio" aria-describedby="knockout-summary">
         <div id="knockout-summary" class="sr-only">${bracketSummary}</div>
         ${this._isMobile ? this._renderMobile() : this._renderDesktop()}
+        ${this._renderAwardsSelectionModal()}
       </section>
     `;
   }

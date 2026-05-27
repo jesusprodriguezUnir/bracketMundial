@@ -16,8 +16,8 @@ async function pushNow(): Promise<void> {
   const sb = getSupabase();
   const session = useAuthStore.getState().session;
   if (!sb || !session) return;
-  const { groupMatches, knockoutMatches } = useTournamentStore.getState();
-  const payload = encodeBracket(groupMatches, knockoutMatches);
+  const { groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
+  const payload = encodeBracket(groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction);
   await sb.from('predictions').upsert(
     { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
     { onConflict: 'user_id' },
@@ -40,9 +40,14 @@ export function startSync(): void {
   if (_unsub) return;
   _unsub = subscribeSlice(
     useTournamentStore,
-    s => [s.groupMatches, s.knockoutMatches] as const,
+    s => [
+      s.groupMatches,
+      s.knockoutMatches,
+      s.myTopScorerPrediction ? `${s.myTopScorerPrediction.teamId}:${s.myTopScorerPrediction.playerName}` : '',
+      s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : ''
+    ] as const,
     scheduleUpload,
-    (a, b) => a[0] === b[0] && a[1] === b[1],
+    (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
   );
   document.addEventListener('visibilitychange', _onVisibilityChange);
 }
@@ -88,8 +93,8 @@ export async function onSignedIn(): Promise<void> {
     return;
   }
 
-  const { groupMatches, knockoutMatches } = useTournamentStore.getState();
-  const localStr = encodeBracket(groupMatches, knockoutMatches);
+  const { groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
+  const localStr = encodeBracket(groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction);
   const cloudStr = data.payload as string;
 
   if (localStr === cloudStr) {

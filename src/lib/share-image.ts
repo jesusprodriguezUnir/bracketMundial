@@ -59,6 +59,8 @@ export function canShareImage(): boolean {
 
 export function buildShareText(
   knockoutMatches: Record<string, KnockoutMatchResult>,
+  topScorer?: { teamId: string; playerName: string } | null,
+  mvp?: { teamId: string; playerName: string } | null,
 ): string {
   const fin = knockoutMatches['FIN-01'];
   const tp  = knockoutMatches['TP-01'];
@@ -71,12 +73,17 @@ export function buildShareText(
   const third     = tp?.winnerId ? getTeamName(tp.winnerId) : null;
 
   if (!champion) {
-    return '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
+    let text = '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
+    if (topScorer) text += `\n⚽ Goleador: ${topScorer.playerName} (${getTeamName(topScorer.teamId)})`;
+    if (mvp) text += `\n🌟 MVP: ${mvp.playerName} (${getTeamName(mvp.teamId)})`;
+    return text;
   }
 
   let text = `🏆 Mi bracket del Mundial 2026:\n🥇 Campeón: ${champion}`;
   if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
   if (third)    text += `\n🥉 3º: ${third}`;
+  if (topScorer) text += `\n⚽ Máx. Goleador: ${topScorer.playerName} (${getTeamName(topScorer.teamId)})`;
+  if (mvp) text += `\n🌟 MVP: ${mvp.playerName} (${getTeamName(mvp.teamId)})`;
   text += '\n#Mundial2026 #FIFAWorldCup';
   return text;
 }
