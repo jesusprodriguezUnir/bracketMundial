@@ -97,6 +97,7 @@ describe('ExcelService round-trip', () => {
     expect(names).toContain('Eliminatorias');
     expect(names).toContain('CALC');
     expect(names).toContain('MAP');
+    expect(names).toContain('Reglas de Puntuación');
   });
 
   it('MAP sheet has entries for all exported matches', async () => {

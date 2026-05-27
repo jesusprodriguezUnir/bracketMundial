@@ -1428,9 +1428,21 @@ export class GuideView extends LitElement {
     });
     this._unsubscribeStore = subscribeSlice(
       useTournamentStore,
-      s => ({ gm: s.groupMatches, km: s.knockoutMatches }),
-      () => { this._data = generateGuideData('user'); },
-      (a, b) => a.gm === b.gm && a.km === b.km,
+      s => ({
+        gm: s.groupMatches,
+        km: s.knockoutMatches,
+        topScorer: s.myTopScorerPrediction,
+        mvp: s.myMvpPrediction,
+      }),
+      () => {
+        this._data = generateGuideData('user');
+        this.requestUpdate();
+      },
+      (a, b) =>
+        a.gm === b.gm &&
+        a.km === b.km &&
+        a.topScorer === b.topScorer &&
+        a.mvp === b.mvp,
     );
     window.addEventListener('keydown', this._onKey);
   }
@@ -1761,6 +1773,10 @@ export class GuideView extends LitElement {
       { key: 'guide.tp', prefix: 'TP' },
       { key: 'guide.final', prefix: 'FIN' },
     ];
+    const store = useTournamentStore.getState();
+    const topScorer = store.myTopScorerPrediction;
+    const mvp = store.myMvpPrediction;
+
     return html`
       <div class="page-header">
         <div class="page-mark">
@@ -1812,6 +1828,36 @@ export class GuideView extends LitElement {
               </div>
             `;
           })}
+        </div>
+      </div>
+
+      <!-- Predicción de Premios Individuales -->
+      <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+        <div style="border: 3px solid var(--ink); box-shadow: var(--shadow-hard-md); background: var(--paper-3); padding: 14px; position: relative; border-radius: 0px;">
+          <div style="font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--retro-orange); font-weight: 700; text-transform: uppercase;">
+            ★ ${t('knockout.topScorerLabel')}
+          </div>
+          <div style="font-family: var(--font-var); font-size: 22px; line-height: 1.2; margin-top: 8px; color: var(--ink);">
+            ${topScorer ? topScorer.playerName : t('knockout.notSelected')}
+          </div>
+          ${topScorer ? html`
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--dim); margin-top: 6px; text-transform: uppercase;">
+              <span style="font-weight: 700; color: var(--ink);">${topScorer.teamId}</span>
+            </div>
+          ` : ''}
+        </div>
+        <div style="border: 3px solid var(--ink); box-shadow: var(--shadow-hard-md); background: var(--paper-3); padding: 14px; position: relative; border-radius: 0px;">
+          <div style="font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--retro-orange); font-weight: 700; text-transform: uppercase;">
+            ★ ${t('knockout.mvpLabel')}
+          </div>
+          <div style="font-family: var(--font-var); font-size: 22px; line-height: 1.2; margin-top: 8px; color: var(--ink);">
+            ${mvp ? mvp.playerName : t('knockout.notSelected')}
+          </div>
+          ${mvp ? html`
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--dim); margin-top: 6px; text-transform: uppercase;">
+              <span style="font-weight: 700; color: var(--ink);">${mvp.teamId}</span>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;

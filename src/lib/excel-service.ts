@@ -385,6 +385,7 @@ export class ExcelService {
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
     const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName, flagImages);
     this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells);
+    this.createRulesExplanationSheet(wb, locale);
 
     const buffer = await wb.xlsx.writeBuffer();
     return new Blob([buffer], {
