@@ -311,7 +311,13 @@ export const useLeaguesStore = createStore<LeaguesState>()(
                   ...l,
                   participants: l.participants.map(p =>
                     p.id === participantId
-                      ? { ...p, groupScores, knockoutScores, topScorer, mvp }
+                      ? {
+                          ...p,
+                          groupScores,
+                          knockoutScores,
+                          topScorer: topScorer !== undefined ? topScorer : p.topScorer,
+                          mvp: mvp !== undefined ? mvp : p.mvp,
+                        }
                       : p,
                   ),
                 }

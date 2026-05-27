@@ -346,7 +346,9 @@ async function pushChanges(): Promise<void> {
     if (!me) continue;
 
     const hasPredictions = me.groupScores.some(s => s.scoreA !== null)
-      || me.knockoutScores.some(s => s.scoreA !== null);
+      || me.knockoutScores.some(s => s.scoreA !== null)
+      || !!me.topScorer
+      || !!me.mvp;
 
     try {
       const { data: leagueData, error: leagueErr } = await sb.from('leagues').upsert(

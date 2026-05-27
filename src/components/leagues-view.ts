@@ -11,7 +11,7 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
-import { refreshLeagueMembers, updateMyPredictionsInCloud } from '../lib/league-sync';
+import { refreshLeagueMembers, updateMyPredictionsInCloud, deleteLeagueFromCloud, leaveLeagueInCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '../lib/league-fixture';
@@ -2581,9 +2581,31 @@ export class LeaguesView extends LitElement {
     this._confirmDeleteLeague = id;
   }
 
-  private _confirmDelete() {
+  private async _confirmDelete() {
     if (this._confirmDeleteLeague) {
-      useLeaguesStore.getState().deleteLeague(this._confirmDeleteLeague);
+      const leagueId = this._confirmDeleteLeague;
+      const league = this._leagues.find(l => l.id === leagueId);
+      
+      if (league) {
+        const session = useAuthStore.getState().session;
+        if (session) {
+          const userId = session.user.id;
+          const me = league.participants.find(p => p.userId === userId || p.isOwner);
+          const isOwner = me?.isOwner === true;
+          
+          try {
+            if (isOwner) {
+              await deleteLeagueFromCloud(leagueId);
+            } else {
+              await leaveLeagueInCloud(leagueId);
+            }
+          } catch (err) {
+            console.error('[leagues-view] Error deleting league from cloud:', err);
+          }
+        }
+      }
+
+      useLeaguesStore.getState().deleteLeague(leagueId);
       this._confirmDeleteLeague = null;
       this._screen = 'list';
     }
