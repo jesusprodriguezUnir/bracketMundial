@@ -1,9 +1,8 @@
 import { LitElement, html, css, type TemplateResult, type PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
-import { isMatchPending } from '../lib/date-utils';
 import { getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { renderFlag } from '../lib/render-flag';
 import type { KnockoutMatchResult } from '../store/tournament-store';
@@ -21,6 +20,7 @@ export class BracketMatch extends LitElement {
   @property({ type: Boolean }) showOdds = false;
   @property({ type: Boolean }) showVenue = false;
   @property({ type: Boolean }) pulse = false;
+  @property({ type: String }) slotLabel = '';
 
   @state() private _odds: MatchOdds | null = null;
 
@@ -60,8 +60,46 @@ export class BracketMatch extends LitElement {
     return TEAMS_2026.find(team => team.id === id);
   }
 
+  private getPrevMatch(teamAB: 'A' | 'B'): string | undefined {
+    if (!this.matchId) return undefined;
+    if (this.matchId === 'TP-01') {
+      return teamAB === 'A' ? KNOCKOUT_BRACKET.thirdPlace.prevMatchA : KNOCKOUT_BRACKET.thirdPlace.prevMatchB;
+    }
+    if (this.matchId === 'FIN-01') {
+      return teamAB === 'A' ? KNOCKOUT_BRACKET.final.prevMatchA : KNOCKOUT_BRACKET.final.prevMatchB;
+    }
+    for (const key of ['roundOf32', 'roundOf16', 'quarterfinals', 'semifinals'] as const) {
+      const list = KNOCKOUT_BRACKET[key];
+      const found = list.find(m => m.id === this.matchId);
+      if (found) {
+        return teamAB === 'A' ? found.prevMatchA : found.prevMatchB;
+      }
+    }
+    return undefined;
+  }
+
+  private formatSlotPlaceholder(prev: string | undefined): string {
+    if (!prev) return 'TBD';
+    if (prev.startsWith('G-')) {
+      const parts = prev.split('-');
+      if (parts.length === 3) {
+        const group = parts[1];
+        const rank = parts[2];
+        if (group === '3') return '3°';
+        return `${rank}${group}`;
+      }
+    }
+    const locale = useLocaleStore.getState().locale;
+    const prefix = locale === 'es' ? 'G' : 'W';
+    if (prev.startsWith('R32-')) return `${prefix}32-${prev.slice(4)}`;
+    if (prev.startsWith('R16-')) return `${prefix}16-${prev.slice(4)}`;
+    if (prev.startsWith('QF-')) return `${prefix}QF-${prev.slice(3)}`;
+    if (prev.startsWith('SF-')) return `${prefix}SF-${prev.slice(3)}`;
+    return prev;
+  }
+
   private openMatch() {
-    if (!this.interactive) return;
+    if (!this.interactive || !this.match?.teamA || !this.match?.teamB) return;
     this.dispatchEvent(new CustomEvent('match-click', {
       detail: { matchId: this.matchId },
       bubbles: true,
@@ -77,7 +115,7 @@ export class BracketMatch extends LitElement {
 
   private adjustInlineKnockout(e: Event, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
-    if (!this.match || !isMatchPending(this.match.date ?? '', this.match.timeSpain ?? '')) return;
+    if (!this.match) return;
     const curA = this.match.scoreA ?? 0;
     const curB = this.match.scoreB ?? 0;
     const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
@@ -97,7 +135,7 @@ export class BracketMatch extends LitElement {
 
   private adjustPenaltyKnockout(e: Event, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
-    if (!this.match || !isMatchPending(this.match.date ?? '', this.match.timeSpain ?? '')) return;
+    if (!this.match) return;
     const curA = this.match.penaltyScoreA ?? 0;
     const curB = this.match.penaltyScoreB ?? 0;
     const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
@@ -148,6 +186,31 @@ export class BracketMatch extends LitElement {
     }
     .match-box.pulse {
       box-shadow: 0 0 0 3px var(--retro-yellow), var(--shadow-hard-sm);
+    }
+    .match-box.is-decided {
+      box-shadow: 0 0 0 2px var(--retro-yellow), var(--shadow-hard-sm);
+    }
+    .match-box.is-decided.pulse {
+      box-shadow: 0 0 0 3px var(--retro-yellow), var(--shadow-hard-sm);
+    }
+    .tbd-hint {
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      opacity: 0.6;
+      text-align: center;
+      border-top: 1px dashed var(--ink);
+    }
+    .match-box.is-decided {
+      box-shadow: 0 0 0 2.5px var(--retro-yellow), var(--shadow-hard-sm);
+    }
+    @media (hover: hover) {
+      .match-box.interactive.is-decided:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 0 0 0 2.5px var(--retro-yellow), 3px 3px 0 0 var(--retro-orange), 3px 3px 0 1.5px var(--ink);
+      }
     }
     .match-box.right-side {
       border-left-width: 1.5px;
@@ -305,7 +368,7 @@ export class BracketMatch extends LitElement {
     const decidedOnPenalties = penaltyScoreA !== null && penaltyScoreB !== null;
     const isPending = isPlayed === false;
     const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
-    const canEdit = this.interactive && !!(m?.teamA && m?.teamB && isMatchPending(m?.date ?? '', m?.timeSpain ?? ''));
+    const canEdit = this.interactive && !!(m?.teamA && m?.teamB);
     const scoreAVal = m?.scoreA ?? 0;
     const scoreBVal = m?.scoreB ?? 0;
     const isDraw = canEdit && m?.scoreA !== null && m?.scoreB !== null && m?.scoreA === m?.scoreB;
@@ -328,13 +391,16 @@ export class BracketMatch extends LitElement {
             @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustInlineKnockout(e, teamAB, e.detail.delta)}></score-stepper>`
         : html`<div class="score ${scoreClass}">${scoreText}</div>`;
 
+      const prevMatch = this.getPrevMatch(teamAB);
+      const placeholderName = this.formatSlotPlaceholder(prevMatch);
+
       return html`
         <div
           class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
           style="${isWinner ? `background: ${this.accentColor};` : ''}">
           <div class="team-info">
             ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-            <span class="team-name">${team?.shortName ?? 'TBD'}</span>
+            <span class="team-name">${team?.shortName ?? placeholderName}</span>
           </div>
           ${scoreContent}
         </div>
@@ -368,6 +434,14 @@ export class BracketMatch extends LitElement {
       `;
     } else if (decidedOnPenalties) {
       penaltyNote = html`<div class="match-note">Penaltis · ${penaltyScoreA}-${penaltyScoreB}</div>`;
+    }
+
+    const isTbdMatch = !m?.teamA || !m?.teamB;
+    const isInteractiveAndReady = this.interactive && !isTbdMatch;
+
+    let tbdNote: TemplateResult | string = '';
+    if (this.interactive && isTbdMatch) {
+      tbdNote = html`<div class="match-note" style="color: var(--retro-red); border-top: 1px dashed var(--ink); text-align: center; font-size: 8px; font-family: var(--font-mono); letter-spacing: 0.05em; padding: 4px 5px;">${t('knockout.tbdEditHint')}</div>`;
     }
 
     let oddsTitle = '';
@@ -428,17 +502,18 @@ export class BracketMatch extends LitElement {
 
     return html`
       <div
-        class="match-box ${this.interactive ? 'interactive' : ''} ${this.pulse ? 'pulse' : ''} ${this.isRightSide ? 'right-side' : ''}"
+        class="match-box ${isInteractiveAndReady ? 'interactive' : ''} ${this.pulse ? 'pulse' : ''} ${winnerId !== null ? 'is-decided' : ''} ${this.isRightSide ? 'right-side' : ''}"
         style="${this.isRightSide ? `border-right-color: ${this.accentColor};` : `border-left-color: ${this.accentColor};`}"
-        role="${this.interactive ? 'button' : 'img'}"
-        tabindex="${this.interactive ? '0' : '-1'}"
+        role="${isInteractiveAndReady ? 'button' : 'img'}"
+        tabindex="${isInteractiveAndReady ? '0' : '-1'}"
         aria-label="${matchAriaLabel}"
-        @click="${this.openMatch}"
-        @keydown="${this.handleKeyDown}">
+        @click="${isInteractiveAndReady ? this.openMatch : undefined}"
+        @keydown="${isInteractiveAndReady ? this.handleKeyDown : undefined}">
         ${renderRow(m?.teamA ?? null, m?.scoreA ?? null, 'A')}
         <div class="team-separator"></div>
         ${renderRow(m?.teamB ?? null, m?.scoreB ?? null, 'B')}
         ${penaltyNote}
+        ${tbdNote}
         ${oddsContent}
         ${venueContent}
       </div>

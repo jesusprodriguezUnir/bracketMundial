@@ -200,6 +200,12 @@ export const es = {
   'knockout.step2': 'Paso 2: Selecciona el Jugador',
   'knockout.noPlayers': 'No hay jugadores cargados en esta selección aún.',
   'knockout.awardsSelectionTitle': 'SELECCIONAR {award}',
+  'knockout.tbdEditHint': 'TBD · Completa grupos',
+  'knockout.unlockHint': 'Completa o simula la fase de grupos para desbloquear los cruces',
+  'knockout.simulateGroupsCta': 'SIMULAR GRUPOS',
+  'knockout.choosePathTeam': 'Elegir equipo',
+  'modal.penaltyMissing': 'Empate: define penaltis',
+  'modal.tbdMatch': 'Aún no hay rivales en este cruce',
 
   // Stadiums
   'stadiums.title': 'SEDES Y ESTADIOS',

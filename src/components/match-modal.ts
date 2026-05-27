@@ -47,6 +47,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   get scoreB() { return this._scoreB; }
 
   protected override updated(changedProps: PropertyValues) {
+    if (changedProps.has('teamA') || changedProps.has('teamB')) {
+      if (this.matchId && (!this.teamA || !this.teamB)) {
+        showToast(t('modal.tbdMatch'));
+        this._dispatchClose();
+        return;
+      }
+    }
     if (changedProps.has('initialScoreA')) this._scoreA = this.initialScoreA;
     if (changedProps.has('initialScoreB')) this._scoreB = this.initialScoreB;
     if (changedProps.has('initialPenaltyScoreA')) this._penaltyScoreA = this.initialPenaltyScoreA;
@@ -268,6 +275,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   private save() {
     if (this.phase === 'knockout' && this._scoreA !== null && this._scoreA === this._scoreB) {
       if (this._penaltyScoreA === null || this._penaltyScoreB === null || this._penaltyScoreA === this._penaltyScoreB) {
+        showToast(t('modal.penaltyMissing'));
         return;
       }
     }

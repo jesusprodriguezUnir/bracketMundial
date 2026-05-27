@@ -22,6 +22,7 @@ export class ScoreStepper extends LitElement {
       background: var(--paper-2);
       color: var(--ink);
       flex-shrink: 0;
+      pointer-events: auto;
     }
 
     button {
@@ -117,8 +118,31 @@ export class ScoreStepper extends LitElement {
         font-size: 18px;
         padding: 2px 6px;
       }
+
+      .stepper.compact button,
+      .stepper.mobile button {
+        padding: 2px 8px;
+        min-width: 28px;
+        min-height: 28px;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .stepper.compact .value,
+      .stepper.mobile .value {
+        font-size: 15px;
+        padding: 0 6px;
+        min-width: 20px;
+      }
     }
   `;
+
+  override firstUpdated() {
+    const stepper = this.shadowRoot?.querySelector('.stepper');
+    if (stepper) {
+      stepper.addEventListener('touchstart', () => {}, { passive: true });
+    }
+  }
 
   private _emitStep(event: Event, delta: -1 | 1) {
     event.stopPropagation();

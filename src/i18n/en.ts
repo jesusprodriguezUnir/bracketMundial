@@ -195,6 +195,12 @@ export const en: Record<TranslationKey, string> = {
   'knockout.step2': 'Step 2: Select the Player',
   'knockout.noPlayers': 'No players loaded for this national team yet.',
   'knockout.awardsSelectionTitle': 'SELECT {award}',
+  'knockout.tbdEditHint': 'TBD · Complete groups',
+  'knockout.unlockHint': 'Complete or simulate the group stage to unlock the bracket',
+  'knockout.simulateGroupsCta': 'SIMULATE GROUPS',
+  'knockout.choosePathTeam': 'Choose team',
+  'modal.penaltyMissing': 'Draw: define penalties',
+  'modal.tbdMatch': 'No opponents in this matchup yet',
 
   'stadiums.title': 'VENUES & STADIUMS',
   'stadiums.back': '← Back to stadiums',

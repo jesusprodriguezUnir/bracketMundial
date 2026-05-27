@@ -7,8 +7,8 @@ import { SQUADS, type Player } from '../data/squads/index';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
-import { isMatchPending } from '../lib/date-utils';
 import { openMatchModal } from '../lib/match-modal-service';
+import { showToast } from '../lib/interaction';
 import { renderFlag } from '../lib/render-flag';
 import { TEAM_COLORS } from '../data/team-colors';
 import './score-stepper';
@@ -233,67 +233,6 @@ export class BracketKnockout extends LitElement {
       border: 0;
     }
 
-    /* Match box */
-    .match-box {
-      background: var(--paper-2);
-      border: 1.5px solid var(--ink);
-      border-left-width: 4px;
-      box-shadow: var(--shadow-hard-sm);
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.1s;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    @media (hover: hover) {
-      .match-box:hover {
-        transform: translate(-2px, -2px);
-        box-shadow: 3px 3px 0 0 var(--retro-orange), 3px 3px 0 1.5px var(--ink);
-      }
-    }
-    .match-box:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 0 var(--ink);
-    }
-    .match-box.pulse {
-      box-shadow: 0 0 0 3px var(--retro-yellow), var(--shadow-hard-sm);
-    }
-    .match-box.right-side {
-      border-left-width: 1.5px;
-      border-right-width: 4px;
-    }
-
-    .team-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 6px;
-      min-height: 30px;
-    }
-    .team-row.winner-row { color: var(--paper); }
-    .team-row.loser-row  { opacity: 0.5; }
-    .team-separator { height: 1px; background: var(--ink); margin: 0 5px; }
-
-    .team-info {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-family: var(--font-body);
-      font-size: 11px;
-      font-weight: 700;
-      overflow: hidden;
-    }
-    .team-flag { font-size: 11px; flex-shrink: 0; }
-    .flag-img {
-      width: 17px;
-      height: 11px;
-      object-fit: cover;
-      border: 1px solid var(--ink);
-      flex-shrink: 0;
-    }
-    .team-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
     @media (min-width: 769px) {
       .bracket-scroll {
         overflow-x: hidden;
@@ -347,33 +286,6 @@ export class BracketKnockout extends LitElement {
         gap: clamp(4px, 0.45vw, 8px);
       }
 
-      .match-box {
-        min-width: 0;
-      }
-
-      .team-row {
-        padding: 3px 5px;
-        min-height: 28px;
-      }
-
-      .team-info {
-        gap: 4px;
-        font-size: clamp(9px, 0.78vw, 11px);
-      }
-
-      .team-flag {
-        font-size: 10px;
-      }
-
-      .flag-img {
-        width: 15px;
-        height: 10px;
-      }
-
-      .score {
-        font-size: clamp(11px, 0.95vw, 13px);
-      }
-
       .champion-box {
         min-width: 0;
       }
@@ -382,9 +294,6 @@ export class BracketKnockout extends LitElement {
         font-size: clamp(13px, 0.95vw, 15px);
       }
     }
-
-    .score { font-family: var(--font-var); font-size: 13px; flex-shrink: 0; }
-    .score.pending { color: var(--dim); opacity: 0.4; font-size: 11px; }
 
     .match-note {
       padding: 2px 5px;
@@ -1587,8 +1496,10 @@ export class BracketKnockout extends LitElement {
 
   private openMatch(matchId: string) {
     const match = useTournamentStore.getState().knockoutMatches[matchId];
-    if (!match?.teamA || !match?.teamB) return;
-    if (!isMatchPending(match.date ?? '', match.timeSpain ?? '')) return;
+    if (!match?.teamA || !match?.teamB) {
+      showToast(t('modal.tbdMatch'));
+      return;
+    }
 
     const stadium = STADIUMS.find(st => st.name === match.venue);
     openMatchModal({
@@ -1617,6 +1528,11 @@ export class BracketKnockout extends LitElement {
 
   private handleSimulate() {
     useTournamentStore.getState().autoSimulateKnockout();
+  }
+
+  private handleSimulateGroups() {
+    useTournamentStore.getState().autoSimulateGroups();
+    useTournamentStore.getState().initializeKnockoutFromGroups();
   }
 
   private handleGenerate() {
@@ -1699,17 +1615,47 @@ export class BracketKnockout extends LitElement {
     const qfL  = ['QF-01','QF-02'];
     const qfR  = ['QF-03','QF-04'];
 
+    const playedR32L = r32L.filter(id => km[id]?.isPlayed).length;
+    const playedR32R = r32R.filter(id => km[id]?.isPlayed).length;
+    const playedR16L = r16L.filter(id => km[id]?.isPlayed).length;
+    const playedR16R = r16R.filter(id => km[id]?.isPlayed).length;
+    const playedQFL  = qfL.filter(id => km[id]?.isPlayed).length;
+    const playedQFR  = qfR.filter(id => km[id]?.isPlayed).length;
+    const playedSFL  = km['SF-01']?.isPlayed ? 1 : 0;
+    const playedSFR  = km['SF-02']?.isPlayed ? 1 : 0;
+    const playedFinal = km['FIN-01']?.isPlayed ? 1 : 0;
+
+    const r32Ids = genIds('R32', 16);
+    const groupsResolved = r32Ids.every(id => km[id]?.teamA && km[id]?.teamB);
+
+    const actionBlock = !groupsResolved
+      ? html`
+        <div class="bracket-actions" style="background: var(--paper-2); border-color: var(--retro-red); box-shadow: 2px 2px 0 0 var(--retro-red);">
+          <div class="bracket-actions-label" style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: var(--retro-red); font-weight: bold; font-size: 10px; letter-spacing: 0.05em;">⚠ ${t('knockout.unlockHint')}</span>
+          </div>
+          <div class="bracket-actions-btns">
+            <button class="btn btn-primary" style="background: var(--retro-red); border-color: var(--ink); color: #fff;" @click="${this.handleSimulateGroups}">
+              ⚡ ${t('knockout.simulateGroupsCta')}
+            </button>
+          </div>
+        </div>
+      `
+      : html`
+        <div class="bracket-actions">
+          <div class="bracket-actions-label">${t('knockout.desktopLabel')}</div>
+          <div class="bracket-actions-btns">
+            ${showGenerateButton
+              ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">${t('knockout.generate')}</button>`
+              : html`<button class="btn" @click="${this.handleSimulate}">${t('knockout.simulate')}</button>`
+            }
+          </div>
+        </div>
+      `;
+
     return html`
       <!-- Barra de acciones cromo (Generar / Simular) -->
-      <div class="bracket-actions">
-        <div class="bracket-actions-label">${t('knockout.desktopLabel')}</div>
-        <div class="bracket-actions-btns">
-          ${showGenerateButton
-            ? html`<button class="btn btn-primary" @click="${this.handleGenerate}">${t('knockout.generate')}</button>`
-            : html`<button class="btn" @click="${this.handleSimulate}">${t('knockout.simulate')}</button>`
-          }
-        </div>
-      </div>
+      ${actionBlock}
 
       <!-- Cabecera tipo póster V3 -->
       <div class="poster-header">
@@ -1763,7 +1709,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-r32-left">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.r32}; background-color: ${ROUND_COLORS.r32}">
               <span>1/16</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedR32L}/8</span>
             </div>
             <div class="matches-wrap">
               ${r32L.map(id => html`
@@ -1783,7 +1729,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-r16-left">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.r16}; background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedR16L}/4</span>
             </div>
             <div class="matches-wrap">
               ${r16L.map(id => html`
@@ -1803,7 +1749,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-qf-left">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.qf}; background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedQFL}/2</span>
             </div>
             <div class="matches-wrap">
               ${qfL.map(id => html`
@@ -1823,7 +1769,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-sf-left">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.sf}; background-color: ${ROUND_COLORS.sf}">
               <span>SEMIS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedSFL}/1</span>
             </div>
             <div class="matches-wrap">
               <bracket-match
@@ -1843,7 +1789,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col is-final" id="col-final">
             <div class="round-title is-final" style="--round-color: ${ROUND_COLORS.final}; background-color: ${ROUND_COLORS.final}">
               <span>FINAL</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedFinal}/1</span>
             </div>
             <bracket-match
               .matchId=${'FIN-01'}
@@ -1886,7 +1832,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-sf-right">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.sf}; background-color: ${ROUND_COLORS.sf}">
               <span>SEMIS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[1]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedSFR}/1</span>
             </div>
             <div class="matches-wrap">
               <bracket-match
@@ -1905,7 +1851,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-qf-right">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.qf}; background-color: ${ROUND_COLORS.qf}">
               <span>CUARTOS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[2]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedQFR}/2</span>
             </div>
             <div class="matches-wrap">
               ${qfR.map(id => html`
@@ -1926,7 +1872,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-r16-right">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.r16}; background-color: ${ROUND_COLORS.r16}">
               <span>OCTAVOS</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[4]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedR16R}/4</span>
             </div>
             <div class="matches-wrap">
               ${r16R.map(id => html`
@@ -1947,7 +1893,7 @@ export class BracketKnockout extends LitElement {
           <div class="round-col" id="col-r32-right">
             <div class="round-title" style="--round-color: ${ROUND_COLORS.r32}; background-color: ${ROUND_COLORS.r32}">
               <span>1/16</span>
-              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">[8]</span>
+              <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.8">${playedR32R}/8</span>
             </div>
             <div class="matches-wrap">
               ${r32R.map(id => html`
@@ -2031,14 +1977,14 @@ export class BracketKnockout extends LitElement {
             </button>
           `)}
         </div>
-
+ 
         <div class="mob-body">
           <div class="mob-stage-banner" style="background: ${stage.color};">
             <div class="mob-banner-dots"></div>
             <span class="mob-banner-label">${stage.label}</span>
             <span class="mob-banner-count">${stage.matchIds.length} ${stageMatchLabel}</span>
           </div>
-
+ 
           ${stage.matchIds.map(id => html`
             <bracket-match
               style="margin-bottom: 10px;"
@@ -2060,25 +2006,30 @@ export class BracketKnockout extends LitElement {
     if (this._showTeamPicker) {
       pickerOverlay = this._renderTeamPicker();
     }
+
+    const r32Ids = genIds('R32', 16);
+    const groupsResolved = r32Ids.every(id => km[id]?.teamA && km[id]?.teamB);
+
     let headerAction: TemplateResult;
-    if (hasKnockout) {
+    if (!groupsResolved) {
+      headerAction = html`<button class="mob-header-action" style="background: var(--retro-red); color: #fff; box-shadow: 2px 2px 0 0 var(--ink);" @click="${this.handleSimulateGroups}">⚡ ${t('knockout.simulateGroupsCta')}</button>`;
+    } else if (hasKnockout) {
       headerAction = html`<button class="mob-header-action" @click="${this.handleSimulate}">🎲 ${t('knockout.simulate')}</button>`;
     } else {
       headerAction = html`<button class="mob-header-action" @click="${this.handleGenerate}">⚡ ${t('knockout.generate')}</button>`;
     }
-
+ 
     return html`
       <div class="mob-layout">
         <!-- Cabecera cromo -->
         <div class="mob-header">
-          <div class="mob-header-top">
-            <div class="mob-header-eyebrow">★ MUNDIAL 26 ★</div>
+          <div class="mob-header-top" style="justify-content: flex-end;">
             ${headerAction}
           </div>
           <div class="mob-header-title">${t('knockout.mobileTitle')}</div>
           <div class="mob-header-sub">${t('knockout.mobileSubtitle', { n: totalMatches })}</div>
         </div>
-
+ 
         <!-- Toggle TODO EL BRACKET / MI CAMINO -->
         <div class="mob-toggle-row" style="padding-bottom:10px;">
           <div class="mob-toggle">

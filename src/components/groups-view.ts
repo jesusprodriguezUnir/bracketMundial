@@ -656,8 +656,7 @@ export class GroupsView extends LitElement {
     return TEAMS_2026.find(t => t.id === id);
   }
 
-  private openMatch(matchId: string, date?: string, timeSpain?: string) {
-    if (!isMatchPending(date ?? '', timeSpain ?? '')) return;
+  private openMatch(matchId: string, _date?: string, _timeSpain?: string) {
     this.dispatchEvent(new CustomEvent('open-match', {
       detail: { matchId },
       bubbles: true,
@@ -667,7 +666,6 @@ export class GroupsView extends LitElement {
 
   private adjustInline(e: Event, m: GroupMatchResult, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
-    if (!isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
     const curA = m.scoreA ?? 0, curB = m.scoreB ?? 0;
     const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
     const nextB = team === 'B' ? Math.max(0, curB + delta) : curB;
