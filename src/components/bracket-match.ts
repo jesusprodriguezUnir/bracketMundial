@@ -160,6 +160,7 @@ export class BracketMatch extends LitElement {
       align-items: center;
       padding: 3px 6px;
       min-height: 30px;
+      transition: background-color 0.4s ease, color 0.4s ease, opacity 0.4s ease;
     }
     .team-row.winner-row { color: var(--paper); }
     .team-row.loser-row  { opacity: 0.5; }

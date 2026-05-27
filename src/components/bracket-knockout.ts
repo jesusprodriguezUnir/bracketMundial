@@ -10,6 +10,7 @@ import { t, useLocaleStore } from '../i18n';
 import { isMatchPending } from '../lib/date-utils';
 import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
+import { TEAM_COLORS } from '../data/team-colors';
 import './score-stepper';
 import './odds-bar';
 import './bracket-match';
@@ -59,6 +60,9 @@ type ConnectorPath = {
   strokeWidth: string;
   opacity: string;
   dashArray?: string;
+  winnerTeamId?: string | null;
+  isPlayed?: boolean;
+  isChampPath?: boolean;
 };
 
 @customElement('bracket-knockout')
@@ -449,6 +453,20 @@ export class BracketKnockout extends LitElement {
       width: 100%; height: 100%;
       pointer-events: none;
       overflow: visible;
+    }
+
+    .flow-line {
+      stroke-dasharray: 8 6;
+      animation: flowEnergy 30s linear infinite;
+    }
+
+    @keyframes flowEnergy {
+      from {
+        stroke-dashoffset: 350;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
     }
 
     .ko-stepper {
@@ -1450,10 +1468,12 @@ export class BracketKnockout extends LitElement {
       const d = getBox(dst);
       if (!s || !d) continue;
 
-      const isPlayed = !!(km[src]?.isPlayed);
-      const isChampPath = champion !== null && km[src]?.winnerId === champion;
+      const matchState = km[src];
+      const isPlayed = !!(matchState?.isPlayed);
+      const winnerId = matchState?.winnerId ?? null;
+      const isChampPath = champion !== null && winnerId === champion;
       const opacity = isPlayed ? '1' : '0.3';
-      const dash = isPlayed ? '' : ' stroke-dasharray="6 4"';
+      const dash = isPlayed ? '' : '6 4';
 
       const isRightToLeft = s.left > d.right;
       let pathD = '';
@@ -1471,6 +1491,9 @@ export class BracketKnockout extends LitElement {
           stroke: 'var(--retro-yellow)',
           strokeWidth: '5',
           opacity: '1',
+          winnerTeamId: winnerId,
+          isPlayed: true,
+          isChampPath: true,
         });
       } else {
         regular.push({
@@ -1478,14 +1501,17 @@ export class BracketKnockout extends LitElement {
           stroke: 'var(--ink)',
           strokeWidth: '2.5',
           opacity,
-          dashArray: dash ? '6 4' : undefined,
+          dashArray: dash || undefined,
+          winnerTeamId: winnerId,
+          isPlayed,
+          isChampPath: false,
         });
       }
     }
 
     const nextPaths = [...regular, ...champ];
     const signature = nextPaths
-      .map(path => `${path.d}|${path.stroke}|${path.strokeWidth}|${path.opacity}|${path.dashArray ?? ''}`)
+      .map(path => `${path.d}|${path.stroke}|${path.strokeWidth}|${path.opacity}|${path.dashArray ?? ''}|${path.winnerTeamId ?? ''}|${path.isPlayed ? '1' : '0'}`)
       .join(';');
 
     if (signature === this._connectorSignature) return;
@@ -1715,6 +1741,22 @@ export class BracketKnockout extends LitElement {
                 opacity="${path.opacity}"
                 stroke-dasharray="${path.dashArray ?? ''}"></path>
             `)}
+            ${this._connectorPaths.map(path => {
+              if (!path.isPlayed || !path.winnerTeamId || path.isChampPath) return '';
+              const colors = TEAM_COLORS[path.winnerTeamId];
+              const teamColor = colors ? colors[0] : 'var(--retro-orange)';
+              return html`
+                <path
+                  class="flow-line"
+                  d="${path.d}"
+                  stroke="${teamColor}"
+                  stroke-width="3.5"
+                  fill="none"
+                  stroke-linejoin="miter"
+                  opacity="1"
+                  stroke-linecap="round"></path>
+              `;
+            })}
           </svg>
 
           <!-- LADO IZQUIERDO -->
