@@ -13,7 +13,7 @@
     "pages": "tsx scripts/generate-pages.mjs",
     "previews:build": "node scripts/build-previews.mjs",
     "prebuild": "tsx scripts/generate-pages.mjs && node scripts/generate-icons.mjs && npm run previews:build",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/postbuild-seo.mjs",
     "preview": "vite preview",
     "news": "node scripts/ingest-news.mjs",
     "odds": "tsx scripts/generate-odds.mjs",
