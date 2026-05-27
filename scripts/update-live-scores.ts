@@ -67,7 +67,7 @@ function hasMatchInProgress(now: Date): boolean {
     const t = new Date(iso).getTime();
     if (t >= windowStart && t <= windowEnd) return true;
   }
-  for (const m of KNOCKOUT_SCHEDULE) {
+  for (const m of Object.values(KNOCKOUT_SCHEDULE)) {
     const iso = `${m.date}T${m.timeSpain}:00+02:00`;
     const t = new Date(iso).getTime();
     if (t >= windowStart && t <= windowEnd) return true;
