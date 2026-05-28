@@ -86,6 +86,7 @@ export class BracketKnockout extends LitElement {
   private _connectorSignature = '';
   @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
   @state() private _selectedTeamIdForSelector = '';
+  @state() private _awardsSearchQuery = '';
 
   public static readonly styles = css`
     :host {
@@ -1355,6 +1356,133 @@ export class BracketKnockout extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    /* ── Buscador de Premios en Modal ── */
+    .awards-search-bar {
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .awards-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-family: var(--font-var);
+      font-size: 14px;
+      font-weight: 700;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      border-radius: 0;
+    }
+    .awards-search-input:focus {
+      background: var(--paper-2);
+      border-color: var(--retro-orange);
+    }
+    .awards-search-results-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+    .awards-search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+      border: 2px solid var(--ink);
+      padding: 8px;
+      background: var(--paper);
+    }
+    .search-player-item {
+      all: unset;
+      cursor: pointer;
+      padding: 8px;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+    .search-player-item:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+    .search-player-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink);
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: bold;
+      overflow: hidden;
+      font-family: var(--font-var);
+    }
+    .search-player-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .search-player-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .search-player-name {
+      font-family: var(--font-var);
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-player-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .search-player-team {
+      color: var(--dim);
+      font-weight: bold;
+    }
+    .search-player-position {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--dim);
+    }
+    .search-player-club {
+      font-size: 9px;
+      color: var(--dim);
+      margin-top: 1px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-no-results {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      text-align: center;
+      padding: 32px;
+      border: 2px dashed var(--ink);
+      background: var(--paper-2);
+      grid-column: 1 / -1;
+    }
   `;
 
   connectedCallback() {
@@ -2389,21 +2517,23 @@ export class BracketKnockout extends LitElement {
   private _openAwardsSelector(type: 'topScorer' | 'mvp') {
     this._showAwardsModal = type;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
   private _closeAwardsSelector() {
     this._showAwardsModal = null;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
-  private _selectPlayer(player: Player) {
+  private _selectPlayer(player: Player, teamId?: string) {
     const type = this._showAwardsModal;
     if (!type) return;
 
-    const teamId = this._selectedTeamIdForSelector;
-    const awardVal = { teamId, playerName: player.name };
+    const resolvedTeamId = teamId ?? this._selectedTeamIdForSelector;
+    const awardVal = { teamId: resolvedTeamId, playerName: player.name };
 
     const store = useTournamentStore.getState();
     if (type === 'topScorer') {
@@ -2480,39 +2610,125 @@ export class BracketKnockout extends LitElement {
           </div>
 
           <div class="awards-modal-body">
-            <div>
-              <div class="awards-modal-step">${t('knockout.step1')}</div>
-              <div class="teams-grid-scroll">
-                ${teams.map(t => html`
-                  <button
-                    class="team-picker-item ${selectedTeamId === t.id ? 'active' : ''}"
-                    @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
-                  >
-                    ${renderFlag(t, { size: 'xs' })}
-                    <span class="team-picker-name">${t.name}</span>
-                  </button>
-                `)}
-              </div>
+            <!-- Buscador híbrido -->
+            <div class="awards-search-bar" style="position: relative;">
+              <input
+                type="search"
+                class="awards-search-input"
+                .value=${this._awardsSearchQuery}
+                @input=${(e: InputEvent) => { this._awardsSearchQuery = (e.target as HTMLInputElement).value; this.requestUpdate(); }}
+                placeholder="Buscar jugador, selección o club…"
+                autofocus
+              />
+              ${this._awardsSearchQuery.length > 0 ? html`
+                <button 
+                  style="all: unset; cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 14px; font-weight: bold; color: var(--dim); padding: 4px;"
+                  @click=${() => { this._awardsSearchQuery = ''; this.requestUpdate(); }}
+                >✕</button>
+              ` : ''}
             </div>
 
-            ${selectedTeamId ? html`
+            ${this._awardsSearchQuery.trim().length >= 2 ? (() => {
+              const query = this._awardsSearchQuery.trim();
+              const normalizedQuery = query
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/\p{Diacritic}/gu, '');
+
+              const allPlayers = Object.entries(SQUADS).flatMap(([teamId, players]) =>
+                players.map(p => ({
+                  ...p,
+                  teamId,
+                  teamName: TEAMS_2026.find(t => t.id === teamId)?.name ?? teamId,
+                }))
+              );
+
+              const results = allPlayers.filter(p => {
+                const haystack = `${p.name} ${p.teamName} ${p.teamId} ${p.club}`
+                  .toLowerCase()
+                  .normalize('NFD')
+                  .replace(/\p{Diacritic}/gu, '');
+                return haystack.includes(normalizedQuery);
+              });
+
+              const totalMatches = results.length;
+              const displayed = results.slice(0, 80);
+
+              if (displayed.length === 0) {
+                return html`
+                  <div class="search-no-results">
+                    Sin resultados para «${query}»
+                  </div>
+                `;
+              }
+
+              return html`
+                <div class="awards-search-results-label">
+                  Mostrando ${displayed.length} de ${totalMatches} jugadores
+                </div>
+                <div class="awards-search-grid">
+                  ${displayed.map(p => {
+                    const team = TEAMS_2026.find(t => t.id === p.teamId);
+                    return html`
+                      <button
+                        class="search-player-item"
+                        @click=${() => this._selectPlayer(p, p.teamId)}
+                      >
+                        <div class="search-player-avatar">
+                          ${p.photoUrl
+                            ? html`<img src=${p.photoUrl} alt="" loading="lazy">`
+                            : p.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="search-player-info">
+                          <div class="search-player-name">${p.name}</div>
+                          <div class="search-player-meta">
+                            ${team ? renderFlag(team, { size: 'xs' }) : ''}
+                            <span class="search-player-team">${p.teamId}</span>
+                            <span class="search-player-position">#${p.number} · ${p.position}</span>
+                          </div>
+                          <div class="search-player-club">${p.club}</div>
+                        </div>
+                      </button>
+                    `;
+                  })}
+                </div>
+              `;
+            })() : html`
+              <!-- Búsqueda vacía / corta: Flujo clásico por pasos -->
               <div>
-                <div class="awards-modal-step">${t('knockout.step2')}</div>
-                <div class="players-grid-scroll">
-                  ${squad.length === 0 ? html`
-                    <div class="no-players-placeholder">${t('knockout.noPlayers')}</div>
-                  ` : squad.map(p => html`
+                <div class="awards-modal-step">${t('knockout.step1')}</div>
+                <div class="teams-grid-scroll">
+                  ${teams.map(t => html`
                     <button
-                      class="player-picker-item"
-                      @click=${() => this._selectPlayer(p)}
+                      class="team-picker-item ${selectedTeamId === t.id ? 'active' : ''}"
+                      @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
                     >
-                      <span class="player-picker-name">${p.name}</span>
-                      <span class="player-picker-sub">${p.club} · ${p.position}</span>
+                      ${renderFlag(t, { size: 'xs' })}
+                      <span class="team-picker-name">${t.name}</span>
                     </button>
                   `)}
                 </div>
               </div>
-            ` : ''}
+
+              ${selectedTeamId ? html`
+                <div>
+                  <div class="awards-modal-step">${t('knockout.step2')}</div>
+                  <div class="players-grid-scroll">
+                    ${squad.length === 0 ? html`
+                      <div class="no-players-placeholder">${t('knockout.noPlayers')}</div>
+                    ` : squad.map(p => html`
+                      <button
+                        class="player-picker-item"
+                        @click=${() => this._selectPlayer(p)}
+                      >
+                        <span class="player-picker-name">${p.name}</span>
+                        <span class="player-picker-sub">${p.club} · ${p.position}</span>
+                      </button>
+                    `)}
+                  </div>
+                </div>
+              ` : ''}
+            `}
           </div>
         </div>
       </div>
