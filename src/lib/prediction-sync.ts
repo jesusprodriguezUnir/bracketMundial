@@ -1,4 +1,4 @@
-import { useTournamentStore } from '../store/tournament-store';
+import { useTournamentStore, extractBracketData } from '../store/tournament-store';
 import { useAuthStore } from '../store/auth-store';
 import { subscribeSlice } from '../store/store-utils';
 import { getSupabase } from './supabase-client';
@@ -16,12 +16,32 @@ async function pushNow(): Promise<void> {
   const sb = getSupabase();
   const session = useAuthStore.getState().session;
   if (!sb || !session) return;
-  const { groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction } = useTournamentStore.getState();
-  const payload = encodeBracket(groupMatches, knockoutMatches, myTopScorerPrediction, myMvpPrediction);
-  await sb.from('predictions').upsert(
-    { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id' },
-  );
+
+  const state = useTournamentStore.getState();
+  const ctx = state.activeContext;
+
+  if (ctx.kind === 'personal') {
+    const payload = encodeBracket(
+      state.groupMatches,
+      state.knockoutMatches,
+      state.myTopScorerPrediction,
+      state.myMvpPrediction,
+    );
+    await sb.from('predictions').upsert(
+      { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+  } else {
+    const bracket = extractBracketData(state);
+    const { updateMyPredictionsInCloud } = await import('./league-sync');
+    await updateMyPredictionsInCloud(
+      ctx.leagueId,
+      bracket.groupScores,
+      bracket.knockoutScores,
+      bracket.topScorer,
+      bracket.mvp,
+    );
+  }
 }
 
 function scheduleUpload(): void {
@@ -44,10 +64,11 @@ export function startSync(): void {
       s.groupMatches,
       s.knockoutMatches,
       s.myTopScorerPrediction ? `${s.myTopScorerPrediction.teamId}:${s.myTopScorerPrediction.playerName}` : '',
-      s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : ''
+      s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : '',
+      JSON.stringify(s.activeContext),
     ] as const,
     scheduleUpload,
-    (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
+    (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3] && a[4] === b[4],
   );
   document.addEventListener('visibilitychange', _onVisibilityChange);
 }
@@ -76,6 +97,14 @@ export async function onSignedIn(): Promise<void> {
   const session = useAuthStore.getState().session;
   if (!sb || !session) return;
 
+  startSync();
+
+  const ctx = useTournamentStore.getState().activeContext;
+
+  if (ctx.kind !== 'personal') {
+    return;
+  }
+
   const { data, error } = await sb
     .from('predictions')
     .select('payload, updated_at')
@@ -83,13 +112,11 @@ export async function onSignedIn(): Promise<void> {
     .maybeSingle();
 
   if (error) {
-    startSync();
     return;
   }
 
   if (!data) {
     await pushNow();
-    startSync();
     return;
   }
 
@@ -98,14 +125,12 @@ export async function onSignedIn(): Promise<void> {
   const cloudStr = data.payload as string;
 
   if (localStr === cloudStr) {
-    startSync();
     return;
   }
 
   if (_isLocalEmpty()) {
     const decoded = decodeBracket(cloudStr);
     if (decoded) useTournamentStore.getState().applySharedBracket(decoded);
-    startSync();
     return;
   }
 
@@ -122,5 +147,4 @@ export async function onSignedIn(): Promise<void> {
   } else if (choice === 'local') {
     await pushNow();
   }
-  startSync();
 }

@@ -9,6 +9,164 @@ import { expectedProbabilities, sampleResult } from '../lib/odds-model';
 import { ODDS_SEED } from '../data/odds/seed';
 import { generateGoalScorers } from '../lib/goal-scorers';
 import type { GoalEvent } from '../types';
+import type { DecodedBracket } from '../lib/bracket-codec';
+import type { LeagueParticipant } from './leagues-store';
+
+export type ActiveContext = { kind: 'personal' } | { kind: 'league'; leagueId: string };
+
+interface BracketSnapshot {
+  groupMatches: GroupMatchResult[];
+  knockoutMatches: Record<string, KnockoutMatchResult>;
+  myGroupPredictions: Record<string, { scoreA: number | null; scoreB: number | null }>;
+  myKnockoutPredictions: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }>;
+  myTopScorerPrediction: { teamId: string; playerName: string } | null;
+  myMvpPrediction: { teamId: string; playerName: string } | null;
+}
+
+let _personalSnapshot: BracketSnapshot | null = null;
+const _leagueSnapshots: Record<string, BracketSnapshot> = {};
+
+function _cloneSnapshot(state: TournamentState): BracketSnapshot {
+  return {
+    groupMatches: state.groupMatches.map(m => ({ ...m })),
+    knockoutMatches: Object.fromEntries(
+      Object.entries(state.knockoutMatches).map(([k, v]) => [k, { ...v }])
+    ),
+    myGroupPredictions: { ...state.myGroupPredictions },
+    myKnockoutPredictions: { ...state.myKnockoutPredictions },
+    myTopScorerPrediction: state.myTopScorerPrediction ? { ...state.myTopScorerPrediction } : null,
+    myMvpPrediction: state.myMvpPrediction ? { ...state.myMvpPrediction } : null,
+  };
+}
+
+function _participantToSnapshot(me: LeagueParticipant): BracketSnapshot {
+  const groupScoreMap = new Map(me.groupScores.map(s => [s.matchId, s]));
+  const groupMatches = initialGroupMatches.map(m => {
+    const score = groupScoreMap.get(m.matchId);
+    return score ? { ...m, scoreA: score.scoreA, scoreB: score.scoreB } : { ...m };
+  });
+  const groupStandings = recalculateStandings(groupMatches);
+  let knockoutMatches = resolveKnockoutMatches(groupStandings, {});
+  const kScoreMap = new Map(me.knockoutScores.map(s => [s.matchId, s]));
+  for (const matchId of getKnockoutMatchOrder()) {
+    const score = kScoreMap.get(matchId);
+    const match = knockoutMatches[matchId];
+    if (!match || !score || score.scoreA === null || score.scoreB === null) continue;
+    const isDraw = score.scoreA === score.scoreB;
+    const psa = isDraw ? score.penaltyScoreA : null;
+    const psb = isDraw ? score.penaltyScoreB : null;
+    const winnerId = getWinnerId(match.teamA, match.teamB, score.scoreA, score.scoreB, psa, psb);
+    knockoutMatches = resolveKnockoutMatches(groupStandings, {
+      ...knockoutMatches,
+      [matchId]: { ...match, scoreA: score.scoreA, scoreB: score.scoreB, penaltyScoreA: psa, penaltyScoreB: psb, winnerId, isPlayed: winnerId !== null },
+    });
+  }
+  const myGroupPredictions: Record<string, { scoreA: number | null; scoreB: number | null }> = {};
+  const myKnockoutPredictions: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = {};
+  for (const s of me.groupScores) {
+    myGroupPredictions[s.matchId] = { scoreA: s.scoreA, scoreB: s.scoreB };
+  }
+  for (const s of me.knockoutScores) {
+    myKnockoutPredictions[s.matchId] = { scoreA: s.scoreA, scoreB: s.scoreB, penaltyScoreA: s.penaltyScoreA, penaltyScoreB: s.penaltyScoreB };
+  }
+  return {
+    groupMatches,
+    knockoutMatches,
+    myGroupPredictions,
+    myKnockoutPredictions,
+    myTopScorerPrediction: me.topScorer ?? null,
+    myMvpPrediction: me.mvp ?? null,
+  };
+}
+
+async function _flushSnapshotToCloud(ctx: ActiveContext, snapshot: BracketSnapshot) {
+  const bracket: DecodedBracket = {
+    groupScores: snapshot.groupMatches.map(m => ({
+      matchId: m.matchId,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+    })),
+    knockoutScores: getKnockoutMatchOrder().map(matchId => {
+      const m = snapshot.knockoutMatches[matchId];
+      return {
+        matchId,
+        scoreA: m?.scoreA ?? null,
+        scoreB: m?.scoreB ?? null,
+        penaltyScoreA: m?.penaltyScoreA ?? null,
+        penaltyScoreB: m?.penaltyScoreB ?? null,
+      };
+    }),
+    topScorer: snapshot.myTopScorerPrediction ?? undefined,
+    mvp: snapshot.myMvpPrediction ?? undefined,
+  };
+
+  if (ctx.kind === 'personal') {
+    const [{ getSupabase }, { encodeBracket }] = await Promise.all([
+      import('../lib/supabase-client'),
+      import('../lib/bracket-codec'),
+    ]);
+    const { useAuthStore } = await import('../store/auth-store');
+    const sb = getSupabase();
+    const session = useAuthStore.getState().session;
+    if (!sb || !session) return;
+    const payload = encodeBracket(
+      snapshot.groupMatches,
+      snapshot.knockoutMatches,
+      snapshot.myTopScorerPrediction,
+      snapshot.myMvpPrediction,
+    );
+    await sb.from('predictions').upsert(
+      { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+  } else {
+    const { updateMyPredictionsInCloud } = await import('../lib/league-sync');
+    await updateMyPredictionsInCloud(
+      (ctx as { kind: 'league'; leagueId: string }).leagueId,
+      bracket.groupScores,
+      bracket.knockoutScores,
+      bracket.topScorer,
+      bracket.mvp,
+    );
+  }
+}
+
+function _defaultSnapshot(): BracketSnapshot {
+  return {
+    groupMatches: initialGroupMatches.map(m => ({ ...m })),
+    knockoutMatches: {},
+    myGroupPredictions: {},
+    myKnockoutPredictions: {},
+    myTopScorerPrediction: null,
+    myMvpPrediction: null,
+  };
+}
+
+function _scoresToDecodedBracket(state: TournamentState): DecodedBracket {
+  return {
+    groupScores: state.groupMatches.map(m => ({
+      matchId: m.matchId,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+    })),
+    knockoutScores: getKnockoutMatchOrder().map(matchId => {
+      const m = state.knockoutMatches[matchId];
+      return {
+        matchId,
+        scoreA: m?.scoreA ?? null,
+        scoreB: m?.scoreB ?? null,
+        penaltyScoreA: m?.penaltyScoreA ?? null,
+        penaltyScoreB: m?.penaltyScoreB ?? null,
+      };
+    }),
+    topScorer: state.myTopScorerPrediction ?? undefined,
+    mvp: state.myMvpPrediction ?? undefined,
+  };
+}
+
+export function extractBracketData(state: TournamentState): DecodedBracket {
+  return _scoresToDecodedBracket(state);
+}
 
 
 export interface GroupStanding {
@@ -62,6 +220,7 @@ interface TournamentState {
   knockoutMatches: Record<string, KnockoutMatchResult>;
   activePhase: 'groups' | 'round16' | 'quarterfinals' | 'semifinals' | 'thirdplace' | 'final';
   selectedMatch: string | null;
+  activeContext: ActiveContext;
 
   myGroupPredictions: Record<string, { scoreA: number | null; scoreB: number | null }>;
   myKnockoutPredictions: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }>;
@@ -83,6 +242,7 @@ interface TournamentState {
   autoSimulateKnockout: () => void;
   initializeKnockoutFromGroups: () => void;
   getBestThirds: () => TeamStats[];
+  switchContext: (ctx: ActiveContext) => Promise<void>;
   applySharedBracket: (data: {
     groupScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null }>;
     knockoutScores: Array<{ matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }>;
@@ -264,6 +424,7 @@ export const useTournamentStore = createStore<TournamentState>()(
       knockoutMatches: {},
       activePhase: 'groups',
       selectedMatch: null,
+      activeContext: { kind: 'personal' } as ActiveContext,
       myGroupPredictions: {},
       myKnockoutPredictions: {},
       myTopScorerPrediction: null,
@@ -329,6 +490,7 @@ export const useTournamentStore = createStore<TournamentState>()(
         knockoutMatches: {},
         activePhase: 'groups',
         selectedMatch: null,
+        activeContext: { kind: 'personal' } as ActiveContext,
         myGroupPredictions: {},
         myKnockoutPredictions: {},
         myTopScorerPrediction: null,
@@ -426,6 +588,56 @@ export const useTournamentStore = createStore<TournamentState>()(
       },
 
       getBestThirds: () => calculateBestThirds(mapThirds(_get().groupStandings)),
+
+      switchContext: async (ctx) => {
+        const state = _get();
+        if (state.activeContext.kind === ctx.kind
+            && (ctx.kind === 'personal' || (state.activeContext as { kind: 'league'; leagueId: string }).leagueId === (ctx as { kind: 'league'; leagueId: string }).leagueId)) {
+          return;
+        }
+
+        const snapshot = _cloneSnapshot(state);
+        if (state.activeContext.kind === 'personal') {
+          _personalSnapshot = snapshot;
+        } else {
+          _leagueSnapshots[(state.activeContext as { kind: 'league'; leagueId: string }).leagueId] = snapshot;
+        }
+
+        void _flushSnapshotToCloud(state.activeContext, snapshot);
+
+        let loaded: BracketSnapshot | null = null;
+        if (ctx.kind === 'personal') {
+          loaded = _personalSnapshot ?? _defaultSnapshot();
+        } else {
+          if (_leagueSnapshots[ctx.leagueId]) {
+            loaded = _leagueSnapshots[ctx.leagueId];
+          } else {
+            const { useLeaguesStore } = (await import('./leagues-store'));
+            const { useAuthStore } = (await import('./auth-store'));
+            const leagues = useLeaguesStore.getState().leagues;
+            const league = leagues.find(l => l.id === ctx.leagueId);
+            const userId = useAuthStore.getState().session?.user.id;
+            const me = league?.participants.find(p => p.userId === userId || p.isOwner);
+            if (me) {
+              loaded = _participantToSnapshot(me);
+            }
+          }
+          if (!loaded) loaded = _defaultSnapshot();
+        }
+
+        set({
+          groupMatches: loaded.groupMatches,
+          knockoutMatches: loaded.knockoutMatches,
+          myGroupPredictions: loaded.myGroupPredictions,
+          myKnockoutPredictions: loaded.myKnockoutPredictions,
+          myTopScorerPrediction: loaded.myTopScorerPrediction,
+          myMvpPrediction: loaded.myMvpPrediction,
+          groupStandings: recalculateStandings(loaded.groupMatches),
+          activeContext: ctx,
+          activePhase: 'groups',
+          selectedMatch: null,
+        });
+      },
 
       applySharedBracket: (data) => {
         set(state => {
@@ -567,8 +779,9 @@ export const useTournamentStore = createStore<TournamentState>()(
 
         const myTopScorerPrediction = p.myTopScorerPrediction ?? null;
         const myMvpPrediction = p.myMvpPrediction ?? null;
+        const activeContext: ActiveContext = p.activeContext ?? { kind: 'personal' };
 
-        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions, myTopScorerPrediction, myMvpPrediction };
+        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions, myTopScorerPrediction, myMvpPrediction, activeContext };
       },
     }
   )

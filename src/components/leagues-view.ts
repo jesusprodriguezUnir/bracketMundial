@@ -2202,6 +2202,14 @@ export class LeaguesView extends LitElement {
       animation: lg-v2-pulse 1.4s infinite;
     }
 
+    .lg-v2-edit-prediction-row {
+      margin-bottom: 14px;
+    }
+    .lg-v2-edit-prediction-row .lg-v2-btn {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 18px;
+    }
     .lg-v2-cta-row {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -2459,6 +2467,12 @@ export class LeaguesView extends LitElement {
   private _cancelEdits() {
     this._editMode = false;
     this._editBuffer = new Map();
+  }
+
+  private async _editPredictionForLeague() {
+    if (!this._activeLeagueId) return;
+    await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
+    this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
   }
 
   // ── v2 design helpers ──
@@ -3637,6 +3651,16 @@ export class LeaguesView extends LitElement {
           </div>
         </div>
 
+        <div class="lg-v2-edit-prediction-row">
+          <button class="lg-v2-btn primary" @click=${this._editPredictionForLeague}>
+            <span class="lg-v2-btn-ic">✎</span>
+            <span>
+              Editar mi predicción en esta liga<br/>
+              <span class="lg-v2-btn-sub">Grupos, eliminatorias, MVP y goleador independientes</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+        </div>
         <div class="lg-v2-cta-row">
           <button class="lg-v2-btn primary" @click=${this._showSharePredictionsModal}>
             <span class="lg-v2-btn-ic">★</span>

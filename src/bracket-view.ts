@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore } from './store/tournament-store';
+import { useTournamentStore, type ActiveContext } from './store/tournament-store';
 // Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
 import './components/match-modal';
@@ -9,6 +9,7 @@ import { STADIUMS } from './data/stadiums';
 import { openMatchModal } from './lib/match-modal-service';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
+import { useLeaguesStore } from './store/leagues-store';
 
 type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
@@ -64,12 +65,15 @@ export class BracketView extends LitElement {
   @state() private _loadedViews = new Set<LazyView>();
   @state() private _loadingView: LazyView | null = null;
   @state() private _moreOpen = false;
+  @state() private _activeContext: ActiveContext = { kind: 'personal' };
+  @state() private _contextLeagueName = '';
 
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
   private _swipeBlocked = false;
   private _tabHistory: PhaseTab[] = ['hero'];
+  private _unsubContext?: () => void;
 
 
   static readonly styles = css`
@@ -85,6 +89,47 @@ export class BracketView extends LitElement {
     .view-container {
       position: relative;
       touch-action: auto;
+    }
+
+    /* ─── Context indicator bar ─── */
+    .context-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3));
+      border: 2px solid var(--retro-orange);
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+    .context-label {
+      color: var(--ink);
+    }
+    .context-label strong {
+      font-family: var(--font-var);
+      font-size: 14px;
+      color: var(--retro-orange);
+    }
+    .context-return-btn {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .context-return-btn:hover {
+      background: var(--ink);
+      color: var(--retro-yellow);
     }
 
     /* ─── Bottom Navigation (mobile) ─── */
@@ -490,12 +535,11 @@ export class BracketView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // bracket-view no necesita reaccionar al store — usa getState() imperativo en openMatchFromGroups
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
-    // Pre-cargar groups en idle (el tab más visitado tras hero)
+    this._updateContext();
+    this._unsubContext = useTournamentStore.subscribe(() => this._updateContext());
     this._ensureView('groups');
 
-    // Hash routing
     this._restoreFromHash();
     this._hashChangeHandler = () => this._restoreFromHash();
     window.addEventListener('hashchange', this._hashChangeHandler);
@@ -508,6 +552,7 @@ export class BracketView extends LitElement {
 
   disconnectedCallback() {
     this.unsubscribeLocale?.();
+    this._unsubContext?.();
     if (this._hashChangeHandler) {
       window.removeEventListener('hashchange', this._hashChangeHandler);
     }
@@ -515,6 +560,30 @@ export class BracketView extends LitElement {
     this.removeEventListener('touchstart', this._onSwipeStart);
     this.removeEventListener('touchmove', this._onSwipeMove);
     this.removeEventListener('touchend', this._onSwipeEnd);
+  }
+
+  private _updateContext() {
+    const ctx = useTournamentStore.getState().activeContext;
+    if (ctx.kind !== this._activeContext.kind
+        || (ctx.kind === 'league' && (ctx as { kind: 'league'; leagueId: string }).leagueId !== (this._activeContext as { kind: 'league'; leagueId: string }).leagueId)
+        || (ctx.kind === 'personal' && this._activeContext.kind === 'personal')) {
+      // Only update if changed or initial
+      const prevKind = this._activeContext.kind;
+      this._activeContext = ctx;
+      if (ctx.kind === 'league') {
+        const league = useLeaguesStore.getState().leagues.find(l => l.id === ctx.leagueId);
+        this._contextLeagueName = league?.name ?? ctx.leagueId;
+      } else {
+        this._contextLeagueName = '';
+      }
+      if (prevKind !== ctx.kind || (ctx.kind === 'league' && prevKind === 'league')) {
+        this.requestUpdate();
+      }
+    }
+  }
+
+  private _switchToPersonal() {
+    void useTournamentStore.getState().switchContext({ kind: 'personal' });
   }
 
   /** Sincroniza la pestaña activa con location.hash */
@@ -727,6 +796,12 @@ export class BracketView extends LitElement {
 
     return html`
       <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
+        ${this._activeContext.kind === 'league' ? html`
+          <div class="context-bar">
+            <span class="context-label">Editando: <strong>${this._contextLeagueName}</strong></span>
+            <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+          </div>
+        ` : ''}
         <!-- Mobile: bottom navigation -->
         <nav class="bottom-nav" aria-label="${t('tabs.label')}">
           ${mainTabs.map(item => html`
