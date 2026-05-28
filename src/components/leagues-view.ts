@@ -18,6 +18,7 @@ import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '
 import { buildProjectedScores } from '../lib/league-projection';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
+import { loadOfficialResults } from '../lib/official-results';
 
 const TOTAL_MATCHES = 104;
 
@@ -81,6 +82,7 @@ export class LeaguesView extends LitElement {
   @state() private _syncFeedback: string | null = null;
   @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
   @state() private _selectedTeamIdForSelector = '';
+  @state() private _officialBracket: DecodedBracket | null = null;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -2355,6 +2357,10 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._unsubAuth = useAuthStore.subscribe(() => this.requestUpdate());
+    loadOfficialResults().then(bracket => {
+      this._officialBracket = bracket;
+      this._recalc();
+    }).catch(() => { this._recalc(); });
     this._recalc();
   }
 
@@ -2370,6 +2376,35 @@ export class LeaguesView extends LitElement {
     this._viewMode = mode;
     try { localStorage.setItem('leagues-view-mode', mode); } catch { /* ignore */ }
     this._recalc();
+  }
+
+  private _getOfficialRealScores(): { groupScores: RealScores[]; knockoutScores: RealScores[] } {
+    if (this._officialBracket) {
+      const groupScores: RealScores[] = this._officialBracket.groupScores.map(s => ({
+        matchId: s.matchId,
+        scoreA: s.scoreA,
+        scoreB: s.scoreB,
+      }));
+      const knockoutOrder = getKnockoutMatchOrder();
+      const koMap = new Map(this._officialBracket.knockoutScores.map(s => [s.matchId, s]));
+      const knockoutScores: RealScores[] = knockoutOrder.map(matchId => {
+        const s = koMap.get(matchId);
+        return { matchId, scoreA: s?.scoreA ?? null, scoreB: s?.scoreB ?? null };
+      });
+      return { groupScores, knockoutScores };
+    }
+    const groupScores: RealScores[] = GROUP_MATCHES.map(m => ({
+      matchId: m.matchId,
+      scoreA: null,
+      scoreB: null,
+    }));
+    const knockoutOrder = getKnockoutMatchOrder();
+    const knockoutScores: RealScores[] = knockoutOrder.map(matchId => ({
+      matchId,
+      scoreA: null,
+      scoreB: null,
+    }));
+    return { groupScores, knockoutScores };
   }
 
   private _recalc() {
@@ -2396,18 +2431,7 @@ export class LeaguesView extends LitElement {
       }
     }
 
-    const tournament = useTournamentStore.getState();
-
-    const rawRealGroupScores = realGroupScoresFromStore();
-    const realKnockoutOrder = getKnockoutMatchOrder();
-    const rawRealKnockoutScores = realKnockoutOrder.map(matchId => {
-      const m = tournament.knockoutMatches[matchId];
-      return {
-        matchId,
-        scoreA: m?.scoreA ?? null,
-        scoreB: m?.scoreB ?? null,
-      };
-    });
+    const { groupScores: rawRealGroupScores, knockoutScores: rawRealKnockoutScores } = this._getOfficialRealScores();
 
     const realGroupScores = filterRealByDate(rawRealGroupScores);
     const realKnockoutScores = filterRealByDate(rawRealKnockoutScores);
@@ -2513,13 +2537,9 @@ export class LeaguesView extends LitElement {
     const league = this._leagues.find(l => l.id === leagueId);
     if (!league || league.participants.length === 0) return null;
     try {
-      const realGroupScores = filterRealByDate(realGroupScoresFromStore());
-      const realKnockoutOrder = getKnockoutMatchOrder();
-      const tournament = useTournamentStore.getState();
-      const realKnockoutScores = filterRealByDate(realKnockoutOrder.map(matchId => {
-        const m = tournament.knockoutMatches[matchId];
-        return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
-      }));
+      const { groupScores: rawGroup, knockoutScores: rawKo } = this._getOfficialRealScores();
+      const realGroupScores = filterRealByDate(rawGroup);
+      const realKnockoutScores = filterRealByDate(rawKo);
       const scored = league.participants.map(p => scoreParticipant(p, realGroupScores, realKnockoutScores));
       const ranked = rankParticipants(scored);
       const ownerIdx = ranked.findIndex(p => p.participant.isOwner === true);
@@ -3729,6 +3749,12 @@ export class LeaguesView extends LitElement {
         ${this._viewMode === 'projection' ? html`
           <div class="lg-projection-banner">
             <span>${t('league.projectionBanner')}</span>
+          </div>
+        ` : ''}
+
+        ${this._viewMode === 'real' && !this._officialBracket ? html`
+          <div class="lg-projection-banner" style="background:color-mix(in srgb, var(--retro-orange) 22%, var(--paper-3));">
+            <span>Aún sin resultados oficiales. Cambia a <b>Proyección</b> para ver pronósticos.</span>
           </div>
         ` : ''}
 

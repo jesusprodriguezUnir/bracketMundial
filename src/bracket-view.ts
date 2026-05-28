@@ -7,6 +7,7 @@ import './components/match-modal';
 import './components/ad-block';
 import { STADIUMS } from './data/stadiums';
 import { openMatchModal } from './lib/match-modal-service';
+import { publishNow } from './lib/prediction-sync';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { useLeaguesStore } from './store/leagues-store';
@@ -67,6 +68,8 @@ export class BracketView extends LitElement {
   @state() private _moreOpen = false;
   @state() private _activeContext: ActiveContext = { kind: 'personal' };
   @state() private _contextLeagueName = '';
+  @state() private _publishing = false;
+  @state() private _publishFeedback: string | null = null;
 
   private _swipeStartX = 0;
   private _swipeStartY = 0;
@@ -582,6 +585,25 @@ export class BracketView extends LitElement {
     }
   }
 
+  private async _handlePublish() {
+    this._publishing = true;
+    this._publishFeedback = null;
+    try {
+      await publishNow();
+      this._publishFeedback = 'Publicado ✓';
+    } catch (err) {
+      this._publishFeedback = 'Error ✗';
+    }
+    this._publishing = false;
+    setTimeout(() => {
+      if (this._publishFeedback === 'Publicado ✓' || this._publishFeedback === 'Error ✗') {
+        this._publishFeedback = null;
+        this.requestUpdate();
+      }
+    }, 3000);
+    this.requestUpdate();
+  }
+
   private _switchToPersonal() {
     void useTournamentStore.getState().switchContext({ kind: 'personal' });
   }
@@ -799,7 +821,16 @@ export class BracketView extends LitElement {
         ${this._activeContext.kind === 'league' ? html`
           <div class="context-bar">
             <span class="context-label">Editando: <strong>${this._contextLeagueName}</strong></span>
-            <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+            <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              ${this._publishFeedback ? html`<span style="font-family:var(--font-mono);font-size:11px;">${this._publishFeedback}</span>` : ''}
+              <button
+                class="context-return-btn"
+                style="background:var(--retro-yellow);"
+                @click="${this._handlePublish}"
+                ?disabled="${this._publishing}"
+              >${this._publishing ? 'Publicando…' : 'Publicar a la liga'}</button>
+              <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+            </span>
           </div>
         ` : ''}
         <!-- Mobile: bottom navigation -->

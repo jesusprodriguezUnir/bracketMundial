@@ -56,6 +56,12 @@ function flushIfPending(): void {
   void pushNow();
 }
 
+export async function publishNow(): Promise<void> {
+  if (_timer) { clearTimeout(_timer); _timer = null; }
+  _pendingUpload = false;
+  await pushNow();
+}
+
 export function startSync(): void {
   if (_unsub) return;
   _unsub = subscribeSlice(

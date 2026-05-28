@@ -147,8 +147,9 @@ export function scoreParticipant(
     else if (kind === 'sign') signCount++;
   }
 
-  // Es la simulación real si contiene los partidos de grupos del Mundial (72 partidos)
-  const isRealBracket = realGroupScores.length >= 72;
+  // Es la simulación real si contiene los partidos de grupos del Mundial (72 partidos) y al menos uno se ha jugado
+  const playedGroupCount = realGroupScores.filter(r => r.scoreA !== null && r.scoreB !== null).length;
+  const isRealBracket = realGroupScores.length >= 72 && playedGroupCount > 0;
 
   let knockoutTotal = 0;
   const koCorrectTeams = {
