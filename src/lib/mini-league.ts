@@ -30,9 +30,12 @@ export const MUNDIAL_POINTS = {
   mvp: 15,
 } as const;
 
-export const REAL_AWARDS = {
-  topScorer: { teamId: 'FRA', playerName: 'Kylian Mbappé' } as { teamId: string; playerName: string } | null,
-  mvp: { teamId: 'ARG', playerName: 'Lionel Messi' } as { teamId: string; playerName: string } | null,
+export const REAL_AWARDS: {
+  topScorer: { teamId: string; playerName: string } | null;
+  mvp: { teamId: string; playerName: string } | null;
+} = {
+  topScorer: null,
+  mvp: null,
 };
 
 export interface MatchPrediction {

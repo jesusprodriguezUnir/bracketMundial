@@ -713,6 +713,8 @@ export const es = {
   'league.live': 'EN VIVO',
   'league.liveLong': 'EN DIRECTO',
   'league.leaderLabel': 'Líder',
+  'league.awardTopScorer': 'Goleador:',
+  'league.awardMvp': 'MVP:',
   'league.predictionsLabel': 'Predicciones',
   'league.yourPos': 'Tu pos.',
   'league.youLead': '★ Lideras la liga',

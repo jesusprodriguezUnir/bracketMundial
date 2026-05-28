@@ -2,7 +2,7 @@ import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
 import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
-import { scoreParticipant, rankParticipants } from '../lib/mini-league';
+import { scoreParticipant, rankParticipants, REAL_AWARDS } from '../lib/mini-league';
 import type { ParticipantScore, MatchPoints } from '../lib/mini-league';
 import { buildResolvedKnockout } from '../lib/bracket-logic';
 import { KNOCKOUT_BRACKET, TEAMS_2026 } from '../data/fifa-2026';
@@ -82,7 +82,9 @@ export class LeaguesView extends LitElement {
   @state() private _syncFeedback: string | null = null;
   @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
   @state() private _selectedTeamIdForSelector = '';
-  @state() private _officialBracket: DecodedBracket | null = null;
+  @state()   private _officialBracket: DecodedBracket | null = null;
+  private _initialMount = true;
+  @state() private _awardsSearchQuery = '';
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -2413,6 +2415,13 @@ export class LeaguesView extends LitElement {
     this._activeLeagueId = leaguesState.activeLeagueId;
 
     if (this._screen !== 'bracket') {
+      if (this._initialMount) {
+        this._initialMount = false;
+        if (this._leagues.length > 0) {
+          this._manualListMode = true;
+          this._screen = 'list';
+        }
+      }
       if (this._leagues.length === 0) {
         this._screen = 'list';
         this._manualListMode = false;
@@ -3158,6 +3167,28 @@ export class LeaguesView extends LitElement {
                         : html`<span class="lg-v2-pos"><span class="hash">#</span>—</span>`}
                     </div>
 
+                    ${(() => {
+                      const authUserId = useAuthStore.getState().session?.user?.id;
+                      const ownerParticipant = l.participants.find(p => p.isOwner);
+                      const myParticipant = authUserId ? l.participants.find(p => p.userId === authUserId) : null;
+                      const displayParticipant = myParticipant ?? ownerParticipant ?? l.participants[0];
+                      if (!displayParticipant) return '';
+                      return html`
+                        <div style="grid-column:1/-1; display:flex; gap:14px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed rgba(26,25,51,0.18); font-family:var(--font-mono); font-size:10px;">
+                          <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:13px;">👟</span>
+                            <span style="color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">${t('league.awardTopScorer')}</span>
+                            <b>${displayParticipant.topScorer ? html`${displayParticipant.topScorer.teamId} · ${displayParticipant.topScorer.playerName}` : '—'}</b>
+                          </div>
+                          <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:13px;">⭐</span>
+                            <span style="color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">${t('league.awardMvp')}</span>
+                            <b>${displayParticipant.mvp ? html`${displayParticipant.mvp.teamId} · ${displayParticipant.mvp.playerName}` : '—'}</b>
+                          </div>
+                        </div>
+                      `;
+                    })()}
+
                     <div class="lg-v2-card-actions-row">
                       <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
                       <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
@@ -3378,7 +3409,9 @@ export class LeaguesView extends LitElement {
                 ${participant?.topScorer ? html`
                   <b>${participant.topScorer.playerName}</b>
                   <span style="color:var(--dim); font-size:10px;">(${participant.topScorer.teamId})</span>
-                  <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
+                  ${REAL_AWARDS.topScorer ? html`
+                    <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
+                  ` : ''}
                 ` : '—'}
               </div>
             </div>
@@ -3391,7 +3424,9 @@ export class LeaguesView extends LitElement {
                 ${participant?.mvp ? html`
                   <b>${participant.mvp.playerName}</b>
                   <span style="color:var(--dim); font-size:10px;">(${participant.mvp.teamId})</span>
-                  <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
+                  ${REAL_AWARDS.mvp ? html`
+                    <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
+                  ` : ''}
                 ` : '—'}
               </div>
             </div>
@@ -3907,21 +3942,23 @@ export class LeaguesView extends LitElement {
   private _openAwardsSelector(type: 'topScorer' | 'mvp') {
     this._showAwardsModal = type;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
   private _closeAwardsSelector() {
     this._showAwardsModal = null;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
-  private async _selectPlayer(participant: LeagueParticipant, player: Player) {
+  private async _selectPlayer(participant: LeagueParticipant, player: Player, teamId?: string) {
     const type = this._showAwardsModal;
     if (!type) return;
 
-    const teamId = this._selectedTeamIdForSelector;
-    const awardVal = { teamId, playerName: player.name };
+    const resolvedTeamId = teamId ?? this._selectedTeamIdForSelector;
+    const awardVal = { teamId: resolvedTeamId, playerName: player.name };
 
     const store = useTournamentStore.getState();
     if (type === 'topScorer') {
@@ -4028,13 +4065,37 @@ export class LeaguesView extends LitElement {
 
   private _renderAwardsSelectionModal(participant: LeagueParticipant): TemplateResult {
     const typeLabel = this._showAwardsModal === 'topScorer' ? 'MÁXIMO GOLEADOR' : 'MVP DEL CAMPEONATO';
-    const teams = TEAMS_2026;
-    const selectedTeamId = this._selectedTeamIdForSelector;
-    const squad = selectedTeamId ? SQUADS[selectedTeamId] || [] : [];
+    const query = this._awardsSearchQuery.trim();
+    const normalizedQuery = query
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '');
+
+    const allPlayers = Object.entries(SQUADS).flatMap(([teamId, players]) =>
+      players.map(p => ({
+        ...p,
+        teamId,
+        teamName: TEAMS_2026.find(t => t.id === teamId)?.name ?? teamId,
+      }))
+    );
+
+    let results: typeof allPlayers = [];
+    if (query.length >= 2) {
+      results = allPlayers.filter(p => {
+        const haystack = `${p.name} ${p.teamName} ${p.teamId} ${p.club}`
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '');
+        return haystack.includes(normalizedQuery);
+      });
+    }
+    const totalMatches = results.length;
+    const displayed = results.slice(0, 80);
+    const showPrompt = query.length < 2;
 
     return html`
       <div style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px;">
-        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-lg); width:100%; max-width:600px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-lg); width:100%; max-width:700px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
           <div style="background:var(--retro-yellow); border-bottom:3px solid var(--ink); padding:16px; display:flex; align-items:center; justify-content:space-between;">
             <div style="font-family:var(--font-var); font-size:18px; font-weight:bold; letter-spacing:0.02em;">
               🏅 SELECCIONAR ${typeLabel}
@@ -4042,47 +4103,58 @@ export class LeaguesView extends LitElement {
             <button class="lg-small-btn" @click=${this._closeAwardsSelector} style="font-size:14px; font-weight:bold;">✕</button>
           </div>
 
-          <div style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px;">
-            <div>
-              <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 1: Elige el País de la Selección</div>
-              <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:6px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
-                ${teams.map(t => html`
-                  <button
-                    style="all:unset; cursor:pointer; padding:6px; border:1px solid ${selectedTeamId === t.id ? 'var(--retro-orange)' : 'var(--ink)'}; background:${selectedTeamId === t.id ? 'var(--retro-yellow)' : 'var(--paper)'}; display:flex; align-items:center; gap:6px; font-family:var(--font-var); font-size:11px;"
-                    @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
-                  >
-                    ${renderFlag(t, 'xs')}
-                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.name}</span>
-                  </button>
-                `)}
-              </div>
-            </div>
+          <div style="padding:16px; border-bottom:2px solid var(--ink); background:var(--paper);">
+            <input
+              type="search"
+              .value=${this._awardsSearchQuery}
+              @input=${(e: InputEvent) => { this._awardsSearchQuery = (e.target as HTMLInputElement).value; }}
+              placeholder="Buscar jugador, equipo o club…"
+              autofocus
+              style="width:100%; box-sizing:border-box; padding:10px 12px; font-family:var(--font-var); font-size:15px; border:2px solid var(--ink); background:var(--paper); color:var(--ink); outline:none;"
+            />
+          </div>
 
-            ${selectedTeamId ? html`
-              <div>
-                <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 2: Selecciona el Jugador</div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:8px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
-                  ${squad.length === 0 ? html`
-                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); padding:12px; text-align:center; grid-column: 1 / -1;">No hay jugadores cargados en esta selección aún.</div>
-                  ` : squad.map(p => html`
+          <div style="flex:1; overflow-y:auto; padding:16px;">
+            ${showPrompt
+              ? html`
+                <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:32px; border:2px dashed var(--ink); background:var(--paper-2);">
+                  Empieza a escribir el nombre del jugador…
+                </div>
+              `
+              : displayed.length === 0
+              ? html`
+                <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:32px; border:2px dashed var(--ink); background:var(--paper-2);">
+                  Sin resultados para «${query}»
+                </div>
+              `
+              : html`
+                <div style="font-family:var(--font-mono); font-size:9px; color:var(--dim); margin-bottom:8px;">
+                  Mostrando ${displayed.length} de ${totalMatches} jugadores
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">
+                  ${displayed.map(p => html`
                     <button
-                      style="all:unset; cursor:pointer; padding:8px; border:2px solid var(--ink); background:var(--paper-2); box-shadow:2px 2px 0 0 var(--ink); display:flex; flex-direction:column; justify-content:center; gap:2px; font-family:var(--font-mono); font-size:11px;"
-                      @click=${() => this._selectPlayer(participant, p)}
+                      style="all:unset; cursor:pointer; padding:8px; border:2px solid var(--ink); background:var(--paper-2); box-shadow:2px 2px 0 0 var(--ink); display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:10px;"
+                      @click=${() => this._selectPlayer(participant, p, p.teamId)}
                     >
-                      <div style="font-family:var(--font-var); font-size:12px; font-weight:bold; color:var(--ink);">${p.name}</div>
-                      <div style="font-size:9px; color:var(--dim); display:flex; justify-content:space-between; width:100%;">
-                        <span>Dorsal: ${p.number}</span>
-                        <span>Pos: ${p.position}</span>
+                      <div style="width:28px; height:28px; border-radius:50%; border:1.5px solid var(--ink); background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:9px; font-weight:bold; overflow:hidden;">
+                        ${p.photoUrl
+                          ? html`<img src=${p.photoUrl} alt="" style="width:100%;height:100%;object-fit:cover;">`
+                          : p.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div style="min-width:0; flex:1;">
+                        <div style="font-family:var(--font-var); font-size:12px; font-weight:bold; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</div>
+                        <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+                          ${renderFlag(TEAMS_2026.find(t => t.id === p.teamId)!, 'xs')}
+                          <span style="color:var(--dim);">${p.teamId}</span>
+                          <span style="margin-left:auto; font-size:9px;">#${p.number} · ${p.position}</span>
+                        </div>
+                        <div style="font-size:9px; color:var(--dim); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.club}</div>
                       </div>
                     </button>
                   `)}
                 </div>
-              </div>
-            ` : html`
-              <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:24px; border:2px dashed var(--ink); background:var(--paper-2);">
-                Por favor, selecciona primero un país en la lista superior para desplegar su plantilla oficial de jugadores.
-              </div>
-            `}
+              `}
           </div>
 
           <div style="border-top:3px solid var(--ink); padding:12px; display:flex; justify-content:flex-end;">

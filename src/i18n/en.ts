@@ -705,6 +705,8 @@ export const en: Record<TranslationKey, string> = {
   'league.live': 'LIVE',
   'league.liveLong': 'ON AIR',
   'league.leaderLabel': 'Leader',
+  'league.awardTopScorer': 'Top Scorer:',
+  'league.awardMvp': 'MVP:',
   'league.predictionsLabel': 'Predictions',
   'league.yourPos': 'Your pos.',
   'league.youLead': '★ You lead the league',
