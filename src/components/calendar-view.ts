@@ -97,6 +97,7 @@ export class CalendarView extends LitElement {
   @state() private selectedDate = 'all';
   @state() private selectedVenue = 'all';
   @state() private selectedPhase = 'all';
+  @state() private exporting: string | null = null;
 
   private unsubscribeStore?: () => void;
 
@@ -483,6 +484,114 @@ export class CalendarView extends LitElement {
         display: none;
       }
     }
+
+    .export-section {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 18px;
+      margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .export-title {
+      font-family: var(--font-var);
+      font-size: 20px;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-subtitle {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: -4px;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .export-card {
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: var(--shadow-hard-sm);
+    }
+
+    .export-card-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--ink);
+    }
+
+    .export-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .export-btn {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+      border: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: bold;
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      transition: all 0.1s ease;
+    }
+
+    .export-btn:hover:not(.disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .export-btn.excel {
+      background: var(--retro-green);
+      color: var(--paper);
+    }
+
+    .export-btn.pdf {
+      background: var(--retro-red);
+      color: var(--paper);
+    }
+
+    .export-btn.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: var(--shadow-hard-sm) !important;
+    }
+
+    @media (max-width: 768px) {
+      .export-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   `;
 
   private unsubscribeLocale?: () => void;
@@ -656,12 +765,111 @@ export class CalendarView extends LitElement {
     });
   }
 
+  private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
+    const key = `${phase}-${format}`;
+    if (this.exporting) return;
+    this.exporting = key;
+    try {
+      const {
+        exportCalendarExcel,
+        exportCalendarPdf,
+        fileNameBase,
+        triggerDownload,
+      } = await import('../lib/calendar-export-service');
+      const locale = useLocaleStore.getState().locale;
+      const ext = format === 'excel' ? 'xlsx' : 'pdf';
+      const blob = format === 'excel'
+        ? await exportCalendarExcel(phase, locale)
+        : await exportCalendarPdf(phase, locale);
+      triggerDownload(blob, `${fileNameBase(phase, locale)}.${ext}`);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.exporting = null;
+    }
+  }
+
   render() {
     const rows = this.getFilteredRows();
     const groupedRows = this.getGroupedRows(rows);
     const availableDates = [...new Set(this.getRows().map(row => row.date))];
+    const locale = useLocaleStore.getState().locale;
 
     return html`
+      <div class="export-section">
+        <h3 class="export-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          ${locale === 'en' ? 'DOWNLOAD TOURNAMENT CALENDAR' : 'DESCARGAR CALENDARIO DEL TORNEO'}
+        </h3>
+        <div class="export-subtitle">
+          ${locale === 'en' 
+            ? 'Get the clean official schedule or your active predictions' 
+            : 'Guarda el calendario oficial limpio o con tus predicciones activas'}
+        </div>
+        <div class="export-grid">
+          <!-- Calendario Completo -->
+          <div class="export-card">
+            <div class="export-card-title">${locale === 'en' ? 'Full Tournament' : 'Torneo Completo'}</div>
+            <div class="export-btn-group">
+              <button 
+                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('all', 'excel')}>
+                ${this.exporting === 'all-excel' ? '...' : 'EXCEL'}
+              </button>
+              <button 
+                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('all', 'pdf')}>
+                ${this.exporting === 'all-pdf' ? '...' : 'PDF'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Fase de Grupos -->
+          <div class="export-card">
+            <div class="export-card-title">${locale === 'en' ? 'Group Stage' : 'Fase de Grupos'}</div>
+            <div class="export-btn-group">
+              <button 
+                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('groups', 'excel')}>
+                ${this.exporting === 'groups-excel' ? '...' : 'EXCEL'}
+              </button>
+              <button 
+                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('groups', 'pdf')}>
+                ${this.exporting === 'groups-pdf' ? '...' : 'PDF'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Eliminatorias -->
+          <div class="export-card">
+            <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
+            <div class="export-btn-group">
+              <button 
+                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('knockout', 'excel')}>
+                ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
+              </button>
+              <button 
+                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
+                ?disabled=${this.exporting !== null}
+                @click=${() => this._exportCalendar('knockout', 'pdf')}>
+                ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="filters">
         <div class="filter-block">
           <div class="filter-label">Día</div>

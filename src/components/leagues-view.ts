@@ -19,6 +19,7 @@ import { buildProjectedScores } from '../lib/league-projection';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
 import { loadOfficialResults } from '../lib/official-results';
+import './league-rules-modal';
 
 const TOTAL_MATCHES = 104;
 
@@ -77,6 +78,7 @@ export class LeaguesView extends LitElement {
   @state() private _importFeedback: string | null = null;
   @state() private _syncing = false;
   @state() private _showJoinModal = false;
+  @state() private _showRulesModal = false;
   @state() private _joinCode = '';
   @state() private _joinError: string | null = null;
   @state() private _syncFeedback: string | null = null;
@@ -1665,6 +1667,33 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-section-bar .sort b { color: var(--ink); }
 
+    .lg-v2-help-link {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1.5px solid var(--ink);
+      padding: 3px 8px;
+      box-shadow: 1.5px 1.5px 0 0 var(--ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .lg-v2-help-link:hover {
+      background: var(--retro-yellow);
+      transform: translate(-0.5px, -0.5px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+    .lg-v2-help-link:active {
+      transform: translate(1px, 1px);
+      box-shadow: 0 0 0 0 var(--ink);
+    }
+
     .lg-v2-list { display: grid; gap: 14px; }
     .lg-v2-card {
       background: var(--paper-3);
@@ -2559,6 +2588,9 @@ export class LeaguesView extends LitElement {
     }
   }
 
+  private _openRulesModal = () => { this._showRulesModal = true; };
+  private _closeRulesModal = () => { this._showRulesModal = false; };
+
   private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; };
   private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; };
   private _submitJoinCode = () => {
@@ -3108,6 +3140,9 @@ export class LeaguesView extends LitElement {
         <div class="lg-v2-section-bar">
           <h3>${t('league.sectionMyLeagues')}</h3>
           <span class="count">${t('league.sectionCount', { n: String(leagues.length), m: String(totalMembers) })}</span>
+          <button class="lg-v2-help-link" style="margin-left: 8px;" @click=${this._openRulesModal}>
+            ℹ️ ${t('league.rulesBtn')}
+          </button>
           <span class="sort">${t('league.sortLabel')} <b>${t('league.sortByActivity')}</b></span>
         </div>
 
@@ -3622,7 +3657,10 @@ export class LeaguesView extends LitElement {
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--retro-yellow)"></span><b>+3</b> · ${t('league.kindDiff')}</span>
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper-2);border:1.5px solid var(--ink);"></span><b>+2</b> · ${t('league.kindSign')}</span>
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper);border:1.5px solid var(--ink);"></span><b>0</b> · ${t('league.legendMiss')}</span>
-          <span class="lg-v2-legend-item" style="margin-left:auto;">${t('league.lastUpdate')} · <b>${live ? t('league.minutesAgo', { n: String(Math.floor((Date.now() % 3600000) / 60000)) }) : '—'}</b></span>
+          <button class="lg-v2-help-link" style="margin-left: auto;" @click=${this._openRulesModal}>
+            ℹ️ ${t('league.rulesBtn')}
+          </button>
+          <span class="lg-v2-legend-item" style="margin-left: 12px;">${t('league.lastUpdate')} · <b>${live ? t('league.minutesAgo', { n: String(Math.floor((Date.now() % 3600000) / 60000)) }) : '—'}</b></span>
         </div>
 
         ${podiumOrder.length === 3 ? html`
@@ -4327,11 +4365,16 @@ export class LeaguesView extends LitElement {
   }
 
   render() {
+    let content;
     switch (this._screen) {
-      case 'list': return this._renderList();
-      case 'detail': return this._renderDetail();
-      case 'bracket': return this._renderBracket();
-      default: return html``;
+      case 'list': content = this._renderList(); break;
+      case 'detail': content = this._renderDetail(); break;
+      case 'bracket': content = this._renderBracket(); break;
+      default: content = html``;
     }
+    return html`
+      ${content}
+      <league-rules-modal ?open=${this._showRulesModal} @close=${this._closeRulesModal}></league-rules-modal>
+    `;
   }
 }
