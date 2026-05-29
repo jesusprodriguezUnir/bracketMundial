@@ -579,6 +579,7 @@ export const PLAYER_PHOTOS: ReadonlySet<string> = new Set<string>([
   'GHA-21',
   'GHA-22',
   'GHA-23',
+  'GHA-25',
   'GHA-3',
   'GHA-4',
   'GHA-5',
