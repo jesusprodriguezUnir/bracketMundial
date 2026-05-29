@@ -196,6 +196,114 @@ async function recordReel(opts) {
         await sleep(4500);
       }
 
+    } else if (viewKey === 'league') {
+      // ── recording: multi-phase interactive story for leagues ──
+      console.log('🎬 Fase 1: Entrada y Presentación');
+      if (opts.text) {
+        await injectTextOverlay(page, opts.text, { position: 'bottom' });
+      } else {
+        await injectTextOverlay(page, '🏆 ¡CREA TU LIGA PRIVADA!\nCompite con amigos', { position: 'bottom' });
+      }
+      await sleep(2500);
+
+      console.log('🎬 Fase 2: Automatización de Escritura');
+      await removeTextOverlay(page);
+      await sleep(300);
+      const customIntroText = lang === 'en'
+        ? '✍️ Give it a name and a nickname'
+        : '✍️ Dale un nombre y un apodo';
+      await injectTextOverlay(page, customIntroText, { position: 'bottom' });
+
+      // Escribir nombre de liga y propietario
+      const inputs = page.locator('.lg-v2-create-inline input');
+      const leagueNameVal = lang === 'en' ? 'The Office Pool' : 'La Porra del Trabajo';
+      const ownerNameVal = lang === 'en' ? 'Peter' : 'Pedro';
+      await inputs.nth(0).fill(leagueNameVal);
+      await sleep(1000);
+      await inputs.nth(1).fill(ownerNameVal);
+      await sleep(1000);
+
+      // Quitar el overlay antes de pulsar
+      await removeTextOverlay(page);
+      await sleep(300);
+
+      // Click en crear
+      console.log('🎬 Creando la liga...');
+      await page.locator('.lg-v2-create-inline button.primary').click();
+      await sleep(2000); // esperar transición a la pantalla de detalle
+
+      console.log('🎬 Fase 3: Código de Invitación');
+      const customInviteOverlayText = lang === 'en'
+        ? '📢 INVITE WITH A SINGLE CLICK!'
+        : '📢 ¡INVITA CON UN SOLO CLICK!';
+      await injectTextOverlay(page, customInviteOverlayText, { position: 'bottom' });
+      await sleep(1000);
+
+      // Click en copiar invitación (muestra banner inferior)
+      await page.locator('.lg-v2-copy').click();
+      await sleep(2500);
+
+      // Quitar overlay y cerrar banner de confirmación
+      await removeTextOverlay(page);
+      await sleep(300);
+      const closeBtn = page.locator('.lg-confirm-box button.lg-btn-back');
+      if (await closeBtn.isVisible()) {
+        await closeBtn.click();
+      }
+      await sleep(1000);
+
+      console.log('🎬 Fase 4: La Competencia En Vivo');
+      const liveCompOverlayText = lang === 'en'
+        ? '📈 LIVE LEADERBOARD\nUpdated after every match'
+        : '📈 CLASIFICACIÓN EN VIVO\nActualizada tras cada partido';
+      await injectTextOverlay(page, liveCompOverlayText, { position: 'bottom' });
+
+      // Inyectar 3 participantes programáticamente vía dynamic import en Vite
+      await page.evaluate(async () => {
+        const storeModule = await import('/src/store/leagues-store.ts');
+        const store = storeModule.useLeaguesStore.getState();
+        const activeId = store.activeLeagueId;
+        if (activeId) {
+          store.addEmptyParticipant(activeId, 'Sofía');
+          store.addEmptyParticipant(activeId, 'Carlos');
+          store.addEmptyParticipant(activeId, 'Marta');
+        }
+      });
+      await sleep(1200);
+
+      // Cambiar a pestaña Proyección (Simulación)
+      const chips = page.locator('.lg-league-chip-btn');
+      if (await chips.count() >= 2) {
+        await chips.nth(1).click();
+      }
+      await sleep(1200);
+
+      // Click en Simular Mundial
+      const simBtn = page.locator('.lg-simulate-world-btn');
+      if (await simBtn.isVisible()) {
+        await simBtn.click();
+      }
+      await sleep(2500);
+
+      // Quitar overlay
+      await removeTextOverlay(page);
+      await sleep(300);
+
+      console.log('🎬 Fase 5: Cierre Promocional y Scroll');
+      const endOverlayText = lang === 'en'
+        ? '⚽ PLAY FREE AT:\nbracketmundial.com'
+        : '⚽ JUEGA GRATIS EN:\nbracketmundial.com';
+      await injectTextOverlay(page, endOverlayText, { position: 'bottom' });
+      await sleep(1500);
+
+      // Scroll suave por el podio y la tabla
+      await smoothScroll(page, 550, 2000);
+      await sleep(1500);
+      await smoothScroll(page, 450, 1500);
+      await sleep(1500);
+      await smoothScroll(page, -1000, 2000);
+      await sleep(1500);
+
     } else {
       // ── original single-view scroll ──
       if (opts.text) {

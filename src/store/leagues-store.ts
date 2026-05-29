@@ -4,6 +4,7 @@ import { ExcelService, ExcelImportError } from '../lib/excel-service';
 import { GROUP_MATCHES } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from './tournament-store';
 import type { DecodedBracket } from '../lib/bracket-codec';
+import { useAuthStore } from './auth-store';
 
 export interface LeagueParticipant {
   id: string;
@@ -99,19 +100,22 @@ export const useLeaguesStore = createStore<LeaguesState>()(
       createLeague: (name, ownerName) => {
         const id = generateLid();
         const cleanedOwnerName = (ownerName ?? '').trim() || 'Me';
+        const userId = useAuthStore.getState().session?.user.id;
+        const pid = userId || generatePid();
         const league: League = {
           id,
           name: name.trim(),
           createdAt: Date.now(),
           participants: [
             {
-              id: generatePid(),
+              id: pid,
               name: cleanedOwnerName,
               addedAt: Date.now(),
               source: 'manual',
               groupScores: createEmptyGroupScores(),
               knockoutScores: createEmptyKnockoutScores(),
               isOwner: true,
+              userId,
             },
           ],
         };
@@ -186,8 +190,15 @@ export const useLeaguesStore = createStore<LeaguesState>()(
 
       joinLeagueFromInvite: (leagueId, name, participantName) => {
         const existing = get().leagues.find(l => l.id === leagueId);
+        const userId = useAuthStore.getState().session?.user.id;
+
         if (existing) {
-          const pid = generatePid();
+          const already = existing.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+          if (already) {
+            return already.id;
+          }
+
+          const pid = userId || generatePid();
           const participant: LeagueParticipant = {
             id: pid,
             name: participantName.trim(),
@@ -195,6 +206,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
             source: 'manual',
             groupScores: createEmptyGroupScores(),
             knockoutScores: createEmptyKnockoutScores(),
+            userId,
           };
           set({
             leagues: get().leagues.map(l =>
@@ -207,24 +219,26 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           return pid;
         }
 
+        const pid = userId || generatePid();
         const league: League = {
           id: leagueId,
           name: name.trim(),
           createdAt: Date.now(),
           participants: [
             {
-              id: generatePid(),
+              id: pid,
               name: participantName.trim(),
               addedAt: Date.now(),
               source: 'manual',
               groupScores: createEmptyGroupScores(),
               knockoutScores: createEmptyKnockoutScores(),
               isOwner: true,
+              userId,
             },
           ],
         };
         set({ leagues: [...get().leagues, league], activeLeagueId: leagueId });
-        return league.participants[0].id;
+        return pid;
       },
 
       importParticipantFromShare: (leagueId, participantName, groupScores, knockoutScores, topScorer, mvp) => {

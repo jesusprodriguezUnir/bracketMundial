@@ -1215,8 +1215,8 @@ export class GuideView extends LitElement {
       width: 34px;
       height: 34px;
       border-radius: 50%;
-      border: 2.5px solid var(--ink);
-      background: var(--player-bg, var(--retro-blue));
+      border: 2.5px solid var(--paper);
+      background: var(--player-bg, var(--ink));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1226,21 +1226,22 @@ export class GuideView extends LitElement {
       box-shadow: var(--shadow-hard-sm);
       position: relative;
     }
-    .player-card.gk .player-photo { background: var(--retro-yellow); color: var(--ink); }
+    .player-card.gk .player-photo { background: var(--retro-yellow); color: var(--ink); border: 2.5px solid var(--paper); }
     .player-photo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
     .player-name {
       font-family: var(--font-body);
       font-size: 9.5px;
       font-weight: 800;
       letter-spacing: 0.01em;
-      color: var(--paper);
-      background: var(--ink);
-      border: 1.5px solid var(--paper);
+      color: var(--ink);
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
       padding: 1px 5px;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      box-shadow: 2px 2px 0 var(--ink);
     }
     .pitch-bench {
       display: flex;
@@ -2317,7 +2318,7 @@ export class GuideView extends LitElement {
             return html`
               <div
                 class="player-card ${p.position === 'GK' ? 'gk' : ''}"
-                style="left:${x}%;top:${(y / 150) * 100}%;--player-bg:var(--retro-blue)"
+                style="left:${x}%;top:${(y / 150) * 100}%;--player-bg:var(--ink)"
                 title="${p.name}">
                 <div class="player-photo">${p.number}</div>
                 <div class="player-name">${lastName(p.name)}</div>

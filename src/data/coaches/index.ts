@@ -466,12 +466,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   GHA: {
-    name: 'Otto Addo',
-    born: '1975-06-09',
-    nationality: 'Ghana',
+    name: 'Carlos Queiroz',
+    born: '1953-03-01',
+    nationality: 'Portugal',
     bio: {
-      es: 'Exmediocampista del Borussia Dortmund. Regresó para liderar las Estrellas Negras en las eliminatorias mundialistas.',
-      en: 'Former Borussia Dortmund midfielder. He returned to lead the Black Stars through World Cup qualifying.',
+      es: 'Experimentado técnico portugués que ha dirigido al Real Madrid, la selección de Portugal, Irán, Colombia, Egipto y Qatar, entre otras. Asumió las riendas de Ghana en 2026 para liderar a las Black Stars en la Copa del Mundo.',
+      en: 'Highly experienced Portuguese manager who has coached Real Madrid, the Portugal national team, Iran, Colombia, Egypt, and Qatar, among others. He took charge of Ghana in 2026 to lead the Black Stars in the World Cup.',
     },
   },
   PAN: {

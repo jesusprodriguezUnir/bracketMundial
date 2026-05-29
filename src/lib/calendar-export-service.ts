@@ -1,7 +1,6 @@
 import ExcelJS from 'exceljs';
-import { GROUP_MATCHES, KNOCKOUT_SCHEDULE } from '../data/match-schedule';
+import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { TEAMS_2026 } from '../data/fifa-2026';
-import { STADIUMS } from '../data/stadiums';
 import type { Locale } from '../i18n';
 import type { TranslationKey } from '../i18n/es';
 import { es } from '../i18n/es';
@@ -124,40 +123,43 @@ export interface DayBox {
   boxColorIdx: number;
 }
 
+import { useTournamentStore } from '../store/tournament-store';
+
 export function getRows(phase: CalendarPhase, locale: Locale): CalendarRow[] {
   const rows: CalendarRow[] = [];
+  const state = useTournamentStore.getState();
 
   if (phase === 'all' || phase === 'groups') {
-    for (const m of GROUP_MATCHES) {
-      const stadium = STADIUMS.find(s => s.id === m.venueId);
+    for (const m of state.groupMatches) {
       rows.push({
         matchId: m.matchId,
-        date: m.date,
-        timeSpain: m.timeSpain,
+        date: m.date ?? '',
+        timeSpain: m.timeSpain ?? '',
         teamA: m.teamA,
         teamB: m.teamB,
-        scoreA: null,
-        scoreB: null,
+        scoreA: m.scoreA,
+        scoreB: m.scoreB,
         matchDayLabel: locale === 'en' ? `MD${m.matchDay}` : `J${m.matchDay}`,
-        venue: stadium?.name ?? m.venueId,
-        city: stadium?.city ?? '',
+        venue: m.venue ?? '',
+        city: m.city ?? '',
       });
     }
   }
 
   if (phase === 'all' || phase === 'knockout') {
     for (const [matchId, m] of Object.entries(KNOCKOUT_SCHEDULE)) {
+      const match = state.knockoutMatches[matchId];
       rows.push({
         matchId,
-        date: m.date,
-        timeSpain: m.timeSpain,
-        teamA: null,
-        teamB: null,
-        scoreA: null,
-        scoreB: null,
+        date: match?.date ?? m.date,
+        timeSpain: match?.timeSpain ?? m.timeSpain,
+        teamA: match?.teamA ?? null,
+        teamB: match?.teamB ?? null,
+        scoreA: match?.scoreA ?? null,
+        scoreB: match?.scoreB ?? null,
         matchDayLabel: localizedKnockoutPhase(matchId, locale),
-        venue: m.venue,
-        city: m.city,
+        venue: match?.venue ?? m.venue,
+        city: match?.city ?? m.city,
       });
     }
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreMatch, scoreParticipant, rankParticipants, MUNDIAL_POINTS } from './mini-league';
+import { scoreMatch, scoreParticipant, rankParticipants, MUNDIAL_POINTS, REAL_AWARDS } from './mini-league';
 import type { Participant, ParticipantScore } from './mini-league';
 
 // --- scoreMatch ---
@@ -357,6 +357,10 @@ describe('league end-to-end', () => {
       mvp: { teamId: 'ARG', playerName: 'Lionel Messi' },
     });
 
+    // Set mock awards
+    REAL_AWARDS.topScorer = { teamId: 'FRA', playerName: 'Kylian Mbappé' };
+    REAL_AWARDS.mvp = { teamId: 'ARG', playerName: 'Lionel Messi' };
+
     // Score participant with 72 matches to trigger isRealBracket branch
     const result = scoreParticipant(participant, dummyGroupMatches, []);
 
@@ -365,5 +369,9 @@ describe('league end-to-end', () => {
     expect(result.awardsCorrect.mvp).toBe(true);
     expect(result.byPhase.awards).toBe(30); // 15 + 15
     expect(result.total).toBeGreaterThanOrEqual(30);
+
+    // Reset awards to avoid side effects
+    REAL_AWARDS.topScorer = null;
+    REAL_AWARDS.mvp = null;
   });
 });

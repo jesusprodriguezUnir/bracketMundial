@@ -5,12 +5,6 @@ import { GROUP_MATCHES } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from '../store/tournament-store';
 import type { DecodedBracket } from './bracket-codec';
 
-const DEBOUNCE_MS = 4000;
-
-let _unsub: (() => void) | null = null;
-let _timer: ReturnType<typeof setTimeout> | null = null;
-let _pendingSync = false;
-
 // ── Helpers ──
 
 function createEmptyGroupScores(): DecodedBracket['groupScores'] {
@@ -31,7 +25,7 @@ function createEmptyKnockoutScores(): DecodedBracket['knockoutScores'] {
   }));
 }
 
-function predictionsToJson(
+export function predictionsToJson(
   groupScores: DecodedBracket['groupScores'],
   knockoutScores: DecodedBracket['knockoutScores'],
   topScorer?: DecodedBracket['topScorer'],
@@ -40,7 +34,7 @@ function predictionsToJson(
   return { groupScores, knockoutScores, topScorer, mvp };
 }
 
-function jsonToPredictions(json: unknown): {
+export function jsonToPredictions(json: unknown): {
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
   topScorer: DecodedBracket['topScorer'] | null;
@@ -184,13 +178,11 @@ export async function onSignedIn(): Promise<void> {
 
   if (memErr) {
     console.error('[league-sync] error al cargar memberships:', memErr);
-    startSync();
     return;
   }
 
   if (!memberships || memberships.length === 0) {
     console.log('[league-sync] onSignedIn: no hay ligas en la nube');
-    startSync();
     return;
   }
 
@@ -204,7 +196,6 @@ export async function onSignedIn(): Promise<void> {
 
   if (leagueErr) {
     console.error('[league-sync] error al cargar ligas:', leagueErr);
-    startSync();
     return;
   }
 
@@ -215,30 +206,60 @@ export async function onSignedIn(): Promise<void> {
 
   if (membersErr) {
     console.error('[league-sync] error al cargar miembros:', membersErr);
-    startSync();
     return;
   }
 
   console.log(`[league-sync] onSignedIn: ${cloudMembers?.length ?? 0} miembros cargados`);
-  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
-
   adoptLocalLeagues(userId);
-
-  startSync();
-
-  // Subir ligas locales recién adoptadas sin esperar al debounce.
-  void pushChanges();
+  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
 }
 
 export async function forcePushAll(): Promise<{ ok: boolean; count: number; userId: string | null }> {
   const userId = useAuthStore.getState().session?.user.id ?? null;
   if (!userId) return { ok: false, count: 0, userId: null };
   adoptLocalLeagues(userId);
+
+  const sb = getSupabase();
+  if (!sb) return { ok: false, count: 0, userId };
+
   const store = useLeaguesStore.getState();
-  const count = store.leagues.filter(l =>
+  const myLeagues = store.leagues.filter(l =>
     l.participants.some(p => p.userId === userId || p.isOwner),
-  ).length;
-  await pushChanges();
+  );
+
+  let count = 0;
+  for (const league of myLeagues) {
+    const me = league.participants.find(p => p.userId === userId || p.isOwner);
+    if (!me) continue;
+
+    const hasPredictions = me.groupScores.some(s => s.scoreA !== null)
+      || me.knockoutScores.some(s => s.scoreA !== null)
+      || !!me.topScorer
+      || !!me.mvp;
+
+    try {
+      await sb.from('leagues').upsert(
+        { id: league.id, name: league.name, owner_id: userId },
+        { onConflict: 'id' },
+      );
+
+      await sb.from('league_members').upsert(
+        {
+          league_id: league.id,
+          user_id: userId,
+          name: me.name,
+          predictions: hasPredictions
+            ? predictionsToJson(me.groupScores, me.knockoutScores, me.topScorer, me.mvp)
+            : null,
+        },
+        { onConflict: 'league_id, user_id' },
+      );
+      count++;
+    } catch (err) {
+      console.error('[league-sync] error en forcePushAll:', err);
+    }
+  }
+
   return { ok: true, count, userId };
 }
 
@@ -310,108 +331,26 @@ function mergeParticipants(
   cloud: LeagueParticipant[],
 ): LeagueParticipant[] {
   const merged = new Map<string, LeagueParticipant>();
-  for (const p of local) merged.set(p.id, p);
-  for (const p of cloud) merged.set(p.id, p);
-  return [...merged.values()];
-}
-
-// ── Sync (local → cloud, debounced) ──
-
-async function pushChanges(): Promise<void> {
-  _timer = null;
-  _pendingSync = false;
-
-  const sb = getSupabase();
-  const session = useAuthStore.getState().session;
-  const userId = session?.user.id;
-  if (!sb || !userId) {
-    console.log('[league-sync] pushChanges: sin sesión activa, omitiendo');
-    return;
+  for (const p of local) {
+    const key = p.userId || p.id;
+    merged.set(key, p);
   }
-
-  const store = useLeaguesStore.getState();
-  const myLeagues = store.leagues.filter(l =>
-    l.participants.some(p => p.userId === userId || p.isOwner),
-  );
-
-  if (myLeagues.length === 0) {
-    console.log('[league-sync] pushChanges: no hay ligas propias, omitiendo');
-    return;
-  }
-
-  console.log(`[league-sync] pushChanges: sincronizando ${myLeagues.length} ligas para user ${userId}`);
-
-  for (const league of myLeagues) {
-    const me = league.participants.find(p => p.userId === userId || p.isOwner);
-    if (!me) continue;
-
-    const hasPredictions = me.groupScores.some(s => s.scoreA !== null)
-      || me.knockoutScores.some(s => s.scoreA !== null)
-      || !!me.topScorer
-      || !!me.mvp;
-
-    try {
-      const { data: leagueData, error: leagueErr } = await sb.from('leagues').upsert(
-        { id: league.id, name: league.name, owner_id: userId },
-        { onConflict: 'id' },
-      ).select();
-      if (leagueErr) {
-        console.error('[league-sync] error upsert league:', leagueErr, { leagueId: league.id, name: league.name });
-      } else {
-        console.log('[league-sync] upsert league OK:', leagueData);
-      }
-
-      const { data: memberData, error: memberErr } = await sb.from('league_members').upsert(
-        {
-          league_id: league.id,
-          user_id: userId,
-          name: me.name,
-          predictions: hasPredictions
-            ? predictionsToJson(me.groupScores, me.knockoutScores, me.topScorer, me.mvp)
-            : null,
-        },
-        { onConflict: 'league_id, user_id' },
-      ).select();
-      if (memberErr) {
-        console.error('[league-sync] error upsert member:', memberErr, { leagueId: league.id, name: me.name });
-      } else {
-        console.log('[league-sync] upsert member OK:', memberData);
-      }
-    } catch (err) {
-      console.error('[league-sync] error en pushChanges:', err);
+  for (const p of cloud) {
+    const key = p.userId || p.id;
+    const existing = merged.get(key);
+    if (existing) {
+      merged.set(key, {
+        ...existing,
+        ...p,
+        isOwner: existing.isOwner || p.isOwner,
+        userId: existing.userId || p.userId,
+        id: p.id || existing.id,
+      });
+    } else {
+      merged.set(key, p);
     }
   }
-}
-
-function scheduleUpload(): void {
-  _pendingSync = true;
-  if (_timer) clearTimeout(_timer);
-  _timer = setTimeout(() => { void pushChanges(); }, DEBOUNCE_MS);
-}
-
-function flushIfPending(): void {
-  if (!_pendingSync) return;
-  if (_timer) { clearTimeout(_timer); _timer = null; }
-  void pushChanges();
-}
-
-export function startSync(): void {
-  if (_unsub) return;
-  console.log('[league-sync] startSync: suscribiendo a cambios del store');
-  _unsub = useLeaguesStore.subscribe(scheduleUpload);
-  document.addEventListener('visibilitychange', _onVisibilityChange);
-}
-
-export function stopSync(): void {
-  _unsub?.();
-  _unsub = null;
-  if (_timer) { clearTimeout(_timer); _timer = null; }
-  _pendingSync = false;
-  document.removeEventListener('visibilitychange', _onVisibilityChange);
-}
-
-function _onVisibilityChange(): void {
-  if (document.visibilityState === 'hidden') flushIfPending();
+  return [...merged.values()];
 }
 
 // ── Manual refresh ──

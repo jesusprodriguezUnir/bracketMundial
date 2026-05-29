@@ -2,7 +2,7 @@ import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
 import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
-import { scoreParticipant, rankParticipants } from '../lib/mini-league';
+import { scoreParticipant, rankParticipants, REAL_AWARDS } from '../lib/mini-league';
 import type { ParticipantScore, MatchPoints } from '../lib/mini-league';
 import { buildResolvedKnockout } from '../lib/bracket-logic';
 import { KNOCKOUT_BRACKET, TEAMS_2026 } from '../data/fifa-2026';
@@ -18,6 +18,8 @@ import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '
 import { buildProjectedScores } from '../lib/league-projection';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
+import { loadOfficialResults } from '../lib/official-results';
+import './league-rules-modal';
 
 const TOTAL_MATCHES = 104;
 
@@ -76,11 +78,15 @@ export class LeaguesView extends LitElement {
   @state() private _importFeedback: string | null = null;
   @state() private _syncing = false;
   @state() private _showJoinModal = false;
+  @state() private _showRulesModal = false;
   @state() private _joinCode = '';
   @state() private _joinError: string | null = null;
   @state() private _syncFeedback: string | null = null;
   @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
   @state() private _selectedTeamIdForSelector = '';
+  @state()   private _officialBracket: DecodedBracket | null = null;
+  private _initialMount = true;
+  @state() private _awardsSearchQuery = '';
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
@@ -1661,6 +1667,33 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-section-bar .sort b { color: var(--ink); }
 
+    .lg-v2-help-link {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1.5px solid var(--ink);
+      padding: 3px 8px;
+      box-shadow: 1.5px 1.5px 0 0 var(--ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .lg-v2-help-link:hover {
+      background: var(--retro-yellow);
+      transform: translate(-0.5px, -0.5px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+    .lg-v2-help-link:active {
+      transform: translate(1px, 1px);
+      box-shadow: 0 0 0 0 var(--ink);
+    }
+
     .lg-v2-list { display: grid; gap: 14px; }
     .lg-v2-card {
       background: var(--paper-3);
@@ -2202,6 +2235,14 @@ export class LeaguesView extends LitElement {
       animation: lg-v2-pulse 1.4s infinite;
     }
 
+    .lg-v2-edit-prediction-row {
+      margin-bottom: 14px;
+    }
+    .lg-v2-edit-prediction-row .lg-v2-btn {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 18px;
+    }
     .lg-v2-cta-row {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -2335,6 +2376,112 @@ export class LeaguesView extends LitElement {
       .lg-v2-cta-row { grid-template-columns: 1fr; }
       .lg-v2-create-inline { flex-direction: column; }
     }
+
+    /* ── Barra / Panel de Premios Individuales en Ligas ── */
+    .lg-awards-panel {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 6px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .lg-awards-title {
+      font-family: var(--font-var);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink);
+    }
+    .lg-awards-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .lg-award-card {
+      flex: 1;
+      min-width: 0;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .lg-award-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .lg-award-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .lg-award-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .lg-award-category {
+      color: var(--dim);
+      font-size: 7px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .lg-award-value {
+      font-family: var(--font-var);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    @media (min-width: 769px) {
+      .lg-awards-panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 10px;
+        gap: 12px;
+      }
+      .lg-awards-title {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-right: 4px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      .lg-awards-grid {
+        flex: 1;
+        gap: 8px;
+      }
+      .lg-award-card {
+        padding: 3px 6px;
+      }
+    }
+    @media (max-width: 768px) {
+      .lg-awards-grid {
+        flex-wrap: wrap;
+      }
+      .lg-award-card {
+        min-width: 130px;
+      }
+    }
   `;
 
   connectedCallback() {
@@ -2347,6 +2494,10 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._unsubAuth = useAuthStore.subscribe(() => this.requestUpdate());
+    loadOfficialResults().then(bracket => {
+      this._officialBracket = bracket;
+      this._recalc();
+    }).catch(() => { this._recalc(); });
     this._recalc();
   }
 
@@ -2364,12 +2515,48 @@ export class LeaguesView extends LitElement {
     this._recalc();
   }
 
+  private _getOfficialRealScores(): { groupScores: RealScores[]; knockoutScores: RealScores[] } {
+    if (this._officialBracket) {
+      const groupScores: RealScores[] = this._officialBracket.groupScores.map(s => ({
+        matchId: s.matchId,
+        scoreA: s.scoreA,
+        scoreB: s.scoreB,
+      }));
+      const knockoutOrder = getKnockoutMatchOrder();
+      const koMap = new Map(this._officialBracket.knockoutScores.map(s => [s.matchId, s]));
+      const knockoutScores: RealScores[] = knockoutOrder.map(matchId => {
+        const s = koMap.get(matchId);
+        return { matchId, scoreA: s?.scoreA ?? null, scoreB: s?.scoreB ?? null };
+      });
+      return { groupScores, knockoutScores };
+    }
+    const groupScores: RealScores[] = GROUP_MATCHES.map(m => ({
+      matchId: m.matchId,
+      scoreA: null,
+      scoreB: null,
+    }));
+    const knockoutOrder = getKnockoutMatchOrder();
+    const knockoutScores: RealScores[] = knockoutOrder.map(matchId => ({
+      matchId,
+      scoreA: null,
+      scoreB: null,
+    }));
+    return { groupScores, knockoutScores };
+  }
+
   private _recalc() {
     const leaguesState = useLeaguesStore.getState();
     this._leagues = leaguesState.leagues;
     this._activeLeagueId = leaguesState.activeLeagueId;
 
     if (this._screen !== 'bracket') {
+      if (this._initialMount) {
+        this._initialMount = false;
+        if (this._leagues.length > 0) {
+          this._manualListMode = true;
+          this._screen = 'list';
+        }
+      }
       if (this._leagues.length === 0) {
         this._screen = 'list';
         this._manualListMode = false;
@@ -2388,18 +2575,7 @@ export class LeaguesView extends LitElement {
       }
     }
 
-    const tournament = useTournamentStore.getState();
-
-    const rawRealGroupScores = realGroupScoresFromStore();
-    const realKnockoutOrder = getKnockoutMatchOrder();
-    const rawRealKnockoutScores = realKnockoutOrder.map(matchId => {
-      const m = tournament.knockoutMatches[matchId];
-      return {
-        matchId,
-        scoreA: m?.scoreA ?? null,
-        scoreB: m?.scoreB ?? null,
-      };
-    });
+    const { groupScores: rawRealGroupScores, knockoutScores: rawRealKnockoutScores } = this._getOfficialRealScores();
 
     const realGroupScores = filterRealByDate(rawRealGroupScores);
     const realKnockoutScores = filterRealByDate(rawRealKnockoutScores);
@@ -2461,6 +2637,12 @@ export class LeaguesView extends LitElement {
     this._editBuffer = new Map();
   }
 
+  private async _editPredictionForLeague() {
+    if (!this._activeLeagueId) return;
+    await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
+    this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
+  }
+
   // ── v2 design helpers ──
   private static readonly _AVATAR_POOL = ['⚽','⭐','🏆','🔥','🎯','🚀','🐯','🐎','🎉','🥇','🎨','🦁','🐺','🐉','⚡'];
   private static readonly _COLOR_POOL = ['var(--retro-orange)','var(--retro-green)','var(--retro-blue)','var(--retro-red)','var(--retro-yellow)'];
@@ -2499,13 +2681,9 @@ export class LeaguesView extends LitElement {
     const league = this._leagues.find(l => l.id === leagueId);
     if (!league || league.participants.length === 0) return null;
     try {
-      const realGroupScores = filterRealByDate(realGroupScoresFromStore());
-      const realKnockoutOrder = getKnockoutMatchOrder();
-      const tournament = useTournamentStore.getState();
-      const realKnockoutScores = filterRealByDate(realKnockoutOrder.map(matchId => {
-        const m = tournament.knockoutMatches[matchId];
-        return { matchId, scoreA: m?.scoreA ?? null, scoreB: m?.scoreB ?? null };
-      }));
+      const { groupScores: rawGroup, knockoutScores: rawKo } = this._getOfficialRealScores();
+      const realGroupScores = filterRealByDate(rawGroup);
+      const realKnockoutScores = filterRealByDate(rawKo);
       const scored = league.participants.map(p => scoreParticipant(p, realGroupScores, realKnockoutScores));
       const ranked = rankParticipants(scored);
       const ownerIdx = ranked.findIndex(p => p.participant.isOwner === true);
@@ -2516,6 +2694,9 @@ export class LeaguesView extends LitElement {
     }
   }
 
+  private _openRulesModal = () => { this._showRulesModal = true; };
+  private _closeRulesModal = () => { this._showRulesModal = false; };
+
   private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; };
   private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; };
   private _submitJoinCode = () => {
@@ -2524,13 +2705,14 @@ export class LeaguesView extends LitElement {
     const formatted = code.length <= 3 ? code.padEnd(3, 'X') : `${code.slice(0,3)}-${code.slice(3,7)}`;
     const match = this._leagues.find(l => this._codeForLeague(l) === formatted);
     if (!match) { this._joinError = t('league.joinCodeNotFound'); return; }
-    const alreadyOwner = match.participants.some(p => p.isOwner === true);
-    if (alreadyOwner) {
+    const session = useAuthStore.getState().session;
+    const userId = session?.user?.id;
+    const alreadyParticipant = match.participants.some(p => p.isOwner === true || (userId && p.userId === userId));
+    if (alreadyParticipant) {
       this._closeJoinModal();
       this._goToDetail(match.id);
       return;
     }
-    const session = useAuthStore.getState().session;
     const displayName = session?.user?.email?.split('@')[0] ?? t('league.you');
     useLeaguesStore.getState().joinLeagueFromInvite(match.id, match.name, displayName);
     this._closeJoinModal();
@@ -3065,6 +3247,9 @@ export class LeaguesView extends LitElement {
         <div class="lg-v2-section-bar">
           <h3>${t('league.sectionMyLeagues')}</h3>
           <span class="count">${t('league.sectionCount', { n: String(leagues.length), m: String(totalMembers) })}</span>
+          <button class="lg-v2-help-link" style="margin-left: 8px;" @click=${this._openRulesModal}>
+            ℹ️ ${t('league.rulesBtn')}
+          </button>
           <span class="sort">${t('league.sortLabel')} <b>${t('league.sortByActivity')}</b></span>
         </div>
 
@@ -3124,23 +3309,67 @@ export class LeaguesView extends LitElement {
                         : html`<span class="lg-v2-pos"><span class="hash">#</span>—</span>`}
                     </div>
 
-                    <div class="lg-v2-card-actions-row">
-                      <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
-                      <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
-                    </div>
+                    ${(() => {
+                      const authUserId = useAuthStore.getState().session?.user?.id;
+                      const ownerParticipant = l.participants.find(p => p.isOwner);
+                      const myParticipant = authUserId ? l.participants.find(p => p.userId === authUserId) : null;
+                      const displayParticipant = myParticipant ?? ownerParticipant ?? l.participants[0];
+                      if (!displayParticipant) return '';
+                      return html`
+                        <div style="grid-column:1/-1; display:flex; gap:14px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed rgba(26,25,51,0.18); font-family:var(--font-mono); font-size:10px;">
+                          <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:13px;">👟</span>
+                            <span style="color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">${t('league.awardTopScorer')}</span>
+                            <b>${displayParticipant.topScorer ? html`${displayParticipant.topScorer.teamId} · ${displayParticipant.topScorer.playerName}` : '—'}</b>
+                          </div>
+                          <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:13px;">⭐</span>
+                            <span style="color:var(--dim); text-transform:uppercase; letter-spacing:0.04em;">${t('league.awardMvp')}</span>
+                            <b>${displayParticipant.mvp ? html`${displayParticipant.mvp.teamId} · ${displayParticipant.mvp.playerName}` : '—'}</b>
+                          </div>
+                        </div>
+                      `;
+                    })()}
+
+                    ${(() => {
+                      const session = useAuthStore.getState().session;
+                      const userId = session?.user?.id;
+                      const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+                      const isOwnerOfCard = me?.isOwner === true;
+                      
+                      return html`
+                        <div class="lg-v2-card-actions-row">
+                          ${isOwnerOfCard ? html`
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
+                          ` : html`
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.leave')}</button>
+                          `}
+                        </div>
+                      `;
+                    })()}
                   </article>
                 `;
               })}
             </div>
           `}
 
-        ${this._confirmDeleteLeague ? html`
-          <div class="lg-confirm-box">
-            <span>${t('league.confirmDelete')}</span>
-            <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
-            <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
-          </div>
-        ` : ''}
+        ${this._confirmDeleteLeague ? (() => {
+          const l = this._leagues.find(item => item.id === this._confirmDeleteLeague);
+          if (!l) return '';
+          const session = useAuthStore.getState().session;
+          const userId = session?.user?.id;
+          const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+          const isOwnerOfConfirm = me?.isOwner === true;
+          
+          return html`
+            <div class="lg-confirm-box">
+              <span>${isOwnerOfConfirm ? t('league.confirmDelete') : t('league.confirmLeave')}</span>
+              <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
+              <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+            </div>
+          `;
+        })() : ''}
 
         <div class="lg-v2-foot">
           <span class="star">★</span> ${t('league.footNote')} <span class="star">★</span>
@@ -3344,7 +3573,9 @@ export class LeaguesView extends LitElement {
                 ${participant?.topScorer ? html`
                   <b>${participant.topScorer.playerName}</b>
                   <span style="color:var(--dim); font-size:10px;">(${participant.topScorer.teamId})</span>
-                  <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
+                  ${REAL_AWARDS.topScorer ? html`
+                    <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
+                  ` : ''}
                 ` : '—'}
               </div>
             </div>
@@ -3357,7 +3588,9 @@ export class LeaguesView extends LitElement {
                 ${participant?.mvp ? html`
                   <b>${participant.mvp.playerName}</b>
                   <span style="color:var(--dim); font-size:10px;">(${participant.mvp.teamId})</span>
-                  <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
+                  ${REAL_AWARDS.mvp ? html`
+                    <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
+                  ` : ''}
                 ` : '—'}
               </div>
             </div>
@@ -3450,6 +3683,11 @@ export class LeaguesView extends LitElement {
       this._screen = 'list';
       return html``;
     }
+
+    const session = useAuthStore.getState().session;
+    const userId = session?.user?.id;
+    const me = league.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+    const isOwner = me?.isOwner === true;
 
     const played = this._playedCount;
 
@@ -3553,7 +3791,10 @@ export class LeaguesView extends LitElement {
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--retro-yellow)"></span><b>+3</b> · ${t('league.kindDiff')}</span>
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper-2);border:1.5px solid var(--ink);"></span><b>+2</b> · ${t('league.kindSign')}</span>
           <span class="lg-v2-legend-item"><span class="dot" style="background:var(--paper);border:1.5px solid var(--ink);"></span><b>0</b> · ${t('league.legendMiss')}</span>
-          <span class="lg-v2-legend-item" style="margin-left:auto;">${t('league.lastUpdate')} · <b>${live ? t('league.minutesAgo', { n: String(Math.floor((Date.now() % 3600000) / 60000)) }) : '—'}</b></span>
+          <button class="lg-v2-help-link" style="margin-left: auto;" @click=${this._openRulesModal}>
+            ℹ️ ${t('league.rulesBtn')}
+          </button>
+          <span class="lg-v2-legend-item" style="margin-left: 12px;">${t('league.lastUpdate')} · <b>${live ? t('league.minutesAgo', { n: String(Math.floor((Date.now() % 3600000) / 60000)) }) : '—'}</b></span>
         </div>
 
         ${podiumOrder.length === 3 ? html`
@@ -3637,6 +3878,16 @@ export class LeaguesView extends LitElement {
           </div>
         </div>
 
+        <div class="lg-v2-edit-prediction-row">
+          <button class="lg-v2-btn primary" @click=${this._editPredictionForLeague}>
+            <span class="lg-v2-btn-ic">✎</span>
+            <span>
+              Editar mi predicción en esta liga<br/>
+              <span class="lg-v2-btn-sub">Grupos, eliminatorias, MVP y goleador independientes</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+        </div>
         <div class="lg-v2-cta-row">
           <button class="lg-v2-btn primary" @click=${this._showSharePredictionsModal}>
             <span class="lg-v2-btn-ic">★</span>
@@ -3657,8 +3908,8 @@ export class LeaguesView extends LitElement {
           <button class="lg-v2-btn" @click=${() => this._requestDeleteLeague(league.id)}>
             <span class="lg-v2-btn-ic">⚙</span>
             <span>
-              ${t('league.ctaSettings')}<br/>
-              <span class="lg-v2-btn-sub">${t('league.ctaSettingsSub')}</span>
+              ${isOwner ? t('league.ctaSettings') : t('league.leave')}<br/>
+              <span class="lg-v2-btn-sub">${isOwner ? t('league.ctaSettingsSub') : t('league.ctaSettingsSubNotOwner')}</span>
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
@@ -3708,9 +3959,15 @@ export class LeaguesView extends LitElement {
           </div>
         ` : ''}
 
+        ${this._viewMode === 'real' && !this._officialBracket ? html`
+          <div class="lg-projection-banner" style="background:color-mix(in srgb, var(--retro-orange) 22%, var(--paper-3));">
+            <span>Aún sin resultados oficiales. Cambia a <b>Proyección</b> para ver pronósticos.</span>
+          </div>
+        ` : ''}
+
         ${this._confirmDeleteLeague ? html`
           <div class="lg-confirm-box">
-            <span>${t('league.confirmDelete')}</span>
+            <span>${isOwner ? t('league.confirmDelete') : t('league.confirmLeave')}</span>
             <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
             <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
           </div>
@@ -3857,21 +4114,23 @@ export class LeaguesView extends LitElement {
   private _openAwardsSelector(type: 'topScorer' | 'mvp') {
     this._showAwardsModal = type;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
   private _closeAwardsSelector() {
     this._showAwardsModal = null;
     this._selectedTeamIdForSelector = '';
+    this._awardsSearchQuery = '';
     this.requestUpdate();
   }
 
-  private async _selectPlayer(participant: LeagueParticipant, player: Player) {
+  private async _selectPlayer(participant: LeagueParticipant, player: Player, teamId?: string) {
     const type = this._showAwardsModal;
     if (!type) return;
 
-    const teamId = this._selectedTeamIdForSelector;
-    const awardVal = { teamId, playerName: player.name };
+    const resolvedTeamId = teamId ?? this._selectedTeamIdForSelector;
+    const awardVal = { teamId: resolvedTeamId, playerName: player.name };
 
     const store = useTournamentStore.getState();
     if (type === 'topScorer') {
@@ -3911,22 +4170,28 @@ export class LeaguesView extends LitElement {
     
     if (!isYou) {
       return html`
-        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:16px; margin-bottom:20px; display:flex; gap:16px; flex-wrap:wrap; position:relative;">
-          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:24px;">👟</span>
-            <div>
-              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
-              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
-                ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin elegir'}
+        <div class="lg-awards-panel" style="flex-direction: row; align-items: center;">
+          <div class="lg-awards-grid" style="width: 100%;">
+            <div class="lg-award-card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+              <div class="lg-award-main">
+                <span class="lg-award-icon">👟</span>
+                <div class="lg-award-info">
+                  <div class="lg-award-category">Máximo Goleador</div>
+                  <div class="lg-award-value">
+                    ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin elegir'}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:24px;">⭐</span>
-            <div>
-              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
-              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
-                ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin elegir'}
+            <div class="lg-award-card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+              <div class="lg-award-main">
+                <span class="lg-award-icon">⭐</span>
+                <div class="lg-award-info">
+                  <div class="lg-award-category">MVP del Campeonato</div>
+                  <div class="lg-award-value">
+                    ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin elegir'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3935,17 +4200,17 @@ export class LeaguesView extends LitElement {
     }
 
     return html`
-      <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:18px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; position:relative;">
-        <div style="font-family:var(--font-var); font-size:16px; font-weight:bold; letter-spacing:0.02em; border-bottom:2px solid var(--ink); padding-bottom:6px; display:flex; align-items:center; gap:8px;">
+      <div class="lg-awards-panel">
+        <div class="lg-awards-title">
           🏅 PREDICTOR DE PREMIOS INDIVIDUALES
         </div>
-        <div style="display:flex; gap:16px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:28px;">👟</span>
-              <div>
-                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
-                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+        <div class="lg-awards-grid">
+          <div class="lg-award-card">
+            <div class="lg-award-main">
+              <span class="lg-award-icon">👟</span>
+              <div class="lg-award-info">
+                <div class="lg-award-category">Máximo Goleador</div>
+                <div class="lg-award-value">
                   ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin seleccionar'}
                 </div>
               </div>
@@ -3955,12 +4220,12 @@ export class LeaguesView extends LitElement {
             </button>
           </div>
 
-          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:28px;">⭐</span>
-              <div>
-                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
-                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+          <div class="lg-award-card">
+            <div class="lg-award-main">
+              <span class="lg-award-icon">⭐</span>
+              <div class="lg-award-info">
+                <div class="lg-award-category">MVP del Campeonato</div>
+                <div class="lg-award-value">
                   ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin seleccionar'}
                 </div>
               </div>
@@ -3978,13 +4243,37 @@ export class LeaguesView extends LitElement {
 
   private _renderAwardsSelectionModal(participant: LeagueParticipant): TemplateResult {
     const typeLabel = this._showAwardsModal === 'topScorer' ? 'MÁXIMO GOLEADOR' : 'MVP DEL CAMPEONATO';
-    const teams = TEAMS_2026;
-    const selectedTeamId = this._selectedTeamIdForSelector;
-    const squad = selectedTeamId ? SQUADS[selectedTeamId] || [] : [];
+    const query = this._awardsSearchQuery.trim();
+    const normalizedQuery = query
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '');
+
+    const allPlayers = Object.entries(SQUADS).flatMap(([teamId, players]) =>
+      players.map(p => ({
+        ...p,
+        teamId,
+        teamName: TEAMS_2026.find(t => t.id === teamId)?.name ?? teamId,
+      }))
+    );
+
+    let results: typeof allPlayers = [];
+    if (query.length >= 2) {
+      results = allPlayers.filter(p => {
+        const haystack = `${p.name} ${p.teamName} ${p.teamId} ${p.club}`
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '');
+        return haystack.includes(normalizedQuery);
+      });
+    }
+    const totalMatches = results.length;
+    const displayed = results.slice(0, 80);
+    const showPrompt = query.length < 2;
 
     return html`
       <div style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px;">
-        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-lg); width:100%; max-width:600px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-lg); width:100%; max-width:700px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden;">
           <div style="background:var(--retro-yellow); border-bottom:3px solid var(--ink); padding:16px; display:flex; align-items:center; justify-content:space-between;">
             <div style="font-family:var(--font-var); font-size:18px; font-weight:bold; letter-spacing:0.02em;">
               🏅 SELECCIONAR ${typeLabel}
@@ -3992,47 +4281,58 @@ export class LeaguesView extends LitElement {
             <button class="lg-small-btn" @click=${this._closeAwardsSelector} style="font-size:14px; font-weight:bold;">✕</button>
           </div>
 
-          <div style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px;">
-            <div>
-              <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 1: Elige el País de la Selección</div>
-              <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:6px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
-                ${teams.map(t => html`
-                  <button
-                    style="all:unset; cursor:pointer; padding:6px; border:1px solid ${selectedTeamId === t.id ? 'var(--retro-orange)' : 'var(--ink)'}; background:${selectedTeamId === t.id ? 'var(--retro-yellow)' : 'var(--paper)'}; display:flex; align-items:center; gap:6px; font-family:var(--font-var); font-size:11px;"
-                    @click=${() => { this._selectedTeamIdForSelector = t.id; this.requestUpdate(); }}
-                  >
-                    ${renderFlag(t, 'xs')}
-                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.name}</span>
-                  </button>
-                `)}
-              </div>
-            </div>
+          <div style="padding:16px; border-bottom:2px solid var(--ink); background:var(--paper);">
+            <input
+              type="search"
+              .value=${this._awardsSearchQuery}
+              @input=${(e: InputEvent) => { this._awardsSearchQuery = (e.target as HTMLInputElement).value; }}
+              placeholder="Buscar jugador, equipo o club…"
+              autofocus
+              style="width:100%; box-sizing:border-box; padding:10px 12px; font-family:var(--font-var); font-size:15px; border:2px solid var(--ink); background:var(--paper); color:var(--ink); outline:none;"
+            />
+          </div>
 
-            ${selectedTeamId ? html`
-              <div>
-                <div style="font-family:var(--font-mono); font-size:10px; color:var(--dim); text-transform:uppercase; margin-bottom:8px;">Paso 2: Selecciona el Jugador</div>
-                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:8px; max-height:220px; overflow-y:auto; border:2px solid var(--ink); padding:8px; background:var(--paper);">
-                  ${squad.length === 0 ? html`
-                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); padding:12px; text-align:center; grid-column: 1 / -1;">No hay jugadores cargados en esta selección aún.</div>
-                  ` : squad.map(p => html`
+          <div style="flex:1; overflow-y:auto; padding:16px;">
+            ${showPrompt
+              ? html`
+                <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:32px; border:2px dashed var(--ink); background:var(--paper-2);">
+                  Empieza a escribir el nombre del jugador…
+                </div>
+              `
+              : displayed.length === 0
+              ? html`
+                <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:32px; border:2px dashed var(--ink); background:var(--paper-2);">
+                  Sin resultados para «${query}»
+                </div>
+              `
+              : html`
+                <div style="font-family:var(--font-mono); font-size:9px; color:var(--dim); margin-bottom:8px;">
+                  Mostrando ${displayed.length} de ${totalMatches} jugadores
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:6px;">
+                  ${displayed.map(p => html`
                     <button
-                      style="all:unset; cursor:pointer; padding:8px; border:2px solid var(--ink); background:var(--paper-2); box-shadow:2px 2px 0 0 var(--ink); display:flex; flex-direction:column; justify-content:center; gap:2px; font-family:var(--font-mono); font-size:11px;"
-                      @click=${() => this._selectPlayer(participant, p)}
+                      style="all:unset; cursor:pointer; padding:8px; border:2px solid var(--ink); background:var(--paper-2); box-shadow:2px 2px 0 0 var(--ink); display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:10px;"
+                      @click=${() => this._selectPlayer(participant, p, p.teamId)}
                     >
-                      <div style="font-family:var(--font-var); font-size:12px; font-weight:bold; color:var(--ink);">${p.name}</div>
-                      <div style="font-size:9px; color:var(--dim); display:flex; justify-content:space-between; width:100%;">
-                        <span>Dorsal: ${p.number}</span>
-                        <span>Pos: ${p.position}</span>
+                      <div style="width:28px; height:28px; border-radius:50%; border:1.5px solid var(--ink); background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:9px; font-weight:bold; overflow:hidden;">
+                        ${p.photoUrl
+                          ? html`<img src=${p.photoUrl} alt="" style="width:100%;height:100%;object-fit:cover;">`
+                          : p.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div style="min-width:0; flex:1;">
+                        <div style="font-family:var(--font-var); font-size:12px; font-weight:bold; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</div>
+                        <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+                          ${renderFlag(TEAMS_2026.find(t => t.id === p.teamId)!, 'xs')}
+                          <span style="color:var(--dim);">${p.teamId}</span>
+                          <span style="margin-left:auto; font-size:9px;">#${p.number} · ${p.position}</span>
+                        </div>
+                        <div style="font-size:9px; color:var(--dim); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.club}</div>
                       </div>
                     </button>
                   `)}
                 </div>
-              </div>
-            ` : html`
-              <div style="font-family:var(--font-mono); font-size:11px; color:var(--dim); text-align:center; padding:24px; border:2px dashed var(--ink); background:var(--paper-2);">
-                Por favor, selecciona primero un país en la lista superior para desplegar su plantilla oficial de jugadores.
-              </div>
-            `}
+              `}
           </div>
 
           <div style="border-top:3px solid var(--ink); padding:12px; display:flex; justify-content:flex-end;">
@@ -4205,11 +4505,16 @@ export class LeaguesView extends LitElement {
   }
 
   render() {
+    let content;
     switch (this._screen) {
-      case 'list': return this._renderList();
-      case 'detail': return this._renderDetail();
-      case 'bracket': return this._renderBracket();
-      default: return html``;
+      case 'list': content = this._renderList(); break;
+      case 'detail': content = this._renderDetail(); break;
+      case 'bracket': content = this._renderBracket(); break;
+      default: content = html``;
     }
+    return html`
+      ${content}
+      <league-rules-modal ?open=${this._showRulesModal} @close=${this._closeRulesModal}></league-rules-modal>
+    `;
   }
 }

@@ -142,6 +142,28 @@ export class GroupsView extends LitElement {
     /* La tarjeta de grupo ya vive dentro del cuaderno: sin sombra flotante */
     .notebook-page .group-card {
       box-shadow: var(--shadow-hard-sm);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+    .notebook-page .group-card .group-header {
+      grid-column: 1 / -1;
+    }
+    .notebook-page .group-card .standings {
+      grid-column: 1;
+      padding: 12px;
+    }
+    .notebook-page .group-card .matches-list {
+      grid-column: 2;
+      border-top: none;
+      border-left: 3px solid var(--ink);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-content: start;
+    }
+    .notebook-page .group-card .matches-list .match-item {
+      margin-bottom: 0;
     }
     .notebook-page .groups-grid {
       grid-template-columns: 1fr;
@@ -447,7 +469,7 @@ export class GroupsView extends LitElement {
 
     /* Tabla de mejores terceros */
     .thirds-section {
-      margin-top: 32px;
+      margin-top: 24px;
       background: var(--paper-2);
       border: 3px solid var(--ink);
       box-shadow: var(--shadow-hard-lg);
@@ -463,14 +485,24 @@ export class GroupsView extends LitElement {
       font-size: 18px;
       letter-spacing: 0.02em;
     }
-    .thirds-table {
+    .thirds-tables-container {
+      display: flex;
+      gap: 0;
+    }
+    .thirds-tables-container > table {
+      flex: 1;
       width: 100%;
+    }
+    .thirds-tables-container > table:first-child:not(:last-child) {
+      border-right: 2px solid var(--ink);
+    }
+    .thirds-table {
       border-collapse: collapse;
       font-size: 12px;
     }
     .thirds-table th {
       text-align: left;
-      padding: 6px 12px;
+      padding: 5px 10px;
       font-family: var(--font-mono);
       font-size: 9px;
       color: var(--dim);
@@ -481,7 +513,7 @@ export class GroupsView extends LitElement {
       background: var(--paper);
     }
     .thirds-table td {
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-bottom: 1px dotted rgba(26,25,51,0.2);
     }
     .thirds-table tr:last-child td { border-bottom: none; }
@@ -583,6 +615,32 @@ export class GroupsView extends LitElement {
 
     @media (max-width: 768px) {
       .groups-grid { grid-template-columns: 1fr; }
+      .notebook-page .group-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .notebook-page .group-card .group-header {
+        grid-column: auto;
+      }
+      .notebook-page .group-card .standings {
+        grid-column: auto;
+        padding: 8px 10px;
+      }
+      .notebook-page .group-card .matches-list {
+        grid-column: auto;
+        border-top: 2px solid var(--ink);
+        border-left: none;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .notebook-page .group-card .matches-list .match-item {
+        margin-bottom: 6px;
+      }
+      .notebook-page .group-card .matches-list .match-item:last-child {
+        margin-bottom: 0;
+      }
       .group-card { box-shadow: var(--shadow-hard-sm); }
       .notebook { box-shadow: var(--shadow-hard-md); }
       .notebook-page { padding: 14px 12px 16px; }
@@ -603,6 +661,16 @@ export class GroupsView extends LitElement {
         min-height: 36px;
       }
       .inline-val { font-size: 18px; padding: 2px 6px; }
+      .thirds-tables-container {
+        flex-direction: column;
+      }
+      .thirds-tables-container > table:first-child:not(:last-child) {
+        border-right: none;
+        border-bottom: 2px solid var(--ink);
+      }
+      .thirds-table th, .thirds-table td {
+        padding: 4px 8px;
+      }
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -861,6 +929,9 @@ export class GroupsView extends LitElement {
     const playedTotal = store.groupMatches.filter(m => m.scoreA !== null).length;
     const showThirds = playedTotal > 0;
     const bestThirds = showThirds ? store.getBestThirds() : [];
+    const half = Math.ceil(bestThirds.length / 2);
+    const leftThirds = bestThirds.slice(0, half);
+    const rightThirds = bestThirds.slice(half);
 
     return html`
       <div class="group-actions">
@@ -924,38 +995,77 @@ export class GroupsView extends LitElement {
       ${showThirds && bestThirds.length > 0 ? html`
         <div class="thirds-section">
           <div class="thirds-header">${t('groups.thirdsHeader')}</div>
-          <table class="thirds-table">
-            <thead>
-              <tr>
-                <th class="col-rank">#</th>
-                <th>${t('groups.tableTeam')}</th>
-                <th class="col-stat">${t('groups.tableGroup')}</th>
-                <th class="col-stat">${t('groups.statGD')}</th>
-                <th class="col-pts-val">${t('groups.statPTS')}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${bestThirds.map((t, idx) => {
-                const team = this.getTeam(t.id);
-                return html`
+          <div class="thirds-tables-container">
+            <table class="thirds-table">
+              <thead>
+                <tr>
+                  <th class="col-rank">#</th>
+                  <th>${t('groups.tableTeam')}</th>
+                  <th class="col-stat">${t('groups.tableGroup')}</th>
+                  <th class="col-stat">${t('groups.statGD')}</th>
+                  <th class="col-pts-val">${t('groups.statPTS')}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${leftThirds.map((t, idx) => {
+                  const team = this.getTeam(t.id);
+                  const rank = idx + 1;
+                  return html`
+                    <tr>
+                      <td class="col-rank">${rank}</td>
+                      <td>
+                        <div class="team-cell">
+                          ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                          <span class="team-short">${team?.shortName ?? t.id}</span>
+                        </div>
+                      </td>
+                      <td class="col-stat">${t.group}</td>
+                      <td class="col-stat">${t.goalDifference > 0 ? `+${t.goalDifference}` : t.goalDifference}</td>
+                      <td class="col-pts-val">${t.points}</td>
+                      <td>${rank <= 8 ? html`<span class="qualify-check">✓</span>` : ''}</td>
+                    </tr>
+                  `;
+                })}
+              </tbody>
+            </table>
+
+            ${rightThirds.length > 0 ? html`
+              <table class="thirds-table">
+                <thead>
                   <tr>
-                    <td class="col-rank">${idx + 1}</td>
-                    <td>
-                      <div class="team-cell">
-                        ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-                        <span class="team-short">${team?.shortName ?? t.id}</span>
-                      </div>
-                    </td>
-                    <td class="col-stat">${t.group}</td>
-                    <td class="col-stat">${t.goalDifference > 0 ? `+${t.goalDifference}` : t.goalDifference}</td>
-                    <td class="col-pts-val">${t.points}</td>
-                    <td>${idx < 8 ? html`<span class="qualify-check">✓</span>` : ''}</td>
+                    <th class="col-rank">#</th>
+                    <th>${t('groups.tableTeam')}</th>
+                    <th class="col-stat">${t('groups.tableGroup')}</th>
+                    <th class="col-stat">${t('groups.statGD')}</th>
+                    <th class="col-pts-val">${t('groups.statPTS')}</th>
+                    <th></th>
                   </tr>
-                `;
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  ${rightThirds.map((t, idx) => {
+                    const team = this.getTeam(t.id);
+                    const rank = idx + 1 + half;
+                    return html`
+                      <tr>
+                        <td class="col-rank">${rank}</td>
+                        <td>
+                          <div class="team-cell">
+                            ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                            <span class="team-short">${team?.shortName ?? t.id}</span>
+                          </div>
+                        </td>
+                        <td class="col-stat">${t.group}</td>
+                        <td class="col-stat">${t.goalDifference > 0 ? `+${t.goalDifference}` : t.goalDifference}</td>
+                        <td class="col-pts-val">${t.points}</td>
+                        <td>${rank <= 8 ? html`<span class="qualify-check">✓</span>` : ''}</td>
+                      </tr>
+                    `;
+                  })}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
         </div>
       ` : ''}
       `}

@@ -314,7 +314,7 @@ export class AppRoot extends LitElement {
     .content {
       max-width: 1600px;
       margin: 0 auto;
-      padding: 24px 40px;
+      padding: 10px 20px 24px;
     }
 
     /* ── Offline banner ── */
@@ -421,9 +421,9 @@ export class AppRoot extends LitElement {
       width: 100%;
       max-width: 1600px;
       margin: 0 auto;
-      padding: 8px 40px;
+      padding: 0 20px;
       box-sizing: border-box;
-      min-height: 90px;
+      min-height: 0;
     }
 
     /* ── Mobile ── */
@@ -435,8 +435,8 @@ export class AppRoot extends LitElement {
         display: none;
       }
       .content {
-        padding: 16px 16px;
-        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+        padding: 10px 12px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
       }
       .logo-main {
         font-size: 12px;
@@ -491,8 +491,8 @@ export class AppRoot extends LitElement {
       }
       .footer-copy { margin-left: 0; }
       .ad-strip {
-        padding: 8px 16px;
-        min-height: 60px;
+        padding: 0 12px;
+        min-height: 0;
       }
       .progress-bar { top: 48px; }
       .offline-banner { top: 48px; }

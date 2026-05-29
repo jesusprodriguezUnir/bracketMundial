@@ -1,19 +1,21 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore } from './store/tournament-store';
+import { useTournamentStore, type ActiveContext } from './store/tournament-store';
 // Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
 import './components/match-modal';
 import './components/ad-block';
 import { STADIUMS } from './data/stadiums';
 import { openMatchModal } from './lib/match-modal-service';
+import { publishNow } from './lib/prediction-sync';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
+import { useLeaguesStore } from './store/leagues-store';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:     () => import('./components/groups-view'),
@@ -25,6 +27,7 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   coaches:    () => import('./components/coaches-view'),
   guide:      () => import('./components/guide-view'),
   league: () => import('./components/leagues-view'),
+  'guide-print': () => import('./components/guide-print-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -38,6 +41,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'coaches') return 'coaches';
   if (tab === 'guide') return 'guide';
   if (tab === 'league') return 'league';
+  if (tab === 'guide-print') return 'guide-print';
   return null;
 }
 
@@ -51,6 +55,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   coaches:   'tabs.coaches',
   guide:     'tabs.guide',
   league: 'tabs.league',
+  'guide-print': 'tabs.guide',
 };
 
 const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
@@ -64,12 +69,17 @@ export class BracketView extends LitElement {
   @state() private _loadedViews = new Set<LazyView>();
   @state() private _loadingView: LazyView | null = null;
   @state() private _moreOpen = false;
+  @state() private _activeContext: ActiveContext = { kind: 'personal' };
+  @state() private _contextLeagueName = '';
+  @state() private _publishing = false;
+  @state() private _publishFeedback: string | null = null;
 
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
   private _swipeBlocked = false;
   private _tabHistory: PhaseTab[] = ['hero'];
+  private _unsubContext?: () => void;
 
 
   static readonly styles = css`
@@ -85,6 +95,47 @@ export class BracketView extends LitElement {
     .view-container {
       position: relative;
       touch-action: auto;
+    }
+
+    /* ─── Context indicator bar ─── */
+    .context-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3));
+      border: 2px solid var(--retro-orange);
+      padding: 6px 12px;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+    .context-label {
+      color: var(--ink);
+    }
+    .context-label strong {
+      font-family: var(--font-var);
+      font-size: 14px;
+      color: var(--retro-orange);
+    }
+    .context-return-btn {
+      all: unset;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .context-return-btn:hover {
+      background: var(--ink);
+      color: var(--retro-yellow);
     }
 
     /* ─── Bottom Navigation (mobile) ─── */
@@ -304,6 +355,7 @@ export class BracketView extends LitElement {
     .section-calendar,
     .section-coaches,
     .section-guide,
+    .section-guide-print,
     .section-tv,
     .section-league {
       display: none;
@@ -316,6 +368,7 @@ export class BracketView extends LitElement {
     .section-calendar.visible,
     .section-coaches.visible,
     .section-guide.visible,
+    .section-guide-print.visible,
     .section-tv.visible,
       .section-league.visible {
       display: block;
@@ -436,6 +489,7 @@ export class BracketView extends LitElement {
       .section-calendar,
       .section-coaches,
       .section-guide,
+      .section-guide-print,
       .section-tv,
       .section-league {
         display: none;
@@ -448,8 +502,9 @@ export class BracketView extends LitElement {
       .section-calendar.visible,
       .section-coaches.visible,
       .section-guide.visible,
+      .section-guide-print.visible,
       .section-tv.visible,
-  .section-league.visible {
+      .section-league.visible {
         display: block;
         animation: viewFadeIn 0.2s ease both;
       }
@@ -490,12 +545,11 @@ export class BracketView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // bracket-view no necesita reaccionar al store — usa getState() imperativo en openMatchFromGroups
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
-    // Pre-cargar groups en idle (el tab más visitado tras hero)
+    this._updateContext();
+    this._unsubContext = useTournamentStore.subscribe(() => this._updateContext());
     this._ensureView('groups');
 
-    // Hash routing
     this._restoreFromHash();
     this._hashChangeHandler = () => this._restoreFromHash();
     window.addEventListener('hashchange', this._hashChangeHandler);
@@ -508,6 +562,7 @@ export class BracketView extends LitElement {
 
   disconnectedCallback() {
     this.unsubscribeLocale?.();
+    this._unsubContext?.();
     if (this._hashChangeHandler) {
       window.removeEventListener('hashchange', this._hashChangeHandler);
     }
@@ -517,11 +572,54 @@ export class BracketView extends LitElement {
     this.removeEventListener('touchend', this._onSwipeEnd);
   }
 
+  private _updateContext() {
+    const ctx = useTournamentStore.getState().activeContext;
+    if (ctx.kind !== this._activeContext.kind
+        || (ctx.kind === 'league' && (ctx as { kind: 'league'; leagueId: string }).leagueId !== (this._activeContext as { kind: 'league'; leagueId: string }).leagueId)
+        || (ctx.kind === 'personal' && this._activeContext.kind === 'personal')) {
+      // Only update if changed or initial
+      const prevKind = this._activeContext.kind;
+      this._activeContext = ctx;
+      if (ctx.kind === 'league') {
+        const league = useLeaguesStore.getState().leagues.find(l => l.id === ctx.leagueId);
+        this._contextLeagueName = league?.name ?? ctx.leagueId;
+      } else {
+        this._contextLeagueName = '';
+      }
+      if (prevKind !== ctx.kind || (ctx.kind === 'league' && prevKind === 'league')) {
+        this.requestUpdate();
+      }
+    }
+  }
+
+  private async _handlePublish() {
+    this._publishing = true;
+    this._publishFeedback = null;
+    try {
+      await publishNow();
+      this._publishFeedback = 'Publicado ✓';
+    } catch (err) {
+      this._publishFeedback = 'Error ✗';
+    }
+    this._publishing = false;
+    setTimeout(() => {
+      if (this._publishFeedback === 'Publicado ✓' || this._publishFeedback === 'Error ✗') {
+        this._publishFeedback = null;
+        this.requestUpdate();
+      }
+    }, 3000);
+    this.requestUpdate();
+  }
+
+  private _switchToPersonal() {
+    void useTournamentStore.getState().switchContext({ kind: 'personal' });
+  }
+
   /** Sincroniza la pestaña activa con location.hash */
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
       requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
@@ -580,6 +678,10 @@ export class BracketView extends LitElement {
       const guideEl = this.shadowRoot?.querySelector('guide-view') as HTMLElement & { goBack?: () => void } | null;
       guideEl?.goBack?.();
     }
+    if (tab === 'guide-print') {
+      const guidePrintEl = this.shadowRoot?.querySelector('guide-print-view') as HTMLElement & { goBack?: () => void } | null;
+      guidePrintEl?.goBack?.();
+    }
     if (tab === 'stadiums') {
       const stadiumsEl = this.shadowRoot?.querySelector('stadiums-view') as HTMLElement & { goBack?: () => void } | null;
       stadiumsEl?.goBack?.();
@@ -602,6 +704,7 @@ export class BracketView extends LitElement {
       if (tab === 'calendar') targetId = 'section-calendar';
       if (tab === 'coaches') targetId = 'section-coaches';
       if (tab === 'guide') targetId = 'section-guide';
+      if (tab === 'guide-print') targetId = 'section-guide-print';
       if (tab === 'league') targetId = 'section-league';
 
       const el = this.shadowRoot?.getElementById(targetId);
@@ -727,6 +830,21 @@ export class BracketView extends LitElement {
 
     return html`
       <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
+        ${this._activeContext.kind === 'league' ? html`
+          <div class="context-bar">
+            <span class="context-label">Editando: <strong>${this._contextLeagueName}</strong></span>
+            <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              ${this._publishFeedback ? html`<span style="font-family:var(--font-mono);font-size:11px;">${this._publishFeedback}</span>` : ''}
+              <button
+                class="context-return-btn"
+                style="background:var(--retro-yellow);"
+                @click="${this._handlePublish}"
+                ?disabled="${this._publishing}"
+              >${this._publishing ? 'Publicando…' : 'Publicar a la liga'}</button>
+              <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+            </span>
+          </div>
+        ` : ''}
         <!-- Mobile: bottom navigation -->
         <nav class="bottom-nav" aria-label="${t('tabs.label')}">
           ${mainTabs.map(item => html`
@@ -882,10 +1000,6 @@ export class BracketView extends LitElement {
             <div
               id="section-knockout-bracket"
               class="knockout-section visible">
-              <div class="section-heading knockout">
-                <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
-                <div class="section-title">${t('section.knockout.title')}</div>
-              </div>
               <bracket-knockout></bracket-knockout>
               <div class="ad-inline">
                 <ad-block></ad-block>
@@ -934,6 +1048,15 @@ export class BracketView extends LitElement {
           ${at === 'guide' && loaded.has('guide') ? html`
             <guide-view></guide-view>
           ` : at === 'guide' ? html`<div class="loading-spinner"></div>` : ''}
+        </div>
+
+        <!-- Guía Imprimible (lazy) -->
+        <div
+          id="section-guide-print"
+          class="section-guide-print ${at === 'guide-print' ? 'visible' : ''}">
+          ${at === 'guide-print' && loaded.has('guide-print') ? html`
+            <guide-print-view></guide-print-view>
+          ` : at === 'guide-print' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Liga (lazy) -->
