@@ -103,8 +103,8 @@ export class BracketView extends LitElement {
       gap: 10px;
       background: color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3));
       border: 2px solid var(--retro-orange);
-      padding: 10px 16px;
-      margin-bottom: 16px;
+      padding: 6px 12px;
+      margin-bottom: 8px;
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.04em;
@@ -988,10 +988,6 @@ export class BracketView extends LitElement {
             <div
               id="section-knockout-bracket"
               class="knockout-section visible">
-              <div class="section-heading knockout">
-                <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
-                <div class="section-title">${t('section.knockout.title')}</div>
-              </div>
               <bracket-knockout></bracket-knockout>
               <div class="ad-inline">
                 <ad-block></ad-block>

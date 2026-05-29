@@ -2376,6 +2376,112 @@ export class LeaguesView extends LitElement {
       .lg-v2-cta-row { grid-template-columns: 1fr; }
       .lg-v2-create-inline { flex-direction: column; }
     }
+
+    /* ── Barra / Panel de Premios Individuales en Ligas ── */
+    .lg-awards-panel {
+      background: var(--paper-3);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+      padding: 6px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .lg-awards-title {
+      font-family: var(--font-var);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--ink);
+    }
+    .lg-awards-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .lg-award-card {
+      flex: 1;
+      min-width: 0;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .lg-award-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .lg-award-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .lg-award-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .lg-award-category {
+      color: var(--dim);
+      font-size: 7px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .lg-award-value {
+      font-family: var(--font-var);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    @media (min-width: 769px) {
+      .lg-awards-panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 10px;
+        gap: 12px;
+      }
+      .lg-awards-title {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-right: 4px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      .lg-awards-grid {
+        flex: 1;
+        gap: 8px;
+      }
+      .lg-award-card {
+        padding: 3px 6px;
+      }
+    }
+    @media (max-width: 768px) {
+      .lg-awards-grid {
+        flex-wrap: wrap;
+      }
+      .lg-award-card {
+        min-width: 130px;
+      }
+    }
   `;
 
   connectedCallback() {
@@ -4064,22 +4170,28 @@ export class LeaguesView extends LitElement {
     
     if (!isYou) {
       return html`
-        <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:16px; margin-bottom:20px; display:flex; gap:16px; flex-wrap:wrap; position:relative;">
-          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:24px;">👟</span>
-            <div>
-              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
-              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
-                ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin elegir'}
+        <div class="lg-awards-panel" style="flex-direction: row; align-items: center;">
+          <div class="lg-awards-grid" style="width: 100%;">
+            <div class="lg-award-card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+              <div class="lg-award-main">
+                <span class="lg-award-icon">👟</span>
+                <div class="lg-award-info">
+                  <div class="lg-award-category">Máximo Goleador</div>
+                  <div class="lg-award-value">
+                    ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin elegir'}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:24px;">⭐</span>
-            <div>
-              <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
-              <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
-                ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin elegir'}
+            <div class="lg-award-card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+              <div class="lg-award-main">
+                <span class="lg-award-icon">⭐</span>
+                <div class="lg-award-info">
+                  <div class="lg-award-category">MVP del Campeonato</div>
+                  <div class="lg-award-value">
+                    ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin elegir'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -4088,17 +4200,17 @@ export class LeaguesView extends LitElement {
     }
 
     return html`
-      <div style="background:var(--paper-3); border:3px solid var(--ink); box-shadow:var(--shadow-hard-sm); padding:18px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; position:relative;">
-        <div style="font-family:var(--font-var); font-size:16px; font-weight:bold; letter-spacing:0.02em; border-bottom:2px solid var(--ink); padding-bottom:6px; display:flex; align-items:center; gap:8px;">
+      <div class="lg-awards-panel">
+        <div class="lg-awards-title">
           🏅 PREDICTOR DE PREMIOS INDIVIDUALES
         </div>
-        <div style="display:flex; gap:16px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:28px;">👟</span>
-              <div>
-                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">Máximo Goleador</div>
-                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+        <div class="lg-awards-grid">
+          <div class="lg-award-card">
+            <div class="lg-award-main">
+              <span class="lg-award-icon">👟</span>
+              <div class="lg-award-info">
+                <div class="lg-award-category">Máximo Goleador</div>
+                <div class="lg-award-value">
                   ${participant.topScorer ? `${participant.topScorer.playerName} (${participant.topScorer.teamId})` : 'Sin seleccionar'}
                 </div>
               </div>
@@ -4108,12 +4220,12 @@ export class LeaguesView extends LitElement {
             </button>
           </div>
 
-          <div style="flex:1; min-width:240px; background:var(--paper); border:2px solid var(--ink); padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:28px;">⭐</span>
-              <div>
-                <div style="color:var(--dim); font-size:9px; text-transform:uppercase; font-family:var(--font-mono);">MVP del Campeonato</div>
-                <div style="font-family:var(--font-var); font-size:14px; font-weight:bold;">
+          <div class="lg-award-card">
+            <div class="lg-award-main">
+              <span class="lg-award-icon">⭐</span>
+              <div class="lg-award-info">
+                <div class="lg-award-category">MVP del Campeonato</div>
+                <div class="lg-award-value">
                   ${participant.mvp ? `${participant.mvp.playerName} (${participant.mvp.teamId})` : 'Sin seleccionar'}
                 </div>
               </div>

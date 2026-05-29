@@ -305,7 +305,7 @@ export class BracketKnockout extends LitElement {
         min-width: 0;
         gap: clamp(6px, 0.7vw, 12px);
         padding: 0 8px;
-        min-height: 960px;
+        min-height: 780px;
       }
 
       .round-col {
@@ -1114,46 +1114,46 @@ export class BracketKnockout extends LitElement {
       background: var(--paper-3);
       border: 2px solid var(--ink);
       box-shadow: var(--shadow-hard-sm);
-      margin: 8px 10px;
-      padding: 10px 14px;
+      margin: 4px 8px 8px;
+      padding: 6px 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .awards-title {
       font-family: var(--font-var);
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.05em;
       border-bottom: 2px solid var(--ink);
-      padding-bottom: 4px;
+      padding-bottom: 3px;
       color: var(--ink);
       text-transform: uppercase;
     }
     .awards-grid {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 8px;
+      flex-wrap: nowrap;
     }
     .award-card {
       flex: 1;
-      min-width: 220px;
+      min-width: 0;
       background: var(--paper);
       border: 1.5px solid var(--ink);
-      padding: 8px 10px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 6px;
     }
     .award-main {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
     }
     .award-icon {
-      font-size: 22px;
+      font-size: 16px;
       flex-shrink: 0;
     }
     .award-info {
@@ -1163,24 +1163,27 @@ export class BracketKnockout extends LitElement {
     }
     .award-category {
       color: var(--dim);
-      font-size: 8px;
+      font-size: 7px;
       text-transform: uppercase;
       font-family: var(--font-mono);
       letter-spacing: 0.05em;
+      line-height: 1;
+      margin-bottom: 2px;
     }
     .award-value {
       font-family: var(--font-var);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--ink);
+      line-height: 1.1;
     }
     .award-btn {
       all: unset;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 3px 6px;
       background: var(--ink);
       color: var(--retro-yellow);
       border: 1.5px solid var(--ink);
@@ -1192,10 +1195,44 @@ export class BracketKnockout extends LitElement {
       box-shadow: 1.5px 1.5px 0 0 var(--retro-orange);
       flex-shrink: 0;
       text-align: center;
+      transition: transform 0.1s, background-color 0.1s;
     }
     .award-btn:active {
       transform: translate(1px, 1px);
       box-shadow: none;
+    }
+
+    @media (min-width: 769px) {
+      .awards-panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 10px;
+        margin: 4px 10px 6px;
+        gap: 12px;
+      }
+      .awards-title {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-right: 4px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      .awards-grid {
+        flex: 1;
+        gap: 8px;
+      }
+      .award-card {
+        padding: 3px 6px;
+      }
+    }
+    @media (max-width: 768px) {
+      .awards-grid {
+        flex-wrap: wrap;
+      }
+      .award-card {
+        min-width: 130px;
+      }
     }
 
     /* ── Modal de Selección de Premios ── */

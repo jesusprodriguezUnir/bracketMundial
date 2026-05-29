@@ -142,6 +142,28 @@ export class GroupsView extends LitElement {
     /* La tarjeta de grupo ya vive dentro del cuaderno: sin sombra flotante */
     .notebook-page .group-card {
       box-shadow: var(--shadow-hard-sm);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+    .notebook-page .group-card .group-header {
+      grid-column: 1 / -1;
+    }
+    .notebook-page .group-card .standings {
+      grid-column: 1;
+      padding: 12px;
+    }
+    .notebook-page .group-card .matches-list {
+      grid-column: 2;
+      border-top: none;
+      border-left: 3px solid var(--ink);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-content: start;
+    }
+    .notebook-page .group-card .matches-list .match-item {
+      margin-bottom: 0;
     }
     .notebook-page .groups-grid {
       grid-template-columns: 1fr;
@@ -583,6 +605,32 @@ export class GroupsView extends LitElement {
 
     @media (max-width: 768px) {
       .groups-grid { grid-template-columns: 1fr; }
+      .notebook-page .group-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .notebook-page .group-card .group-header {
+        grid-column: auto;
+      }
+      .notebook-page .group-card .standings {
+        grid-column: auto;
+        padding: 8px 10px;
+      }
+      .notebook-page .group-card .matches-list {
+        grid-column: auto;
+        border-top: 2px solid var(--ink);
+        border-left: none;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .notebook-page .group-card .matches-list .match-item {
+        margin-bottom: 6px;
+      }
+      .notebook-page .group-card .matches-list .match-item:last-child {
+        margin-bottom: 0;
+      }
       .group-card { box-shadow: var(--shadow-hard-sm); }
       .notebook { box-shadow: var(--shadow-hard-md); }
       .notebook-page { padding: 14px 12px 16px; }
