@@ -26,6 +26,7 @@ export const VIEW_MAP = {
   stadiums: { tab: 'stadiums', es: 'Estadios',     en: 'Stadiums' },
   coaches:  { tab: 'coaches',  es: 'Entrenadores', en: 'Coaches' },
   guide:    { tab: 'guide',    es: 'Guía',         en: 'Guide' },
+  'guide-print': { tab: 'guide-print', es: 'Guía Imprimible', en: 'Print Guide' },
   league:   { tab: 'league',   es: 'Liga',         en: 'League' },
 };
 
@@ -39,6 +40,7 @@ const VIEW_ALIASES = {
   estadios: 'stadiums', stadiums: 'stadiums',
   entrenadores: 'coaches', coaches: 'coaches',
   guia: 'guide', guía: 'guide', guide: 'guide',
+  'guide-print': 'guide-print', 'guide-pdf': 'guide-print',
   liga: 'league', league: 'league',
 };
 

@@ -12,10 +12,10 @@ import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { useLeaguesStore } from './store/leagues-store';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:     () => import('./components/groups-view'),
@@ -27,6 +27,7 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   coaches:    () => import('./components/coaches-view'),
   guide:      () => import('./components/guide-view'),
   league: () => import('./components/leagues-view'),
+  'guide-print': () => import('./components/guide-print-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -40,6 +41,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'coaches') return 'coaches';
   if (tab === 'guide') return 'guide';
   if (tab === 'league') return 'league';
+  if (tab === 'guide-print') return 'guide-print';
   return null;
 }
 
@@ -53,6 +55,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   coaches:   'tabs.coaches',
   guide:     'tabs.guide',
   league: 'tabs.league',
+  'guide-print': 'tabs.guide',
 };
 
 const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
@@ -352,6 +355,7 @@ export class BracketView extends LitElement {
     .section-calendar,
     .section-coaches,
     .section-guide,
+    .section-guide-print,
     .section-tv,
     .section-league {
       display: none;
@@ -364,6 +368,7 @@ export class BracketView extends LitElement {
     .section-calendar.visible,
     .section-coaches.visible,
     .section-guide.visible,
+    .section-guide-print.visible,
     .section-tv.visible,
       .section-league.visible {
       display: block;
@@ -484,6 +489,7 @@ export class BracketView extends LitElement {
       .section-calendar,
       .section-coaches,
       .section-guide,
+      .section-guide-print,
       .section-tv,
       .section-league {
         display: none;
@@ -496,8 +502,9 @@ export class BracketView extends LitElement {
       .section-calendar.visible,
       .section-coaches.visible,
       .section-guide.visible,
+      .section-guide-print.visible,
       .section-tv.visible,
-  .section-league.visible {
+      .section-league.visible {
         display: block;
         animation: viewFadeIn 0.2s ease both;
       }
@@ -612,7 +619,7 @@ export class BracketView extends LitElement {
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
       requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
@@ -671,6 +678,10 @@ export class BracketView extends LitElement {
       const guideEl = this.shadowRoot?.querySelector('guide-view') as HTMLElement & { goBack?: () => void } | null;
       guideEl?.goBack?.();
     }
+    if (tab === 'guide-print') {
+      const guidePrintEl = this.shadowRoot?.querySelector('guide-print-view') as HTMLElement & { goBack?: () => void } | null;
+      guidePrintEl?.goBack?.();
+    }
     if (tab === 'stadiums') {
       const stadiumsEl = this.shadowRoot?.querySelector('stadiums-view') as HTMLElement & { goBack?: () => void } | null;
       stadiumsEl?.goBack?.();
@@ -693,6 +704,7 @@ export class BracketView extends LitElement {
       if (tab === 'calendar') targetId = 'section-calendar';
       if (tab === 'coaches') targetId = 'section-coaches';
       if (tab === 'guide') targetId = 'section-guide';
+      if (tab === 'guide-print') targetId = 'section-guide-print';
       if (tab === 'league') targetId = 'section-league';
 
       const el = this.shadowRoot?.getElementById(targetId);
@@ -1036,6 +1048,15 @@ export class BracketView extends LitElement {
           ${at === 'guide' && loaded.has('guide') ? html`
             <guide-view></guide-view>
           ` : at === 'guide' ? html`<div class="loading-spinner"></div>` : ''}
+        </div>
+
+        <!-- Guía Imprimible (lazy) -->
+        <div
+          id="section-guide-print"
+          class="section-guide-print ${at === 'guide-print' ? 'visible' : ''}">
+          ${at === 'guide-print' && loaded.has('guide-print') ? html`
+            <guide-print-view></guide-print-view>
+          ` : at === 'guide-print' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Liga (lazy) -->

@@ -29,6 +29,7 @@
     "record:session": "node scripts/record-session.mjs",
     "reel": "node scripts/record-reel.mjs",
     "play:assets": "node scripts/generate-play-assets.mjs",
+    "guide:pdf": "node scripts/generate-guide-pdf.mjs",
     "x:post": "node scripts/generate-x-post.mjs",
     "youtube:promo": "node scripts/generate-youtube-promo.mjs",
     "db:inspect": "node scripts/supabase-inspect.mjs"
