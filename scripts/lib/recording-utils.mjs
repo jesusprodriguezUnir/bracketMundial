@@ -92,10 +92,11 @@ export async function ensureDevServer() {
 
 // ── conversión de video ──
 
-/** Convierte un WebM crudo de Playwright a MP4 H.264 con ffmpeg. */
-export function convertToMp4(rawWebmPath, outMp4Path) {
+/** Convierte un WebM crudo de Playwright a MP4 H.264 con ffmpeg y opcionalmente lo recorta al inicio. */
+export function convertToMp4(rawWebmPath, outMp4Path, startSeconds = 0) {
   return new Promise((resolve, reject) => {
-    const cmd = `ffmpeg -y -i "${rawWebmPath}" -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p "${outMp4Path}"`;
+    const ssArg = startSeconds > 0 ? `-ss ${startSeconds}` : '';
+    const cmd = `ffmpeg -y -i "${rawWebmPath}" ${ssArg} -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p "${outMp4Path}"`;
     exec(cmd, (err) => {
       if (err) reject(new Error(`ffmpeg falló: ${err.message}`));
       else resolve(outMp4Path);
