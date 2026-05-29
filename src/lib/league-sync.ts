@@ -210,9 +210,8 @@ export async function onSignedIn(): Promise<void> {
   }
 
   console.log(`[league-sync] onSignedIn: ${cloudMembers?.length ?? 0} miembros cargados`);
-  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
-
   adoptLocalLeagues(userId);
+  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
 }
 
 export async function forcePushAll(): Promise<{ ok: boolean; count: number; userId: string | null }> {
@@ -332,8 +331,25 @@ function mergeParticipants(
   cloud: LeagueParticipant[],
 ): LeagueParticipant[] {
   const merged = new Map<string, LeagueParticipant>();
-  for (const p of local) merged.set(p.id, p);
-  for (const p of cloud) merged.set(p.id, p);
+  for (const p of local) {
+    const key = p.userId || p.id;
+    merged.set(key, p);
+  }
+  for (const p of cloud) {
+    const key = p.userId || p.id;
+    const existing = merged.get(key);
+    if (existing) {
+      merged.set(key, {
+        ...existing,
+        ...p,
+        isOwner: existing.isOwner || p.isOwner,
+        userId: existing.userId || p.userId,
+        id: p.id || existing.id,
+      });
+    } else {
+      merged.set(key, p);
+    }
+  }
   return [...merged.values()];
 }
 

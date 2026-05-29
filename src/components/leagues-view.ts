@@ -2599,13 +2599,14 @@ export class LeaguesView extends LitElement {
     const formatted = code.length <= 3 ? code.padEnd(3, 'X') : `${code.slice(0,3)}-${code.slice(3,7)}`;
     const match = this._leagues.find(l => this._codeForLeague(l) === formatted);
     if (!match) { this._joinError = t('league.joinCodeNotFound'); return; }
-    const alreadyOwner = match.participants.some(p => p.isOwner === true);
-    if (alreadyOwner) {
+    const session = useAuthStore.getState().session;
+    const userId = session?.user?.id;
+    const alreadyParticipant = match.participants.some(p => p.isOwner === true || (userId && p.userId === userId));
+    if (alreadyParticipant) {
       this._closeJoinModal();
       this._goToDetail(match.id);
       return;
     }
-    const session = useAuthStore.getState().session;
     const displayName = session?.user?.email?.split('@')[0] ?? t('league.you');
     useLeaguesStore.getState().joinLeagueFromInvite(match.id, match.name, displayName);
     this._closeJoinModal();
@@ -3224,23 +3225,45 @@ export class LeaguesView extends LitElement {
                       `;
                     })()}
 
-                    <div class="lg-v2-card-actions-row">
-                      <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
-                      <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
-                    </div>
+                    ${(() => {
+                      const session = useAuthStore.getState().session;
+                      const userId = session?.user?.id;
+                      const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+                      const isOwnerOfCard = me?.isOwner === true;
+                      
+                      return html`
+                        <div class="lg-v2-card-actions-row">
+                          ${isOwnerOfCard ? html`
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._renameLeague(l.id); }}>${t('league.renameBtn')}</button>
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.delete')}</button>
+                          ` : html`
+                            <button @click=${(e: Event) => { e.stopPropagation(); this._requestDeleteLeague(l.id); }}>${t('league.leave')}</button>
+                          `}
+                        </div>
+                      `;
+                    })()}
                   </article>
                 `;
               })}
             </div>
           `}
 
-        ${this._confirmDeleteLeague ? html`
-          <div class="lg-confirm-box">
-            <span>${t('league.confirmDelete')}</span>
-            <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
-            <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
-          </div>
-        ` : ''}
+        ${this._confirmDeleteLeague ? (() => {
+          const l = this._leagues.find(item => item.id === this._confirmDeleteLeague);
+          if (!l) return '';
+          const session = useAuthStore.getState().session;
+          const userId = session?.user?.id;
+          const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+          const isOwnerOfConfirm = me?.isOwner === true;
+          
+          return html`
+            <div class="lg-confirm-box">
+              <span>${isOwnerOfConfirm ? t('league.confirmDelete') : t('league.confirmLeave')}</span>
+              <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
+              <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
+            </div>
+          `;
+        })() : ''}
 
         <div class="lg-v2-foot">
           <span class="star">★</span> ${t('league.footNote')} <span class="star">★</span>
@@ -3555,6 +3578,11 @@ export class LeaguesView extends LitElement {
       return html``;
     }
 
+    const session = useAuthStore.getState().session;
+    const userId = session?.user?.id;
+    const me = league.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+    const isOwner = me?.isOwner === true;
+
     const played = this._playedCount;
 
     const realGroupScores = filterRealByDate(realGroupScoresFromStore());
@@ -3774,8 +3802,8 @@ export class LeaguesView extends LitElement {
           <button class="lg-v2-btn" @click=${() => this._requestDeleteLeague(league.id)}>
             <span class="lg-v2-btn-ic">⚙</span>
             <span>
-              ${t('league.ctaSettings')}<br/>
-              <span class="lg-v2-btn-sub">${t('league.ctaSettingsSub')}</span>
+              ${isOwner ? t('league.ctaSettings') : t('league.leave')}<br/>
+              <span class="lg-v2-btn-sub">${isOwner ? t('league.ctaSettingsSub') : t('league.ctaSettingsSubNotOwner')}</span>
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
@@ -3833,7 +3861,7 @@ export class LeaguesView extends LitElement {
 
         ${this._confirmDeleteLeague ? html`
           <div class="lg-confirm-box">
-            <span>${t('league.confirmDelete')}</span>
+            <span>${isOwner ? t('league.confirmDelete') : t('league.confirmLeave')}</span>
             <button class="lg-danger-btn" @click=${this._confirmDelete}>${t('league.confirmYes')}</button>
             <button class="lg-btn-back" @click=${this._cancelDelete}>${t('league.confirmNo')}</button>
           </div>
