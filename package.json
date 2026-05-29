@@ -32,7 +32,8 @@
     "guide:pdf": "node scripts/generate-guide-pdf.mjs",
     "x:post": "node scripts/generate-x-post.mjs",
     "youtube:promo": "node scripts/generate-youtube-promo.mjs",
-    "db:inspect": "node scripts/supabase-inspect.mjs"
+    "db:inspect": "node scripts/supabase-inspect.mjs",
+    "db:summary": "node scripts/supabase-summary.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
