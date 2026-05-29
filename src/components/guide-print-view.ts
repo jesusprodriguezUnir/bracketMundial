@@ -1295,7 +1295,7 @@ export class GuidePrintView extends LitElement {
           return html`
             <div
               class="player-card-pitch ${p.position === 'GK' ? 'gk' : ''}"
-              style="left:${x}%;top:${(y / 150) * 100}%;--player-bg:var(--retro-blue)"
+              style="left:${x}%;top:${(y / 150) * 100}%;--player-bg:var(--ink)"
               title="${p.name}">
               <div class="player-photo-pitch">${p.number}</div>
               <div class="player-name-pitch">${lastName(p.name)}</div>
