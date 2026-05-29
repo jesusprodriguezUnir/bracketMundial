@@ -874,6 +874,35 @@ ${groupList}
       'world cup 2026 bracket, world cup 2026 simulator, world cup 2026 groups, world cup 2026 predictions, world cup 2026 pool, printable world cup bracket, world cup 2026 pdf, world cup knockout simulator',
     jsonLd: [
       {
+        '@type': 'SportsEvent',
+        name: 'FIFA World Cup 2026',
+        description: 'The FIFA World Cup 2026 takes place from June 11 to July 19 in the United States, Mexico, and Canada with 48 teams across 16 stadiums.',
+        image: OG_IMAGE,
+        startDate: '2026-06-11',
+        endDate: '2026-07-19',
+        eventStatus: 'https://schema.org/EventScheduled',
+        sport: 'Football',
+        performer: {
+          '@type': 'SportsTeam',
+          name: '48 participating teams',
+        },
+        organizer: FIFA_ORGANIZER,
+        location: [
+          { '@type': 'Place', name: 'MetLife Stadium', address: { '@type': 'PostalAddress', addressLocality: 'East Rutherford', addressRegion: 'NJ', addressCountry: 'US' } },
+          { '@type': 'Place', name: 'Estadio Azteca', address: { '@type': 'PostalAddress', addressLocality: 'Mexico City', addressCountry: 'MX' } },
+          { '@type': 'Place', name: 'BMO Field', address: { '@type': 'PostalAddress', addressLocality: 'Toronto', addressCountry: 'CA' } },
+        ],
+        url: 'https://www.fifa.com/tournaments/mens/worldcup/canadamexicousa2026',
+        offers: {
+          '@type': 'Offer',
+          url: `${SITE_URL}/en/`,
+          price: '0',
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          validFrom: '2024-01-01T00:00:00Z',
+        },
+      },
+      {
         '@type': 'WebApplication',
         name: 'World Cup 2026 Bracket',
         url: `${SITE_URL}/en/`,
