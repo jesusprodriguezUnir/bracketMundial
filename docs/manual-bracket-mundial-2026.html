@@ -727,6 +727,72 @@
     .note-icon { font-size: 16px; flex-shrink: 0; }
     .note p { margin: 0; }
 
+    .subsection-heading {
+      margin: 40px 0 24px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--ink);
+    }
+    .subsection-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .subsection-title {
+      font-family: var(--font-head);
+      font-size: clamp(22px, 3.5vw, 34px);
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .subsection-lead {
+      max-width: 820px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--dim);
+    }
+    .link-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 18px 0 24px;
+    }
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 2px solid var(--ink);
+      background: var(--paper-3);
+      box-shadow: var(--shadow-md);
+      color: var(--ink);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .link-chip:hover {
+      background: var(--retro-yellow);
+    }
+    .manual-shot {
+      width: 100%;
+      display: block;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-lg);
+      background: var(--paper-3);
+    }
+    .feature-caption {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
     /* ═══════════════════════════════════════════════
        FOOTER
     ═══════════════════════════════════════════════ */
@@ -786,6 +852,7 @@
       .hero-meta { gap: 20px; }
       .hero-stat-value { font-size: 28px; }
       .card-grid { grid-template-columns: 1fr; }
+      .link-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -869,7 +936,8 @@
         <li><a href="#estadios"><span class="toc-num">07</span>Estadios y Sedes</a></li>
         <li><a href="#entrenadores"><span class="toc-num">08</span>Entrenadores</a></li>
         <li><a href="#funciones"><span class="toc-num">09</span>Funciones Avanzadas</a></li>
-        <li><a href="#tecnico"><span class="toc-num">10</span>Stack Técnico</a></li>
+        <li><a href="#ligas-privadas"><span class="toc-num">10</span>Guía Visual de Ligas</a></li>
+        <li><a href="#tecnico"><span class="toc-num">11</span>Stack Técnico</a></li>
       </ul>
     </div>
 
@@ -1342,8 +1410,10 @@
             <span class="card-icon">🏆</span>
             <span class="card-title">Ligas Privadas</span>
           </div>
-          <p>Crea o únete a una liga privada con amigos usando un código de invitación. La clasificación se actualiza automáticamente con los puntos obtenidos según los resultados reales del torneo.</p>
-          <p>Requiere iniciar sesión con cuenta de correo (magic link).</p>
+          <p>Crea una liga privada, comparte el enlace de invitación con tus amigos y sigue la clasificación en función de los resultados reales del torneo.</p>
+          <p>Se recomienda iniciar sesión para compartirla entre dispositivos y usar la sincronización en la nube.</p>
+          <p><a href="#ligas-privadas">Ver guía visual dentro de este manual</a></p>
+          <p><a href="./ligas-privadas.md">Guía completa en español</a> · <a href="./private-leagues.md">English version</a></p>
         </div>
         <div class="card">
           <div class="card-header">
@@ -1358,6 +1428,115 @@
             <span class="card-title">Idioma: ES / EN</span>
           </div>
           <p>Cambia el idioma de la interfaz entre español e inglés con el botón <strong>EN</strong> de la topbar. Toda la UI se traduce en tiempo real sin recargar la página.</p>
+        </div>
+      </div>
+
+      <div class="subsection-heading" id="ligas-privadas">
+        <div class="subsection-eyebrow">🏆 LIGAS PRIVADAS</div>
+        <div class="subsection-title">GUÍA VISUAL PASO A PASO</div>
+        <p class="subsection-lead">Esta es la versión resumida y visual del flujo de ligas privadas dentro del propio manual. Si necesitas más detalle, puedes abrir la guía larga en español o su versión equivalente en inglés.</p>
+      </div>
+
+      <div class="link-row">
+        <a class="link-chip" href="./ligas-privadas.md">↗ Guía completa ES</a>
+        <a class="link-chip" href="./private-leagues.md">↗ Full guide EN</a>
+      </div>
+
+      <div class="note">
+        <span class="note-icon">ℹ️</span>
+        <p>Flujo recomendado: crear la liga, iniciar sesión, compartir el enlace de invitación, pedir a cada amigo que rellene su bracket y dejar que la clasificación se actualice sola cuando empiecen los partidos reales.</p>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Crear la liga</div>
+            <p>Ve a la pestaña Liga, escribe el nombre de la liga y tu apodo, y pulsa Crear.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Confirmar que ya aparece en Mis ligas</div>
+            <p>Comprueba que la tarjeta de la liga muestra el nombre correcto, su código de invitación y tu posición dentro de la clasificación.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Entrar al panel principal</div>
+            <p>Desde el detalle de la liga puedes ver la clasificación, editar tu predicción, invitar amigos y descargar el Excel de la liga.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Compartir tus predicciones o invitar a otra persona</div>
+            <p>Compartir la liga e importar una predicción son acciones distintas. El enlace de invitación mete gente nueva en la liga; el enlace de predicción sirve para trasladar un bracket concreto.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <div class="step-title">Seguir la clasificación durante el Mundial</div>
+            <p>Una vez empiece el torneo, la app recalcula automáticamente la tabla con los resultados reales partido a partido.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="feature-block">
+        <div class="feature-visual" data-label="Paso 1">
+          <img class="manual-shot" src="./ligas-privadas-assets/01-crear-liga.png" alt="Pantalla para crear una liga privada" />
+          <div class="feature-caption">Pantalla inicial de la pestaña Liga</div>
+        </div>
+        <div class="feature-text">
+          <h3>1. Crear una liga desde la pantalla principal</h3>
+          <p>La zona superior de Liga concentra los tres accesos clave: crear una liga, unirse con código y revisar tus propios pronósticos. Justo debajo aparecen los campos para nombre de la liga y apodo.</p>
+          <p>Si todavía no has iniciado sesión, verás un aviso explicando que las ligas se quedarán solo en este navegador hasta que te identifiques.</p>
+        </div>
+      </div>
+
+      <div class="feature-block reverse">
+        <div class="feature-visual" data-label="Paso 2">
+          <img class="manual-shot" src="./ligas-privadas-assets/02-lista-ligas.png" alt="Lista de ligas ya creadas" />
+          <div class="feature-caption">Tarjeta de liga con nombre, código y posición</div>
+        </div>
+        <div class="feature-text">
+          <h3>2. Confirmar la creación en Mis ligas</h3>
+          <p>Cuando la liga ya existe, aparece en la sección Mis ligas con su nombre, el código de invitación, el número de miembros y un resumen rápido del líder actual y de tu posición.</p>
+          <p>Este bloque es útil para confirmar que la liga ha quedado creada correctamente antes de empezar a invitar personas.</p>
+        </div>
+      </div>
+
+      <div class="feature-block">
+        <div class="feature-visual" data-label="Paso 3">
+          <img class="manual-shot" src="./ligas-privadas-assets/03-detalle-liga.png" alt="Detalle completo de una liga privada" />
+          <div class="feature-caption">Vista de detalle con clasificación, acciones y próximos partidos</div>
+        </div>
+        <div class="feature-text">
+          <h3>3. Gestionar la liga desde el panel principal</h3>
+          <p>El detalle de la liga es la pantalla central del flujo. Aquí puedes ver el podio, la clasificación completa, el código de invitación, tus acciones principales y la zona de edición o importación de participantes.</p>
+          <p>También es donde se ve mejor cómo evolucionará la tabla a medida que haya resultados oficiales o simulados.</p>
+        </div>
+      </div>
+
+      <div class="feature-block reverse">
+        <div class="feature-visual" data-label="Paso 4">
+          <img class="manual-shot" src="./ligas-privadas-assets/04-compartir-pronosticos.png" alt="Panel para compartir predicciones" />
+          <div class="feature-caption">Compartir tus predicciones genera un enlace personal</div>
+        </div>
+        <div class="feature-text">
+          <h3>4. Compartir tus predicciones</h3>
+          <p>El botón Compartir mis predicciones no invita a una persona nueva a la liga. Lo que hace es generar un enlace con tu bracket para que el creador, o quien gestione la liga, pueda importarlo.</p>
+          <p>Es importante distinguir este flujo del botón Invitar amigos, que es el pensado para incorporar participantes nuevos.</p>
+        </div>
+      </div>
+
+      <div class="feature-block">
+        <div class="feature-visual" data-label="Paso 5">
+          <img class="manual-shot" src="./ligas-privadas-assets/05-unirme-con-codigo.png" alt="Modal para unirse a una liga con código" />
+          <div class="feature-caption">Modal de acceso rápido por código</div>
+        </div>
+        <div class="feature-text">
+          <h3>5. Unirse con código</h3>
+          <p>La app también permite unirse con código. Es una entrada rápida y clara visualmente: escribes el código y confirmas la unión.</p>
+          <p>Aun así, para incorporar a una persona por primera vez, el flujo más fiable sigue siendo el enlace de invitación compartido por el creador de la liga.</p>
         </div>
       </div>
 

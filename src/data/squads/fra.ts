@@ -25,7 +25,7 @@ export const squad: Player[] = [
   { number: 25, name: 'Michael Olise', position: 'FW', age: 24, club: 'FC Bayern Munich' },
   { number: 15, name: 'Marcus Thuram', position: 'FW', age: 28, club: 'Inter de Milán' },
   { number: 18, name: 'Jean-Philippe Mateta', position: 'FW', age: 28, club: 'Crystal Palace FC' },
-  { number: 26, name: 'Maghnes Akliouche', position: 'FW', age: 24, club: 'AS Monaco' },
+  { number: 26, name: 'Maghnes Akliouche', position: 'FW', age: 24, club: 'AS Monaco' }
 ];
 
 export const lineup = {

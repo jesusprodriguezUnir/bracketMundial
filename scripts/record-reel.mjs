@@ -149,6 +149,16 @@ async function recordReel(opts) {
     await page.goto(DEV_URL, { waitUntil: 'networkidle' });
     await sleep(1500);
 
+    // Limpiar localStorage para empezar de cero si es la vista de ligas
+    if (viewKey === 'league') {
+      console.log('🧹 Limpiando localStorage para comenzar con cero ligas...');
+      await page.evaluate(() => {
+        localStorage.clear();
+      });
+      await page.goto(DEV_URL, { waitUntil: 'networkidle' });
+      await sleep(1500);
+    }
+
     // idioma + tema
     await applyLocaleAndTheme(page, { lang, theme: opts.theme });
 
@@ -197,6 +207,32 @@ async function recordReel(opts) {
       }
 
     } else if (viewKey === 'league') {
+      // Inyectar un usuario/sesión autenticado ficticio en el store de auth
+      console.log('🔑 Inyectando sesión de autenticación mock para evitar el modal de login...');
+      await page.evaluate(async () => {
+        try {
+          const authModule = await import('/src/store/auth-store.ts');
+          const fakeSession = {
+            access_token: 'fake-token',
+            refresh_token: 'fake-refresh',
+            expires_in: 3600,
+            token_type: 'bearer',
+            user: {
+              id: 'd9b15dbf-1c4b-4899-b1d1-137a5be89520',
+              email: 'pedro@example.com',
+              app_metadata: {},
+              user_metadata: {},
+              aud: 'authenticated',
+              created_at: new Date().toISOString()
+            }
+          };
+          authModule.useAuthStore.getState()._setSession(fakeSession);
+        } catch (e) {
+          console.error('Error injecting fake session:', e);
+        }
+      });
+      await sleep(500);
+
       // ── recording: multi-phase interactive story for leagues ──
       console.log('🎬 Fase 1: Entrada y Presentación');
       if (opts.text) {
@@ -215,7 +251,15 @@ async function recordReel(opts) {
       await injectTextOverlay(page, customIntroText, { position: 'bottom' });
 
       // Escribir nombre de liga y propietario
-      const inputs = page.locator('.lg-v2-create-inline input');
+      let inputs;
+      try {
+        inputs = page.locator('.lg-v2-create-inline input');
+        await inputs.first().waitFor({ state: 'visible', timeout: 5000 });
+      } catch (err) {
+        console.log('📸 Tomando screenshot de error para inspeccionar la pantalla...');
+        await page.screenshot({ path: join(outDir, 'error-screenshot.png') });
+        throw err;
+      }
       const leagueNameVal = lang === 'en' ? 'The Office Pool' : 'La Porra del Trabajo';
       const ownerNameVal = lang === 'en' ? 'Peter' : 'Pedro';
       await inputs.nth(0).fill(leagueNameVal);
