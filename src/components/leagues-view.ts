@@ -11,10 +11,10 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
-import { refreshLeagueMembers, updateMyPredictionsInCloud, deleteLeagueFromCloud, leaveLeagueInCloud } from '../lib/league-sync';
+import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
-import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate } from '../lib/league-fixture';
+import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
 import { buildProjectedScores } from '../lib/league-projection';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
@@ -1076,6 +1076,17 @@ export class LeaguesView extends LitElement {
       padding: 4px 6px;
       border: 1px solid var(--ink);
       background: var(--paper);
+    }
+    .lg-predictions-locked {
+      padding: 20px 12px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      opacity: 0.6;
+      border: 2px dashed var(--ink);
+      margin-top: 12px;
     }
     .lg-inline-bracket-wrap {
       display: grid;
@@ -2677,6 +2688,10 @@ export class LeaguesView extends LitElement {
     return false;
   }
 
+  private get _tournamentStarted(): boolean {
+    return hasMatchDatePassed('M1');
+  }
+
   private _yourPositionInLeague(leagueId: string): { pos: number; total: number; isOwnerPresent: boolean } | null {
     const league = this._leagues.find(l => l.id === leagueId);
     if (!league || league.participants.length === 0) return null;
@@ -2826,7 +2841,7 @@ export class LeaguesView extends LitElement {
     if (this._expandedId === participantId) this._expandedId = null;
   }
 
-  private _renameParticipantPrompt(participantId: string, currentName: string) {
+  private async _renameParticipantPrompt(participantId: string, currentName: string) {
     const leagueId = this._activeLeagueId;
     if (!leagueId) return;
     const next = window.prompt(t('league.editNamePrompt'), currentName);
@@ -2834,6 +2849,10 @@ export class LeaguesView extends LitElement {
     const trimmed = next.trim();
     if (!trimmed || trimmed === currentName) return;
     useLeaguesStore.getState().renameParticipant(leagueId, participantId, trimmed);
+    const ok = await updateMyNameInCloud(leagueId, trimmed);
+    if (ok) {
+      await refreshLeagueMembers(leagueId);
+    }
   }
 
   private _toggleExpand(id: string) {
@@ -2854,6 +2873,9 @@ export class LeaguesView extends LitElement {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     const p = league?.participants.find(pp => pp.id === pid);
     if (!p) return;
+    const sessionUserId = useAuthStore.getState().session?.user?.id;
+    const isMe = p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId);
+    if (!isMe && !this._tournamentStarted) return;
     this._bracketData = { participant: p, name: pName };
     this._screen = 'bracket';
     this._editMode = false;
@@ -3671,6 +3693,9 @@ export class LeaguesView extends LitElement {
     const isOwner = score.participant.isOwner === true;
     const participant = this._getLeagueParticipant(score.participant.id);
     const isExpanded = this._expandedId === score.participant.id;
+    const sessionUserId = useAuthStore.getState().session?.user?.id;
+    const isMe = isOwner || (sessionUserId != null && participant?.userId === sessionUserId);
+    const showPredictions = isMe || this._tournamentStarted;
 
     return html`
       <article class=${`lg-participant-card ${this._rankTone(index, isOwner)}`}>
@@ -3708,18 +3733,28 @@ export class LeaguesView extends LitElement {
 
         ${isExpanded ? html`
           <div class="lg-participant-expanded">
-            ${this._renderAwardsAndProgression(score)}
-            <div class="lg-inline-bracket-wrap">
-              ${this._renderInlineBracket(score, realKnockoutByMatchId)}
-            </div>
+            ${showPredictions ? html`
+              ${this._renderAwardsAndProgression(score)}
+              <div class="lg-inline-bracket-wrap">
+                ${this._renderInlineBracket(score, realKnockoutByMatchId)}
+              </div>
+            ` : html`
+              <div class="lg-predictions-locked">
+                🔒 ${t('league.predictionsLocked')}
+              </div>
+            `}
 
             <div class="lg-participant-actions">
-              <button class="lg-bracket-btn" @click=${() => this._viewBracket(score.participant.id, score.participant.name)}>
-                ${t('league.viewBracket')}
-              </button>
-              <button class="lg-bracket-btn" @click=${() => this._renameParticipantPrompt(score.participant.id, score.participant.name)}>
-                ${t('league.editNameBtn')}
-              </button>
+              ${showPredictions ? html`
+                <button class="lg-bracket-btn" @click=${() => this._viewBracket(score.participant.id, score.participant.name)}>
+                  ${t('league.viewBracket')}
+                </button>
+              ` : ''}
+              ${isMe ? html`
+                <button class="lg-bracket-btn" @click=${() => { void this._renameParticipantPrompt(score.participant.id, score.participant.name); }}>
+                  ${t('league.editNameBtn')}
+                </button>
+              ` : ''}
               ${isOwner ? html`
                 <label class="lg-upload-btn-sm">
                   ${t('league.replacePrediction')}

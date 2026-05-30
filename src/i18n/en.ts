@@ -602,6 +602,7 @@ export const en: Record<TranslationKey, string> = {
   'league.ownerNamePlaceholder': 'e.g. Pedro',
   'league.editNameBtn': 'Edit name',
   'league.editNamePrompt': 'New name',
+  'league.predictionsLocked': 'Predictions unlock when the World Cup starts (Jun 11)',
   'league.inviteRequiresLogin': 'Sign in to invite friends.',
   'league.inviteLinkReady': 'Link ready. Copy and share it with your friends.',
   'league.namePlaceholderFriend': 'e.g. John',

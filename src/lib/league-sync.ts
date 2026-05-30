@@ -181,6 +181,19 @@ export async function updateMyPredictionsInCloud(
   return !error;
 }
 
+export async function updateMyNameInCloud(leagueId: string, name: string): Promise<boolean> {
+  const sb = getSupabase();
+  const userId = useAuthStore.getState().session?.user.id;
+  if (!sb || !userId) return false;
+
+  const { error } = await sb.from('league_members')
+    .update({ name })
+    .eq('league_id', leagueId)
+    .eq('user_id', userId);
+
+  return !error;
+}
+
 // ── Hydration (sign-in) ──
 
 export async function onSignedIn(): Promise<void> {

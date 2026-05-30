@@ -610,6 +610,7 @@ export const es = {
   'league.ownerNamePlaceholder': 'Ej: Pedro',
   'league.editNameBtn': 'Editar nombre',
   'league.editNamePrompt': 'Nuevo nombre',
+  'league.predictionsLocked': 'Los pronósticos se revelan cuando empiece el Mundial (11 jun)',
   'league.inviteRequiresLogin': 'Inicia sesión para invitar amigos.',
   'league.inviteLinkReady': 'Enlace listo. Cópialo y mándaselo a tus amigos.',
   'league.namePlaceholderFriend': 'Ej: Juan',
