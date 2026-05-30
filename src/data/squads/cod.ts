@@ -16,7 +16,7 @@ export const squad: Player[] = [
   { number: 8,  name: 'Edo Kayembe',           position: 'MF', age: 27, club: 'Watford' },
   { number: 10, name: 'Gaël Kakuta',           position: 'MF', age: 35, club: 'Larissa' },
   { number: 16, name: 'Charles Pickel',        position: 'MF', age: 28, club: 'Espanyol' },
-  { number: 17, name: 'Meschack Elia',         position: 'MF', age: 29, club: 'Alanyaspor' },
+  { number: 17, name: 'Meschack Elia',         position: 'FW', age: 29, club: 'Alanyaspor' },
   { number: 18, name: 'Theo Bongonda',         position: 'MF', age: 31, club: 'Spartak Moscú' },
   { number: 19, name: 'Brian Cipenga',         position: 'MF', age: 25, club: 'Castellón' },
   { number: 21, name: 'Nathanaël Mbuku',       position: 'MF', age: 24, club: 'Montpellier' },
