@@ -12,10 +12,10 @@ import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { useLeaguesStore } from './store/leagues-store';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print' | 'accessibility';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print' | 'accessibility';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:     () => import('./components/groups-view'),
@@ -26,8 +26,9 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   tv:         () => import('./components/broadcasting-view'),
   coaches:    () => import('./components/coaches-view'),
   guide:      () => import('./components/guide-view'),
-  league: () => import('./components/leagues-view'),
+  league:     () => import('./components/leagues-view'),
   'guide-print': () => import('./components/guide-print-view'),
+  accessibility: () => import('./components/accessibility-view'),
 };
 
 /** Mapea cada tab a la vista lazy que necesita (hero no necesita lazy) */
@@ -42,6 +43,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'guide') return 'guide';
   if (tab === 'league') return 'league';
   if (tab === 'guide-print') return 'guide-print';
+  if (tab === 'accessibility') return 'accessibility';
   return null;
 }
 
@@ -54,14 +56,15 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   stadiums:  'tabs.stadiums',
   coaches:   'tabs.coaches',
   guide:     'tabs.guide',
-  league: 'tabs.league',
+  league:    'tabs.league',
   'guide-print': 'tabs.guide',
+  accessibility: 'tabs.accessibility',
 };
 
-const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league', 'accessibility'];
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'accessibility'];
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -357,7 +360,8 @@ export class BracketView extends LitElement {
     .section-guide,
     .section-guide-print,
     .section-tv,
-    .section-league {
+    .section-league,
+    .section-accessibility {
       display: none;
       scroll-margin-top: 110px;
     }
@@ -370,7 +374,8 @@ export class BracketView extends LitElement {
     .section-guide.visible,
     .section-guide-print.visible,
     .section-tv.visible,
-      .section-league.visible {
+    .section-league.visible,
+    .section-accessibility.visible {
       display: block;
       animation: viewFadeIn 0.2s ease both;
     }
@@ -491,7 +496,8 @@ export class BracketView extends LitElement {
       .section-guide,
       .section-guide-print,
       .section-tv,
-      .section-league {
+      .section-league,
+      .section-accessibility {
         display: none;
       }
       .section-groups.visible,
@@ -504,7 +510,8 @@ export class BracketView extends LitElement {
       .section-guide.visible,
       .section-guide-print.visible,
       .section-tv.visible,
-      .section-league.visible {
+      .section-league.visible,
+      .section-accessibility.visible {
         display: block;
         animation: viewFadeIn 0.2s ease both;
       }
@@ -619,7 +626,7 @@ export class BracketView extends LitElement {
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
+    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print', 'accessibility'];
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
       requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
@@ -706,6 +713,7 @@ export class BracketView extends LitElement {
       if (tab === 'guide') targetId = 'section-guide';
       if (tab === 'guide-print') targetId = 'section-guide-print';
       if (tab === 'league') targetId = 'section-league';
+      if (tab === 'accessibility') targetId = 'section-accessibility';
 
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1071,6 +1079,15 @@ export class BracketView extends LitElement {
           ${at === 'league' && loaded.has('league') ? html`
             <leagues-view></leagues-view>
           ` : at === 'league' ? html`<div class="loading-spinner"></div>` : ''}
+        </div>
+
+        <!-- Accesibilidad (lazy) -->
+        <div
+          id="section-accessibility"
+          class="section-accessibility ${at === 'accessibility' ? 'visible' : ''}">
+          ${at === 'accessibility' && loaded.has('accessibility') ? html`
+            <accessibility-view></accessibility-view>
+          ` : at === 'accessibility' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
       </div>

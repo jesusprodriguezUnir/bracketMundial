@@ -15,6 +15,24 @@ if (storedTheme === 'dark') {
   document.documentElement.dataset.theme = 'dark';
 }
 
+// Aplica preferencias de accesibilidad antes del primer paint
+const storedColorblind = localStorage.getItem('bm-colorblind');
+if (storedColorblind) {
+  document.documentElement.dataset.colorblind = storedColorblind;
+}
+const storedPatterns = localStorage.getItem('bm-accessibility-patterns');
+if (storedPatterns === 'true') {
+  document.documentElement.dataset.accessibilityPatterns = 'true';
+}
+const storedHighLegibility = localStorage.getItem('bm-high-legibility');
+if (storedHighLegibility === 'true') {
+  document.documentElement.dataset.highLegibility = 'true';
+}
+const storedTextScale = localStorage.getItem('bm-text-scale');
+if (storedTextScale) {
+  document.documentElement.dataset.textScale = storedTextScale;
+}
+
 // Sincroniza el atributo lang con el store de locale
 document.documentElement.lang = useLocaleStore.getState().locale;
 useLocaleStore.subscribe(state => {

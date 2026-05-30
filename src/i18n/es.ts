@@ -859,6 +859,35 @@ export const es = {
   'modal.saveClose': 'Guardar y cerrar',
   'modal.discard': 'Descartar',
 
+  // Accesibilidad
+  'tabs.accessibility': 'Accesibilidad',
+  'accessibility.title': 'AJUSTES DE ACCESIBILIDAD Y COLOR',
+  'accessibility.subtitle': 'Adapta el simulador del Mundial a tus necesidades visuales',
+  'accessibility.profileLabel': 'Perfil de color (Daltonismo)',
+  'accessibility.profileDefault': 'Visión Estándar (Original)',
+  'accessibility.profileDeuteranopia': 'Deuteranopía (Verde débil/ciego)',
+  'accessibility.profileProtanopia': 'Protanopía (Rojo débil/ciego)',
+  'accessibility.profileTritanopia': 'Tritanopía (Azul débil/ciego)',
+  'accessibility.profileAchromatopsia': 'Acromatopsia (Escala de grises)',
+  'accessibility.patternsLabel': 'Patrones y símbolos de apoyo',
+  'accessibility.patternsDesc': 'Inyecta patrones visuales en las tablas y brackets para no depender únicamente del color.',
+  'accessibility.fontLabel': 'Fuentes de alta legibilidad',
+  'accessibility.fontDesc': 'Cambia las tipografías retro de alto impacto por letras sans-serif geométricas ultra-limpias.',
+  'accessibility.scaleLabel': 'Tamaño del texto (Zoom)',
+  'accessibility.scaleNormal': 'Normal (100%)',
+  'accessibility.scaleLarge': 'Grande (+12.5%)',
+  'accessibility.scaleExtra': 'Muy Grande (+25%)',
+  'accessibility.previewTitle': 'Arena de Pruebas (Previsualización en vivo)',
+  'accessibility.resetBtn': '✕ REINICIAR AJUSTES',
+  'accessibility.savedFeedback': 'Preferencias de accesibilidad aplicadas',
+  'accessibility.normalVisionDesc': 'Paleta Panini retro estándar con contraste equilibrado.',
+  'accessibility.deuteranopiaDesc': 'Optimizado para deficiencia de verde. Sustituye el verde por azul brillante.',
+  'accessibility.protanopiaDesc': 'Optimizado para deficiencia de rojo. Sustituye el rojo por oliva y el verde por azul vivo.',
+  'accessibility.tritanopiaDesc': 'Optimizado para deficiencia de azul. Sustituye azul por verde azulado y amarillo por tiza.',
+  'accessibility.achromatopsiaDesc': 'Escala de grises con máximo contraste tipográfico y tramas geométricas.',
+  'accessibility.previewGroup': 'GRUPO A',
+  'accessibility.previewMatch': 'OCTAVOS DE FINAL',
+
 } as const;
 
 export type TranslationKey = keyof typeof es;

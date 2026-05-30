@@ -9,9 +9,9 @@ import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/au
 import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'accessibility';
 
-const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'accessibility'];
 
 function hashToTab(hash: string): PhaseTab | null {
   const clean = hash.replace('#', '');
@@ -829,6 +829,9 @@ export class AppRoot extends LitElement {
               <button class="ha-btn-sm" @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
                 ${this._isDark ? html`☀️` : html`🌙`}
               </button>
+              <button class="ha-btn-sm" @click="${() => this._selectTab('accessibility')}" title="${t('tabs.accessibility')}">
+                👁️
+              </button>
               <button class="ha-btn-sm" @click="${toggleLocale}" title="${t('header.langToggle')}">${t('header.langToggle')}</button>
               <button
                 class="ha-btn-primary"
@@ -895,6 +898,7 @@ export class AppRoot extends LitElement {
                 ${tab === 'coaches' ? '👔' : ''}
                 ${tab === 'guide' ? '📖' : ''}
                 ${tab === 'league' ? '📊' : ''}
+                ${tab === 'accessibility' ? '👁️' : ''}
                 ${tab === 'hero' ? t('tabs.hero')
                   : tab === 'groups' ? t('tabs.groups')
                   : tab === 'knockout' ? t('tabs.knockout')
@@ -903,7 +907,8 @@ export class AppRoot extends LitElement {
                   : tab === 'stadiums' ? t('tabs.stadiums')
                   : tab === 'coaches' ? t('tabs.coaches')
                   : tab === 'guide' ? t('tabs.guide')
-                  : t('tabs.league')}
+                  : tab === 'league' ? t('tabs.league')
+                  : t('tabs.accessibility')}
               </button>
             `)}
           </nav>

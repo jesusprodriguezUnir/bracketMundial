@@ -432,3 +432,101 @@ h1, h2, h3 {
   animation: spin 0.7s linear infinite;
 }
 
+/* ─── ACCESIBILIDAD Y COLOR ACCESIBLE (A11Y) ─── */
+
+/* 1. Deuteranopía (Deficiencia/Ceguera al verde) */
+:root[data-colorblind="deuteranopia"] {
+  --retro-red:     #c43c1e; /* Rojo teja de alta visibilidad */
+  --retro-green:   #0d7bc4; /* Azul cobalto brillante que sustituye al verde */
+  --retro-orange:  #d97200; /* Naranja ocre contrastado */
+  --retro-blue:    #22418c; /* Azul seguro */
+  --retro-yellow:  #f3bf00; /* Amarillo nítido */
+  --focus-ring:    3px solid var(--retro-green);
+}
+:root[data-colorblind="deuteranopia"][data-theme="dark"] {
+  --retro-red:     #f56245;
+  --retro-green:   #4da6ff;
+  --retro-orange:  #ffa333;
+  --retro-blue:    #4570d4;
+  --retro-yellow:  #fcd855;
+}
+
+/* 2. Protanopía (Deficiencia/Ceguera al rojo) */
+:root[data-colorblind="protanopia"] {
+  --retro-red:     #7f6200; /* Oliva/marrón de alta visibilidad para el rojo */
+  --retro-green:   #0a659e; /* Azul cobalto nítido para el verde */
+  --retro-orange:  #b28500; /* Naranja ocre */
+  --retro-blue:    #002e4d; /* Azul de alta densidad */
+  --retro-yellow:  #f0cf00; /* Amarillo limón contrastado */
+  --focus-ring:    3px solid var(--retro-green);
+}
+:root[data-colorblind="protanopia"][data-theme="dark"] {
+  --retro-red:     #cca333;
+  --retro-green:   #4db8ff;
+  --retro-orange:  #ffd24d;
+  --retro-blue:    #3377aa;
+  --retro-yellow:  #fff275;
+}
+
+/* 3. Tritanopía (Deficiencia/Ceguera al azul/amarillo) */
+:root[data-colorblind="tritanopia"] {
+  --retro-red:     #d81b60; /* Magenta vibrante */
+  --retro-green:   #006b54; /* Verde esmeralda oscuro */
+  --retro-orange:  #e05000; /* Naranja quemado vivo */
+  --retro-blue:    #009688; /* Turquesa intenso en lugar de azul */
+  --retro-yellow:  #ededed; /* Gris tiza muy claro en lugar de amarillo */
+  --focus-ring:    3px solid var(--retro-red);
+}
+:root[data-colorblind="tritanopia"][data-theme="dark"] {
+  --retro-red:     #ff4081;
+  --retro-green:   #26a69a;
+  --retro-orange:  #ff7043;
+  --retro-blue:    #80cbc4;
+  --retro-yellow:  #ffffff;
+}
+
+/* 4. Acromatopsia (Sin Color / Escala de grises) */
+:root[data-colorblind="achromatopsia"] {
+  --retro-red:     #444444;
+  --retro-green:   #8c8c8c;
+  --retro-orange:  #666666;
+  --retro-blue:    #121124;
+  --retro-yellow:  #e0e0e0;
+  --focus-ring:    3px solid #000000;
+}
+:root[data-colorblind="achromatopsia"][data-theme="dark"] {
+  --retro-red:     #cccccc;
+  --retro-green:   #777777;
+  --retro-orange:  #999999;
+  --retro-blue:    #ffffff;
+  --retro-yellow:  #444444;
+  --focus-ring:    3px solid #ffffff;
+}
+
+/* ─── 5. Fuentes de Alta Legibilidad (Para dislexia y fatiga visual) ─── */
+:root[data-high-legibility="true"] {
+  --font-var:  'Space Grotesk', var(--font-body), system-ui, sans-serif !important;
+  --font-head: var(--font-body), system-ui, sans-serif !important;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* ─── 6. Escalado de Texto Proporcional ─── */
+:root[data-text-scale="large"] {
+  font-size: 112.5% !important; /* Aumento global 12.5% */
+}
+:root[data-text-scale="extra-large"] {
+  font-size: 125% !important; /* Aumento global 25% */
+}
+
+/* ─── 7. Patrones y Tramas de Apoyo Visual (A11y Grapics) ─── */
+/* Clases de apoyo que los componentes de standings u otros pueden aprovechar */
+html[data-accessibility-patterns="true"] .qualify-row,
+html[data-accessibility-patterns="true"] .zone-qualify {
+  background-image: repeating-linear-gradient(45deg, rgba(13, 123, 196, 0.08) 0 4px, transparent 4px 12px) !important;
+}
+html[data-accessibility-patterns="true"] .eliminate-row,
+html[data-accessibility-patterns="true"] .zone-eliminate {
+  background-image: repeating-linear-gradient(-45deg, rgba(196, 60, 30, 0.08) 0 4px, transparent 4px 12px) !important;
+}
+
+
