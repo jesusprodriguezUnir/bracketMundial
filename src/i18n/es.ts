@@ -350,6 +350,13 @@ export const es = {
   'excel.importError': 'Error al importar el archivo. Comprueba que sea un Excel generado por esta aplicación.',
   'excel.importErrorTemplate': 'El archivo no es una plantilla válida: falta la hoja MAP.',
   'excel.importErrorNoRows': 'No se encontraron datos válidos en el archivo.',
+  'excel.sheetAwards': 'Premios',
+  'excel.awardsTitle': '🏅 PRONÓSTICOS INDIVIDUALES',
+  'excel.awardsTopScorer': '👟 Máximo Goleador',
+  'excel.awardsMvp': '⭐ MVP del Campeonato',
+  'excel.awardsTeam': 'Selección',
+  'excel.awardsPlayer': 'Jugador',
+  'excel.awardsHelp': 'Elige primero la selección y luego el jugador del desplegable. Guarda y reimporta en la app para cargar tu pronóstico.',
 
   // Guide
   'guide.print': 'Imprimir / Guardar PDF',
@@ -751,6 +758,7 @@ export const es = {
   'league.joinModalTitle': 'Unirme con código',
   'league.joinCodePlaceholder': 'XXX-XXXX',
   'league.joinCodeNotFound': 'No hemos encontrado ninguna liga con ese código.',
+  'league.joinCodeError': 'No se pudo verificar el código. Revisa tu conexión.',
   'league.joinCodeAlreadyIn': 'Ya estás en esta liga.',
   'league.loginRequired': 'Debes iniciar sesión para unirte a una liga.',
   'league.rulesBtn': 'Cómo funciona',

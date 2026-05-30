@@ -11,7 +11,7 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
-import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud } from '../lib/league-sync';
+import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud, findLeagueByCode, joinLeagueInCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
@@ -80,6 +80,7 @@ export class LeaguesView extends LitElement {
   @state() private _showRulesModal = false;
   @state() private _joinCode = '';
   @state() private _joinError: string | null = null;
+  @state() private _joinLoading = false;
   @state() private _syncFeedback: string | null = null;
   @state() private _showAwardsModal: 'topScorer' | 'mvp' | null = null;
   @state() private _selectedTeamIdForSelector = '';
@@ -2652,6 +2653,8 @@ export class LeaguesView extends LitElement {
   private static readonly _COLOR_POOL = ['var(--retro-orange)','var(--retro-green)','var(--retro-blue)','var(--retro-red)','var(--retro-yellow)'];
 
   private _codeForLeague(league: League): string {
+    // Preferir el código persistido en la nube; derivar del UUID solo como fallback
+    if (league.joinCode) return league.joinCode;
     const slug = league.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     const head = slug.slice(0, 3).padEnd(3, 'X');
     const tail = slug.slice(3, 7).padEnd(4, 'X');
@@ -2705,27 +2708,66 @@ export class LeaguesView extends LitElement {
   private _openRulesModal = () => { this._showRulesModal = true; };
   private _closeRulesModal = () => { this._showRulesModal = false; };
 
-  private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; };
-  private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; };
-  private _submitJoinCode = () => {
+  private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; this._joinLoading = false; };
+  private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; this._joinLoading = false; };
+  private _submitJoinCode = async () => {
     const session = useAuthStore.getState().session;
     if (!session) { this._joinError = t('league.loginRequired'); return; }
-    const code = this._joinCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length < 4) { this._joinError = t('league.joinCodeNotFound'); return; }
-    const formatted = code.length <= 3 ? code.padEnd(3, 'X') : `${code.slice(0,3)}-${code.slice(3,7)}`;
-    const match = this._leagues.find(l => this._codeForLeague(l) === formatted);
-    if (!match) { this._joinError = t('league.joinCodeNotFound'); return; }
+
+    const raw = this._joinCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (raw.length < 6) { this._joinError = t('league.joinCodeNotFound'); return; }
+    const formatted = `${raw.slice(0, 3)}-${raw.slice(3, 7)}`;
+
     const userId = session.user?.id;
-    const alreadyParticipant = match.participants.some(p => p.isOwner === true || (userId && p.userId === userId));
-    if (alreadyParticipant) {
+    const displayName = session?.user?.email?.split('@')[0] ?? t('league.you');
+
+    // 1) Buscar primero en ligas locales (atajo offline / ya miembro)
+    const localMatch = this._leagues.find(l => this._codeForLeague(l) === formatted);
+    if (localMatch) {
+      const alreadyParticipant = localMatch.participants.some(
+        p => p.isOwner === true || (userId && p.userId === userId),
+      );
+      if (alreadyParticipant) {
+        this._closeJoinModal();
+        this._goToDetail(localMatch.id);
+        return;
+      }
+      useLeaguesStore.getState().joinLeagueFromInvite(localMatch.id, localMatch.name, displayName, localMatch.joinCode);
+      void joinLeagueInCloud(localMatch.id, displayName);
       this._closeJoinModal();
-      this._goToDetail(match.id);
+      this._goToDetail(localMatch.id);
       return;
     }
-    const displayName = session?.user?.email?.split('@')[0] ?? t('league.you');
-    useLeaguesStore.getState().joinLeagueFromInvite(match.id, match.name, displayName);
+
+    // 2) Consultar la nube mediante la RPC SECURITY DEFINER
+    this._joinLoading = true;
+    this._joinError = null;
+    let cloudMatch: { id: string; name: string } | null = null;
+    try {
+      cloudMatch = await findLeagueByCode(formatted);
+    } catch {
+      this._joinLoading = false;
+      this._joinError = t('league.joinCodeError');
+      return;
+    }
+    this._joinLoading = false;
+
+    if (!cloudMatch) {
+      this._joinError = t('league.joinCodeNotFound');
+      return;
+    }
+
+    // 3) Unirse localmente y en la nube
+    useLeaguesStore.getState().joinLeagueFromInvite(cloudMatch.id, cloudMatch.name, displayName, formatted);
+    const ok = await joinLeagueInCloud(cloudMatch.id, displayName);
+    if (!ok) {
+      // Revertir local si la nube falla
+      useLeaguesStore.getState().deleteLeague(cloudMatch.id);
+      this._joinError = t('league.joinCodeError');
+      return;
+    }
     this._closeJoinModal();
-    this._goToDetail(match.id);
+    this._goToDetail(cloudMatch.id);
   };
 
   private _goToList() {
@@ -3464,8 +3506,10 @@ export class LeaguesView extends LitElement {
           />
           ${this._joinError ? html`<div class="modal-error">${this._joinError}</div>` : ''}
           <div class="modal-actions">
-            <button @click=${this._closeJoinModal}>${t('league.confirmNo')}</button>
-            <button class="primary" @click=${this._submitJoinCode}>${t('league.joinBtn')}</button>
+            <button ?disabled=${this._joinLoading} @click=${this._closeJoinModal}>${t('league.confirmNo')}</button>
+            <button class="primary" ?disabled=${this._joinLoading} @click=${this._submitJoinCode}>
+              ${this._joinLoading ? '…' : t('league.joinBtn')}
+            </button>
           </div>
         </div>
       </div>

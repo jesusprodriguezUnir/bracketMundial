@@ -24,6 +24,8 @@ export interface League {
   name: string;
   createdAt: number;
   participants: LeagueParticipant[];
+  /** Código de invitación corto (XXX-XXXX). Persistido en la nube. */
+  joinCode?: string;
 }
 
 let idCounter = 0;
@@ -66,7 +68,7 @@ interface LeaguesState {
 
   addParticipantFromExcel: (leagueId: string, name: string, file: File) => Promise<boolean>;
   addEmptyParticipant: (leagueId: string, name: string) => string;
-  joinLeagueFromInvite: (leagueId: string, name: string, participantName: string) => string;
+  joinLeagueFromInvite: (leagueId: string, name: string, participantName: string, joinCode?: string) => string;
   importParticipantFromShare: (
     leagueId: string,
     participantName: string,
@@ -190,13 +192,21 @@ export const useLeaguesStore = createStore<LeaguesState>()(
         return participant.id;
       },
 
-      joinLeagueFromInvite: (leagueId, name, participantName) => {
+      joinLeagueFromInvite: (leagueId, name, participantName, joinCode) => {
         const existing = get().leagues.find(l => l.id === leagueId);
         const userId = useAuthStore.getState().session?.user.id;
 
         if (existing) {
           const already = existing.participants.find(p => (userId && p.userId === userId) || p.isOwner);
           if (already) {
+            // Aprovechar para persistir el joinCode si aún no lo tenemos
+            if (joinCode && !existing.joinCode) {
+              set({
+                leagues: get().leagues.map(l =>
+                  l.id === leagueId ? { ...l, joinCode } : l,
+                ),
+              });
+            }
             return already.id;
           }
 
@@ -213,7 +223,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
           set({
             leagues: get().leagues.map(l =>
               l.id === leagueId
-                ? { ...l, participants: [...l.participants, participant] }
+                ? { ...l, participants: [...l.participants, participant], ...(joinCode ? { joinCode } : {}) }
                 : l,
             ),
             activeLeagueId: leagueId,
@@ -238,6 +248,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
               userId,
             },
           ],
+          ...(joinCode ? { joinCode } : {}),
         };
         set({ leagues: [...get().leagues, league], activeLeagueId: leagueId });
         return pid;

@@ -59,6 +59,20 @@ interface SupabaseLeague {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  join_code: string | null;
+}
+
+// ── Helpers de join_code ──
+
+/** Alfabeto seguro: A-Z0-9 sin 0, O, 1, I (se confunden visualmente). */
+const JOIN_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Genera un código aleatorio con formato XXX-XXXX. */
+export function generateJoinCode(): string {
+  const pick = () => JOIN_CODE_ALPHABET[Math.floor(Math.random() * JOIN_CODE_ALPHABET.length)];
+  const head = Array.from({ length: 3 }, pick).join('');
+  const tail = Array.from({ length: 4 }, pick).join('');
+  return `${head}-${tail}`;
 }
 
 interface SupabaseMember {
@@ -76,18 +90,31 @@ export async function createLeagueInCloud(
   name: string,
   ownerName: string,
   id?: string,
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; joinCode: string } | null> {
   const sb = getSupabase();
   const userId = useAuthStore.getState().session?.user.id;
   if (!sb || !userId) return null;
 
   const leagueId = id ?? crypto.randomUUID();
-  const { error: leagueErr } = await sb.from('leagues').insert({
-    id: leagueId,
-    name,
-    owner_id: userId,
-  });
 
+  // Intentar hasta 2 veces ante colisión de join_code (muy improbable)
+  let joinCode = generateJoinCode();
+  let leagueErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    ({ error: leagueErr } = await sb.from('leagues').insert({
+      id: leagueId,
+      name,
+      owner_id: userId,
+      join_code: joinCode,
+    }));
+    if (!leagueErr) break;
+    // Código duplicado: reintentar con uno nuevo
+    if (leagueErr.code === '23505') {
+      joinCode = generateJoinCode();
+      continue;
+    }
+    return null;
+  }
   if (leagueErr) return null;
 
   const { error: memberErr } = await sb.from('league_members').insert({
@@ -102,7 +129,28 @@ export async function createLeagueInCloud(
     return null;
   }
 
-  return { id: leagueId };
+  return { id: leagueId, joinCode };
+}
+
+/** Busca una liga por su join_code en la nube usando la RPC SECURITY DEFINER.
+ *  Devuelve { id, name } si existe, null si no o si hay error de red. */
+export async function findLeagueByCode(
+  code: string,
+): Promise<{ id: string; name: string } | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+
+  const normalized = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (normalized.length < 6) return null;
+  const formatted = `${normalized.slice(0, 3)}-${normalized.slice(3, 7)}`;
+
+  const { data, error } = await sb.rpc('find_league_by_code', { _code: formatted });
+  if (error || !data || (data as Array<{ id: string; name: string }>).length === 0) {
+    if (error) console.warn('[league-sync] findLeagueByCode error:', error.message);
+    return null;
+  }
+  const row = (data as Array<{ id: string; name: string }>)[0];
+  return { id: row.id, name: row.name };
 }
 
 export async function deleteLeagueFromCloud(leagueId: string): Promise<boolean> {
@@ -273,9 +321,15 @@ export async function forcePushAll(): Promise<{ ok: boolean; count: number; user
       || !!me.mvp;
 
     try {
+      // Incluir join_code solo si la liga local ya lo tiene (no generarlo aquí
+      // para no pisar el persistido en la nube). Si la liga se creó offline y
+      // no tiene código, asignarle uno nuevo al subirla por primera vez.
+      const joinCodePayload = league.joinCode
+        ? { join_code: league.joinCode }
+        : { join_code: generateJoinCode() };
       await sb.from('leagues').upsert(
-        { id: league.id, name: league.name, owner_id: userId },
-        { onConflict: 'id' },
+        { id: league.id, name: league.name, owner_id: userId, ...joinCodePayload },
+        { onConflict: 'id', ignoreDuplicates: false },
       );
 
       await sb.from('league_members').upsert(
@@ -348,13 +402,19 @@ function hydrateStore(
     const existingLocal = localLeagues.find(l => l.id === cl.id);
     if (existingLocal) {
       const mergedParticipants = mergeParticipants(existingLocal.participants, participants);
-      store._patchLeague(cl.id, { participants: mergedParticipants });
+      const patch: Partial<League> & { participants: typeof participants } = { participants: mergedParticipants };
+      // Persistir join_code si la nube lo tiene y el local no
+      if (cl.join_code && !existingLocal.joinCode) {
+        patch.joinCode = cl.join_code;
+      }
+      store._patchLeague(cl.id, patch);
     } else {
       const league: League = {
         id: cl.id,
         name: cl.name,
         createdAt: new Date(cl.created_at).getTime(),
         participants,
+        ...(cl.join_code ? { joinCode: cl.join_code } : {}),
       };
       store._addLeague(league);
     }

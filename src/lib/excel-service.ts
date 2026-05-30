@@ -7,6 +7,7 @@ import { es } from '../i18n/es';
 import { en } from '../i18n/en';
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { GROUP_MATCHES } from '../data/match-schedule';
+import { SQUADS } from '../data/squads/index';
 import { scoreParticipant, rankParticipants, MUNDIAL_POINTS } from './mini-league';
 import type { ParticipantScore } from './mini-league';
 import type { MatchPoints } from './mini-league';
@@ -213,6 +214,17 @@ export interface ImportResult {
   mvp?:       { teamId: string; playerName: string } | null;
 }
 
+interface AwardCellAddrs {
+  readonly sheetName:  string;
+  readonly teamAddr:   string;
+  readonly playerAddr: string;
+}
+
+interface AwardsAddrs {
+  topScorer?: AwardCellAddrs;
+  mvp?:       AwardCellAddrs;
+}
+
 // ─── Formula builders ─────────────────────────────────────────────────────────
 
 function shRef(name: string): string {
@@ -390,7 +402,20 @@ export class ExcelService {
     this.createCalcSheet(wb, drawInfos, groupsName);
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
     const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName, flagImages);
-    this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells, options?.topScorer, options?.mvp);
+
+    // ── Awards combo sheet (Premios / Awards) ─────────────────────────────
+    this.createAwardsDataSheet(wb);
+    const awardsSheetName = lbl('excel.sheetAwards', locale);
+    const awardsSheet = wb.addWorksheet(awardsSheetName, {
+      views: [{ showGridLines: false }],
+      properties: { defaultRowHeight: 18 },
+    });
+    const awardsAddrs = this.createAwardsCombo(awardsSheet, 2, 2, locale, {
+      topScorer: options?.topScorer,
+      mvp:       options?.mvp,
+    });
+
+    this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells, awardsAddrs);
     this.createRulesExplanationSheet(wb, locale);
 
     const buffer = await wb.xlsx.writeBuffer();
@@ -1281,17 +1306,163 @@ export class ExcelService {
     return koCells;
   }
 
+  // ── Awards data sheet (hidden) — named ranges for dependent dropdowns ─────────
+
+  /**
+   * Creates a hidden AWARDS_DATA sheet with one column per team (teamId in row 1,
+   * player names in rows 2..N). Registers ExcelJS defined names:
+   *   - PLAYERS_<TEAMID>  → range of player names for that team
+   *   - AWARDS_TEAMS      → single-column range of all team ids that have a squad
+   */
+  private static createAwardsDataSheet(wb: ExcelJS.Workbook): void {
+    const sheet = wb.addWorksheet('AWARDS_DATA', { state: 'hidden' });
+
+    // Only teams that have at least one player in the squads data
+    const teamIds = Object.keys(SQUADS).filter(id => SQUADS[id].length > 0);
+
+    // Column 1 reserved for the teams list (AWARDS_TEAMS range)
+    const TEAMS_COL = 1;
+    teamIds.forEach((teamId, rowIdx) => {
+      sheet.getCell(rowIdx + 1, TEAMS_COL).value = teamId;
+    });
+    // Register AWARDS_TEAMS named range
+    wb.definedNames.add(`AWARDS_DATA!$${colLetter(TEAMS_COL)}$1:$${colLetter(TEAMS_COL)}$${teamIds.length}`, 'AWARDS_TEAMS');
+
+    // Columns 2..N+1: one column per team with player names
+    teamIds.forEach((teamId, colIdx) => {
+      const col = colIdx + 2; // start at column 2
+      const players = SQUADS[teamId];
+      players.forEach((player, rowIdx) => {
+        sheet.getCell(rowIdx + 1, col).value = player.name;
+      });
+      // Register PLAYERS_<TEAMID> named range (rows 1..len)
+      const colL = colLetter(col);
+      wb.definedNames.add(`AWARDS_DATA!$${colL}$1:$${colL}$${players.length}`, `PLAYERS_${teamId}`);
+    });
+
+    sheet.protect('', { selectLockedCells: true, selectUnlockedCells: false });
+  }
+
+  // ── Awards combo sheet ────────────────────────────────────────────────────────
+
+  /**
+   * Draws the Top Scorer + MVP combo section on `sheet` starting at (startRow, startCol).
+   * Each award has a "Team" cell (dropdown of all teams) and a "Player" cell
+   * (dependent dropdown via INDIRECT). Returns the cell addresses for MAP registration.
+   */
+  private static createAwardsCombo(
+    sheet: ExcelJS.Worksheet,
+    startRow: number,
+    startCol: number,
+    locale: Locale,
+    preset?: {
+      topScorer?: { teamId: string; playerName: string } | null;
+      mvp?:       { teamId: string; playerName: string } | null;
+    },
+  ): AwardsAddrs {
+    const THIN_BORDER = { top: THIN, left: THIN, bottom: THIN, right: THIN };
+
+    // ── Title row ──────────────────────────────────────────────────────────────
+    const titleCell = sheet.getCell(startRow, startCol);
+    titleCell.value = lbl('excel.awardsTitle', locale);
+    titleCell.font  = { bold: true, size: 13, color: { argb: C.white } };
+    titleCell.fill  = fill(C.ink);
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    sheet.mergeCells(startRow, startCol, startRow, startCol + 3);
+    sheet.getRow(startRow).height = 24;
+
+    // ── Column header row ──────────────────────────────────────────────────────
+    const hdrRow = startRow + 1;
+    [
+      '',
+      lbl('excel.awardsTeam', locale),
+      lbl('excel.awardsPlayer', locale),
+    ].forEach((h, i) => {
+      const cell = sheet.getCell(hdrRow, startCol + i);
+      cell.value = h;
+      cell.font  = { bold: true, size: 10, color: { argb: C.white } };
+      cell.fill  = fill('22418C');
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = THIN_BORDER;
+    });
+    // Merge player header across 2 cols (team col + player col are cols 1-2 relative)
+    sheet.getRow(hdrRow).height = 18;
+
+    // ── Helper: draw one award row ─────────────────────────────────────────────
+    const drawAwardRow = (
+      row: number,
+      labelKey: TranslationKey,
+      presetTeam: string | undefined,
+      presetPlayer: string | undefined,
+    ): { teamAddr: string; playerAddr: string } => {
+      sheet.getRow(row).height = 20;
+
+      // Label cell (col 0 offset)
+      const labelCell = sheet.getCell(row, startCol);
+      labelCell.value = lbl(labelKey, locale);
+      labelCell.font  = { bold: true, size: 10, color: { argb: C.ink } };
+      labelCell.fill  = fill(C.paper2);
+      labelCell.alignment = { horizontal: 'right', vertical: 'middle' };
+      labelCell.border = THIN_BORDER;
+
+      // Team dropdown cell (col 1 offset)
+      const teamCell = sheet.getCell(row, startCol + 1);
+      teamCell.fill  = fill(C.yellow);
+      teamCell.font  = { bold: true, size: 10 };
+      teamCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      teamCell.border = THIN_BORDER;
+      teamCell.dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        showErrorMessage: false,
+        formulae: ['AWARDS_TEAMS'],
+      };
+      if (presetTeam) teamCell.value = presetTeam;
+
+      // Player dropdown cell (col 2 offset) — INDIRECT depends on team cell
+      const playerCell = sheet.getCell(row, startCol + 2);
+      playerCell.fill  = fill(C.yellow);
+      playerCell.font  = { bold: true, size: 10 };
+      playerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      playerCell.border = THIN_BORDER;
+      const teamAbsAddr = `$${teamCell.address.replace(/[0-9]/g, '')}$${teamCell.address.replace(/[^0-9]/g, '')}`;
+      playerCell.dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        showErrorMessage: false,
+        formulae: [`INDIRECT("PLAYERS_"&${teamAbsAddr})`],
+      };
+      if (presetPlayer) playerCell.value = presetPlayer;
+
+      return { teamAddr: teamCell.address, playerAddr: playerCell.address };
+    };
+
+    const tsAddrs  = drawAwardRow(startRow + 2, 'excel.awardsTopScorer', preset?.topScorer?.teamId,  preset?.topScorer?.playerName);
+    const mvpAddrs = drawAwardRow(startRow + 3, 'excel.awardsMvp',       preset?.mvp?.teamId,        preset?.mvp?.playerName);
+
+    // ── Help note ──────────────────────────────────────────────────────────────
+    const helpRow = startRow + 5;
+    const helpCell = sheet.getCell(helpRow, startCol);
+    helpCell.value = lbl('excel.awardsHelp', locale);
+    helpCell.font  = { italic: true, size: 9, color: { argb: C.dim } };
+    sheet.mergeCells(helpRow, startCol, helpRow, startCol + 3);
+
+    return {
+      topScorer: { sheetName: sheet.name, ...tsAddrs },
+      mvp:       { sheetName: sheet.name, ...mvpAddrs },
+    };
+  }
+
   // ── MAP sheet (hidden) — single source of truth for import ───────────────────
 
   private static createMapSheet(
     wb: ExcelJS.Workbook,
     matchCells: MatchCell[],
     koCells: KnockoutCell[],
-    topScorer?: { teamId: string; playerName: string } | null,
-    mvp?: { teamId: string; playerName: string } | null,
+    awards?: AwardsAddrs,
   ): void {
     const sheet = wb.addWorksheet('MAP', { state: 'hidden' });
-    ['Match ID', 'Sheet', 'Score A', 'Score B', 'Penalties'].forEach((h, i) => {
+    ['Match ID', 'Sheet', 'Score A / Team Addr', 'Score B / Player Addr', 'Penalties'].forEach((h, i) => {
       sheet.getCell(1, i + 1).value = h;
     });
     let r = 2;
@@ -1311,17 +1482,19 @@ export class ExcelService {
       r++;
     });
 
-    // ── Award predictions (topScorer, MVP) as metadata rows ──────────────
-    if (topScorer) {
+    // ── Award cell references (sheet + addr for team and player cells) ────────
+    if (awards?.topScorer) {
       sheet.getCell(r, 1).value = 'TOP_SCORER';
-      sheet.getCell(r, 2).value = topScorer.teamId;
-      sheet.getCell(r, 3).value = topScorer.playerName;
+      sheet.getCell(r, 2).value = awards.topScorer.sheetName;
+      sheet.getCell(r, 3).value = awards.topScorer.teamAddr;
+      sheet.getCell(r, 4).value = awards.topScorer.playerAddr;
       r++;
     }
-    if (mvp) {
+    if (awards?.mvp) {
       sheet.getCell(r, 1).value = 'MVP';
-      sheet.getCell(r, 2).value = mvp.teamId;
-      sheet.getCell(r, 3).value = mvp.playerName;
+      sheet.getCell(r, 2).value = awards.mvp.sheetName;
+      sheet.getCell(r, 3).value = awards.mvp.teamAddr;
+      sheet.getCell(r, 4).value = awards.mvp.playerAddr;
       r++;
     }
 
@@ -1332,6 +1505,22 @@ export class ExcelService {
 
   static async importFromExcel(file: File): Promise<ImportResult> {
     return this.importFromBuffer(await file.arrayBuffer());
+  }
+
+  /** Extracts a plain string from any ExcelJS cell value (formula result, rich text, plain). */
+  private static readText(val: ExcelJS.CellValue): string {
+    if (val === null || val === undefined) return '';
+    // Formula object: { formula, result }
+    const asFormula = val as { result?: unknown };
+    if (asFormula.result !== undefined) {
+      return String(asFormula.result ?? '').trim();
+    }
+    // Rich text: { richText: [{text},...] }
+    const asRich = val as { richText?: Array<{ text: string }> };
+    if (Array.isArray(asRich.richText)) {
+      return asRich.richText.map(rt => rt.text).join('').trim();
+    }
+    return String(val).trim();
   }
 
   static async importFromBuffer(buffer: ArrayBuffer): Promise<ImportResult> {
@@ -1362,13 +1551,23 @@ export class ExcelService {
       const sbAddr   = row.getCell(4).value?.toString();
       const penAddr  = row.getCell(5).value?.toString();
 
-      // Award prediction metadata rows
-      if (matchId === 'TOP_SCORER' && sName && saAddr) {
-        topScorer = { teamId: sName, playerName: saAddr };
+      // ── Award prediction rows: tag | sheetName | teamAddr | playerAddr ────
+      if (matchId === 'TOP_SCORER' && sName && saAddr && sbAddr) {
+        const ws = wb.getWorksheet(sName);
+        if (ws) {
+          const teamId    = this.readText(ws.getCell(saAddr).value).toUpperCase();
+          const playerName = this.readText(ws.getCell(sbAddr).value);
+          if (teamId && playerName) topScorer = { teamId, playerName };
+        }
         return;
       }
-      if (matchId === 'MVP' && sName && saAddr) {
-        mvp = { teamId: sName, playerName: saAddr };
+      if (matchId === 'MVP' && sName && saAddr && sbAddr) {
+        const ws = wb.getWorksheet(sName);
+        if (ws) {
+          const teamId    = this.readText(ws.getCell(saAddr).value).toUpperCase();
+          const playerName = this.readText(ws.getCell(sbAddr).value);
+          if (teamId && playerName) mvp = { teamId, playerName };
+        }
         return;
       }
 
