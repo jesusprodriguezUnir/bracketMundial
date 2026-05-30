@@ -414,9 +414,12 @@ export const useLeaguesStore = createStore<LeaguesState>()(
 
 // ── Identity helpers ──
 
-/** Determina si un participante soy yo, usando isOwner o coincidencia de userId. */
-export function isMyParticipant(p: LeagueParticipant, sessionUserId: string | null | undefined): boolean {
-  return p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId);
+/** Determina si un participante soy yo, usando coincidencia de userId si hay sesión y el registro la tiene, o isOwner como fallback. */
+export function isMyParticipant(p: { id: string; userId?: string; isOwner?: boolean }, sessionUserId: string | null | undefined): boolean {
+  if (sessionUserId != null && p.userId != null) {
+    return p.userId === sessionUserId;
+  }
+  return p.isOwner === true;
 }
 
 /** Devuelve el participante que soy yo en la liga, o undefined si no se encuentra. */

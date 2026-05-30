@@ -2697,9 +2697,10 @@ export class LeaguesView extends LitElement {
       const realKnockoutScores = filterRealByDate(rawKo);
       const scored = league.participants.map(p => scoreParticipant(p, realGroupScores, realKnockoutScores));
       const ranked = rankParticipants(scored);
-      const ownerIdx = ranked.findIndex(p => p.participant.isOwner === true);
-      if (ownerIdx === -1) return { pos: ranked.length, total: ranked.length, isOwnerPresent: false };
-      return { pos: ownerIdx + 1, total: ranked.length, isOwnerPresent: true };
+      const sessionUserId = useAuthStore.getState().session?.user?.id;
+      const myIdx = ranked.findIndex(p => isMyParticipant(p.participant, sessionUserId));
+      if (myIdx === -1) return { pos: ranked.length, total: ranked.length, isOwnerPresent: false };
+      return { pos: myIdx + 1, total: ranked.length, isOwnerPresent: true };
     } catch {
       return null;
     }
@@ -2823,7 +2824,7 @@ export class LeaguesView extends LitElement {
         const session = useAuthStore.getState().session;
         if (session) {
           const userId = session.user.id;
-          const me = league.participants.find(p => p.userId === userId || p.isOwner);
+          const me = findMyParticipant(league, userId);
           const isOwner = me?.isOwner === true;
           
           try {
@@ -3077,9 +3078,7 @@ export class LeaguesView extends LitElement {
 
       // Identificar al participante propio para el filtro pre-torneo.
       const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
-      const myParticipant = league.participants.find(
-        p => p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId),
-      );
+      const myParticipant = findMyParticipant(league, sessionUserId);
 
       const blob = await ExcelService.exportLeaguePredictions(
         league,
@@ -3121,7 +3120,7 @@ export class LeaguesView extends LitElement {
           { id: league.id, name: league.name, owner_id: userId },
           { onConflict: 'id' },
         );
-        const me = league.participants.find(p => p.isOwner) ?? league.participants[0];
+        const me = findMyParticipant(league, userId) ?? league.participants[0];
         if (me) {
           await sb.from('league_members').upsert(
             { league_id: league.id, user_id: userId, name: me.name },
@@ -3152,7 +3151,7 @@ export class LeaguesView extends LitElement {
   private _showSharePredictionsModal() {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
-    const me = league.participants.find(p => p.isOwner);
+    const me = findMyParticipant(league, useAuthStore.getState().session?.user?.id);
     if (!me) return;
     const hasPredictions = me.groupScores.some(s => s.scoreA !== null && s.scoreB !== null)
       || me.knockoutScores.some(s => s.scoreA !== null && s.scoreB !== null);
@@ -3167,7 +3166,7 @@ export class LeaguesView extends LitElement {
   private _copyShareLink() {
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
-    const me = league.participants.find(p => p.isOwner);
+    const me = findMyParticipant(league, useAuthStore.getState().session?.user?.id);
     if (!me) return;
     const url = buildParticipantShareUrl(league.id, me.name, me.groupScores, me.knockoutScores);
     navigator.clipboard.writeText(url).catch(() => {});
@@ -3444,7 +3443,7 @@ export class LeaguesView extends LitElement {
                     ${(() => {
                       const session = useAuthStore.getState().session;
                       const userId = session?.user?.id;
-                      const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+                      const me = findMyParticipant(l, userId);
                       const isOwnerOfCard = me?.isOwner === true;
                       
                       return html`
@@ -3469,7 +3468,7 @@ export class LeaguesView extends LitElement {
           if (!l) return '';
           const session = useAuthStore.getState().session;
           const userId = session?.user?.id;
-          const me = l.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+          const me = findMyParticipant(l, userId);
           const isOwnerOfConfirm = me?.isOwner === true;
           
           return html`
@@ -3725,8 +3724,12 @@ export class LeaguesView extends LitElement {
     const isMe = participant ? isMyParticipant(participant, sessionUserId) : isOwner;
     const showPredictions = isMe || this._tournamentStarted;
 
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    const me = findMyParticipant(league, sessionUserId);
+    const currentUserIsOwner = me?.isOwner === true;
+
     return html`
-      <article class=${`lg-participant-card ${this._rankTone(index, isOwner)}`}>
+      <article class=${`lg-participant-card ${this._rankTone(index, isMe)}`}>
         <button
           class="lg-participant-summary"
           @click=${() => this._toggleExpand(score.participant.id)}
@@ -3738,7 +3741,7 @@ export class LeaguesView extends LitElement {
             <div>
               <div class="lg-participant-kicker">${t('league.colRank')} ${index + 1}</div>
               <div class="lg-participant-name-row">
-                <div class="lg-participant-name">${score.participant.name}${isOwner ? ' ★' : ''}</div>
+                <div class="lg-participant-name">${score.participant.name}${isMe ? ' ★' : ''}</div>
                 ${participant ? html`<span class="lg-participant-source">${participant.source}</span>` : ''}
               </div>
             </div>
@@ -3782,14 +3785,12 @@ export class LeaguesView extends LitElement {
                 <button class="lg-bracket-btn" @click=${() => { void this._renameParticipantPrompt(score.participant.id, score.participant.name); }}>
                   ${t('league.editNameBtn')}
                 </button>
-              ` : ''}
-              ${isOwner ? html`
                 <label class="lg-upload-btn-sm">
                   ${t('league.replacePrediction')}
                   <input type="file" accept=".xlsx" hidden @change=${(e: Event) => { void this._handleMeExcelReplace(e, score.participant.id); }} />
                 </label>
               ` : ''}
-              ${!isOwner ? html`
+              ${currentUserIsOwner && !isMe ? html`
                 <button class="lg-delete-btn" @click=${() => this._removeParticipant(score.participant.id)}>
                   ${t('league.removeBtn')}
                 </button>
@@ -3967,7 +3968,7 @@ export class LeaguesView extends LitElement {
                 <tbody>
                   ${this._scores.map((row, idx) => {
                     const av = this._avatarForName(row.participant.name);
-                    const isYou = row.participant.isOwner === true;
+                    const isYou = isMyParticipant(row.participant, userId);
                     const isExpanded = this._expandedId === row.participant.id;
                     return html`
                       <tr
@@ -4301,7 +4302,7 @@ export class LeaguesView extends LitElement {
   }
 
   private _renderInteractiveAwardsSelector(participant: LeagueParticipant): TemplateResult {
-    const isYou = participant.isOwner === true || participant.userId === useAuthStore.getState().session?.user?.id;
+    const isYou = isMyParticipant(participant, useAuthStore.getState().session?.user?.id);
     
     if (!isYou) {
       return html`
