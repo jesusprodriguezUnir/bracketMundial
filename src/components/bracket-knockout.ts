@@ -11,6 +11,7 @@ import { isMatchPending } from '../lib/date-utils';
 import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
+import { lightTap } from '../lib/interaction';
 import './score-stepper';
 import './odds-bar';
 
@@ -80,6 +81,8 @@ export class BracketKnockout extends LitElement {
   @state() private _mobileMode: 'all' | 'path' = 'all';
   @state() private _mobileStage = 0;
   @state() private _pathTeamId: string | null = null;
+  // Swipe interno entre fases del bracket (solo en modo móvil / "all")
+  private _mobSwipeStartX = 0;
   @state() private _showTeamPicker = false;
   @state() private _pickerSearch = '';
   @state() private _connectorPaths: ConnectorPath[] = [];
@@ -630,19 +633,66 @@ export class BracketKnockout extends LitElement {
       all: unset;
       cursor: pointer;
       flex-shrink: 0;
-      padding: 6px 11px;
+      /* Target táctil cómodo: mínimo 40px de alto */
+      min-height: 40px;
+      padding: 9px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       background: var(--paper-3);
       border: 2px solid var(--ink);
       box-shadow: 2px 2px 0 0 var(--ink);
       color: var(--ink);
       font-family: var(--font-var);
-      font-size: 10px;
+      font-size: 12px;
       letter-spacing: 0.05em;
       white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .mob-chip.active { color: #fff; }
 
     .mob-body { padding: 14px 16px 24px; }
+
+    /* ─── Banner de fase con navegación prev/next ─── */
+    .mob-stage-nav {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .mob-stage-nav-btn {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      border: 2.5px solid var(--ink);
+      background: var(--paper-2);
+      box-shadow: 3px 3px 0 0 var(--ink);
+      font-size: 18px;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .mob-stage-nav-btn:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+    .mob-stage-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .mob-stage-nav-btn.prev { margin-right: -2.5px; }
+    .mob-stage-nav-btn.next { margin-left: -2.5px; }
+    .mob-stage-banner-wrap {
+      flex: 1;
+      min-width: 0;
+      /* Banner heredado — sin margin-bottom propio, lo gestiona mob-stage-nav */
+    }
 
     .mob-stage-banner {
       padding: 10px 14px;
@@ -2315,18 +2365,38 @@ export class BracketKnockout extends LitElement {
             <button
               class="mob-chip ${i === this._mobileStage ? 'active' : ''}"
               style="${i === this._mobileStage ? `background: ${s.color};` : ''}"
-              @click="${() => { this._mobileStage = i; }}">
+              @click="${() => { this._mobileStage = i; lightTap(); requestAnimationFrame(() => { const chips = this.shadowRoot?.querySelector('.mob-chips'); const active = chips?.querySelector<HTMLElement>('.mob-chip.active'); active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); }); }}">
               ${s.label}
-              <span style="font-family: var(--font-mono); font-size: 8px; opacity: 0.7;">[${s.abbr}]</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; opacity: 0.7;">[${s.abbr}]</span>
             </button>
           `)}
         </div>
 
-        <div class="mob-body">
-          <div class="mob-stage-banner" style="background: ${stage.color};">
-            <div class="mob-banner-dots"></div>
-            <span class="mob-banner-label">${stage.label}</span>
-            <span class="mob-banner-count">${stage.matchIds.length} ${stageMatchLabel}</span>
+        <div
+          class="mob-body"
+          @touchstart="${this._onMobBodyTouchStart}"
+          @touchend="${this._onMobBodyTouchEnd}">
+
+          <!-- Banner de fase con botones prev/next y contador -->
+          <div class="mob-stage-nav">
+            <button
+              class="mob-stage-nav-btn prev"
+              ?disabled="${this._mobileStage === 0}"
+              @click="${() => this._goToStage(-1)}"
+              aria-label="Fase anterior">‹</button>
+            <div class="mob-stage-banner mob-stage-banner-wrap" style="background: ${stage.color}; margin-bottom: 0;">
+              <div class="mob-banner-dots"></div>
+              <span class="mob-banner-label">${stage.label}</span>
+              <span class="mob-banner-count">
+                ${this._mobileStage + 1}/${MOBILE_STAGES.length}
+                · ${stage.matchIds.length} ${stageMatchLabel}
+              </span>
+            </div>
+            <button
+              class="mob-stage-nav-btn next"
+              ?disabled="${this._mobileStage === MOBILE_STAGES.length - 1}"
+              @click="${() => this._goToStage(1)}"
+              aria-label="Fase siguiente">›</button>
           </div>
 
           ${stage.matchIds.map(id => this._renderMobileMatchCard(id, stage.color))}
@@ -2381,6 +2451,32 @@ export class BracketKnockout extends LitElement {
         ${pickerOverlay}
       </div>
     `;
+  }
+
+  // ─── Swipe interno entre fases del bracket (modo "all" en móvil) ───
+
+  /** Avanza o retrocede una fase y hace scroll del chip activo a la vista. */
+  private _goToStage(delta: 1 | -1) {
+    const next = Math.min(MOBILE_STAGES.length - 1, Math.max(0, this._mobileStage + delta));
+    if (next === this._mobileStage) return;
+    this._mobileStage = next;
+    lightTap();
+    // Scroll del chip activo a la vista tras el render
+    requestAnimationFrame(() => {
+      const chips = this.shadowRoot?.querySelector('.mob-chips');
+      const active = chips?.querySelector<HTMLElement>('.mob-chip.active');
+      active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    });
+  }
+
+  private _onMobBodyTouchStart(e: TouchEvent) {
+    this._mobSwipeStartX = e.touches[0].clientX;
+  }
+
+  private _onMobBodyTouchEnd(e: TouchEvent) {
+    const dx = e.changedTouches[0].clientX - this._mobSwipeStartX;
+    if (Math.abs(dx) < 48) return;  // umbral: gesto intencional
+    this._goToStage(dx < 0 ? 1 : -1);
   }
 
   private _renderPathMode() {

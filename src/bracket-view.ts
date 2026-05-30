@@ -750,7 +750,8 @@ export class BracketView extends LitElement {
     if (!this._isSwiping) {
       const dx = Math.abs(e.touches[0].clientX - this._swipeStartX);
       const dy = Math.abs(e.touches[0].clientY - this._swipeStartY);
-      if (dx > 20 && dx > dy * 1.5) {
+      // Umbral endurecido: requiere gesto más pronunciado para evitar falsos positivos
+      if (dx > 36 && dx > dy * 2) {
         this._isSwiping = true;
       }
       return;
@@ -780,6 +781,10 @@ export class BracketView extends LitElement {
         return;
       }
     }
+
+    // En la vista knockout el bracket gestiona sus propios gestos de fase —
+    // no cambiar de pestaña principal con swipe para evitar conflictos.
+    if (this._activeTab === 'knockout') return;
 
     // Horizontal swipe between adjacent tabs
     const idx = TAB_ORDER.indexOf(this._activeTab);
