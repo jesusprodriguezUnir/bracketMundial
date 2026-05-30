@@ -16,7 +16,7 @@ export const squad: Player[] = [
   { number: 18, name: 'Luis Romo', position: 'DF', age: 30, club: 'Chivas' },
 
   // Mediocampistas
-  { number: 4, name: 'Edson Álvarez', position: 'MF', age: 28, club: 'Fenerbahce', captain: true },
+  { number: 4, name: 'Edson Álvarez', position: 'MF', age: 28, club: 'West Ham', captain: true },
   { number: 8, name: 'Álvaro Fidalgo', position: 'MF', age: 29, club: 'Real Betis' },
   { number: 24, name: 'Luis Chávez', position: 'MF', age: 30, club: 'Dinamo Moscú' },
   { number: 6, name: 'Obed Vargas', position: 'MF', age: 20, club: 'Atlético de Madrid' },
@@ -38,5 +38,5 @@ export const squad: Player[] = [
 
 export const lineup = {
   formation: '4-3-3',
-  startingXI: [1, 2, 3, 5, 22, 4, 8, 16, 11, 33, 10]
+  startingXI: [1, 22, 3, 5, 2, 4, 8, 16, 11, 33, 10]
 };

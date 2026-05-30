@@ -1,3 +1,31 @@
+// Manejo de errores de carga de chunks dinámicos (despliegues en producción)
+const handleChunkError = (error: any) => {
+  const message = error?.message || '';
+  const name = error?.name || '';
+  if (
+    message.includes('Failed to fetch dynamically imported module') ||
+    message.includes('Importing a module script failed') ||
+    message.includes('error loading dynamically imported module') ||
+    (name === 'TypeError' && message.includes('Load failed'))
+  ) {
+    // Evitar bucles de recarga infinitos si el usuario no tiene conexión real a internet
+    const lastReload = sessionStorage.getItem('bm-last-chunk-reload');
+    const now = Date.now();
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem('bm-last-chunk-reload', now.toString());
+      window.location.reload();
+    }
+  }
+};
+
+window.addEventListener('error', (e) => {
+  handleChunkError(e.error || e);
+}, true);
+
+window.addEventListener('unhandledrejection', (e) => {
+  handleChunkError(e.reason);
+});
+
 import './index.css';
 import './app-root';
 import { inject } from '@vercel/analytics';
