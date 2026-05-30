@@ -117,14 +117,36 @@ export async function deleteLeagueFromCloud(leagueId: string): Promise<boolean> 
 export async function joinLeagueInCloud(leagueId: string, participantName: string): Promise<boolean> {
   const sb = getSupabase();
   const userId = useAuthStore.getState().session?.user.id;
-  if (!sb || !userId) return false;
+  if (!sb || !userId) {
+    console.warn('[league-sync] joinLeagueInCloud: sin sesión, no se puede unir a la liga', leagueId);
+    return false;
+  }
 
   const { error } = await sb.from('league_members').upsert(
     { league_id: leagueId, user_id: userId, name: participantName },
     { onConflict: 'league_id, user_id', ignoreDuplicates: false },
   );
 
+  if (error) {
+    console.error('[league-sync] joinLeagueInCloud error:', error.code, error.message);
+  }
   return !error;
+}
+
+/** Obtiene el nombre de una liga desde la nube. Devuelve null si no se puede. */
+export async function fetchLeagueNameFromCloud(leagueId: string): Promise<string | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const { data, error } = await sb
+    .from('leagues')
+    .select('name')
+    .eq('id', leagueId)
+    .single();
+  if (error || !data) {
+    console.warn('[league-sync] fetchLeagueNameFromCloud error:', error?.message);
+    return null;
+  }
+  return (data as { name: string }).name ?? null;
 }
 
 export async function leaveLeagueInCloud(leagueId: string): Promise<boolean> {

@@ -2,6 +2,32 @@ import { createStore } from 'zustand/vanilla';
 import type { Session } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase-client';
 
+// Clave de sessionStorage para preservar un hash de invitación de liga
+// a través del login (magic-link / OAuth limpian el hash).
+const PENDING_INVITE_HASH_KEY = 'wm2026_pending_invite_hash';
+
+/** Prefijos de hash que corresponden a una invitación de liga. */
+function _isLeagueInviteHash(hash: string): boolean {
+  return hash.startsWith('#league/join/') || hash.startsWith('#lg=');
+}
+
+/**
+ * Espera a que el estado de autenticación deje de estar en 'init' y devuelve
+ * la sesión resultante (o null si no hay sesión).
+ */
+export function waitForAuthReady(): Promise<Session | null> {
+  const state = useAuthStore.getState();
+  if (state.status !== 'init') return Promise.resolve(state.session);
+  return new Promise(resolve => {
+    const unsub = useAuthStore.subscribe(s => {
+      if (s.status !== 'init') {
+        unsub();
+        resolve(s.session);
+      }
+    });
+  });
+}
+
 export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'sent_signup' | 'error';
 
 interface AuthState {
@@ -182,12 +208,31 @@ function _cleanAuthParams(): void {
     if (url.searchParams.has(k)) { url.searchParams.delete(k); changed = true; }
   }
   if (url.hash.includes('access_token') || url.hash.includes('error')) {
+    // Si el hash mezcla tokens de auth con un enlace de invitación de liga,
+    // guardamos el hash de invitación en sessionStorage antes de borrarlo.
+    if (_isLeagueInviteHash(url.hash)) {
+      try { sessionStorage.setItem(PENDING_INVITE_HASH_KEY, url.hash); } catch (_) { /* noop */ }
+    }
     url.hash = '';
     changed = true;
   }
   if (!changed) return;
   const qs = url.searchParams.toString();
   history.replaceState(null, '', url.pathname + (qs ? '?' + qs : '') + url.hash);
+}
+
+/**
+ * Recupera y borra el hash de invitación de liga guardado en sessionStorage.
+ * Devuelve null si no había ninguno pendiente.
+ */
+export function popPendingInviteHash(): string | null {
+  try {
+    const val = sessionStorage.getItem(PENDING_INVITE_HASH_KEY);
+    if (val) sessionStorage.removeItem(PENDING_INVITE_HASH_KEY);
+    return val;
+  } catch (_) {
+    return null;
+  }
 }
 
 function _onSignedIn() {

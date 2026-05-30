@@ -5,8 +5,8 @@ import './components/logo-crest';
 import { useTournamentStore } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
-import { useAuthStore } from './store/auth-store';
-import { onToast, type ToastEventDetail } from './lib/interaction';
+import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/auth-store';
+import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
 type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
@@ -35,6 +35,7 @@ export class AppRoot extends LitElement {
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _unsubscribeToast?: () => void;
   private _hashChangeHandler?: () => void;
+  private _processedInviteHash = '';
 
   static styles = css`
     :host {
@@ -516,13 +517,29 @@ export class AppRoot extends LitElement {
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._unsubAuth = useAuthStore.subscribe(s => {
+      const hadNoEmail = !this._authEmail;
       this._authEmail = s.session?.user.email ?? null;
       this.requestUpdate();
+      // Si acaba de iniciar sesión y hay un hash de invitación pendiente, reintentarlo.
+      if (this._authEmail && hadNoEmail) {
+        const pending = window.location.hash;
+        const hasPendingHash = pending.startsWith('#league/join/') || pending.startsWith('#lg=');
+        if (hasPendingHash && pending !== this._processedInviteHash) {
+          this._loadSharedBracketIfPresent();
+        }
+      }
     });
     this._authEmail = useAuthStore.getState().session?.user.email ?? null;
 
     this._syncTabFromHash();
-    this._hashChangeHandler = () => { this._syncTabFromHash(); this.requestUpdate(); };
+    this._hashChangeHandler = () => {
+      this._syncTabFromHash();
+      this.requestUpdate();
+      const h = window.location.hash;
+      if ((h.startsWith('#league/join/') || h.startsWith('#lg=')) && h !== this._processedInviteHash) {
+        this._loadSharedBracketIfPresent();
+      }
+    };
     window.addEventListener('hashchange', this._hashChangeHandler);
 
     this._loadSharedBracketIfPresent();
@@ -555,25 +572,49 @@ export class AppRoot extends LitElement {
   }
 
   private async _loadSharedBracketIfPresent() {
+    // Primero: recuperar hash de invitación guardado en sessionStorage por _cleanAuthParams
+    // (ocurre cuando el usuario llegó con un magic-link que contenía también #league/join/).
+    const pendingHash = popPendingInviteHash();
+    if (pendingHash && pendingHash !== this._processedInviteHash) {
+      history.replaceState(null, '', window.location.pathname + pendingHash);
+    }
+
     const hash = window.location.hash;
 
     // Cloud league join: #league/join/<uuid>
     if (hash.startsWith('#league/join/')) {
+      // Marcar como procesado antes de await para evitar doble disparo por hashchange.
+      this._processedInviteHash = hash;
+
       const leagueId = hash.slice('#league/join/'.length).trim();
-      if (leagueId) {
-        const name = prompt('¿Quieres unirte a esta liga?\n\nEscribe tu nombre:');
-        if (name && name.trim()) {
-          const { joinLeagueInCloud } = await import('./lib/league-sync');
-          const ok = await joinLeagueInCloud(leagueId, name.trim());
-          if (ok) {
-            const { useLeaguesStore } = await import('./store/leagues-store');
-            useLeaguesStore.getState().joinLeagueFromInvite(leagueId, '', name.trim());
-            const { refreshLeagueMembers } = await import('./lib/league-sync');
-            await refreshLeagueMembers(leagueId);
-          }
-          this._activeTab = 'league';
-          window.location.hash = '#league';
-        }
+      if (!leagueId) return;
+
+      // Esperar a que la sesión esté resuelta (evita la race-condition de connectedCallback).
+      const session = await waitForAuthReady();
+
+      if (!session) {
+        // Sin sesión: avisar y conservar el hash para que se procese tras login.
+        // _onSignedIn → onLeagueSignedIn ya recarga la liga; nosotros guardamos el hash
+        // en sessionStorage para retomarlo si el usuario hace login con magic-link.
+        try { sessionStorage.setItem('wm2026_pending_invite_hash', hash); } catch (_) { /* noop */ }
+        showToast('Inicia sesión para unirte a la liga. El enlace se retomará tras el login.');
+        return;
+      }
+
+      const name = prompt('¿Quieres unirte a esta liga?\n\nEscribe tu nombre:');
+      if (!name?.trim()) return;
+
+      const { joinLeagueInCloud, fetchLeagueNameFromCloud, refreshLeagueMembers } = await import('./lib/league-sync');
+      const ok = await joinLeagueInCloud(leagueId, name.trim());
+      if (ok) {
+        const leagueName = await fetchLeagueNameFromCloud(leagueId) ?? '';
+        const { useLeaguesStore } = await import('./store/leagues-store');
+        useLeaguesStore.getState().joinLeagueFromInvite(leagueId, leagueName, name.trim());
+        await refreshLeagueMembers(leagueId);
+        this._activeTab = 'league';
+        window.location.hash = '#league';
+      } else {
+        showToast('No se pudo unir a la liga. Comprueba que el enlace es válido e inténtalo de nuevo.');
       }
       return;
     }

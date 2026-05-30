@@ -1,6 +1,6 @@
 import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId } from '../store/tournament-store';
+import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId, extractBracketData } from '../store/tournament-store';
 import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
 import { scoreParticipant, rankParticipants, REAL_AWARDS } from '../lib/mini-league';
 import type { ParticipantScore, MatchPoints } from '../lib/mini-league';
@@ -2896,6 +2896,68 @@ export class LeaguesView extends LitElement {
     this._editBuffer = new Map();
   }
 
+  private async _publishMyBracketToLeague() {
+    if (!this._activeLeagueId) return;
+    const session = useAuthStore.getState().session;
+    if (!session) {
+      const { openAuthModal } = await import('./auth-modal');
+      openAuthModal();
+      return;
+    }
+
+    const league = useLeaguesStore.getState().leagues.find(l => l.id === this._activeLeagueId);
+    if (!league) return;
+    const userId = session.user.id;
+    const me = league.participants.find(p => p.userId === userId || p.isOwner);
+    if (!me) return;
+
+    // Detectar si ya tiene predicciones para pedir confirmación antes de reemplazar.
+    const hasExisting = me.groupScores.some(s => s.scoreA !== null || s.scoreB !== null)
+      || me.knockoutScores.some(s => s.scoreA !== null || s.scoreB !== null);
+    if (hasExisting) {
+      const ok = window.confirm(
+        '¿Guardar y publicar tus predicciones en esta liga?\n\nEsto reemplazará las predicciones que tenías guardadas en la nube. Esta acción no se puede deshacer.',
+      );
+      if (!ok) return;
+    }
+
+    // Tomar el bracket actual del store (contexto activo de la liga).
+    const bracket = extractBracketData(useTournamentStore.getState());
+
+    // Guardar en local.
+    useLeaguesStore.getState().updateParticipantScores(
+      this._activeLeagueId,
+      me.id,
+      bracket.groupScores,
+      bracket.knockoutScores,
+      bracket.topScorer,
+      bracket.mvp,
+    );
+
+    // Publicar en la nube.
+    this._syncing = true;
+    this._syncFeedback = '⟳ Publicando en la liga…';
+    try {
+      const ok = await updateMyPredictionsInCloud(
+        this._activeLeagueId,
+        bracket.groupScores,
+        bracket.knockoutScores,
+        bracket.topScorer,
+        bracket.mvp,
+      );
+      if (ok) {
+        this._syncFeedback = '✓ Predicciones publicadas en la liga.';
+        await refreshLeagueMembers(this._activeLeagueId);
+      } else {
+        this._syncFeedback = '✕ No se pudo publicar. Inténtalo de nuevo.';
+      }
+    } catch (err) {
+      console.error('[leagues-view] _publishMyBracketToLeague failed:', err);
+      this._syncFeedback = `✕ Error: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    this._syncing = false;
+  }
+
   private async _handleMeExcelReplace(e: Event, participantId: string) {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -3887,6 +3949,16 @@ export class LeaguesView extends LitElement {
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
+          ${me ? html`
+          <button class="lg-v2-btn" @click=${this._publishMyBracketToLeague} ?disabled=${this._syncing}>
+            <span class="lg-v2-btn-ic">☁</span>
+            <span>
+              Guardar y publicar en la liga<br/>
+              <span class="lg-v2-btn-sub">Sube tus predicciones actuales a la liga para que los demás las vean</span>
+            </span>
+            <span class="lg-v2-btn-arrow">↑</span>
+          </button>
+          ` : ''}
         </div>
         <div class="lg-v2-cta-row">
           <button class="lg-v2-btn primary" @click=${this._showSharePredictionsModal}>
