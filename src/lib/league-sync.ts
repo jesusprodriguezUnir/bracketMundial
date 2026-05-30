@@ -1,4 +1,4 @@
-import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
+import { useLeaguesStore, findMyParticipant, type League, type LeagueParticipant } from '../store/leagues-store';
 import { useAuthStore } from '../store/auth-store';
 import { getSupabase } from './supabase-client';
 import { GROUP_MATCHES } from '../data/match-schedule';
@@ -225,6 +225,22 @@ export async function updateMyPredictionsInCloud(
     .update({ predictions: predictionsToJson(groupScores, knockoutScores, topScorer, mvp) })
     .eq('league_id', leagueId)
     .eq('user_id', userId);
+
+  if (!error) {
+    const leaguesStore = useLeaguesStore.getState();
+    const league = leaguesStore.leagues.find(l => l.id === leagueId);
+    const me = findMyParticipant(league, userId);
+    if (me) {
+      leaguesStore.updateParticipantScores(
+        leagueId,
+        me.id,
+        groupScores,
+        knockoutScores,
+        topScorer,
+        mvp
+      );
+    }
+  }
 
   return !error;
 }
