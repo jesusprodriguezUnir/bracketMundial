@@ -744,6 +744,7 @@ export const en: Record<TranslationKey, string> = {
   'league.joinCodePlaceholder': 'XXX-XXXX',
   'league.joinCodeNotFound': 'No league found with that code.',
   'league.joinCodeAlreadyIn': 'You are already in this league.',
+  'league.loginRequired': 'You must be signed in to join a league.',
   'league.rulesBtn': 'How it works',
   'league.rulesModalTitle': 'POINTS SYSTEM & RULES',
   'league.rulesIntro': 'Private leagues let you compete with friends by predicting the World Cup. Points are calculated by comparing your predictions with real results as matches are played.',

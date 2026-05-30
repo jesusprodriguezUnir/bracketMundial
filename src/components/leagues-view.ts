@@ -1,7 +1,7 @@
 import { LitElement, html, css, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, getKnockoutMatchOrder, recalculateStandings, getWinnerId, extractBracketData } from '../store/tournament-store';
-import { useLeaguesStore, type League, type LeagueParticipant } from '../store/leagues-store';
+import { useLeaguesStore, isMyParticipant, findMyParticipant, type League, type LeagueParticipant } from '../store/leagues-store';
 import { scoreParticipant, rankParticipants, REAL_AWARDS } from '../lib/mini-league';
 import type { ParticipantScore, MatchPoints } from '../lib/mini-league';
 import { buildResolvedKnockout } from '../lib/bracket-logic';
@@ -68,7 +68,6 @@ export class LeaguesView extends LitElement {
   @state() private _newOwnerName = '';
   @state() private _confirmDeleteLeague: string | null = null;
   @state() private _bracketData: BracketScreenData | null = null;
-  @state() private _editMode = false;
   @state() private _viewMode: 'real' | 'projection' = 'real';
   @state() private _showInvite = false;
   @state() private _copiedInvite = false;
@@ -88,7 +87,6 @@ export class LeaguesView extends LitElement {
   private _initialMount = true;
   @state() private _awardsSearchQuery = '';
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
-  private _editBuffer: Map<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
 
   private _unsubTournament?: () => void;
@@ -2643,11 +2641,6 @@ export class LeaguesView extends LitElement {
     this.requestUpdate();
   }
 
-  private _cancelEdits() {
-    this._editMode = false;
-    this._editBuffer = new Map();
-  }
-
   private async _editPredictionForLeague() {
     if (!this._activeLeagueId) return;
     await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
@@ -2715,13 +2708,14 @@ export class LeaguesView extends LitElement {
   private _openJoinModal = () => { this._showJoinModal = true; this._joinError = null; this._joinCode = ''; };
   private _closeJoinModal = () => { this._showJoinModal = false; this._joinError = null; this._joinCode = ''; };
   private _submitJoinCode = () => {
+    const session = useAuthStore.getState().session;
+    if (!session) { this._joinError = t('league.loginRequired'); return; }
     const code = this._joinCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (code.length < 4) { this._joinError = t('league.joinCodeNotFound'); return; }
     const formatted = code.length <= 3 ? code.padEnd(3, 'X') : `${code.slice(0,3)}-${code.slice(3,7)}`;
     const match = this._leagues.find(l => this._codeForLeague(l) === formatted);
     if (!match) { this._joinError = t('league.joinCodeNotFound'); return; }
-    const session = useAuthStore.getState().session;
-    const userId = session?.user?.id;
+    const userId = session.user?.id;
     const alreadyParticipant = match.participants.some(p => p.isOwner === true || (userId && p.userId === userId));
     if (alreadyParticipant) {
       this._closeJoinModal();
@@ -2874,48 +2868,9 @@ export class LeaguesView extends LitElement {
     const p = league?.participants.find(pp => pp.id === pid);
     if (!p) return;
     const sessionUserId = useAuthStore.getState().session?.user?.id;
-    const isMe = p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId);
-    if (!isMe && !this._tournamentStarted) return;
+    if (!isMyParticipant(p, sessionUserId) && !this._tournamentStarted) return;
     this._bracketData = { participant: p, name: pName };
     this._screen = 'bracket';
-    this._editMode = false;
-    this._editBuffer = new Map();
-  }
-
-  private _toggleEdit() {
-    if (!this._bracketData) return;
-    this._editMode = !this._editMode;
-    if (this._editMode) {
-      this._editBuffer = new Map();
-      const p = this._bracketData.participant;
-      for (const s of p.groupScores) {
-        this._editBuffer.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB });
-      }
-      for (const s of p.knockoutScores) {
-        this._editBuffer.set(s.matchId, { scoreA: s.scoreA, scoreB: s.scoreB, penaltyScoreA: s.penaltyScoreA, penaltyScoreB: s.penaltyScoreB });
-      }
-    }
-  }
-
-  private _saveEdits() {
-    if (!this._bracketData || !this._activeLeagueId) return;
-    const p = this._bracketData.participant;
-
-    const groupScores: DecodedBracket['groupScores'] = p.groupScores.map(s => {
-      const b = this._editBuffer.get(s.matchId);
-      if (b) return { ...s, scoreA: b.scoreA, scoreB: b.scoreB };
-      return s;
-    });
-    const knockoutScores: DecodedBracket['knockoutScores'] = p.knockoutScores.map(s => {
-      const b = this._editBuffer.get(s.matchId);
-      if (b) return { ...s, scoreA: b.scoreA, scoreB: b.scoreB, penaltyScoreA: (b as any)?.penaltyScoreA ?? s.penaltyScoreA, penaltyScoreB: (b as any)?.penaltyScoreB ?? s.penaltyScoreB };
-      return s;
-    });
-
-    useLeaguesStore.getState().updateParticipantScores(this._activeLeagueId, p.id, groupScores, knockoutScores);
-    this._bracketData = { participant: { ...p, groupScores, knockoutScores }, name: this._bracketData.name };
-    this._editMode = false;
-    this._editBuffer = new Map();
   }
 
   private async _publishMyBracketToLeague() {
@@ -2929,8 +2884,7 @@ export class LeaguesView extends LitElement {
 
     const league = useLeaguesStore.getState().leagues.find(l => l.id === this._activeLeagueId);
     if (!league) return;
-    const userId = session.user.id;
-    const me = league.participants.find(p => p.userId === userId || p.isOwner);
+    const me = findMyParticipant(league, session.user.id);
     if (!me) return;
 
     // Detectar si ya tiene predicciones para pedir confirmación antes de reemplazar.
@@ -2943,7 +2897,15 @@ export class LeaguesView extends LitElement {
       if (!ok) return;
     }
 
-    // Tomar el bracket actual del store (contexto activo de la liga).
+    // Asegurar que el store tenga cargadas las predicciones de ESTA liga
+    // (groupMatches, knockoutMatches, MVP y goleador) antes de serializar.
+    // switchContext hace early-return si ya estamos en el contexto correcto.
+    await useTournamentStore.getState().switchContext({
+      kind: 'league',
+      leagueId: this._activeLeagueId,
+    });
+
+    // Tomar el bracket actual del store (ya con el contexto de la liga).
     const bracket = extractBracketData(useTournamentStore.getState());
 
     // Guardar en local.
@@ -3056,11 +3018,33 @@ export class LeaguesView extends LitElement {
 
     try {
       const locale = useLocaleStore.getState().locale;
+      const tournamentStarted = this._tournamentStarted;
+
+      // Filtrar resultados reales por fecha, igual que hace la app en la UI.
+      // Partidos cuya fecha aún no ha pasado salen con scoreA/scoreB = null.
+      const filteredGroupMatches = tournament.groupMatches.map(m =>
+        hasMatchDatePassed(m.matchId) ? m : { ...m, scoreA: null, scoreB: null },
+      );
+      const filteredKnockoutMatches: typeof tournament.knockoutMatches = Object.fromEntries(
+        Object.entries(tournament.knockoutMatches).map(([id, m]) =>
+          hasMatchDatePassed(id)
+            ? [id, m]
+            : [id, { ...m, scoreA: null, scoreB: null, penaltyScoreA: null, penaltyScoreB: null }],
+        ),
+      );
+
+      // Identificar al participante propio para el filtro pre-torneo.
+      const sessionUserId = useAuthStore.getState().session?.user?.id ?? null;
+      const myParticipant = league.participants.find(
+        p => p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId),
+      );
+
       const blob = await ExcelService.exportLeaguePredictions(
         league,
-        tournament.groupMatches,
-        tournament.knockoutMatches,
+        filteredGroupMatches,
+        filteredKnockoutMatches,
         locale,
+        { tournamentStarted, myParticipantId: myParticipant?.id },
       );
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -3694,7 +3678,7 @@ export class LeaguesView extends LitElement {
     const participant = this._getLeagueParticipant(score.participant.id);
     const isExpanded = this._expandedId === score.participant.id;
     const sessionUserId = useAuthStore.getState().session?.user?.id;
-    const isMe = isOwner || (sessionUserId != null && participant?.userId === sessionUserId);
+    const isMe = participant ? isMyParticipant(participant, sessionUserId) : isOwner;
     const showPredictions = isMe || this._tournamentStarted;
 
     return html`
@@ -3783,7 +3767,7 @@ export class LeaguesView extends LitElement {
 
     const session = useAuthStore.getState().session;
     const userId = session?.user?.id;
-    const me = league.participants.find(p => (userId && p.userId === userId) || p.isOwner);
+    const me = findMyParticipant(league, userId);
     const isOwner = me?.isOwner === true;
 
     const played = this._playedCount;
@@ -4450,7 +4434,7 @@ export class LeaguesView extends LitElement {
     `;
   }
 
-  // ── RENDER BRACKET ──
+  // ── RENDER BRACKET (solo lectura) ──
   private _renderBracket() {
     if (!this._bracketData) {
       this._screen = 'detail';
@@ -4498,38 +4482,11 @@ export class LeaguesView extends LitElement {
     const realGroupByMatchId = new Map(realGroupScores.map(r => [r.matchId, r]));
     const realKoByMatchId = new Map(realKnockoutScores.map(r => [r.matchId, r]));
 
-    const renderScoreInputs = (matchId: string, scoreA: number | null, scoreB: number | null) => {
-      if (!this._editMode) {
-        return html`<div class="lg-bracket-score">${scoreA ?? '-'} - ${scoreB ?? '-'}</div>`;
-      }
-      const b = this._editBuffer.get(matchId);
-      const a = b?.scoreA;
-      const bb = b?.scoreB;
-      return html`
-        <div class="lg-bracket-score" style="display:flex;align-items:center;gap:4px;">
-          <input class="lg-edit-input" type="number" .value=${a !== null && a !== undefined ? String(a) : ''} @input=${(e: InputEvent) => {
-            const v = (e.target as HTMLInputElement).value;
-            const n = v === '' ? null : parseInt(v, 10);
-            const cur = this._editBuffer.get(matchId) || { scoreA: null, scoreB: null };
-            this._editBuffer.set(matchId, { ...cur, scoreA: n !== null && !isNaN(n) ? n : null });
-            if (isNaN(n as any)) return;
-            this.requestUpdate();
-          }} placeholder="-" />
-          <span class="lg-edit-sep">-</span>
-          <input class="lg-edit-input" type="number" .value=${bb !== null && bb !== undefined ? String(bb) : ''} @input=${(e: InputEvent) => {
-            const v = (e.target as HTMLInputElement).value;
-            const n = v === '' ? null : parseInt(v, 10);
-            const cur = this._editBuffer.get(matchId) || { scoreA: null, scoreB: null };
-            this._editBuffer.set(matchId, { ...cur, scoreB: n !== null && !isNaN(n) ? n : null });
-            if (isNaN(n as any)) return;
-            this.requestUpdate();
-          }} placeholder="-" />
-        </div>
-      `;
-    };
+    const renderScore = (scoreA: number | null, scoreB: number | null) =>
+      html`<div class="lg-bracket-score">${scoreA ?? '-'} - ${scoreB ?? '-'}</div>`;
 
     return html`
-      <button class="lg-btn-back" @click=${() => { this._screen = 'detail'; this._bracketData = null; this._editMode = false; }}>
+      <button class="lg-btn-back" @click=${() => { this._screen = 'detail'; this._bracketData = null; }}>
         ← ${t('league.backToDetail')}
       </button>
 
@@ -4541,16 +4498,10 @@ export class LeaguesView extends LitElement {
       ${this._renderInteractiveAwardsSelector(participant)}
 
       <div class="lg-action-row">
-        ${this._editMode ? html`
-          <button class="lg-btn" @click=${this._saveEdits}>${t('league.save')}</button>
-          <button class="lg-btn-back" @click=${this._cancelEdits}>${t('league.cancel')}</button>
-        ` : html`
-          ${this._isReadOnly ? '' : html`<button class="lg-btn" @click=${this._toggleEdit}>${t('league.editResults')}</button>`}
-          <label class="lg-upload-btn">
-            ${t('league.replacePrediction')}
-            <input type="file" accept=".xlsx" hidden @change=${this._handleReplaceExcel} />
-          </label>
-        `}
+        <label class="lg-upload-btn">
+          ${t('league.replacePrediction')}
+          <input type="file" accept=".xlsx" hidden @change=${this._handleReplaceExcel} />
+        </label>
         ${this._uploadError ? html`<span class="lg-error">${this._uploadError}</span>` : ''}
       </div>
 
@@ -4570,7 +4521,7 @@ export class LeaguesView extends LitElement {
               <span class="lg-bracket-vs">${t('groups.vs')}</span>
               ${teamB ? html`${renderFlag(teamB, 'sm')}<span class="lg-bracket-team-name">${teamB.name}</span>` : ''}
             </div>
-            ${renderScoreInputs(s.matchId, s.scoreA, s.scoreB)}
+            ${renderScore(s.scoreA, s.scoreB)}
             ${showReal ? html`<span class="lg-bracket-real">(real: ${real!.scoreA}-${real!.scoreB})</span>` : ''}
             ${bd ? html`
               <span class="lg-bracket-result lg-kind-${bd.kind}">${this._kindLabel(bd.kind)} (+${bd.points})</span>
@@ -4598,7 +4549,7 @@ export class LeaguesView extends LitElement {
               <span class="lg-bracket-vs">${t('groups.vs')}</span>
               ${teamB ? html`${renderFlag(teamB, 'sm')}<span class="lg-bracket-team-name">${teamB.name}</span>` : (resolved?.teamB ?? '—')}
             </div>
-            ${renderScoreInputs(s.matchId, s.scoreA, s.scoreB)}
+            ${renderScore(s.scoreA, s.scoreB)}
             ${s.penaltyScoreA !== null && s.penaltyScoreB !== null ? html`<span class="lg-bracket-result">(p. ${s.penaltyScoreA}-${s.penaltyScoreB})</span>` : ''}
             ${showReal ? html`<span class="lg-bracket-real">(real: ${real!.scoreA}-${real!.scoreB})</span>` : ''}
             ${bd ? html`

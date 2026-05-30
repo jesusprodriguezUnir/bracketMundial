@@ -142,7 +142,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
 
       addParticipantFromExcel: async (leagueId, name, file) => {
         try {
-          const { groupScores, knockoutScores } = await ExcelService.importFromExcel(file);
+          const { groupScores, knockoutScores, topScorer, mvp } = await ExcelService.importFromExcel(file);
           if (groupScores.length === 0 && knockoutScores.length === 0) return false;
 
           const participant: LeagueParticipant = {
@@ -152,6 +152,8 @@ export const useLeaguesStore = createStore<LeaguesState>()(
             source: 'excel',
             groupScores,
             knockoutScores,
+            topScorer,
+            mvp,
           };
 
           set({
@@ -293,7 +295,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
 
       replaceParticipantFromExcel: async (leagueId, participantId, file) => {
         try {
-          const { groupScores, knockoutScores } = await ExcelService.importFromExcel(file);
+          const { groupScores, knockoutScores, topScorer, mvp } = await ExcelService.importFromExcel(file);
           if (groupScores.length === 0 && knockoutScores.length === 0) return false;
 
           set({
@@ -303,7 +305,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
                     ...l,
                     participants: l.participants.map(p =>
                       p.id === participantId
-                        ? { ...p, groupScores, knockoutScores, source: 'excel' as const }
+                        ? { ...p, groupScores, knockoutScores, topScorer, mvp, source: 'excel' as const }
                         : p,
                     ),
                   }
@@ -398,3 +400,15 @@ export const useLeaguesStore = createStore<LeaguesState>()(
     },
   ),
 );
+
+// ── Identity helpers ──
+
+/** Determina si un participante soy yo, usando isOwner o coincidencia de userId. */
+export function isMyParticipant(p: LeagueParticipant, sessionUserId: string | null | undefined): boolean {
+  return p.isOwner === true || (sessionUserId != null && p.userId === sessionUserId);
+}
+
+/** Devuelve el participante que soy yo en la liga, o undefined si no se encuentra. */
+export function findMyParticipant(league: League | undefined, sessionUserId: string | null | undefined): LeagueParticipant | undefined {
+  return league?.participants.find(p => isMyParticipant(p, sessionUserId));
+}

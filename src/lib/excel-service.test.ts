@@ -86,6 +86,19 @@ describe('ExcelService round-trip', () => {
     expect(r32_02?.penaltyScoreB).toBe(5);
   });
 
+  it('exports and imports topScorer and mvp predictions correctly', async () => {
+    const groupMatches = makeGroupMatches();
+    const topScorer = { teamId: 'ARG', playerName: 'Lionel Messi' };
+    const mvp = { teamId: 'BRA', playerName: 'Vinicius Junior' };
+
+    const blob = await ExcelService.exportToExcel(groupMatches, {}, 'es', { topScorer, mvp });
+    const buffer = await blob.arrayBuffer();
+    const result = await ExcelService.importFromBuffer(buffer);
+
+    expect(result.topScorer).toEqual(topScorer);
+    expect(result.mvp).toEqual(mvp);
+  });
+
   it('workbook contains required sheets', async () => {
     const blob = await ExcelService.exportToExcel(makeGroupMatches(), makeKnockoutMatches());
     const buffer = await blob.arrayBuffer();
@@ -274,5 +287,68 @@ describe('ExcelService league predictions export', () => {
     expect(String(row1.getCell(9).value ?? '')).toBe('Pts');
     expect(String(row1.getCell(10).value ?? '')).toBe('Bob');
     expect(String(row1.getCell(11).value ?? '')).toBe('Pts');
+  });
+
+  it('tournamentStarted=false: solo el participante propio aparece en Pronósticos y Resumen', async () => {
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      realGroupMatches,
+      realKnockoutMatches,
+      'es',
+      { tournamentStarted: false, myParticipantId: 'p0' },
+    );
+    const buffer = await blob.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+
+    // Hoja Pronósticos: solo debe tener columnas del participante propio (col 6 y 7), no Alice ni Bob
+    const predSheet = wb.getWorksheet('Pronósticos');
+    expect(predSheet).toBeTruthy();
+    const row1 = predSheet!.getRow(1);
+    const col6 = String(row1.getCell(6).value ?? '');
+    const col8 = String(row1.getCell(8).value ?? '');
+    expect(col6).toContain('Me');
+    // Alice y Bob no deben aparecer como encabezado de columna
+    expect(col8).not.toContain('Alice');
+    expect(col8).not.toContain('Bob');
+
+    // Hoja Resumen: solo debe listar al participante propio en la tabla de ranking
+    const rankSheet = wb.getWorksheet('Resumen');
+    expect(rankSheet).toBeTruthy();
+    const names: string[] = [];
+    for (let r = 11; r <= 18; r++) {
+      const v = String(rankSheet!.getCell(r, 2).value ?? '');
+      if (!v) break;
+      names.push(v);
+    }
+    expect(names.some(n => n.includes('Me'))).toBe(true);
+    expect(names.some(n => n.includes('Alice'))).toBe(false);
+    expect(names.some(n => n.includes('Bob'))).toBe(false);
+  });
+
+  it('tournamentStarted=false: resultados reales anulados dan 0 puntos en el ranking', async () => {
+    // Construir realGroupMatches con scores a null (simulando que los partidos no se han jugado aún)
+    const noScoreGroupMatches: GroupMatchResult[] = makeGroupMatches().map(m => ({
+      ...m,
+      scoreA: null,
+      scoreB: null,
+    }));
+
+    const blob = await ExcelService.exportLeaguePredictions(
+      { name: 'Test League', participants },
+      noScoreGroupMatches,
+      realKnockoutMatches,
+      'es',
+      { tournamentStarted: false, myParticipantId: 'p0' },
+    );
+    const buffer = await blob.arrayBuffer();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer);
+
+    const rankSheet = wb.getWorksheet('Resumen');
+    expect(rankSheet).toBeTruthy();
+    // La primera fila de datos es la fila 11 (fila de encabezados = 10)
+    const totalCell = rankSheet!.getCell(11, 3);
+    expect(Number(totalCell.value)).toBe(0);
   });
 });

@@ -209,6 +209,8 @@ interface GroupDrawInfo {
 export interface ImportResult {
   groupScores:    { matchId: string; scoreA: number | null; scoreB: number | null }[];
   knockoutScores: { matchId: string; scoreA: number | null; scoreB: number | null; penaltyScoreA: number | null; penaltyScoreB: number | null }[];
+  topScorer?: { teamId: string; playerName: string } | null;
+  mvp?:       { teamId: string; playerName: string } | null;
 }
 
 // ─── Formula builders ─────────────────────────────────────────────────────────
@@ -354,7 +356,11 @@ export class ExcelService {
   static async exportToExcel(
     groupMatches: GroupMatchResult[],
     knockoutMatches: Record<string, KnockoutMatchResult>,
-    locale: Locale = 'es'
+    locale: Locale = 'es',
+    options?: {
+      topScorer?: { teamId: string; playerName: string } | null;
+      mvp?: { teamId: string; playerName: string } | null;
+    },
   ): Promise<Blob> {
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Bracket Mundial 2026';
@@ -384,7 +390,7 @@ export class ExcelService {
     this.createCalcSheet(wb, drawInfos, groupsName);
     this.fillStandingsFormulas(wb, drawInfos, groupsName);
     const koCells      = this.createKnockoutSheet(wb, knockoutMatches, locale, knockoutName, flagImages);
-    this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells);
+    this.createMapSheet(wb, drawInfos.flatMap(d => d.matchCells), koCells, options?.topScorer, options?.mvp);
     this.createRulesExplanationSheet(wb, locale);
 
     const buffer = await wb.xlsx.writeBuffer();
@@ -400,7 +406,13 @@ export class ExcelService {
     realGroupMatches: GroupMatchResult[],
     realKnockoutMatches: Record<string, KnockoutMatchResult>,
     locale: Locale = 'es',
+    options?: { tournamentStarted?: boolean; myParticipantId?: string },
   ): Promise<Blob> {
+    // Si el torneo no ha empezado, solo se muestra el participante propio.
+    // Default: mostrar todos (compatible con tests y llamadas sin options).
+    const tournamentStarted = options?.tournamentStarted ?? true;
+    const myParticipantId   = options?.myParticipantId;
+
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Bracket Mundial 2026';
     wb.created = new Date();
@@ -411,7 +423,10 @@ export class ExcelService {
     const realKnockoutScores: { matchId: string; scoreA: number | null; scoreB: number | null }[] =
       Object.values(realKnockoutMatches).map(m => ({ matchId: m.matchId, scoreA: m.scoreA, scoreB: m.scoreB }));
 
-    const allParticipants = league.participants;
+    // Antes de empezar el Mundial, solo se exporta el participante propio.
+    const allParticipants = tournamentStarted
+      ? league.participants
+      : league.participants.filter(p => p.isOwner === true || p.id === myParticipantId);
     const scored: ParticipantScore[] = [];
     for (const p of allParticipants) {
       scored.push(scoreParticipant(p, realGroupScores, realKnockoutScores));
@@ -1271,7 +1286,9 @@ export class ExcelService {
   private static createMapSheet(
     wb: ExcelJS.Workbook,
     matchCells: MatchCell[],
-    koCells: KnockoutCell[]
+    koCells: KnockoutCell[],
+    topScorer?: { teamId: string; playerName: string } | null,
+    mvp?: { teamId: string; playerName: string } | null,
   ): void {
     const sheet = wb.addWorksheet('MAP', { state: 'hidden' });
     ['Match ID', 'Sheet', 'Score A', 'Score B', 'Penalties'].forEach((h, i) => {
@@ -1293,6 +1310,20 @@ export class ExcelService {
       sheet.getCell(r, 5).value = kc.penAddr;
       r++;
     });
+
+    // ── Award predictions (topScorer, MVP) as metadata rows ──────────────
+    if (topScorer) {
+      sheet.getCell(r, 1).value = 'TOP_SCORER';
+      sheet.getCell(r, 2).value = topScorer.teamId;
+      sheet.getCell(r, 3).value = topScorer.playerName;
+      r++;
+    }
+    if (mvp) {
+      sheet.getCell(r, 1).value = 'MVP';
+      sheet.getCell(r, 2).value = mvp.teamId;
+      sheet.getCell(r, 3).value = mvp.playerName;
+      r++;
+    }
 
     sheet.protect('', { selectLockedCells: true, selectUnlockedCells: false });
   }
@@ -1319,6 +1350,8 @@ export class ExcelService {
 
     const groupScores:    ImportResult['groupScores']    = [];
     const knockoutScores: ImportResult['knockoutScores'] = [];
+    let topScorer: ImportResult['topScorer'] = null;
+    let mvp:       ImportResult['mvp']       = null;
 
     mapSheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
@@ -1328,6 +1361,16 @@ export class ExcelService {
       const saAddr   = row.getCell(3).value?.toString();
       const sbAddr   = row.getCell(4).value?.toString();
       const penAddr  = row.getCell(5).value?.toString();
+
+      // Award prediction metadata rows
+      if (matchId === 'TOP_SCORER' && sName && saAddr) {
+        topScorer = { teamId: sName, playerName: saAddr };
+        return;
+      }
+      if (matchId === 'MVP' && sName && saAddr) {
+        mvp = { teamId: sName, playerName: saAddr };
+        return;
+      }
 
       if (!matchId || !sName || !saAddr || !sbAddr) return;
 
@@ -1352,7 +1395,7 @@ export class ExcelService {
       throw new ExcelImportError('no_valid_rows', 'No valid match rows found in the MAP sheet.');
     }
 
-    return { groupScores, knockoutScores };
+    return { groupScores, knockoutScores, topScorer, mvp };
   }
 
   private static parseScore(val: ExcelJS.CellValue): number | null {

@@ -752,6 +752,7 @@ export const es = {
   'league.joinCodePlaceholder': 'XXX-XXXX',
   'league.joinCodeNotFound': 'No hemos encontrado ninguna liga con ese código.',
   'league.joinCodeAlreadyIn': 'Ya estás en esta liga.',
+  'league.loginRequired': 'Debes iniciar sesión para unirte a una liga.',
   'league.rulesBtn': 'Cómo funciona',
   'league.rulesModalTitle': 'SISTEMA DE PUNTOS Y REGLAS',
   'league.rulesIntro': 'Las ligas privadas te permiten competir con amigos pronosticando el Mundial. Los puntos se calculan comparando tus predicciones con los resultados reales a medida que se juegan los partidos.',

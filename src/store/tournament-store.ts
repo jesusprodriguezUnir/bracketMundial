@@ -591,19 +591,30 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       switchContext: async (ctx) => {
         const state = _get();
-        if (state.activeContext.kind === ctx.kind
-            && (ctx.kind === 'personal' || (state.activeContext as { kind: 'league'; leagueId: string }).leagueId === (ctx as { kind: 'league'; leagueId: string }).leagueId)) {
-          return;
-        }
 
-        const snapshot = _cloneSnapshot(state);
-        if (state.activeContext.kind === 'personal') {
-          _personalSnapshot = snapshot;
-        } else {
-          _leagueSnapshots[(state.activeContext as { kind: 'league'; leagueId: string }).leagueId] = snapshot;
-        }
+        // Determina si el contexto destino es el mismo que el activo.
+        const sameContext = state.activeContext.kind === ctx.kind
+            && (ctx.kind === 'personal' || (state.activeContext as { kind: 'league'; leagueId: string }).leagueId === (ctx as { kind: 'league'; leagueId: string }).leagueId);
 
-        void _flushSnapshotToCloud(state.activeContext, snapshot);
+        // Necesita recarga fresca cuando el destino es una liga y no hay snapshot
+        // vivo en memoria (p.ej. tras recargar la página).
+        const needsFreshLoad = ctx.kind === 'league' && !_leagueSnapshots[ctx.leagueId];
+
+        // Early-return solo si es el mismo contexto Y ya hay datos en memoria.
+        if (sameContext && !needsFreshLoad) return;
+
+        // Solo guardamos y hacemos flush si cambiamos de contexto real.
+        // Si sameContext es true (pero needsFreshLoad), evitamos pisar la nube
+        // con los datos rehidratados potencialmente vacíos.
+        if (!sameContext) {
+          const snapshot = _cloneSnapshot(state);
+          if (state.activeContext.kind === 'personal') {
+            _personalSnapshot = snapshot;
+          } else {
+            _leagueSnapshots[(state.activeContext as { kind: 'league'; leagueId: string }).leagueId] = snapshot;
+          }
+          void _flushSnapshotToCloud(state.activeContext, snapshot);
+        }
 
         let loaded: BracketSnapshot | null = null;
         if (ctx.kind === 'personal') {
@@ -612,12 +623,12 @@ export const useTournamentStore = createStore<TournamentState>()(
           if (_leagueSnapshots[ctx.leagueId]) {
             loaded = _leagueSnapshots[ctx.leagueId];
           } else {
-            const { useLeaguesStore } = (await import('./leagues-store'));
+            const { useLeaguesStore, findMyParticipant } = (await import('./leagues-store'));
             const { useAuthStore } = (await import('./auth-store'));
             const leagues = useLeaguesStore.getState().leagues;
             const league = leagues.find(l => l.id === ctx.leagueId);
-            const userId = useAuthStore.getState().session?.user.id;
-            const me = league?.participants.find(p => p.userId === userId || p.isOwner);
+            const userId = useAuthStore.getState().session?.user.id ?? null;
+            const me = findMyParticipant(league, userId);
             if (me) {
               loaded = _participantToSnapshot(me);
             }
@@ -683,7 +694,15 @@ export const useTournamentStore = createStore<TournamentState>()(
         ]);
         const state = _get();
         const locale = useLocaleStore.getState().locale;
-        const blob = await ExcelService.exportToExcel(state.groupMatches, state.knockoutMatches, locale);
+        const blob = await ExcelService.exportToExcel(
+          state.groupMatches,
+          state.knockoutMatches,
+          locale,
+          {
+            topScorer: state.myTopScorerPrediction,
+            mvp: state.myMvpPrediction,
+          }
+        );
         
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
