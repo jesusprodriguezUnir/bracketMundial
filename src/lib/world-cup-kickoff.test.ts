@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreMatch, scoreParticipant, rankParticipants, MUNDIAL_POINTS } from './mini-league';
+import { scoreParticipant, rankParticipants, MUNDIAL_POINTS } from './mini-league';
 import type { Participant } from './mini-league';
 
 describe('Super Prueba de Integración: Día de Inicio del Mundial 2026', () => {

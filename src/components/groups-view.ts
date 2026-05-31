@@ -46,6 +46,22 @@ export class GroupsView extends LitElement {
       padding: 0 0 22px;
       margin-bottom: 22px;
       border-bottom: 3px dashed var(--ink);
+      flex-wrap: wrap;
+    }
+
+    .go-knockout-btn {
+      margin-left: auto;
+    }
+    .go-knockout-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: var(--shadow-hard-sm);
+    }
+    .go-knockout-count {
+      font-family: var(--font-mono);
+      font-size: 0.7em;
+      opacity: 0.85;
+      margin-left: 6px;
     }
 
     /* ──────── Cuaderno modo archivador ──────── */
@@ -614,6 +630,13 @@ export class GroupsView extends LitElement {
     .odds-figs .odds-away { color: var(--retro-red); }
 
     @media (max-width: 768px) {
+      .group-actions { gap: 8px; }
+      .go-knockout-btn {
+        margin-left: 0;
+        flex-basis: 100%;
+        justify-content: center;
+        order: 10;
+      }
       .groups-grid { grid-template-columns: 1fr; }
       .notebook-page .group-card {
         display: flex;
@@ -752,6 +775,14 @@ export class GroupsView extends LitElement {
 
   private handleReset() {
     useTournamentStore.getState().resetTournament();
+  }
+
+  private handleGoToKnockout() {
+    this.dispatchEvent(new CustomEvent('navigate', {
+      detail: 'knockout',
+      bubbles: true,
+      composed: true,
+    }));
   }
 
   private _selectGroup(g: string) {
@@ -927,6 +958,8 @@ export class GroupsView extends LitElement {
     const headTeamName = activeTeamNames[0];
 
     const playedTotal = store.groupMatches.filter(m => m.scoreA !== null).length;
+    const totalMatches = store.groupMatches.length;
+    const allGroupsComplete = playedTotal === totalMatches;
     const showThirds = playedTotal > 0;
     const bestThirds = showThirds ? store.getBestThirds() : [];
     const half = Math.ceil(bestThirds.length / 2);
@@ -937,8 +970,15 @@ export class GroupsView extends LitElement {
       <div class="group-actions">
         <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
         <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
-        <button class="btn" style="margin-left:auto" @click=${() => { this._bracketMode = !this._bracketMode; }}>
+        <button class="btn" @click=${() => { this._bracketMode = !this._bracketMode; }}>
           ${this._bracketMode ? t('groups.classicView') : t('groups.resultsBracket')}
+        </button>
+        <button
+          class="btn ${allGroupsComplete ? 'btn-primary' : ''} go-knockout-btn"
+          ?disabled=${!allGroupsComplete}
+          title=${allGroupsComplete ? '' : t('groups.completeGroupsFirst')}
+          @click=${this.handleGoToKnockout}>
+          ${t('groups.goToKnockout')}${!allGroupsComplete ? html`<span class="go-knockout-count">${playedTotal}/${totalMatches}</span>` : ''}
         </button>
       </div>
 

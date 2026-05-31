@@ -148,11 +148,11 @@ export class BracketView extends LitElement {
       z-index: 200;
       background: var(--surface-dark);
       border-top: 4px solid var(--retro-yellow);
-      padding: 6px 0;
-      padding-bottom: calc(6px + env(safe-area-inset-bottom));
+      padding: 4px 0;
+      padding-bottom: calc(4px + env(safe-area-inset-bottom));
       justify-content: space-around;
       align-items: stretch;
-      box-shadow: 0 -4px 0 0 rgba(0,0,0,0.15);
+      box-shadow: 0 -4px 0 0 rgba(0,0,0,0.25);
     }
     .bottom-nav-btn {
       all: unset;
@@ -160,23 +160,28 @@ export class BracketView extends LitElement {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      gap: 3px;
       flex: 1;
       padding: 8px 4px;
       min-width: 0;
+      min-height: 52px;
       color: var(--on-dark);
       font-family: var(--font-var);
       font-size: 10px;
       position: relative;
-      transition: color 0.15s;
+      transition: color 0.15s, background 0.12s;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
     .bottom-nav-btn:active {
       opacity: 0.7;
     }
+    .bottom-nav-btn.active {
+      background: rgba(240, 176, 33, 0.10);
+    }
     .bottom-nav-btn .nav-icon {
-      font-size: 20px;
+      font-size: 22px;
       line-height: 1;
       color: var(--on-dark-soft);
       transition: color 0.15s;
@@ -186,13 +191,13 @@ export class BracketView extends LitElement {
     }
     .bottom-nav-btn .nav-icon svg {
       display: block;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
     }
     .bottom-nav-btn .nav-label {
       font-family: var(--font-mono);
-      font-size: 8px;
-      letter-spacing: 0.08em;
+      font-size: 10px;
+      letter-spacing: 0.06em;
       color: var(--on-dark-soft);
       text-transform: uppercase;
       transition: color 0.15s;
@@ -204,11 +209,11 @@ export class BracketView extends LitElement {
     .bottom-nav-btn.active::after {
       content: '';
       position: absolute;
-      top: -6px;
+      top: -4px;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 3px;
+      width: 32px;
+      height: 4px;
       background: var(--retro-yellow);
       border-radius: 0;
     }
@@ -525,17 +530,19 @@ export class BracketView extends LitElement {
     @media (max-width: 375px) {
       .bottom-nav-btn {
         min-width: 40px;
-        padding: 4px 3px;
+        padding: 6px 2px;
+        min-height: 52px;
       }
       .bottom-nav-btn .nav-icon {
-        font-size: 17px;
+        font-size: 19px;
       }
       .bottom-nav-btn .nav-icon svg {
-        width: 17px;
-        height: 17px;
+        width: 19px;
+        height: 19px;
       }
       .bottom-nav-btn .nav-label {
-        font-size: 7px;
+        font-size: 8px;
+        letter-spacing: 0.04em;
       }
     }
   `;

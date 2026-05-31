@@ -92,17 +92,17 @@ export class ScoreStepper extends LitElement {
     }
 
     .stepper.mobile button {
-      padding: 2px 8px;
-      min-width: 28px;
-      min-height: 28px;
-      font-size: 14px;
+      padding: 4px 10px;
+      min-width: 44px;
+      min-height: 44px;
+      font-size: 18px;
       line-height: 1.4;
     }
 
     .stepper.mobile .value {
-      font-size: 16px;
-      padding: 0 6px;
-      min-width: 22px;
+      font-size: 20px;
+      padding: 0 10px;
+      min-width: 26px;
     }
 
     @media (max-width: 768px) {

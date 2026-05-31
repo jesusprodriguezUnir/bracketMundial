@@ -75,6 +75,7 @@ export class BracketKnockout extends LitElement {
   private readonly _onMqlChange = (e: MediaQueryListEvent) => { this._isMobile = e.matches; };
 
   @state() private _pulseId: string | null = null;
+  @state() private _flashMobId: string | null = null;
   @state() private _isMobile = false;
   @state() private _odds: Record<string, MatchOdds> = {};
   private _oddsLoaded = false;
@@ -739,6 +740,14 @@ export class BracketKnockout extends LitElement {
       transform: translate(1px, 1px);
       box-shadow: 1px 1px 0 0 var(--ink);
     }
+    .mob-match-card.mob-flash {
+      animation: mobFlash 0.5s ease both;
+    }
+    @keyframes mobFlash {
+      0%   { box-shadow: 3px 3px 0 0 var(--ink); }
+      40%  { box-shadow: 3px 3px 0 0 var(--retro-green); border-color: var(--retro-green); }
+      100% { box-shadow: 3px 3px 0 0 var(--ink); border-color: var(--ink); }
+    }
     .mob-team-row {
       display: flex;
       justify-content: space-between;
@@ -827,13 +836,30 @@ export class BracketKnockout extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 6px 8px;
-      border-top: 1.5px dashed var(--ink);
-      background: var(--paper);
+      gap: 10px;
+      padding: 8px 12px;
+      border-top: 2px dashed var(--ink);
+      background: var(--paper-2);
     }
-    .mob-pen-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; color: var(--dim); }
-    .mob-pen-sep   { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+    .mob-pen-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--ink);
+      text-transform: uppercase;
+      background: var(--retro-orange);
+      padding: 2px 6px;
+      border: 1.5px solid var(--ink);
+    }
+    .mob-pen-sep   { font-family: var(--font-var); font-size: 18px; color: var(--dim); font-weight: 700; }
+    .mob-pen-team-code {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+      text-align: center;
+    }
     .mob-match-venue {
       padding: 5px 12px;
       border-top: 1.5px solid var(--ink);
@@ -1821,6 +1847,8 @@ export class BracketKnockout extends LitElement {
       matchId, nextA, nextB,
       m.penaltyScoreA ?? null, m.penaltyScoreB ?? null,
     );
+    this._flashMobId = matchId;
+    setTimeout(() => { this._flashMobId = null; }, 500);
   }
 
   private adjustPenaltyKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
@@ -1834,6 +1862,8 @@ export class BracketKnockout extends LitElement {
     useTournamentStore.getState().setKnockoutMatchResult(
       matchId, m.scoreA, m.scoreB, nextA, nextB,
     );
+    this._flashMobId = matchId;
+    setTimeout(() => { this._flashMobId = null; }, 500);
   }
 
   private renderMatch(matchId: string, accentColor: string, idx = 0, isRightSide = false) {
@@ -2089,19 +2119,25 @@ export class BracketKnockout extends LitElement {
       mobPenaltyNote = html`
         <div class="mob-pen-row">
           <span class="mob-pen-label">PEN</span>
-          <score-stepper
-            .value=${penAVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="mobile"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
-          <span class="mob-pen-sep">·</span>
-          <score-stepper
-            .value=${penBVal}
-            decrementLabel=${t('groups.decScore')}
-            incrementLabel=${t('groups.incScore')}
-            variant="mobile"
-            @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <score-stepper
+              .value=${penAVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="mobile"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'A', e.detail.delta)}></score-stepper>
+            <span class="mob-pen-team-code">${tA?.shortName ?? ''}</span>
+          </div>
+          <span class="mob-pen-sep">—</span>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <score-stepper
+              .value=${penBVal}
+              decrementLabel=${t('groups.decScore')}
+              incrementLabel=${t('groups.incScore')}
+              variant="mobile"
+              @step-change=${(e: CustomEvent<{ delta: -1 | 1 }>) => this.adjustPenaltyKnockout(e, matchId, 'B', e.detail.delta)}></score-stepper>
+            <span class="mob-pen-team-code">${tB?.shortName ?? ''}</span>
+          </div>
         </div>
       `;
     } else if (m.penaltyScoreA !== null && m.penaltyScoreB !== null) {
@@ -2143,7 +2179,7 @@ export class BracketKnockout extends LitElement {
       : '';
 
     return html`
-      <div class="mob-match-card" @click="${() => this.openMatch(matchId)}" role="button" tabindex="0"
+      <div class="mob-match-card ${this._flashMobId === matchId ? 'mob-flash' : ''}" @click="${() => this.openMatch(matchId)}" role="button" tabindex="0"
            @keydown="${(e: KeyboardEvent) => e.key === 'Enter' && this.openMatch(matchId)}">
         ${row(tA, m.scoreA, 'A', winA, winB)}
         ${row(tB, m.scoreB, 'B', winB, winA)}

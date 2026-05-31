@@ -153,6 +153,8 @@ export const en: Record<TranslationKey, string> = {
   'groups.allPlayed': '6/6',
   'groups.classicView': 'LIST VIEW',
   'groups.bestThirds': 'BEST 8 THIRD-PLACED',
+  'groups.goToKnockout': 'GO TO KNOCKOUT',
+  'groups.completeGroupsFirst': 'Complete all group matches to go to the knockout stage',
 
   'knockout.generate': 'GENERATE BRACKET',
   'knockout.simulate': 'SIMULATE REST',

@@ -157,6 +157,8 @@ export const es = {
   'groups.allPlayed': '6/6',
   'groups.classicView': 'VISTA LISTA',
   'groups.bestThirds': 'MEJORES 8 TERCEROS',
+  'groups.goToKnockout': 'IR A LOS CRUCES',
+  'groups.completeGroupsFirst': 'Completa todos los partidos de grupos para ir a los cruces',
 
   // Knockout
   'knockout.generate': 'GENERAR ELIMINATORIAS',
