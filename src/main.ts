@@ -28,14 +28,9 @@ window.addEventListener('unhandledrejection', (e) => {
 
 import './index.css';
 import './app-root';
-import { inject } from '@vercel/analytics';
-import { injectSpeedInsights } from '@vercel/speed-insights';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';
 import { useLocaleStore } from './i18n';
 import { initAuth } from './store/auth-store';
-
-inject();
-injectSpeedInsights();
 
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
