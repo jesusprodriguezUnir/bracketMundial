@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 30/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 31/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 23 fotos faltantes en 10 equipos (1217/1240 cubiertos)  
+**Jugadores:** 17 fotos faltantes en 9 equipos (1220/1237 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -12,7 +12,6 @@
 
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
-| URU | 29 | 23 | ❌ 6 | ✅ |
 | JOR | 26 | 21 | ❌ 5 | ✅ |
 | GHA | 28 | 24 | ❌ 4 | ✅ |
 | ALG | 23 | 21 | ❌ 2 | ✅ |
@@ -59,16 +58,8 @@
 | SWE | 26 | 26 | ✅ 0 | ✅ |
 | TUN | 26 | 26 | ✅ 0 | ✅ |
 | TUR | 23 | 23 | ✅ 0 | ✅ |
+| URU | 26 | 26 | ✅ 0 | ✅ |
 | USA | 26 | 26 | ✅ 0 | ✅ |
-
-### URU — faltan 6 fotos
-
-- `#24` Santiago Bueno
-- `#25` José Luis Rodríguez
-- `#26` Juan Manuel Sanabria
-- `#27` Rodrigo Aguirre
-- `#28` Federico Viñas
-- `#29` Agustín Álvarez Martínez
 
 ### JOR — faltan 5 fotos
 
