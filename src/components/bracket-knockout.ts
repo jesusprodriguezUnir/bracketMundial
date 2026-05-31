@@ -269,24 +269,35 @@ export class BracketKnockout extends LitElement {
 
     .team-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 6px;
+      align-items: stretch;
       min-height: 30px;
     }
-    .team-row.winner-row { color: var(--paper); }
+    .team-row.winner-row { background: var(--ink); color: var(--paper); }
     .team-row.loser-row  { opacity: 0.5; }
     .team-separator { height: 1px; background: var(--ink); margin: 0 5px; }
 
     .team-info {
+      flex: 1;
       display: flex;
       align-items: center;
       gap: 5px;
+      padding: 5px 8px;
       font-family: var(--font-body);
       font-size: 11px;
       font-weight: 700;
       overflow: hidden;
     }
+    .team-check { margin-left: auto; font-size: 10px; color: var(--retro-yellow); flex-shrink: 0; }
+    .team-score-cell {
+      flex-shrink: 0;
+      min-width: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1.5px solid rgba(26,25,51,0.2);
+      padding: 0 4px;
+    }
+    .winner-row .team-score-cell { border-left-color: rgba(255,255,255,0.25); }
     .team-flag { font-size: 11px; flex-shrink: 0; }
     .flag-img {
       width: 17px;
@@ -355,12 +366,12 @@ export class BracketKnockout extends LitElement {
       }
 
       .team-row {
-        padding: 3px 5px;
         min-height: 28px;
       }
 
       .team-info {
         gap: 4px;
+        padding: 3px 5px;
         font-size: clamp(9px, 0.78vw, 11px);
       }
 
@@ -750,23 +761,34 @@ export class BracketKnockout extends LitElement {
     }
     .mob-team-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 11px 12px;
+      align-items: stretch;
       min-height: 44px;
     }
-    .mob-team-row.winner { color: #fff; }
+    .mob-team-row.winner { background: var(--ink); color: #fff; }
     .mob-team-row.loser  { opacity: 0.4; }
     .mob-team-row + .mob-team-row { border-top: 1.5px solid var(--ink); }
     .mob-team-info {
+      flex: 1;
       display: flex;
       align-items: center;
       gap: 10px;
+      padding: 11px 12px;
       font-family: var(--font-body);
       font-size: 14px;
       font-weight: 700;
       overflow: hidden;
     }
+    .mob-team-check { margin-left: auto; color: var(--retro-yellow); font-size: 14px; flex-shrink: 0; }
+    .mob-team-score-cell {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1.5px solid rgba(26,25,51,0.2);
+      padding: 0 10px;
+      min-width: 44px;
+    }
+    .mob-team-row.winner .mob-team-score-cell { border-left-color: rgba(255,255,255,0.25); }
     .mob-team-info .flag { font-size: 20px; flex-shrink: 0; }
     .mob-team-info .flag-img {
       width: 24px;
@@ -1901,13 +1923,13 @@ export class BracketKnockout extends LitElement {
         : html`<div class="score ${scoreClass}">${scoreText}</div>`;
       return html`
         <div
-          class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}"
-          style="${isWinner ? `background: ${accentColor};` : ''}">
+          class="team-row ${isWinner ? 'winner-row' : ''} ${isLoser ? 'loser-row' : ''}">
           <div class="team-info">
             ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
             <span class="team-name">${team?.shortName ?? 'TBD'}</span>
+            ${isWinner ? html`<span class="team-check">✓</span>` : ''}
           </div>
-          ${scoreContent}
+          <div class="team-score-cell">${scoreContent}</div>
         </div>
       `;
     };
@@ -2070,7 +2092,7 @@ export class BracketKnockout extends LitElement {
     return path;
   }
 
-  private _renderMobileMatchCard(matchId: string, roundColor: string) {
+  private _renderMobileMatchCard(matchId: string, _roundColor: string) {
     const m = useTournamentStore.getState().knockoutMatches[matchId];
     if (!m) return html``;
     const tA = this.getTeam(m.teamA ?? null);
@@ -2097,14 +2119,14 @@ export class BracketKnockout extends LitElement {
         : html`<div class="mob-score ${mobileScoreClass}">${mobileScoreText}</div>`;
       return html`
         <div
-          class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}"
-          style="${isWin ? `background: ${roundColor};` : ''}">
+          class="mob-team-row ${isWin ? 'winner' : ''} ${isLose ? 'loser' : ''}">
           <div class="mob-team-info">
             ${renderFlag(team, { size: 'sm', imgClass: 'flag-img', flagClass: 'flag' })}
             <span class="code">${team?.shortName ?? 'TBD'}</span>
             <span class="name">${team?.name ?? ''}</span>
+            ${isWin ? html`<span class="mob-team-check">✓</span>` : ''}
           </div>
-          ${mobileScoreContent}
+          <div class="mob-team-score-cell">${mobileScoreContent}</div>
         </div>
       `;
     };
