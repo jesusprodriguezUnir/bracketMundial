@@ -645,7 +645,7 @@ export class AppRoot extends LitElement {
           if (ok) {
             const { useLeaguesStore } = await import('./store/leagues-store');
             const result = useLeaguesStore.getState().importParticipantFromShare(
-              share.leagueId, share.participantName, share.groupScores, share.knockoutScores,
+              share.leagueId, share.participantName, share.groupScores, share.knockoutScores, share.topScorer, share.mvp,
             );
             if (result.created || result.participantId) {
               this._activeTab = 'league';

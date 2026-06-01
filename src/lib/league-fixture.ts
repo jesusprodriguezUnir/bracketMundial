@@ -1,9 +1,5 @@
 import { GROUP_MATCHES, KNOCKOUT_SCHEDULE, type ScheduledKnockoutMatch } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from '../store/tournament-store';
-import type { DecodedBracket } from './bracket-codec';
-import { TEAM_STRENGTH } from '../data/team-strength';
-import { ODDS_SEED } from '../data/odds/seed';
-import { expectedProbabilities, sampleResult } from './odds-model';
 
 const groupDateById = new Map(GROUP_MATCHES.map(m => [m.matchId, m.date]));
 
@@ -150,42 +146,3 @@ export function getCurrentMatchday(
   return { current, next3 };
 }
 
-export function simulateEmptyPredictions(
-  participant: { groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] },
-  resolvedKnockoutTeams: Record<string, { teamA?: string | null; teamB?: string | null }> = {},
-  rng: () => number = Math.random,
-): { groupScores: DecodedBracket['groupScores']; knockoutScores: DecodedBracket['knockoutScores'] } {
-  const groupScores = participant.groupScores.map(s => {
-    if (s.scoreA !== null && s.scoreB !== null) return s;
-    const gm = GROUP_MATCHES.find(m => m.matchId === s.matchId);
-    if (!gm) return s;
-    const odds = ODDS_SEED.matches[s.matchId];
-    const prob = odds ?? expectedProbabilities(
-      TEAM_STRENGTH[gm.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,
-      TEAM_STRENGTH[gm.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
-    );
-    const result = sampleResult(prob, rng);
-    return { ...s, scoreA: result.scoreA, scoreB: result.scoreB };
-  });
-
-  const knockoutScores = participant.knockoutScores.map(s => {
-    if (s.scoreA !== null && s.scoreB !== null) return s;
-    const resolved = resolvedKnockoutTeams[s.matchId];
-    if (!resolved?.teamA || !resolved?.teamB) return s;
-    const prob = expectedProbabilities(
-      TEAM_STRENGTH[resolved.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,
-      TEAM_STRENGTH[resolved.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
-    );
-    const result = sampleResult(prob, rng, true);
-    let penaltyScoreA: number | null = null;
-    let penaltyScoreB: number | null = null;
-    if (result.penaltiesNeeded) {
-      penaltyScoreA = 3 + Math.floor(rng() * 3);
-      penaltyScoreB = 3 + Math.floor(rng() * 3);
-      if (penaltyScoreA === penaltyScoreB) penaltyScoreB += 1;
-    }
-    return { ...s, scoreA: result.scoreA, scoreB: result.scoreB, penaltyScoreA, penaltyScoreB };
-  });
-
-  return { groupScores, knockoutScores };
-}

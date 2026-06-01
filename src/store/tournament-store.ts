@@ -79,58 +79,6 @@ function _participantToSnapshot(me: LeagueParticipant): BracketSnapshot {
   };
 }
 
-async function _flushSnapshotToCloud(ctx: ActiveContext, snapshot: BracketSnapshot) {
-  const bracket: DecodedBracket = {
-    groupScores: snapshot.groupMatches.map(m => ({
-      matchId: m.matchId,
-      scoreA: m.scoreA,
-      scoreB: m.scoreB,
-    })),
-    knockoutScores: getKnockoutMatchOrder().map(matchId => {
-      const m = snapshot.knockoutMatches[matchId];
-      return {
-        matchId,
-        scoreA: m?.scoreA ?? null,
-        scoreB: m?.scoreB ?? null,
-        penaltyScoreA: m?.penaltyScoreA ?? null,
-        penaltyScoreB: m?.penaltyScoreB ?? null,
-      };
-    }),
-    topScorer: snapshot.myTopScorerPrediction ?? undefined,
-    mvp: snapshot.myMvpPrediction ?? undefined,
-  };
-
-  if (ctx.kind === 'personal') {
-    const [{ getSupabase }, { encodeBracket }] = await Promise.all([
-      import('../lib/supabase-client'),
-      import('../lib/bracket-codec'),
-    ]);
-    const { useAuthStore } = await import('../store/auth-store');
-    const sb = getSupabase();
-    const session = useAuthStore.getState().session;
-    if (!sb || !session) return;
-    const payload = encodeBracket(
-      snapshot.groupMatches,
-      snapshot.knockoutMatches,
-      snapshot.myTopScorerPrediction,
-      snapshot.myMvpPrediction,
-    );
-    await sb.from('predictions').upsert(
-      { user_id: session.user.id, payload, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id' },
-    );
-  } else {
-    const { updateMyPredictionsInCloud } = await import('../lib/league-sync');
-    await updateMyPredictionsInCloud(
-      (ctx as { kind: 'league'; leagueId: string }).leagueId,
-      bracket.groupScores,
-      bracket.knockoutScores,
-      bracket.topScorer,
-      bracket.mvp,
-    );
-  }
-}
-
 function _defaultSnapshot(): BracketSnapshot {
   return {
     groupMatches: initialGroupMatches.map(m => ({ ...m })),
@@ -140,6 +88,59 @@ function _defaultSnapshot(): BracketSnapshot {
     myTopScorerPrediction: null,
     myMvpPrediction: null,
   };
+}
+
+// ── Persistencia local del snapshot personal (clave separada de la del torneo) ──
+// Garantiza que las predicciones personales sobreviven a un recargo con contexto de liga activo.
+
+const _PERSONAL_SNAPSHOT_LS_KEY = 'mundial-2026-personal-snapshot';
+
+function _savePersonalToStorage(snapshot: BracketSnapshot): void {
+  try {
+    localStorage.setItem(_PERSONAL_SNAPSHOT_LS_KEY, JSON.stringify(snapshot));
+  } catch { /* ignorar errores de cuota */ }
+}
+
+function _loadPersonalFromStorage(): BracketSnapshot | null {
+  try {
+    const raw = localStorage.getItem(_PERSONAL_SNAPSHOT_LS_KEY);
+    return raw ? (JSON.parse(raw) as BracketSnapshot) : null;
+  } catch { return null; }
+}
+
+// Persiste el snapshot de una liga en leagues-store (solo local, sin tocar la nube).
+async function _persistLeagueSnapshotLocal(leagueId: string, snapshot: BracketSnapshot): Promise<void> {
+  try {
+    const { useLeaguesStore, findMyParticipant } = await import('./leagues-store');
+    const { useAuthStore } = await import('./auth-store');
+    const userId = useAuthStore.getState().session?.user.id ?? null;
+    const league = useLeaguesStore.getState().leagues.find(l => l.id === leagueId);
+    const me = findMyParticipant(league, userId);
+    if (!me) return;
+    const groupScores = snapshot.groupMatches.map(m => ({
+      matchId: m.matchId,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+    }));
+    const knockoutScores = getKnockoutMatchOrder().map(matchId => {
+      const m = snapshot.knockoutMatches[matchId];
+      return {
+        matchId,
+        scoreA: m?.scoreA ?? null,
+        scoreB: m?.scoreB ?? null,
+        penaltyScoreA: m?.penaltyScoreA ?? null,
+        penaltyScoreB: m?.penaltyScoreB ?? null,
+      };
+    });
+    useLeaguesStore.getState().updateParticipantScores(
+      leagueId,
+      me.id,
+      groupScores,
+      knockoutScores,
+      snapshot.myTopScorerPrediction ?? undefined,
+      snapshot.myMvpPrediction ?? undefined,
+    );
+  } catch { /* no bloquear el UI por errores de persistencia */ }
 }
 
 function _scoresToDecodedBracket(state: TournamentState): DecodedBracket {
@@ -603,22 +604,26 @@ export const useTournamentStore = createStore<TournamentState>()(
         // Early-return solo si es el mismo contexto Y ya hay datos en memoria.
         if (sameContext && !needsFreshLoad) return;
 
-        // Solo guardamos y hacemos flush si cambiamos de contexto real.
-        // Si sameContext es true (pero needsFreshLoad), evitamos pisar la nube
-        // con los datos rehidratados potencialmente vacíos.
+        // Solo guardamos localmente si cambiamos de contexto real.
+        // Si sameContext es true (pero needsFreshLoad), evitamos pisar el store
+        // local con datos potencialmente vacíos.
         if (!sameContext) {
           const snapshot = _cloneSnapshot(state);
           if (state.activeContext.kind === 'personal') {
             _personalSnapshot = snapshot;
+            _savePersonalToStorage(snapshot);
           } else {
-            _leagueSnapshots[(state.activeContext as { kind: 'league'; leagueId: string }).leagueId] = snapshot;
+            const leavingLeagueId = (state.activeContext as { kind: 'league'; leagueId: string }).leagueId;
+            _leagueSnapshots[leavingLeagueId] = snapshot;
+            // Persistir en leagues-store (solo local, sin tocar la nube).
+            void _persistLeagueSnapshotLocal(leavingLeagueId, snapshot);
           }
-          void _flushSnapshotToCloud(state.activeContext, snapshot);
         }
 
         let loaded: BracketSnapshot | null = null;
         if (ctx.kind === 'personal') {
-          loaded = _personalSnapshot ?? _defaultSnapshot();
+          // Intentar memoria → clave dedicada de localStorage → snapshot vacío
+          loaded = _personalSnapshot ?? _loadPersonalFromStorage() ?? _defaultSnapshot();
         } else {
           if (_leagueSnapshots[ctx.leagueId]) {
             loaded = _leagueSnapshots[ctx.leagueId];

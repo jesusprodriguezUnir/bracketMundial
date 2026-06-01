@@ -310,7 +310,7 @@ export async function onSignedIn(): Promise<void> {
 
   console.log(`[league-sync] onSignedIn: ${cloudMembers?.length ?? 0} miembros cargados`);
   adoptLocalLeagues(userId);
-  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[]);
+  hydrateStore(cloudLeagues as SupabaseLeague[], cloudMembers as SupabaseMember[], userId);
 }
 
 export async function forcePushAll(): Promise<{ ok: boolean; count: number; userId: string | null }> {
@@ -386,6 +386,7 @@ function adoptLocalLeagues(userId: string): void {
 function hydrateStore(
   cloudLeagues: SupabaseLeague[],
   cloudMembers: SupabaseMember[],
+  myUserId: string | null,
 ) {
   const store = useLeaguesStore.getState();
   const localLeagues = store.leagues;
@@ -417,7 +418,8 @@ function hydrateStore(
 
     const existingLocal = localLeagues.find(l => l.id === cl.id);
     if (existingLocal) {
-      const mergedParticipants = mergeParticipants(existingLocal.participants, participants);
+      // Para mi participante: conservar predicciones locales si ya tiene alguna.
+      const mergedParticipants = mergeParticipants(existingLocal.participants, participants, myUserId);
       const patch: Partial<League> & { participants: typeof participants } = { participants: mergedParticipants };
       // Persistir join_code si la nube lo tiene y el local no
       if (cl.join_code && !existingLocal.joinCode) {
@@ -437,9 +439,25 @@ function hydrateStore(
   }
 }
 
+function _hasPredictions(p: LeagueParticipant): boolean {
+  return (
+    p.groupScores.some(s => s.scoreA !== null) ||
+    p.knockoutScores.some(s => s.scoreA !== null) ||
+    !!p.topScorer ||
+    !!p.mvp
+  );
+}
+
+/**
+ * Mezcla participantes locales y de la nube.
+ * Para el participante propio (myUserId), si el local ya tiene predicciones,
+ * se conservan las locales — la nube no pisa cambios sin publicar.
+ * Para el resto de participantes, la nube siempre prevalece.
+ */
 function mergeParticipants(
   local: LeagueParticipant[],
   cloud: LeagueParticipant[],
+  myUserId: string | null,
 ): LeagueParticipant[] {
   const merged = new Map<string, LeagueParticipant>();
   for (const p of local) {
@@ -450,9 +468,22 @@ function mergeParticipants(
     const key = p.userId || p.id;
     const existing = merged.get(key);
     if (existing) {
+      const isMe =
+        myUserId != null &&
+        (p.userId === myUserId || existing.userId === myUserId || existing.isOwner);
+      const keepLocalPredictions = isMe && _hasPredictions(existing);
       merged.set(key, {
         ...existing,
         ...p,
+        // Si soy yo y tengo predicciones locales, no dejar que la nube las pise.
+        ...(keepLocalPredictions
+          ? {
+              groupScores: existing.groupScores,
+              knockoutScores: existing.knockoutScores,
+              topScorer: existing.topScorer,
+              mvp: existing.mvp,
+            }
+          : {}),
         isOwner: existing.isOwner || p.isOwner,
         userId: existing.userId || p.userId,
         id: p.id || existing.id,
@@ -502,7 +533,7 @@ export async function refreshLeagueMembers(leagueId: string): Promise<void> {
     .maybeSingle();
   if (leagueData) ownerId = (leagueData as { owner_id: string }).owner_id;
 
-  const participants: LeagueParticipant[] = (members as SupabaseMember[]).map(m => {
+  const cloudParticipants: LeagueParticipant[] = (members as SupabaseMember[]).map(m => {
     const preds = jsonToPredictions(m.predictions);
     return {
       id: m.user_id,
@@ -518,5 +549,7 @@ export async function refreshLeagueMembers(leagueId: string): Promise<void> {
     };
   });
 
-  store._patchLeague(leagueId, { participants });
+  // Mezclar protegiendo predicciones locales propias sin publicar.
+  const merged = mergeParticipants(league.participants, cloudParticipants, userId);
+  store._patchLeague(leagueId, { participants: merged });
 }

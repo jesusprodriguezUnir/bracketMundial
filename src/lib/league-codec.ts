@@ -137,6 +137,8 @@ export interface ParticipantShare {
   participantName: string;
   groupScores: DecodedBracket['groupScores'];
   knockoutScores: DecodedBracket['knockoutScores'];
+  topScorer: { teamId: string; playerName: string } | null;
+  mvp: { teamId: string; playerName: string } | null;
 }
 
 // --- League Invite (#lg=) ---
@@ -181,11 +183,18 @@ export function encodeParticipantShare(
   participantName: string,
   groupScores: DecodedBracket['groupScores'],
   knockoutScores: DecodedBracket['knockoutScores'],
+  topScorer?: { teamId: string; playerName: string } | null,
+  mvp?: { teamId: string; playerName: string } | null,
 ): string {
   const buf: number[] = [VERSION_LG];
   encodeUUID(buf, leagueId);
   encodeStr(buf, participantName);
   encodeBracket(buf, groupScores, knockoutScores);
+  // Premios opcionales: teamId + playerName; cadena vacía codifica como null
+  encodeStr(buf, topScorer?.teamId ?? '');
+  encodeStr(buf, topScorer?.playerName ?? '');
+  encodeStr(buf, mvp?.teamId ?? '');
+  encodeStr(buf, mvp?.playerName ?? '');
   return bytesToB64url(Uint8Array.from(buf));
 }
 
@@ -207,7 +216,21 @@ export function decodeParticipantShare(b64: string): ParticipantShare | null {
     const bracket = decodeBracket(bytes, pos);
     if (!bracket) return null;
 
-    return { leagueId, participantName, groupScores: bracket.groupScores, knockoutScores: bracket.knockoutScores };
+    // Premios opcionales: compatibilidad retroactiva — enlaces antiguos sin estos bytes devuelven null
+    let topScorer: { teamId: string; playerName: string } | null = null;
+    let mvp: { teamId: string; playerName: string } | null = null;
+    if (pos.i < bytes.length) {
+      const tsTeam = decodeStr(bytes, pos) ?? '';
+      const tsPlayer = decodeStr(bytes, pos) ?? '';
+      if (tsTeam && tsPlayer) topScorer = { teamId: tsTeam, playerName: tsPlayer };
+    }
+    if (pos.i < bytes.length) {
+      const mvpTeam = decodeStr(bytes, pos) ?? '';
+      const mvpPlayer = decodeStr(bytes, pos) ?? '';
+      if (mvpTeam && mvpPlayer) mvp = { teamId: mvpTeam, playerName: mvpPlayer };
+    }
+
+    return { leagueId, participantName, groupScores: bracket.groupScores, knockoutScores: bracket.knockoutScores, topScorer, mvp };
   } catch {
     return null;
   }
@@ -218,8 +241,10 @@ export function buildParticipantShareUrl(
   participantName: string,
   groupScores: DecodedBracket['groupScores'],
   knockoutScores: DecodedBracket['knockoutScores'],
+  topScorer?: { teamId: string; playerName: string } | null,
+  mvp?: { teamId: string; playerName: string } | null,
 ): string {
-  const payload = encodeParticipantShare(leagueId, participantName, groupScores, knockoutScores);
+  const payload = encodeParticipantShare(leagueId, participantName, groupScores, knockoutScores, topScorer, mvp);
   return `${window.location.origin}${window.location.pathname}#lp=${payload}`;
 }
 

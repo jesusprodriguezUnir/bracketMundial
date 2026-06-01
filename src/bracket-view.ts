@@ -7,7 +7,8 @@ import './components/match-modal';
 import './components/ad-block';
 import { STADIUMS } from './data/stadiums';
 import { openMatchModal } from './lib/match-modal-service';
-import { publishNow } from './lib/prediction-sync';
+import { publishNow, subscribeUnpublished, getUnpublished } from './lib/prediction-sync';
+import { useAuthStore } from './store/auth-store';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { useLeaguesStore } from './store/leagues-store';
@@ -73,6 +74,7 @@ export class BracketView extends LitElement {
   @state() private _contextLeagueName = '';
   @state() private _publishing = false;
   @state() private _publishFeedback: string | null = null;
+  @state() private _hasUnpublished = false;
 
   private _swipeStartX = 0;
   private _swipeStartY = 0;
@@ -80,6 +82,7 @@ export class BracketView extends LitElement {
   private _swipeBlocked = false;
   private _tabHistory: PhaseTab[] = ['hero'];
   private _unsubContext?: () => void;
+  private _unsubUnpublished?: () => void;
 
 
   static readonly styles = css`
@@ -555,6 +558,10 @@ export class BracketView extends LitElement {
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._updateContext();
     this._unsubContext = useTournamentStore.subscribe(() => this._updateContext());
+    this._hasUnpublished = getUnpublished();
+    this._unsubUnpublished = subscribeUnpublished((dirty) => {
+      this._hasUnpublished = dirty;
+    });
     this._ensureView('groups');
 
     this._restoreFromHash();
@@ -570,6 +577,7 @@ export class BracketView extends LitElement {
   disconnectedCallback() {
     this.unsubscribeLocale?.();
     this._unsubContext?.();
+    this._unsubUnpublished?.();
     if (this._hashChangeHandler) {
       window.removeEventListener('hashchange', this._hashChangeHandler);
     }
@@ -600,15 +608,17 @@ export class BracketView extends LitElement {
   }
 
   private async _handlePublish() {
+    const session = useAuthStore.getState().session;
+    if (!session) return;
+
     this._publishing = true;
     this._publishFeedback = null;
-    try {
-      await publishNow();
-      this._publishFeedback = 'Publicado ✓';
-    } catch (err) {
-      this._publishFeedback = 'Error ✗';
-    }
+    this.requestUpdate();
+
+    const ok = await publishNow();
+    this._publishFeedback = ok ? 'Publicado ✓' : 'Error ✗';
     this._publishing = false;
+
     setTimeout(() => {
       if (this._publishFeedback === 'Publicado ✓' || this._publishFeedback === 'Error ✗') {
         this._publishFeedback = null;
@@ -842,21 +852,37 @@ export class BracketView extends LitElement {
 
     return html`
       <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
-        ${this._activeContext.kind === 'league' ? html`
+        ${(() => {
+          const isLeague = this._activeContext.kind === 'league';
+          const hasSession = !!useAuthStore.getState().session;
+          const contextLabel = isLeague
+            ? this._contextLeagueName
+            : 'Mi bracket personal';
+          const publishLabel = isLeague ? 'Publicar a la liga' : 'Publicar';
+          return html`
           <div class="context-bar">
-            <span class="context-label">Editando: <strong>${this._contextLeagueName}</strong></span>
+            <span class="context-label">Editando: <strong>${contextLabel}</strong></span>
             <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              ${this._publishFeedback ? html`<span style="font-family:var(--font-mono);font-size:11px;">${this._publishFeedback}</span>` : ''}
-              <button
-                class="context-return-btn"
-                style="background:var(--retro-yellow);"
-                @click="${this._handlePublish}"
-                ?disabled="${this._publishing}"
-              >${this._publishing ? 'Publicando…' : 'Publicar a la liga'}</button>
-              <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+              ${this._publishFeedback
+                ? html`<span style="font-family:var(--font-mono);font-size:11px;">${this._publishFeedback}</span>`
+                : this._hasUnpublished && hasSession
+                  ? html`<span style="font-family:var(--font-mono);font-size:11px;color:var(--retro-orange);">● Sin publicar</span>`
+                  : ''}
+              ${hasSession ? html`
+                <button
+                  class="context-return-btn"
+                  style="background:var(--retro-yellow);"
+                  @click="${this._handlePublish}"
+                  ?disabled="${this._publishing}"
+                >${this._publishing ? 'Publicando…' : publishLabel}</button>
+              ` : ''}
+              ${isLeague ? html`
+                <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
+              ` : ''}
             </span>
           </div>
-        ` : ''}
+        `;
+        })()}
         <!-- Mobile: bottom navigation -->
         <nav class="bottom-nav" aria-label="${t('tabs.label')}">
           ${mainTabs.map(item => html`

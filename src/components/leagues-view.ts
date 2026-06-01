@@ -14,8 +14,7 @@ import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-
 import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud, findLeagueByCode, joinLeagueInCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
-import { getCurrentMatchday, simulateEmptyPredictions, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
-import { buildProjectedScores } from '../lib/league-projection';
+import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
 import { loadOfficialResults } from '../lib/official-results';
@@ -68,7 +67,6 @@ export class LeaguesView extends LitElement {
   @state() private _newOwnerName = '';
   @state() private _confirmDeleteLeague: string | null = null;
   @state() private _bracketData: BracketScreenData | null = null;
-  @state() private _viewMode: 'real' | 'projection' = 'real';
   @state() private _showInvite = false;
   @state() private _copiedInvite = false;
   @state() private _showSharePredictions = false;
@@ -94,8 +92,6 @@ export class LeaguesView extends LitElement {
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
   private _unsubAuth?: () => void;
-  private get _isReadOnly(): boolean { return this._viewMode === 'real'; }
-
   static readonly styles = css`
     :host {
       display: block;
@@ -1266,23 +1262,6 @@ export class LeaguesView extends LitElement {
       margin-top: 10px;
       align-items: center;
     }
-    .lg-simulate-world-btn {
-      all: unset;
-      cursor: pointer;
-      font-family: var(--font-var);
-      font-size: 10px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 6px 12px;
-      background: var(--retro-yellow);
-      color: var(--ink);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      white-space: nowrap;
-    }
-    .lg-simulate-world-btn:hover {
-      background: color-mix(in srgb, var(--retro-yellow) 70%, var(--paper));
-    }
     .lg-projection-banner {
       background: color-mix(in srgb, var(--retro-yellow) 30%, var(--paper-3));
       border: 2px solid var(--ink);
@@ -1293,13 +1272,6 @@ export class LeaguesView extends LitElement {
       text-transform: uppercase;
       text-align: center;
       margin-bottom: 16px;
-    }
-    .lg-card-simulated {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 0.06em;
-      color: var(--retro-red);
-      text-transform: uppercase;
     }
     .lg-inline-projected {
       background: color-mix(in srgb, var(--retro-yellow) 16%, transparent);
@@ -2496,10 +2468,6 @@ export class LeaguesView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    try {
-      const saved = localStorage.getItem('leagues-view-mode');
-      if (saved === 'real' || saved === 'projection') this._viewMode = saved;
-    } catch { /* localStorage disabled */ }
     this._unsubTournament = useTournamentStore.subscribe(() => this._recalc());
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
@@ -2517,12 +2485,6 @@ export class LeaguesView extends LitElement {
     this._unsubLocale?.();
     this._unsubAuth?.();
     super.disconnectedCallback();
-  }
-
-  private _setViewMode(mode: 'real' | 'projection') {
-    this._viewMode = mode;
-    try { localStorage.setItem('leagues-view-mode', mode); } catch { /* ignore */ }
-    this._recalc();
   }
 
   private _getOfficialRealScores(): { groupScores: RealScores[]; knockoutScores: RealScores[] } {
@@ -2590,18 +2552,10 @@ export class LeaguesView extends LitElement {
     const realGroupScores = filterRealByDate(rawRealGroupScores);
     const realKnockoutScores = filterRealByDate(rawRealKnockoutScores);
 
-    let groupScoresForRanking: readonly RealScores[] = realGroupScores;
-    let knockoutScoresForRanking: readonly RealScores[] = realKnockoutScores;
+    const groupScoresForRanking: readonly RealScores[] = realGroupScores;
+    const knockoutScoresForRanking: readonly RealScores[] = realKnockoutScores;
 
-    if (this._viewMode === 'projection') {
-      const projected = buildProjectedScores(realGroupScores, realKnockoutScores);
-      groupScoresForRanking = projected.groupScores;
-      knockoutScoresForRanking = projected.knockoutScores;
-    }
-
-    this._knockoutDisplayScores = this._viewMode === 'projection'
-      ? [...knockoutScoresForRanking]
-      : realKnockoutScores;
+    this._knockoutDisplayScores = realKnockoutScores;
 
     let played = 0;
     for (const r of realGroupScores) {
@@ -3004,32 +2958,6 @@ export class LeaguesView extends LitElement {
     input.value = '';
   }
 
-  private _simulateWorld = () => {
-    const st = useTournamentStore.getState();
-    st.autoSimulateGroups();
-    st.autoSimulateKnockout();
-
-    const leagueId = this._activeLeagueId;
-    if (!leagueId) return;
-    const league = useLeaguesStore.getState().leagues.find(l => l.id === leagueId);
-    if (!league) return;
-
-    const tournament = useTournamentStore.getState();
-    const resolvedKo: Record<string, { teamA?: string | null; teamB?: string | null }> = {};
-    for (const [matchId, m] of Object.entries(tournament.knockoutMatches)) {
-      resolvedKo[matchId] = { teamA: m.teamA, teamB: m.teamB };
-    }
-
-    for (const p of league.participants) {
-      const hasEmpty = p.groupScores.some(s => s.scoreA === null && s.scoreB === null)
-        || p.knockoutScores.some(s => s.scoreA === null && s.scoreB === null);
-      if (!hasEmpty) continue;
-
-      const { groupScores, knockoutScores } = simulateEmptyPredictions(p, resolvedKo);
-      useLeaguesStore.getState().updateParticipantScores(leagueId, p.id, groupScores, knockoutScores);
-    }
-  };
-
   private async _handleReplaceExcel(e: Event) {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -3168,7 +3096,7 @@ export class LeaguesView extends LitElement {
     if (!league) return;
     const me = findMyParticipant(league, useAuthStore.getState().session?.user?.id);
     if (!me) return;
-    const url = buildParticipantShareUrl(league.id, me.name, me.groupScores, me.knockoutScores);
+    const url = buildParticipantShareUrl(league.id, me.name, me.groupScores, me.knockoutScores, me.topScorer, me.mvp);
     navigator.clipboard.writeText(url).catch(() => {});
     this._copiedShare = true;
   }
@@ -3251,7 +3179,7 @@ export class LeaguesView extends LitElement {
     if (!leagueId) { this._importFeedback = t('league.importError'); return; }
 
     const result = useLeaguesStore.getState().importParticipantFromShare(
-      share.leagueId, share.participantName, share.groupScores, share.knockoutScores,
+      share.leagueId, share.participantName, share.groupScores, share.knockoutScores, share.topScorer, share.mvp,
     );
     if (!result.created && result.participantId) {
       this._importFeedback = t('league.importSuccess', { name: share.participantName });
@@ -3625,8 +3553,8 @@ export class LeaguesView extends LitElement {
                       ? html`<span class="lg-inline-pen">PEN ${match.penaltyScoreA}-${match.penaltyScoreB}</span>`
                       : html`<span class="lg-inline-real pending">${t('league.kindPending')}</span>`}
                     ${showReal
-                      ? html`<span class=${`lg-inline-real ${this._viewMode === 'projection' ? 'lg-inline-projected' : ''}`}>${this._viewMode === 'projection' ? t('league.projectionLabel') : 'Real'} ${realScore.scoreA}-${realScore.scoreB}</span>`
-                      : html`<span class="lg-inline-real pending">${this._viewMode === 'projection' ? t('league.projectionLabel') : 'Real'} —</span>`}
+                      ? html`<span class="lg-inline-real">Real ${realScore.scoreA}-${realScore.scoreB}</span>`
+                      : html`<span class="lg-inline-real pending">Real —</span>`}
                   </div>
                 </article>
               `;
@@ -3826,11 +3754,8 @@ export class LeaguesView extends LitElement {
     }));
 
     const { current, next3 } = getCurrentMatchday(realGroupScores, realKnockoutScores);
-    const projectedScores = this._viewMode === 'projection'
-      ? buildProjectedScores(realGroupScores, realKnockoutScores)
-      : null;
-    const editorialGroupScores = projectedScores?.groupScores ?? realGroupScores;
-    const editorialKnockoutScores = projectedScores?.knockoutScores ?? realKnockoutScores;
+    const editorialGroupScores = realGroupScores;
+    const editorialKnockoutScores = realKnockoutScores;
 
     const recentResults = [
       ...editorialGroupScores
@@ -3869,19 +3794,10 @@ export class LeaguesView extends LitElement {
     ].slice(-3).reverse();
     const displayKnockoutByMatchId = new Map(this._knockoutDisplayScores.map(match => [match.matchId, match]));
     const hasRealMatches = played > 0;
-    const shouldShowRealEmptyState = this._isReadOnly && !hasRealMatches;
-    const isProjectionMode = this._viewMode === 'projection';
-    const leftPanelKicker = isProjectionMode
-      ? t('league.projectionLabel')
-      : hasRealMatches
-        ? t('league.currentMatchday')
-        : t('league.latestMatches');
-    const leftPanelTitle = isProjectionMode
-      ? t('league.latestSimulatedMatches')
-      : hasRealMatches
-        ? t('league.latestMatches')
-        : t('league.worldCupNotStarted');
-    const resultFootLabel = isProjectionMode ? t('league.latestSimulatedMatches') : t('league.latestMatches');
+    const shouldShowRealEmptyState = !hasRealMatches;
+    const leftPanelKicker = hasRealMatches ? t('league.currentMatchday') : t('league.latestMatches');
+    const leftPanelTitle = hasRealMatches ? t('league.latestMatches') : t('league.worldCupNotStarted');
+    const resultFootLabel = t('league.latestMatches');
 
     const live = this._isLeagueLive(league);
     const top3 = this._scores.slice(0, 3);
@@ -4052,23 +3968,8 @@ export class LeaguesView extends LitElement {
         </div>
 
         <div class="lg-v2-section-bar">
-          <h3>${t('league.modeReal')} / ${t('league.modeSimulation')}</h3>
+          <h3>${t('league.modeReal')}</h3>
           <span class="sort">
-            <button
-              class=${`lg-league-chip-btn ${this._viewMode === 'real' ? 'active' : ''}`}
-              @click=${() => this._setViewMode('real')}
-            >
-              ${t('league.modeReal')}
-            </button>
-            <button
-              class=${`lg-league-chip-btn ${this._viewMode === 'projection' ? 'active' : ''}`}
-              @click=${() => this._setViewMode('projection')}
-            >
-              ${t('league.modeSimulation')}
-            </button>
-            ${this._viewMode === 'projection' ? html`
-              <button class="lg-simulate-world-btn" @click=${this._simulateWorld}>${t('league.simulateAll')}</button>
-            ` : ''}
             ${useAuthStore.getState().session
               ? html`<button class="lg-btn-sm" @click=${this._refreshFromCloud} ?disabled=${this._syncing}>${t(this._syncing ? 'league.syncing' : 'league.refresh')}</button>`
               : ''}
@@ -4089,15 +3990,9 @@ export class LeaguesView extends LitElement {
           </div>
         ` : ''}
 
-        ${this._viewMode === 'projection' ? html`
-          <div class="lg-projection-banner">
-            <span>${t('league.projectionBanner')}</span>
-          </div>
-        ` : ''}
-
-        ${this._viewMode === 'real' && !this._officialBracket ? html`
+        ${!this._officialBracket ? html`
           <div class="lg-projection-banner" style="background:color-mix(in srgb, var(--retro-orange) 22%, var(--paper-3));">
-            <span>Aún sin resultados oficiales. Cambia a <b>Proyección</b> para ver pronósticos.</span>
+            <span>Aún sin resultados oficiales — el ranking se actualizará cuando comiencen los partidos.</span>
           </div>
         ` : ''}
 
@@ -4132,7 +4027,7 @@ export class LeaguesView extends LitElement {
           </div>
         ` : ''}
 
-        <section class=${`lg-results-board ${isProjectionMode ? 'single-panel' : ''}`}>
+        <section class="lg-results-board">
           <div class="lg-section-panel">
             <div class="lg-section-head">
               <div>
@@ -4178,7 +4073,7 @@ export class LeaguesView extends LitElement {
             </div>
           </div>
 
-          ${isProjectionMode ? '' : html`<div class="lg-section-panel">
+          <div class="lg-section-panel">
             <div class="lg-section-head">
               <div>
                 <div class="lg-section-kicker">${t('league.nextMatches')}</div>
@@ -4204,7 +4099,7 @@ export class LeaguesView extends LitElement {
                 `;
               })}
             </div>
-          </div>`}
+          </div>
         </section>
 
         <div class="lg-add-section">
