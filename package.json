@@ -10,6 +10,8 @@
     "photo": "node scripts/fetch-squad-assets.mjs --type player",
     "photos:extract": "node scripts/extract-from-image.mjs",
     "assets:report": "node scripts/fetch-squad-assets.mjs --report",
+    "crests": "node scripts/fetch-crests.mjs",
+    "kits": "node scripts/fetch-kits.mjs",
     "pages": "tsx scripts/generate-pages.mjs",
     "previews:build": "node scripts/build-previews.mjs",
     "prebuild": "tsx scripts/generate-pages.mjs && node scripts/generate-icons.mjs && npm run previews:build",
