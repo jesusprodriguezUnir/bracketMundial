@@ -18,7 +18,7 @@ export const squad: Player[] = [
   { number: 19, name: 'Adam Karabec',         position: 'MF', age: 22, club: 'Olympique Lyon' },
   { number: 7,  name: 'Lukáš Provod',         position: 'MF', age: 29, club: 'Slavia Prague' },
   { number: 21, name: 'Lukáš Červ',           position: 'MF', age: 25, club: 'Viktoria Plzeň' },
-  { number: 8,  name: 'Michal Sadílek',       position: 'MF', age: 26, club: 'Slavia Prague' },
+  { number: 8,  name: 'Vladimír Darida',       position: 'MF', age: 35, club: 'Hradec Králové' },
   { number: 20, name: 'Kryštof Daněk',        position: 'MF', age: 23, club: 'Sparta Prague' },
   { number: 13, name: 'Pavel Bucha',          position: 'MF', age: 28, club: 'Cincinnati' },
   { number: 10, name: 'Patrik Schick',        position: 'FW', age: 30, club: 'Bayer Leverkusen' },
