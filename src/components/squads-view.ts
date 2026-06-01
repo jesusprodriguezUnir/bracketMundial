@@ -23,6 +23,8 @@ import { getOddsForMatch } from '../lib/odds-service';
 import type { MatchOdds } from '../lib/odds-service';
 import { getInitials, normalize } from '../lib/text-utils';
 import { TEAM_COLORS } from '../data/team-colors';
+import { crestSrc, kitSrc } from '../lib/team-assets';
+import { WORLD_TITLES } from '../data/world-titles';
 
 interface TeamMatchSummary {
   id: string;
@@ -266,44 +268,194 @@ export class SquadsView extends LitElement {
       overflow: hidden;
     }
 
+    /* ════ Cabecera ficha V1 — escudo + camiseta ════ */
     .detail-header {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      padding: 18px;
+      --kit: var(--retro-blue);
+      --kit-trim: var(--ink);
+      --kit-num: var(--retro-yellow);
       border-bottom: 4px solid var(--ink);
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--paper);
     }
 
-    .detail-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: var(--font-var);
-      font-size: 34px;
-      line-height: 1;
+    .kit-stripe {
+      height: 8px;
+      background: var(--kit);
+      border-bottom: 3px solid var(--ink);
     }
 
-    .detail-sub {
-      display: flex;
+    .ficha-grid {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) 168px;
+      gap: 22px;
       align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
+      padding: 24px 22px;
+    }
+
+    /* Medallón del escudo */
+    .crest-medallion {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      justify-self: center;
+    }
+
+    .crest-medallion .disc-shadow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--ink);
+      transform: translate(3px, 3px);
+    }
+
+    .crest-medallion .disc {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 30%,
+        color-mix(in srgb, var(--kit) 70%, #fff),
+        var(--kit) 72%
+      );
+      border: 3px solid var(--ink);
+      overflow: hidden;
+    }
+
+    .crest-medallion .disc::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--halftone);
+      opacity: 0.5;
+    }
+
+    .crest-medallion .disc-ring {
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      border: 2px dashed color-mix(in srgb, var(--kit-trim) 55%, #fff);
+      opacity: 0.5;
+    }
+
+    .crest-medallion .crest-img {
+      position: absolute;
+      inset: 26px;
+      width: calc(100% - 52px);
+      height: calc(100% - 52px);
+      object-fit: contain;
+      filter: drop-shadow(1.5px 2px 0 rgba(26, 25, 51, 0.35));
+    }
+
+    .crest-stars {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+      padding: 2px 7px;
+      background: var(--paper-3);
+      border: 2px solid var(--ink);
+      box-shadow: var(--shadow-hard-sm);
       font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      line-height: 1;
+      color: var(--kit-num);
+      letter-spacing: 1px;
+      white-space: nowrap;
     }
 
-    .official-badge {
-      display: inline-block;
-      padding: 2px 6px;
+    /* Identidad textual */
+    .ficha-identity {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .ficha-name {
+      font-family: var(--font-var);
+      font-size: 48px;
+      line-height: 0.86;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+
+    .ficha-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .ficha-chips .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border: 2px solid var(--ink);
+      background: var(--paper-3);
+      color: var(--ink);
+      box-shadow: var(--shadow-hard-sm);
+    }
+
+    .ficha-chips .chip.solid {
+      background: var(--retro-yellow);
+    }
+
+    .ficha-chips .chip.green {
       background: var(--retro-green);
       color: var(--paper);
+    }
+
+    /* Expositor de camiseta */
+    .jersey-display {
+      position: relative;
+      justify-self: end;
+      width: 168px;
+      padding: 14px 14px 0;
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      background: var(--halftone-soft),
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--kit) 14%, var(--paper-3)) 0%,
+          var(--paper-3) 78%
+        );
+    }
+
+    .jersey-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      background: var(--ink);
+      color: var(--paper-3);
+      font-family: var(--font-mono);
       font-size: 9px;
-      font-weight: bold;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      padding: 3px 7px;
+    }
+
+    .jersey-display img {
+      display: block;
+      width: 100%;
+      height: 224px;
+      object-fit: contain;
+    }
+
+    .jersey-plinth {
+      height: 4px;
+      background: var(--ink);
+      margin-top: 2px;
+    }
+
+    .jersey-shadow {
+      height: 10px;
+      background: linear-gradient(180deg, rgba(26, 25, 51, 0.18), transparent);
     }
 
     /* ── Mobile tabs (hidden on desktop) ── */
@@ -1281,6 +1433,27 @@ export class SquadsView extends LitElement {
     .vd-goto-btn:hover { background: var(--retro-yellow); }
 
     @media (max-width: 768px) {
+      /* Cabecera ficha V1 — mobile */
+      .ficha-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        gap: 16px;
+        padding: 20px 16px;
+      }
+
+      .ficha-name {
+        font-size: 38px;
+      }
+
+      .ficha-chips {
+        justify-content: center;
+      }
+
+      .jersey-display {
+        justify-self: center;
+      }
+
       .detail-grid {
         grid-template-columns: 1fr;
       }
@@ -1296,10 +1469,6 @@ export class SquadsView extends LitElement {
 
       .panel-block.tab-hidden {
         display: none;
-      }
-
-      .detail-title {
-        font-size: 28px;
       }
 
       .tabs {
@@ -1608,20 +1777,7 @@ export class SquadsView extends LitElement {
       <button class="back-btn" @click=${() => this.goBack()}>${t('squads.back')}</button>
 
       <section class="detail-panel">
-        <div class="detail-header">
-          <div>
-            <div class="detail-title">
-              ${selectedTeam.flagUrl
-                ? html`<img src="${selectedTeam.flagUrl}" alt="${selectedTeam.name}" style="width:36px;height:24px;object-fit:cover;border:2px solid var(--ink);box-shadow:2px 2px 0 0 var(--ink);flex-shrink:0;">`
-                : html`<span style="font-size:24px">${(selectedTeam as any).flag ?? '?'}</span>`
-              }
-              ${selectedTeam.name}</div>
-            <div class="detail-sub">
-              ${isOfficial ? html`<span class="official-badge">${t('squads.official')}</span>` : ''}
-              Grupo ${selectedTeam.group} · ${squad.length} jugadores · ${t('squads.matches.pending', { n: String(teamMatches.length) })}
-            </div>
-          </div>
-        </div>
+        ${this._renderTeamHeader(selectedTeam, squad, isOfficial, teamMatches.length)}
 
         ${coach ? html`
           <div class="coach-card">
@@ -1905,6 +2061,76 @@ export class SquadsView extends LitElement {
           </div>
         </div>
       </section>
+    `;
+  }
+
+  private _renderTeamHeader(
+    team: (typeof TEAMS_2026)[number],
+    squad: Player[],
+    isOfficial: boolean,
+    pendingMatches: number,
+  ) {
+    const id = team.id;
+    const colors = TEAM_COLORS[id] ?? ['#22418c', '#f0b021'];
+    // Si el color base es casi-blanco, intercambiar para que la franja sea visible
+    let [base, accent] = colors;
+    if (base.toUpperCase() === '#FFFFFF' || base.toUpperCase() === '#FFF') {
+      [base, accent] = [accent, base];
+    }
+
+    const titles = WORLD_TITLES[id] ?? 0;
+    const stars = titles ? '★'.repeat(titles) : '';
+
+    return html`
+      <div class="detail-header"
+        style="--kit:${base}; --kit-trim:var(--ink); --kit-num:${accent};">
+        <div class="kit-stripe"></div>
+        <div class="ficha-grid">
+
+          <!-- Medallón del escudo -->
+          <div class="crest-medallion">
+            <div class="disc-shadow"></div>
+            <div class="disc"><div class="disc-ring"></div></div>
+            <img
+              class="crest-img"
+              src="${crestSrc(id)}"
+              alt="${team.name}"
+              loading="lazy"
+              decoding="async"
+              @error=${(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }}
+            >
+            ${titles ? html`
+              <div class="crest-stars" title="${titles} títulos mundiales">${stars}</div>
+            ` : ''}
+          </div>
+
+          <!-- Identidad -->
+          <div class="ficha-identity">
+            <div class="ficha-name">${team.name}</div>
+            <div class="ficha-chips">
+              <span class="chip solid">★ ${t('squads.list.groupTitle', { letter: team.group })}</span>
+              ${isOfficial ? html`<span class="chip green">✓ ${t('squads.official')}</span>` : ''}
+              <span class="chip">${t('squads.card.playersMany', { n: squad.length })}</span>
+              <span class="chip">${t('squads.matches.pending', { n: String(pendingMatches) })}</span>
+            </div>
+          </div>
+
+          <!-- Expositor de camiseta titular -->
+          <div class="jersey-display">
+            <span class="jersey-tag">TITULAR</span>
+            <img
+              src="${kitSrc(id)}"
+              alt="Camiseta titular ${team.name}"
+              loading="lazy"
+              decoding="async"
+              @error=${(e: Event) => { (e.target as HTMLElement).style.opacity = '0'; }}
+            >
+            <div class="jersey-plinth"></div>
+            <div class="jersey-shadow"></div>
+          </div>
+
+        </div>
+      </div>
     `;
   }
 
