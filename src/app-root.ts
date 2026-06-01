@@ -554,6 +554,10 @@ export class AppRoot extends LitElement {
         splash.addEventListener('transitionend', () => splash.remove(), { once: true });
       });
     }
+    const landing = document.getElementById('seo-landing');
+    if (landing) {
+      landing.remove();
+    }
   }
 
   private _syncTabFromHash() {
