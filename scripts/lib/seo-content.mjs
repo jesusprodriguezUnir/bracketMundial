@@ -197,6 +197,15 @@ ${matchRows}
 <p>${en
     ? 'The top two teams qualify directly for the round of 32; third place can still advance as one of the eight best third-placed teams.'
     : 'Los dos primeros se clasifican directamente a los dieciseisavos; el tercero aún puede avanzar como uno de los ocho mejores terceros.'}</p>
+
+<h2>${en ? `Tactical Analysis of ${esc(label)}` : `Análisis deportivo del ${esc(label)}`}</h2>
+<p>${en
+    ? `The official draw has delivered a highly balanced and unpredictable <strong>${esc(label)}</strong>, where tactical consistency and goal-scoring efficiency will dictate who earns the ticket to the next stage. Featuring strong contenders like <strong>${esc(teamNames.join(', '))}</strong>, this group is set to provide high-voltage clashes and dramatic finishes on the final matchday, where goal difference and fair play points will likely decide the standings.`
+    : `El sorteo oficial ha deparado un <strong>${esc(label)}</strong> sumamente parejo e interesante, donde la regularidad táctica y la capacidad goleadora serán determinantes para definir los puestos de privilegio. Contando con selecciones de gran nivel como <strong>${esc(teamNames.join(', '))}</strong>, este grupo promete enfrentamientos de alta intensidad y desenlaces dramáticos en la última jornada, donde la calculadora de puntos de juego limpio y diferencia de goles jugará un papel primordial.`}</p>
+<p>${en
+    ? `Historically, groups that merge diverse playing styles from different continents produce fascinating tactical matchups and surprise results. Teams with greater experience in short international tournaments carry a slight psychological advantage, but the logistical demands across USA, Mexico, and Canada will act as a major leveler. Any defensive lapse will be costly, forcing teams to play offensive, high-stakes football from the opening minute.`
+    : `Históricamente, los grupos que combinan estilos de juego de distintos continentes suelen deparar sorpresas tácticas importantes. Los equipos con mayor experiencia en torneos internacionales cortos parten con una ligera ventaja sobre el papel, pero el formato ampliado y los tiempos de descanso entre sedes de EE.UU., México y Canadá nivelarán las fuerzas. Sin duda, cualquier descuido defensivo penalizará de inmediato, obligando a arriesgar en ataque desde el silbatazo inicial.`}</p>
+
 <p>${L(P.groupsHub, en ? 'All groups' : 'Todos los grupos')} · ${L(P.calendar, en ? 'Full schedule' : 'Calendario completo')} · ${L(P.stadiums, en ? 'Stadiums' : 'Estadios')}</p>
 <p>${L(P.root, t.backHome)}</p>
 <p><small>${t.disclaimer}</small></p>`;
@@ -496,6 +505,15 @@ function buildTeamPage(data, lang, team) {
 ${matchRows}
 </ul>
 ${squadHtml}
+
+<h2>${en ? `${esc(name)}'s World Cup 2026 Outlook` : `Perspectivas de ${esc(name)} en el Mundial 2026`}</h2>
+<p>${en
+    ? `The national team of <strong>${esc(name)}</strong> enters this historic 2026 tournament with great ambition and a clear vision of making sports history on the global stage. The transition to the new 48-team format increases pressure from the opening matchday, meaning every scored goal and fair play point could be critical to advancing beyond the group stage.`
+    : `La selección nacional de <strong>${esc(name)}</strong> llega a esta cita mundialista de 2026 con un plantel cargado de ilusión y el firme objetivo de dejar huella en la historia del fútbol internacional. La transición al formato extendido de 48 selecciones eleva las exigencias del torneo y obliga a afinar la estrategia desde el primer silbatazo, donde cada gol a favor y punto de juego limpio será decisivo para asegurar un boleto en las eliminatorias.`}</p>
+<p>${en
+    ? `The coaching staff has assembled a balanced and competitive squad, combining seasoned international veterans with promising young domestic talents. Dynamic tactical execution in midfield and high defensive coordination will be key if <strong>${esc(name)}</strong> wants to negotiate this tough group stage and advance safely into the high-stakes single-elimination rounds. Simulate their entire journey here and predict how far they will go!`
+    : `El cuerpo técnico ha estructurado una convocatoria equilibrada que amalgama la experiencia de sus veteranos en las grandes ligas con el desparpajo físico de las nuevas promesas de su fútbol base. La consistencia táctica en la zona de creación y la solidez defensiva serán las claves principales para que <strong>${esc(name)}</strong> logre superar este difícil grupo y dispute las fases de eliminación directa con plenas garantías. ¡Sigue la trayectoria del equipo y simula sus posibles cruces hasta la final!`}</p>
+
 <h2>${en ? 'Possible knockout rivals' : 'Posibles rivales en las eliminatorias'}</h2>
 <p>${en
     ? `If ${esc(name)} advances from Group ${g}, the team's path through the knockout bracket could cross any of the following nations depending on the final standings and third-place rankings: ${esc(knockoutRivals.join(', '))}. Simulate the full bracket to see every possible matchup.`

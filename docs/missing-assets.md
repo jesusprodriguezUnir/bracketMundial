@@ -1,8 +1,8 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 31/5/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 1/6/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
-**Jugadores:** 17 fotos faltantes en 9 equipos (1220/1237 cubiertos)  
+**Jugadores:** 13 fotos faltantes en 8 equipos (1224/1237 cubiertos)  
 **Entrenadores:** 0 sin foto local
 
 > Para descargar fotos de un equipo: `npm run photos -- JOR`  
@@ -13,7 +13,6 @@
 | Equipo | Definidos | Con foto | Faltan | Coach local |
 |--------|-----------|----------|--------|-------------|
 | JOR | 26 | 21 | ❌ 5 | ✅ |
-| GHA | 28 | 24 | ❌ 4 | ✅ |
 | ALG | 23 | 21 | ❌ 2 | ✅ |
 | COD | 26 | 25 | ❌ 1 | ✅ |
 | CPV | 26 | 25 | ❌ 1 | ✅ |
@@ -38,6 +37,7 @@
 | ESP | 26 | 26 | ✅ 0 | ✅ |
 | FRA | 26 | 26 | ✅ 0 | ✅ |
 | GER | 26 | 26 | ✅ 0 | ✅ |
+| GHA | 28 | 28 | ✅ 0 | ✅ |
 | HAI | 26 | 26 | ✅ 0 | ✅ |
 | IRN | 26 | 26 | ✅ 0 | ✅ |
 | IRQ | 23 | 23 | ✅ 0 | ✅ |
@@ -68,13 +68,6 @@
 - `#14` Husam Abu Dahab
 - `#22` Nour Bani Attiah
 - `#24` Saad Al Rousan
-
-### GHA — faltan 4 fotos
-
-- `#24` Paul Reverson
-- `#26` Kojo Oppong Preprah
-- `#27` Christopher Bonsu Baah
-- `#28` Prince Kwabena Adu
 
 ### ALG — faltan 2 fotos
 

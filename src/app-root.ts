@@ -977,6 +977,26 @@ export class AppRoot extends LitElement {
           <span class="footer-sep">·</span>
 
           <div class="footer-section">
+            <span class="footer-label">Legal</span>
+            <div class="footer-social">
+              <a href="/acerca-de.html" aria-label="Quiénes Somos">
+                ℹ️ Quiénes Somos
+              </a>
+              <a href="/aviso-legal.html" aria-label="Aviso Legal">
+                ⚖️ Aviso Legal
+              </a>
+              <a href="/privacy-policy.html" aria-label="Política de Privacidad">
+                🔒 Privacidad
+              </a>
+              <a href="/politica-cookies.html" aria-label="Política de Cookies">
+                🍪 Cookies
+              </a>
+            </div>
+          </div>
+
+          <span class="footer-sep">·</span>
+
+          <div class="footer-section">
             <span class="footer-label">${t('footer.contact')}</span>
             <a class="footer-email" href="mailto:bracketmundial@gmail.com" aria-label="Email bracketmundial@gmail.com">
               ✉ bracketmundial@gmail.com

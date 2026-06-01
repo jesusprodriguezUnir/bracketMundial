@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="google-adsense-account" content="ca-pub-2301364261266891">
+  <title>Quiénes Somos - Bracket Mundial</title>
+  
+  <!-- Google Fonts matching the app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Paleta Panini retro */
+      --paper:         #ecdfc0;
+      --paper-2:       #e6d6b1;
+      --paper-3:       #fff9ec;
+      --ink:           #1a1933;
+      --retro-orange:  #e8541f;
+      --retro-red:     #c41e2c;
+      --retro-green:   #1f6b3a;
+      --retro-blue:    #22418c;
+      --retro-yellow:  #f0b021;
+      --dim:           #7a6f54;
+
+      /* Sombras duras offset */
+      --shadow-hard-md: 4px 4px 0 0 var(--ink);
+      --shadow-hard-lg: 6px 6px 0 0 var(--ink);
+
+      --font-head: 'Archivo Black', 'Bowlby One', Impact, sans-serif;
+      --font-body: 'Archivo', system-ui, sans-serif;
+
+      /* Halftone texture background */
+      --halftone: radial-gradient(circle, rgba(26,25,51,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+      --paper-texture:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3C/g%3E%3C/svg%3E"),
+        var(--halftone),
+        repeating-linear-gradient(45deg, rgba(26,25,51,0.02) 0 2px, transparent 2px 32px);
+    }
+
+    /* Soporte automático para Tema Oscuro */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper:         #1a1933;
+        --paper-2:       #231d3e;
+        --paper-3:       #2e2750;
+        --ink:           #ecdfc0;
+        --retro-orange:  #f0713d;
+        --retro-red:     #e83345;
+        --retro-green:   #2d9c56;
+        --retro-blue:    #4570d4;
+        --retro-yellow:  #f5c040;
+        --dim:           #8a8070;
+
+        --halftone: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+        --paper-texture:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.2'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
+          var(--halftone),
+          repeating-linear-gradient(45deg, rgba(236,223,192,0.02) 0 2px, transparent 2px 32px);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      background-image: var(--paper-texture);
+      background-size: 240px 240px, 6px 6px, auto;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    /* Contenedor tipo cromo / álbum Panini */
+    .container {
+      background-color: var(--paper-3);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    /* Sello decorativo retro */
+    .badge-stamp {
+      background-color: var(--retro-green);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      position: absolute;
+      top: -15px;
+      right: 20px;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transform: rotate(-1.5deg);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pestañas de idioma */
+    .lang-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background-color: var(--paper-2);
+      border: 2px solid var(--ink);
+      color: var(--ink);
+      padding: 8px 16px;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transition: all 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--retro-yellow);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+
+    /* Encabezados */
+    h1 {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      line-height: 1.1;
+      margin-bottom: 25px;
+      color: var(--ink);
+      text-transform: uppercase;
+      border-bottom: 6px double var(--ink);
+      padding-bottom: 15px;
+    }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      color: var(--retro-blue);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Soporte dark mode para color de subtítulo */
+    @media (prefers-color-scheme: dark) {
+      h2 {
+        color: var(--retro-yellow);
+      }
+    }
+
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: var(--retro-red);
+      border: 2px solid var(--ink);
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      text-align: justify;
+    }
+
+    ul {
+      margin-bottom: 20px;
+      padding-left: 20px;
+      list-style-type: square;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background-color: rgba(31, 107, 58, 0.08);
+      border-left: 4px solid var(--retro-green);
+      padding: 15px;
+      margin: 20px 0;
+      border-top: 2px solid var(--ink);
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 3px dashed var(--ink);
+      font-size: 0.9rem;
+      color: var(--dim);
+      text-align: center;
+    }
+
+    /* Botón Volver */
+    .back-button {
+      background-color: var(--retro-orange);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      padding: 12px 24px;
+      font-family: var(--font-head);
+      font-size: 1rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: var(--shadow-hard-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--ink);
+    }
+
+    .back-button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+
+    /* Secciones de idioma */
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón Volver a la App -->
+  <a href="/" class="back-button">
+    ← Volver a la App / Back to App
+  </a>
+
+  <div class="container">
+    <div class="badge-stamp">⚽ Fan Made</div>
+    
+    <!-- Pestañas para alternar idioma -->
+    <div class="lang-tabs">
+      <button class="tab-btn active" onclick="switchLanguage('es')">Español</button>
+      <button class="tab-btn" onclick="switchLanguage('en')">English</button>
+    </div>
+
+    <!-- SECCIÓN EN ESPAÑOL -->
+    <div id="lang-es" class="lang-section active">
+      <h1>Quiénes Somos</h1>
+      
+      <p>¡Hola! Bienvenido/a a <strong>Bracket Mundial 2026</strong>. Somos una pequeña iniciativa independiente de apasionados del fútbol y la tecnología que decidió crear la herramienta que a nosotros mismos nos encantaría utilizar para disfrutar de la Copa del Mundo.</p>
+
+      <div class="highlight">
+        <strong>Nuestra Filosofía:</strong> Creemos en una web más limpia, rápida y segura. Por eso, diseñamos este simulador con dos pilares innegociables: <strong>absoluto respeto por tu privacidad</strong> (sin registros obligatorios ni almacenamiento de tus datos personales) y una <strong>estética premium nostálgica</strong> que rinde homenaje a los clásicos álbumes de cromos Panini que marcaron nuestra infancia.
+      </div>
+
+      <h2>Nuestra Historia</h2>
+      <p>El proyecto nació a finales de 2025 tras el sorteo de la fase de grupos del Mundial de la FIFA en Washington D.C. Al ver la complejidad del nuevo formato del torneo —que se expande a 48 selecciones, 12 grupos y requiere calcular las posiciones de los 8 mejores terceros para armar los dieciseisavos de final— nos dimos cuenta de que las tradicionales hojas de cálculo de Excel eran engorrosas y poco prácticas para jugar con amigos o compañeros de oficina.</p>
+      <p>Así decidimos construir un simulador web interactivo robusto, visualmente impactante y extremadamente ágil, capaz de automatizar todas las reglas oficiales de desempate de la FIFA al instante.</p>
+
+      <h2>¿Por qué somos diferentes?</h2>
+      <ul>
+        <li><strong>Simulador Puro sin Registro:</strong> No necesitas crear una cuenta ni dar tu correo electrónico para rellenar tu bracket completo. El estado se conserva localmente en tu navegador.</li>
+        <li><strong>Ligas de Amigos Simplificadas:</strong> Creamos un sistema para compartir tu pronóstico con un simple enlace o a través de imágenes generadas al instante para compartir en WhatsApp o redes sociales.</li>
+        <li><strong>Diseño de Autor:</strong> Rechazamos las interfaces genéricas y aburridas para apostar por un estilo visual retro que evoca el papel impreso, los colores vivos y las texturas de los coleccionables de fútbol tradicionales.</li>
+        <li><strong>Contenido de Calidad:</strong> Ofrecemos guías oficiales listas para imprimir en PDF, datos reales actualizados sobre estadios y las plantillas oficiales de las 48 selecciones participantes.</li>
+      </ul>
+
+      <h2>¿Cómo se financia este sitio?</h2>
+      <p>Mantener servidores rápidos, APIs de datos deportivos en tiempo real y costear el desarrollo técnico requiere recursos. <strong>Bracket Mundial</strong> se financia exclusivamente a través de la publicidad no intrusiva gestionada por Google AdSense y pequeños enlaces de afiliados a productos de fútbol que nos encantan. Nuestro objetivo es que la plataforma siga siendo 100% gratuita para colegios, grupos de amigos y aficionados de todo el mundo.</p>
+
+      <p>Agradecemos enormemente tu visita, tu apoyo y que compartas este simulador con tu entorno. ¡Nos vemos en los terrenos de juego en junio de 2026!</p>
+
+      <div class="footer-note">
+        Bracket Mundial 2026 • Creado con pasión por el fútbol.
+      </div>
+    </div>
+
+    <!-- SECCIÓN EN INGLÉS -->
+    <div id="lang-en" class="lang-section">
+      <h1>About Us</h1>
+      
+      <p>Hello! Welcome to <strong>World Cup 2026 Bracket</strong>. We are a small, independent team of football enthusiasts and software developers who wanted to build the perfect tool to experience and predict the World Cup.</p>
+
+      <div class="highlight">
+        <strong>Our Philosophy:</strong> We believe in a cleaner, faster, and safer web. That is why we designed this simulator around two non-negotiable principles: <strong>absolute respect for your privacy</strong> (zero required sign-ups or personal data harvesting) and a <strong>premium nostalgic aesthetic</strong> that pays homage to the classic Panini sticker albums that defined our childhoods.
+      </div>
+
+      <h2>Our Story</h2>
+      <p>This project was born in late 2025 right after the official FIFA World Cup group stage draw in Washington D.C. Realising the complexity of the new tournament format — expanding to 48 teams, 12 groups, and requiring the calculation of the 8 best third-placed teams to generate the round of 32 — we saw that traditional Excel spreadsheets were too clumsy and impractical for casual pools with friends and coworkers.</p>
+      <p>So, we set out to build a robust, visually stunning, and extremely responsive web simulator that automates all official FIFA tiebreakers and bracket generation algorithms instantly.</p>
+
+      <h2>What makes us different?</h2>
+      <ul>
+        <li><strong>Pure Simulator with No Sign-Up:</strong> You do not need to create an account or provide an email address to fill in your complete bracket. Everything is stored locally on your device.</li>
+        <li><strong>Easy Pool Sharing:</strong> We created a lightweight system to share your predictions using simple links or high-quality custom images perfect for WhatsApp and social media.</li>
+        <li><strong>Distinctive Design:</strong> We rejected boring, generic templates in favor of a retro visual style that evokes printed paper, rich colors, and the texture of vintage football collectables.</li>
+        <li><strong>High-Value Content:</strong> We offer comprehensive official guides ready to print as PDF, updated stadium statistics, and official squads for all 48 qualified countries.</li>
+      </ul>
+
+      <h2>How is this site funded?</h2>
+      <p>Running high-performance servers, real-time sports data APIs, and investing in technical development has real costs. <strong>World Cup 2026 Bracket</strong> is funded exclusively through non-intrusive advertisements managed by Google AdSense and small affiliate links to football books and products that we love. Our goal is to keep this platform 100% free for classrooms, offices, and fans worldwide.</p>
+
+      <p>Thank you so much for visiting, supporting our independent project, and sharing the simulator with your friends. See you on the pitch in June 2026!</p>
+
+      <div class="footer-note">
+        World Cup 2026 Bracket • Created with passion for the beautiful game.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchLanguage(lang) {
+      // Alternar clases activas en los botones de pestañas
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(lang === 'es' ? 'español' : 'english')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Alternar secciones visibles
+      const sections = document.querySelectorAll('.lang-section');
+      sections.forEach(sec => {
+        if (sec.id === 'lang-' + lang) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Actualizar título de la página
+      document.title = lang === 'es' 
+        ? 'Quiénes Somos - Bracket Mundial' 
+        : 'About Us - Bracket Mundial';
+    }
+  </script>
+</body>
+</html>

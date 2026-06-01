@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="google-adsense-account" content="ca-pub-2301364261266891">
+  <title>Política de Cookies - Bracket Mundial</title>
+  
+  <!-- Google Fonts matching the app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Paleta Panini retro */
+      --paper:         #ecdfc0;
+      --paper-2:       #e6d6b1;
+      --paper-3:       #fff9ec;
+      --ink:           #1a1933;
+      --retro-orange:  #e8541f;
+      --retro-red:     #c41e2c;
+      --retro-green:   #1f6b3a;
+      --retro-blue:    #22418c;
+      --retro-yellow:  #f0b021;
+      --dim:           #7a6f54;
+
+      /* Sombras duras offset */
+      --shadow-hard-md: 4px 4px 0 0 var(--ink);
+      --shadow-hard-lg: 6px 6px 0 0 var(--ink);
+
+      --font-head: 'Archivo Black', 'Bowlby One', Impact, sans-serif;
+      --font-body: 'Archivo', system-ui, sans-serif;
+
+      /* Halftone texture background */
+      --halftone: radial-gradient(circle, rgba(26,25,51,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+      --paper-texture:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3C/g%3E%3C/svg%3E"),
+        var(--halftone),
+        repeating-linear-gradient(45deg, rgba(26,25,51,0.02) 0 2px, transparent 2px 32px);
+    }
+
+    /* Soporte automático para Tema Oscuro */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper:         #1a1933;
+        --paper-2:       #231d3e;
+        --paper-3:       #2e2750;
+        --ink:           #ecdfc0;
+        --retro-orange:  #f0713d;
+        --retro-red:     #e83345;
+        --retro-green:   #2d9c56;
+        --retro-blue:    #4570d4;
+        --retro-yellow:  #f5c040;
+        --dim:           #8a8070;
+
+        --halftone: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+        --paper-texture:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.2'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
+          var(--halftone),
+          repeating-linear-gradient(45deg, rgba(236,223,192,0.02) 0 2px, transparent 2px 32px);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      background-image: var(--paper-texture);
+      background-size: 240px 240px, 6px 6px, auto;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    /* Contenedor tipo cromo / álbum Panini */
+    .container {
+      background-color: var(--paper-3);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    /* Sello decorativo retro */
+    .badge-stamp {
+      background-color: var(--retro-yellow);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      position: absolute;
+      top: -15px;
+      right: 20px;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transform: rotate(-1deg);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pestañas de idioma */
+    .lang-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background-color: var(--paper-2);
+      border: 2px solid var(--ink);
+      color: var(--ink);
+      padding: 8px 16px;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transition: all 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--retro-yellow);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+
+    /* Encabezados */
+    h1 {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      line-height: 1.1;
+      margin-bottom: 25px;
+      color: var(--ink);
+      text-transform: uppercase;
+      border-bottom: 6px double var(--ink);
+      padding-bottom: 15px;
+    }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      color: var(--retro-blue);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Soporte dark mode para color de subtítulo */
+    @media (prefers-color-scheme: dark) {
+      h2 {
+        color: var(--retro-yellow);
+      }
+    }
+
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: var(--retro-red);
+      border: 2px solid var(--ink);
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      text-align: justify;
+    }
+
+    ul {
+      margin-bottom: 20px;
+      padding-left: 20px;
+      list-style-type: square;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background-color: rgba(240, 176, 33, 0.08);
+      border-left: 4px solid var(--retro-yellow);
+      padding: 15px;
+      margin: 20px 0;
+      border-top: 2px solid var(--ink);
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 3px dashed var(--ink);
+      font-size: 0.9rem;
+      color: var(--dim);
+      text-align: center;
+    }
+
+    /* Botón Volver */
+    .back-button {
+      background-color: var(--retro-green);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      padding: 12px 24px;
+      font-family: var(--font-head);
+      font-size: 1rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: var(--shadow-hard-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--ink);
+    }
+
+    .back-button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+
+    /* Secciones de idioma */
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón Volver a la App -->
+  <a href="/" class="back-button">
+    ← Volver a la App / Back to App
+  </a>
+
+  <div class="container">
+    <div class="badge-stamp">🍪 Cookies</div>
+    
+    <!-- Pestañas para alternar idioma -->
+    <div class="lang-tabs">
+      <button class="tab-btn active" onclick="switchLanguage('es')">Español</button>
+      <button class="tab-btn" onclick="switchLanguage('en')">English</button>
+    </div>
+
+    <!-- SECCIÓN EN ESPAÑOL -->
+    <div id="lang-es" class="lang-section active">
+      <h1>Política de Cookies</h1>
+      <p><strong>Última actualización:</strong> 30 de mayo de 2026</p>
+      
+      <p>Este sitio web utiliza cookies propias y de terceros para optimizar el rendimiento técnico, recoger estadísticas anónimas de visitas e integrar publicidad mediante la red de anunciantes de Google AdSense.</p>
+
+      <div class="highlight">
+        <strong>¿Qué son las cookies?</strong> Las cookies son pequeños archivos de texto que se descargan en tu navegador cuando visitas un sitio web. Ayudan a que el sitio recuerde información útil sobre tu visita para mejorar tu experiencia de navegación o para poder mostrarte publicidad relevante.
+      </div>
+
+      <h2>1. Cookies que utilizamos en este sitio</h2>
+      <p>Clasificamos las cookies utilizadas en este portal conforme a su finalidad:</p>
+      <ul>
+        <li><strong>Cookies Técnicas Obligatorias (Propias):</strong> Son esenciales para que la PWA funcione. No guardan información personal. Se utilizan para guardar el estado del torneo y tus selecciones del bracket en el almacenamiento local (`localStorage` de tu navegador) para que no se pierdan al refrescar la página.</li>
+        <li><strong>Cookies de Análisis y Rendimiento (Terceros):</strong>
+          <ul>
+            <li><strong>Vercel Analytics:</strong> Recopila métricas técnicas y de rendimiento del sitio web de forma agregada e inofensiva (tiempos de carga, errores de renderizado).</li>
+            <li><strong>Google Tag Manager:</strong> Facilita la inyección segura de scripts de medición técnica.</li>
+          </ul>
+        </li>
+        <li><strong>Cookies de Publicidad Personalizada (Google AdSense - Terceros):</strong>
+          <ul>
+            <li>Google utiliza cookies (como la cookie DoubleClick o DART) en los anuncios mostrados en este portal (código de editor <code>ca-pub-2301364261266891</code>). Estas cookies permiten a Google y a sus socios mostrar anuncios basados en tus visitas a este y otros sitios web de Internet.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h2>2. Consentimiento y Configuración</h2>
+      <p>Al acceder al sitio web por primera vez, verás un mensaje informativo de cookies auspiciado por el sistema oficial de consentimiento certificado de Google. Tienes la opción de:</p>
+      <ul>
+        <li><strong>Aceptar todas las cookies:</strong> Permitirá el correcto análisis técnico y la entrega de anuncios personalizados según tus gustos e historial de navegación.</li>
+        <li><strong>Rechazar/Gestionar cookies:</strong> Puedes desactivar el uso de cookies publicitarias o analíticas. En este caso, seguirás viendo anuncios en la web, pero estos no serán personalizados sino genéricos.</li>
+      </ul>
+
+      <h2>3. Cómo deshabilitar las cookies desde tu navegador</h2>
+      <p>Puedes restringir, bloquear o borrar las cookies de este o cualquier otro sitio web configurando las opciones de tu navegador de Internet. En cada navegador el proceso es diferente, a continuación los enlaces de ayuda oficiales:</p>
+      <ul>
+        <li><a href="https://support.google.com/chrome/answer/95647?hl=es" target="_blank" rel="noopener">Google Chrome</a></li>
+        <li><a href="https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" target="_blank" rel="noopener">Mozilla Firefox</a></li>
+        <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Apple Safari</a></li>
+        <li><a href="https://support.microsoft.com/es-es/windows/eliminar-y-administrar-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener">Microsoft Edge</a></li>
+      </ul>
+
+      <div class="footer-note">
+        Bracket Mundial 2026 • Navegación segura y transparente.
+      </div>
+    </div>
+
+    <!-- SECCIÓN EN INGLÉS -->
+    <div id="lang-en" class="lang-section">
+      <h1>Cookie Policy</h1>
+      <p><strong>Last Updated:</strong> May 30, 2026</p>
+      
+      <p>This website uses first-party and third-party cookies to optimize technical performance, collect anonymous traffic metrics, and integrate advertisements via the Google AdSense network.</p>
+
+      <div class="highlight">
+        <strong>What are cookies?</strong> Cookies are small text files downloaded to your web browser when you visit a website. They help the website remember useful details about your visit to improve your browsing experience or display relevant advertisements.
+      </div>
+
+      <h2>1. Cookies Used on This Site</h2>
+      <p>We classify the cookies used on this portal according to their purpose:</p>
+      <ul>
+        <li><strong>Required Technical Cookies (First-Party):</strong> Essential for the PWA to operate. They do not store personal details. They are used to persist your tournament bracket selections and settings in your browser's local storage (`localStorage`) so your data is not lost when refreshing the page.</li>
+        <li><strong>Performance and Analytics Cookies (Third-Party):</strong>
+          <ul>
+            <li><strong>Vercel Analytics:</strong> Collects technical performance metrics and aggregate page speed data securely and anonymously.</li>
+            <li><strong>Google Tag Manager:</strong> Manages the deployment of technical measurement tags safely.</li>
+          </ul>
+        </li>
+        <li><strong>Advertising Cookies (Google AdSense - Third-Party):</strong>
+          <ul>
+            <li>Google uses cookies (such as the DoubleClick or DART cookie) within the ads shown on this site (publisher ID <code>ca-pub-2301364261266891</code>). These cookies allow Google and its partners to serve ads based on your visits to this and other websites across the Internet.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h2>2. Consent and Control</h2>
+      <p>When you visit our site for the first time, you will see a cookie consent banner powered by Google's certified consent management system. You can choose to:</p>
+      <ul>
+        <li><strong>Accept All Cookies:</strong> Enables full performance tracking and custom tailored advertisements based on your interests and browsing history.</li>
+        <li><strong>Manage/Decline Cookies:</strong> You can disable advertising or performance cookies. If you decline, you will still see ads, but they will be generic rather than tailored to your interests.</li>
+      </ul>
+
+      <h2>3. How to Disable Cookies in Your Browser</h2>
+      <p>You can restrict, block, or delete cookies from this or any other website by configuring your browser's security settings. Below are the official guides for the most popular web browsers:</p>
+      <ul>
+        <li><a href="https://support.google.com/chrome/answer/95647?hl=en" target="_blank" rel="noopener">Google Chrome</a></li>
+        <li><a href="https://support.mozilla.org/en-US/kb/enhanced-tracking-protection-firefox-desktop" target="_blank" rel="noopener">Mozilla Firefox</a></li>
+        <li><a href="https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac" target="_blank" rel="noopener">Apple Safari</a></li>
+        <li><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40bf-02ef-34a4-fb9f8b1ddec0" target="_blank" rel="noopener">Microsoft Edge</a></li>
+      </ul>
+
+      <div class="footer-note">
+        World Cup 2026 Bracket • Secure and transparent browsing.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchLanguage(lang) {
+      // Alternar clases activas en los botones de pestañas
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(lang === 'es' ? 'español' : 'english')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Alternar secciones visibles
+      const sections = document.querySelectorAll('.lang-section');
+      sections.forEach(sec => {
+        if (sec.id === 'lang-' + lang) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Actualizar título de la página
+      document.title = lang === 'es' 
+        ? 'Política de Cookies - Bracket Mundial' 
+        : 'Cookie Policy - Bracket Mundial';
+    }
+  </script>
+</body>
+</html>

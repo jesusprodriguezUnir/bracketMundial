@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="google-adsense-account" content="ca-pub-2301364261266891">
+  <title>Aviso Legal - Bracket Mundial</title>
+  
+  <!-- Google Fonts matching the app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700&family=Bowlby+One&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Paleta Panini retro */
+      --paper:         #ecdfc0;
+      --paper-2:       #e6d6b1;
+      --paper-3:       #fff9ec;
+      --ink:           #1a1933;
+      --retro-orange:  #e8541f;
+      --retro-red:     #c41e2c;
+      --retro-green:   #1f6b3a;
+      --retro-blue:    #22418c;
+      --retro-yellow:  #f0b021;
+      --dim:           #7a6f54;
+
+      /* Sombras duras offset */
+      --shadow-hard-md: 4px 4px 0 0 var(--ink);
+      --shadow-hard-lg: 6px 6px 0 0 var(--ink);
+
+      --font-head: 'Archivo Black', 'Bowlby One', Impact, sans-serif;
+      --font-body: 'Archivo', system-ui, sans-serif;
+
+      /* Halftone texture background */
+      --halftone: radial-gradient(circle, rgba(26,25,51,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+      --paper-texture:
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3C/g%3E%3C/svg%3E"),
+        var(--halftone),
+        repeating-linear-gradient(45deg, rgba(26,25,51,0.02) 0 2px, transparent 2px 32px);
+    }
+
+    /* Soporte automático para Tema Oscuro */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper:         #1a1933;
+        --paper-2:       #231d3e;
+        --paper-3:       --paper-3; /* fallback */
+        --paper-3:       #2e2750;
+        --ink:           #ecdfc0;
+        --retro-orange:  #f0713d;
+        --retro-red:     #e83345;
+        --retro-green:   #2d9c56;
+        --retro-blue:    #4570d4;
+        --retro-yellow:  #f5c040;
+        --dim:           #8a8070;
+
+        --halftone: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 6px 6px;
+        --paper-texture:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.2'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
+          var(--halftone),
+          repeating-linear-gradient(45deg, rgba(236,223,192,0.02) 0 2px, transparent 2px 32px);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      background-image: var(--paper-texture);
+      background-size: 240px 240px, 6px 6px, auto;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    /* Contenedor tipo cromo / álbum Panini */
+    .container {
+      background-color: var(--paper-3);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow-hard-lg);
+      max-width: 800px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    /* Sello decorativo retro */
+    .badge-stamp {
+      background-color: var(--retro-red);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      position: absolute;
+      top: -15px;
+      right: 20px;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transform: rotate(1deg);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pestañas de idioma */
+    .lang-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background-color: var(--paper-2);
+      border: 2px solid var(--ink);
+      color: var(--ink);
+      padding: 8px 16px;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 0 var(--ink);
+      transition: all 0.1s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--retro-yellow);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 0 var(--ink);
+    }
+
+    /* Encabezados */
+    h1 {
+      font-family: var(--font-head);
+      font-size: 2.2rem;
+      line-height: 1.1;
+      margin-bottom: 25px;
+      color: var(--ink);
+      text-transform: uppercase;
+      border-bottom: 6px double var(--ink);
+      padding-bottom: 15px;
+    }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: 1.3rem;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      color: var(--retro-blue);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Soporte dark mode para color de subtítulo */
+    @media (prefers-color-scheme: dark) {
+      h2 {
+        color: var(--retro-yellow);
+      }
+    }
+
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: var(--retro-red);
+      border: 2px solid var(--ink);
+    }
+
+    p {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      text-align: justify;
+    }
+
+    ul {
+      margin-bottom: 20px;
+      padding-left: 20px;
+      list-style-type: square;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background-color: rgba(196, 30, 44, 0.08);
+      border-left: 4px solid var(--retro-red);
+      padding: 15px;
+      margin: 20px 0;
+      border-top: 2px solid var(--ink);
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 0 var(--ink);
+    }
+
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 3px dashed var(--ink);
+      font-size: 0.9rem;
+      color: var(--dim);
+      text-align: center;
+    }
+
+    /* Botón Volver */
+    .back-button {
+      background-color: var(--retro-green);
+      color: #fff9ec;
+      border: 3px solid var(--ink);
+      padding: 12px 24px;
+      font-family: var(--font-head);
+      font-size: 1rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      box-shadow: var(--shadow-hard-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.1s;
+      margin-bottom: 30px;
+    }
+
+    .back-button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--ink);
+    }
+
+    .back-button:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 0 var(--ink);
+    }
+
+    /* Secciones de idioma */
+    .lang-section {
+      display: none;
+    }
+
+    .lang-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón Volver a la App -->
+  <a href="/" class="back-button">
+    ← Volver a la App / Back to App
+  </a>
+
+  <div class="container">
+    <div class="badge-stamp">⚖️ Legal</div>
+    
+    <!-- Pestañas para alternar idioma -->
+    <div class="lang-tabs">
+      <button class="tab-btn active" onclick="switchLanguage('es')">Español</button>
+      <button class="tab-btn" onclick="switchLanguage('en')">English</button>
+    </div>
+
+    <!-- SECCIÓN EN ESPAÑOL -->
+    <div id="lang-es" class="lang-section active">
+      <h1>Aviso Legal y Condiciones de Uso</h1>
+      <p><strong>Última actualización:</strong> 30 de mayo de 2026</p>
+      
+      <p>En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), se exponen a continuación los datos identificativos del titular y las condiciones de uso que regulan este sitio web.</p>
+
+      <div class="highlight">
+        <strong>Exención de Afiliación Oficial (Disclaimer Importante):</strong> Este sitio web es una herramienta de simulación recreativa e independiente creada por aficionados. <strong>No está afiliado, patrocinado, respaldado ni asociado de ninguna forma con la Fédération Internationale de Football Association (FIFA)</strong>, los comités organizadores locales del Mundial 2026, ni con ninguna federación nacional de fútbol. Las marcas registradas "FIFA", "Copa Mundial", "World Cup 2026" y marcas asociadas pertenecen exclusivamente a sus respectivos propietarios y se utilizan aquí únicamente con fines descriptivos e informativos.
+      </div>
+
+      <h2>1. Datos Identificativos</h2>
+      <p>El sitio web <strong>bracketmundial.com</strong> es de titularidad y gestión privada:</p>
+      <ul>
+        <li><strong>Responsable del sitio:</strong> Jesús Rodríguez</li>
+        <li><strong>Contacto:</strong> jesusprodriguez@gmail.com / bracketmundial@gmail.com</li>
+        <li><strong>Actividad:</strong> Portal web de simulaciones deportivas y recursos informativos gratuitos de fútbol para aficionados.</li>
+      </ul>
+
+      <h2>2. Propiedad Intelectual y Uso del Contenido</h2>
+      <p>El diseño visual retro tipo álbum Panini, los scripts de generación, el código fuente (Lit, TypeScript), los textos y el software del simulador son propiedad exclusiva de su creador o se utilizan bajo licencias autorizadas. Queda terminantemente prohibida la reproducción total o parcial, copia, distribución o comercialización del simulador o sus algoritmos sin previa autorización expresa por escrito.</p>
+      <p>Los usuarios tienen permiso para descargar e imprimir sus brackets resultantes en PDF/PNG y compartir los enlaces de sus configuraciones única y exclusivamente con fines personales y no comerciales (por ejemplo, porras informales entre amigos, familiares o en el ámbito escolar).</p>
+
+      <h2>3. Limitación de Responsabilidad</h2>
+      <p>El titular realiza los mayores esfuerzos para asegurar que la información (calendarios de partidos, fechas, estadios, listas de jugadores) sea veraz y esté actualizada conforme a los anuncios de las entidades oficiales. Sin embargo, no nos hacemos responsables de las consecuencias que puedan derivar de:</p>
+      <ul>
+        <li>Errores tipográficos, omisiones o inexactitudes en los datos deportivos publicados.</li>
+        <li>Cambios de última hora en el calendario de partidos, sustituciones de jugadores o decisiones organizativas tomadas por la FIFA o las federaciones nacionales.</li>
+        <li>La falta de disponibilidad temporal, caídas del servidor o interrupciones en la sincronización en tiempo real de las mini-ligas.</li>
+        <li>El uso que los usuarios den al simulador (por ejemplo, apuestas informales externas o porras privadas, las cuales escapan por completo de nuestro control y responsabilidad).</li>
+      </ul>
+
+      <h2>4. Enlaces a Terceros</h2>
+      <p>Este sitio web puede contener enlaces a sitios web de terceros (como Amazon, tiendas de productos deportivos o redes sociales). El titular no ejerce control alguno sobre dichos sitios externos y no se responsabiliza de sus contenidos, políticas de privacidad ni de las transacciones comerciales que el usuario realice en ellos.</p>
+
+      <h2>5. Legislación y Jurisdicción Aplicable</h2>
+      <p>Para la resolución de todas las controversias o cuestiones relacionadas con el presente sitio web o de las actividades en él desarrolladas, será de aplicación la legislación española, a la que se someten expresamente las partes, siendo competentes para la resolución de todos los conflictos derivados o relacionados con su uso los Juzgados y Tribunales de Sevilla, España.</p>
+
+      <div class="footer-note">
+        Bracket Mundial 2026 • Juego Limpio dentro y fuera de la web.
+      </div>
+    </div>
+
+    <!-- SECCIÓN EN INGLÉS -->
+    <div id="lang-en" class="lang-section">
+      <h1>Legal Notice and Terms of Use</h1>
+      <p><strong>Last Updated:</strong> May 30, 2026</p>
+      
+      <p>In compliance with information society services regulations, this document outlines the identifying data of the controller and the terms of use governing this website.</p>
+
+      <div class="highlight">
+        <strong>Important Disclaimer regarding Official Affiliation:</strong> This website is an independent recreational simulation tool created by fans. <strong>It is not affiliated with, sponsored by, endorsed by, or in any way associated with the Fédération Internationale de Football Association (FIFA)</strong>, the local organizing committees of the 2026 World Cup, or any national football federation. The registered trademarks "FIFA", "World Cup", "World Cup 2026", and associated logos belong exclusively to their respective owners and are used here solely for descriptive and informational purposes.
+      </div>
+
+      <h2>1. Identifying Data</h2>
+      <p>The website <strong>bracketmundial.com</strong> is privately owned and operated:</p>
+      <ul>
+        <li><strong>Owner / Controller:</strong> Jesús Rodríguez</li>
+        <li><strong>Contact Email:</strong> jesusprodriguez@gmail.com / bracketmundial@gmail.com</li>
+        <li><strong>Purpose:</strong> Free sports bracket simulations and informational football resources for fans worldwide.</li>
+      </ul>
+
+      <h2>2. Intellectual Property & Use of Content</h2>
+      <p>The retro Panini album visual design, dynamic simulation engines, source code (Lit, TypeScript), custom texts, and software are the exclusive intellectual property of the owner or are used under appropriate licenses. Any total or partial reproduction, copying, distribution, or commercialization of the simulator or its underlying algorithms is strictly prohibited without prior written consent.</p>
+      <p>Users are granted permission to download and print their generated bracket predictions in PDF/PNG and share their custom links strictly for personal, non-commercial use (e.g., informal prediction groups, classrooms, or office pools).</p>
+
+      <h2>3. Disclaimer of Liability</h2>
+      <p>While we make every effort to ensure that all tournament schedules, venues, and player rosters are correct, we do not guarantee the completeness or accuracy of the data. We accept no liability for:</p>
+      <ul>
+        <li>Typographical errors, data omissions, or minor inaccuracies in player squads or match times.</li>
+        <li>Last-minute schedule changes, stadium reassignments, or player substitutions announced by FIFA or national associations.</li>
+        <li>Temporary website downtime, server performance issues, or sync delays in user-created mini-leagues.</li>
+        <li>Any external financial arrangements, informal friendly bets, or pools organized by users utilizing this simulator (which are outside our control).</li>
+      </ul>
+
+      <h2>4. Third-Party Links</h2>
+      <p>This website contains links to third-party web pages (such as Amazon, sports merchandise stores, and social networks). We exercise no control over these external sites and do not accept responsibility for their contents, privacy policies, or any transactions you may conduct on them.</p>
+
+      <h2>5. Governing Law and Jurisdiction</h2>
+      <p>All disputes or controversies arising from or related to the use of this website shall be governed by Spanish law, and the parties expressly submit to the exclusive jurisdiction of the Courts of Seville, Spain, for the resolution of any conflicts.</p>
+
+      <div class="footer-note">
+        World Cup 2026 Bracket • Fair play on the pitch and on the web.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchLanguage(lang) {
+      // Alternar clases activas en los botones de pestañas
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(lang === 'es' ? 'español' : 'english')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Alternar secciones visibles
+      const sections = document.querySelectorAll('.lang-section');
+      sections.forEach(sec => {
+        if (sec.id === 'lang-' + lang) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Actualizar título de la página
+      document.title = lang === 'es' 
+        ? 'Aviso Legal - Bracket Mundial' 
+        : 'Legal Notice - Bracket Mundial';
+    }
+  </script>
+</body>
+</html>

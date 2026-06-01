@@ -1,4 +1,4 @@
-﻿// Plantilla HTML compartida para las pÃ¡ginas estÃ¡ticas prerenderizadas.
+// Plantilla HTML compartida para las pÃ¡ginas estÃ¡ticas prerenderizadas.
 // El <head> replica el de index.html (GTM, fuentes, AdSense, PWA) para
 // mantener consistencia; sÃ³lo se parametriza lo especÃ­fico de cada pÃ¡gina.
 
@@ -75,6 +75,17 @@ ${JSON.stringify(jsonLd, null, 2)}
     <div id="root">
       <div id="seo-landing" style="max-width:980px;margin:0 auto;padding:2rem 1rem;font-family:system-ui,sans-serif;color:#1a1933;line-height:1.6;">
 ${p.body}
+        <hr style="margin-top: 3rem; border: none; border-top: 2px dashed #1a1933; opacity: 0.15;" />
+        <footer style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: center; margin-top: 2rem; font-size: 13px; font-family: system-ui, sans-serif;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="/" style="text-decoration: none; color: #1a1933; font-weight: bold;">⚽ Bracket Mundial</a>
+            <a href="/acerca-de.html" style="text-decoration: none; color: #7a6f54;">Quiénes Somos</a>
+            <a href="/aviso-legal.html" style="text-decoration: none; color: #7a6f54;">Aviso Legal</a>
+            <a href="/privacy-policy.html" style="text-decoration: none; color: #7a6f54;">Privacidad</a>
+            <a href="/politica-cookies.html" style="text-decoration: none; color: #7a6f54;">Cookies</a>
+          </div>
+          <div style="color: #7a6f54;">© BRACKET MUNDIAL 2026</div>
+        </footer>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
