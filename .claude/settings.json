@@ -23,10 +23,17 @@
       "Bash(npx vitest *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5199/)",
       "Bash(node d:/tmp/verify_squads.mjs)",
-      "Bash(node --input-type=module --eval ' *)"
+      "Bash(node --input-type=module --eval ' *)",
+      "Bash(New-Item -ItemType Directory -Force \"d:\\\\Personal\\\\bracketMundial\\\\.claude\\\\skills\\\\update-team\")",
+      "Bash(New-Item -ItemType Directory -Force \"d:\\\\Personal\\\\bracketMundial\\\\.claude\\\\skills\\\\update-results\")",
+      "Bash(Write-Output \"Directorios creados\")",
+      "Bash(mkdir -p \"d:/Personal/bracketMundial/.claude/skills/update-team\" \"d:/Personal/bracketMundial/.claude/skills/update-results\" && echo \"OK\")",
+      "Edit(/.claude/skills/update-team/**)",
+      "Edit(/.claude/skills/update-results/**)"
     ],
     "additionalDirectories": [
-      "D:\\Personal\\bracketMundial\\.claude\\skills"
+      "D:\\Personal\\bracketMundial\\.claude\\skills",
+      "d:\\Personal\\bracketMundial\\.claude\\skills"
     ]
   }
 }

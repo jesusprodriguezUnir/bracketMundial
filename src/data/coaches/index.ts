@@ -42,13 +42,13 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   CZE: {
-    name: 'Ivan Hašek',
-    born: '1963-09-03',
+    name: 'Miroslav Koubek',
+    born: '1951-09-01',
     nationality: 'República Checa',
     photoUrl: 'https://www.thesportsdb.com/images/media/player/thumb/nr702z1777373018.jpg',
     bio: {
-      es: 'Exinternacional de Checoslovaquia. Asumió el cargo de seleccionador de la República Checa en 2023 apostando por un proyecto joven.',
-      en: 'Former Czechoslovakia international. Took charge of the Czech Republic in 2023 building around young talents.',
+      es: 'Experimentado director técnico checo con gran trayectoria en el fútbol local, destacando por sus éxitos con el Viktoria Plzeň, al que llevó a ganar la liga. Fue nombrado seleccionador nacional en 2026 para el Mundial.',
+      en: 'Highly experienced Czech manager with a long career in domestic football, most notably guiding Viktoria Plzeň to league titles. Appointed national team head coach in 2026 for the World Cup.',
     },
   },
 
@@ -351,12 +351,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   IRQ: {
-    name: 'Jesús Casas',
-    born: '1970-12-14',
-    nationality: 'España',
+    name: 'Graham Arnold',
+    born: '1963-08-03',
+    nationality: 'Australia',
     bio: {
-      es: 'Técnico español con experiencia en el fútbol árabe y asiático. Asumió la selección iraquí para clasificar al Mundial 2026.',
-      en: 'Spanish coach with experience in Arab and Asian football. He took charge of Iraq to secure a 2026 World Cup spot.',
+      es: 'Entrenador australiano de gran trayectoria que dirigió a los Socceroos en el Mundial 2022 logrando el pase a octavos de final. Asumió el banquillo de Irak para liderar su campaña en el Mundial 2026.',
+      en: 'Highly experienced Australian manager who led the Socceroos at the 2022 World Cup, reaching the round of 16. Appointed head coach of Iraq to lead their 2026 World Cup campaign.',
     },
   },
   NOR: {
