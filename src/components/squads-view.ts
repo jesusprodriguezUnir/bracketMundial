@@ -1777,7 +1777,7 @@ export class SquadsView extends LitElement {
       <button class="back-btn" @click=${() => this.goBack()}>${t('squads.back')}</button>
 
       <section class="detail-panel">
-        ${this._renderTeamHeader(selectedTeam, squad, isOfficial, teamMatches.length)}
+        ${this._renderTeamHeader(selectedTeam, squad, isOfficial)}
 
         ${coach ? html`
           <div class="coach-card">
@@ -2068,7 +2068,6 @@ export class SquadsView extends LitElement {
     team: (typeof TEAMS_2026)[number],
     squad: Player[],
     isOfficial: boolean,
-    pendingMatches: number,
   ) {
     const id = team.id;
     const colors = TEAM_COLORS[id] ?? ['#22418c', '#f0b021'];
@@ -2111,7 +2110,6 @@ export class SquadsView extends LitElement {
               <span class="chip solid">★ ${t('squads.list.groupTitle', { letter: team.group })}</span>
               ${isOfficial ? html`<span class="chip green">✓ ${t('squads.official')}</span>` : ''}
               <span class="chip">${t('squads.card.playersMany', { n: squad.length })}</span>
-              <span class="chip">${t('squads.matches.pending', { n: String(pendingMatches) })}</span>
             </div>
           </div>
 

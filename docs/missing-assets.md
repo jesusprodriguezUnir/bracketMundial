@@ -1,6 +1,6 @@
 # Activos faltantes — Mundial 2026
 
-> Generado el 1/6/2026 con `node scripts/fetch-squad-assets.mjs --report`
+> Generado el 2/6/2026 con `node scripts/fetch-squad-assets.mjs --report`
 
 **Jugadores:** 15 fotos faltantes en 6 equipos (1234/1249 cubiertos)  
 **Entrenadores:** 0 sin foto local

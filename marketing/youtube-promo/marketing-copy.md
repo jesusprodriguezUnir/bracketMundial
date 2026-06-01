@@ -1,6 +1,6 @@
 # Kit de Copias de Marketing para bracketmundial.com
-**Inspirado en la canción oficial: "Shakira, Burna Boy - Dai Dai (Official Video)" de Shakira**
-**URL del video:** https://www.youtube.com/watch?v=fcnDmrtj6Sk
+**Inspirado en la canción oficial: "IShowSpeed - World Cup (Champions) [Official Music Video]" de IShowSpeed**
+**URL del video:** https://www.youtube.com/watch?v=vrY1THC_NQE
 
 ---
 

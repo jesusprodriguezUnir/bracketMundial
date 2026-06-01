@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Promo Reel - BracketMundial</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;700&family=Bowlby+One&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:1080px;height:1920px;overflow:hidden;
+  font-family:'Bowlby One','Archivo Black',Impact,sans-serif;
+  background:#1a1933;color:#fff8e7;
+  -webkit-font-smoothing:antialiased;
+}
+.slide{
+  width:1080px;height:1920px;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.bg{
+  position:absolute;inset:0;
+  background:url('https://img.youtube.com/vi/vrY1THC_NQE/maxresdefault.jpg') center/cover;
+  filter:brightness(0.45)saturate(1.05);
+  animation:kenBurns 30s ease-in-out infinite alternate;
+}
+.bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(26,25,51,0.75)0%,rgba(26,25,51,0.25)30%,rgba(26,25,51,0.25)70%,rgba(26,25,51,0.85)100%);
+}
+.texture{
+  position:absolute;inset:0;opacity:0.12;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(240,176,33,0.2)1px,transparent 1.2px);
+  background-size:5px 5px;
+}
+.content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:28px;padding:0 80px;width:100%;transition:opacity .6s,transform .6s;}
+
+/* Phase 1: video spotlight */
+.phase-artist{font-family:'Archivo',sans-serif;font-size:26px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,248,231,0.5);transition:all .8s;}
+.phase-title{text-align:center;transition:all .8s;}
+.phase-title .artist{
+  font-family:'Archivo',sans-serif;font-size:34px;font-weight:400;letter-spacing:0.12em;
+  color:rgba(255,248,231,0.7);text-shadow:2px 2px 0 #1a1933;margin-bottom:8px;transition:all .8s;
+}
+.phase-title .song{
+  font-family:'Bowlby One',Impact,sans-serif;font-size:72px;line-height:1.15;
+  color:#f0b021;text-shadow:5px 5px 0 #1a1933;transition:all .8s;
+}
+.phase-title .song-sub{
+  font-family:'Archivo',sans-serif;font-size:32px;font-weight:400;margin-top:8px;
+  color:#fff8e7;text-shadow:2px 2px 0 #1a1933;transition:all .8s;
+}
+.phase-divider{width:240px;height:5px;background:#e8541f;box-shadow:4px 4px 0 #1a1933;transition:all .8s;}
+
+/* Phase 2: CTA spotlight (hidden initially, shown after transition) */
+.phase-cta{text-align:center;opacity:0;transform:translateY(20px);transition:all .8s;}
+.phase-cta .line1{
+  font-family:'Archivo Black',Impact,sans-serif;font-size:76px;line-height:1.1;
+  color:#fff8e7;text-shadow:5px 5px 0 #1a1933;
+}
+.phase-cta .line2{
+  font-family:'Archivo Black',Impact,sans-serif;font-size:76px;line-height:1.1;
+  color:#f0b021;text-shadow:5px 5px 0 #1a1933;margin-top:4px;
+}
+
+.phase-cta.show{opacity:1;transform:translateY(0);}
+
+.url-box{
+  padding:32px 70px;background:#e8541f;border:6px solid #1a1933;box-shadow:10px 10px 0 #1a1933;
+  transition:all .8s;
+  animation:pulseBox 2.5s ease-in-out 3.2s infinite;
+}
+.url-box span{
+  font-family:'Bowlby One',Impact,sans-serif;font-size:72px;letter-spacing:0.03em;
+  color:#fff8e7;text-shadow:4px 4px 0 #1a1933;
+}
+.phase-tagline{
+  font-family:'Archivo',sans-serif;font-size:24px;letter-spacing:0.1em;
+  color:rgba(255,248,231,0.5);text-transform:uppercase;transition:all .8s;
+}
+.footer{
+  position:absolute;bottom:100px;
+  font-family:'Archivo',sans-serif;font-size:22px;letter-spacing:0.15em;
+  color:rgba(255,248,231,0.35);text-transform:uppercase;
+  transition:all .8s;
+}
+.confetti-svg{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.confetti-piece{
+  position:absolute;width:10px;height:10px;opacity:0.55;
+  animation:confettiFall linear infinite;
+}
+@keyframes kenBurns{from{transform:scale(1)}to{transform:scale(1.1)}}
+@keyframes pulseBox{
+  0%,100%{box-shadow:10px 10px 0 #1a1933}
+  50%{box-shadow:10px 10px 0 #1a1933,0 0 0 10px rgba(240,176,33,0.35)}
+}
+@keyframes confettiFall{
+  0%{transform:translateY(-100px)rotate(0deg);opacity:0.55}
+  100%{transform:translateY(2100px)rotate(720deg);opacity:0}
+}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg"></div>
+  <div class="texture"></div>
+  <div class="confetti-svg" id="confetti"></div>
+  <div class="content">
+    <div class="phase-artist" id="topTag">🎵 SONANDO AHORA</div>
+    <div class="phase-title" id="titleBlock">
+      <div class="artist">IShowSpeed</div>
+      <div class="song">WORLD CUP<br>(CHAMPIONS)</div>
+      <div class="song-sub">Canción oficial del Mundial 2026</div>
+    </div>
+    <div class="phase-divider" id="divider"></div>
+    <div class="phase-cta" id="ctaBlock">
+      <div class="line1">PREDICE AL</div>
+      <div class="line2">CAMPEÓN 2026</div>
+    </div>
+    <div class="url-box" id="urlBox">
+      <span>bracketmundial.com</span>
+    </div>
+    <div class="phase-tagline" id="tagline">🏆 GRATIS · SIN REGISTRO</div>
+  </div>
+  <div class="footer" id="footer">@bracketmundial</div>
+</div>
+<script>
+(function(){
+  // Confetti
+  const colors = ['#e8541f','#f0b021','#22418c','#c41e2c','#1f6b3a','#fff8e7'];
+  const container = document.getElementById('confetti');
+  for(let i=0;i<40;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random() * 12;
+    el.style.width = size + 'px';
+    el.style.height = size * (0.4 + Math.random() * 0.6) + 'px';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (6 + Math.random() * 6) + 's';
+    el.style.animationDelay = (Math.random() * 8) + 's';
+    el.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    container.appendChild(el);
+  }
+
+  // Phase transitions
+  const topTag = document.getElementById('topTag');
+  const titleBlock = document.getElementById('titleBlock');
+  const divider = document.getElementById('divider');
+  const ctaBlock = document.getElementById('ctaBlock');
+  const urlBox = document.getElementById('urlBox');
+  const tagline = document.getElementById('tagline');
+  const footer = document.getElementById('footer');
+
+  // Fade in phase 1
+  setTimeout(() => {
+    topTag.style.opacity = '0';
+    topTag.style.transform = 'translateY(-20px)';
+    titleBlock.style.opacity = '0';
+    titleBlock.style.transform = 'scale(0.9)';
+    divider.style.opacity = '0';
+    divider.style.transform = 'scaleX(0)';
+    footer.style.opacity = '0';
+    footer.style.transform = 'translateY(20px)';
+
+    // After first fade out, swap content
+    setTimeout(() => {
+      // Phase 1 content fades out, phase 2 shows
+      titleBlock.innerHTML = '<div class="artist" style="font-size:28px;color:rgba(255,248,231,0.6)">🏆 MUNDIAL 2026</div>';
+      ctaBlock.classList.add('show');
+
+      // Re-fade in
+      setTimeout(() => {
+        topTag.style.opacity = '1';
+        topTag.style.transform = 'translateY(0)';
+        titleBlock.style.opacity = '1';
+        titleBlock.style.transform = 'scale(1)';
+        divider.style.opacity = '1';
+        divider.style.transform = 'scaleX(1)';
+        footer.style.opacity = '1';
+        footer.style.transform = 'translateY(0)';
+      }, 100);
+    }, 600);
+  }, 12000); // switch at 12 seconds
+})();
+</script>
+</body>
+</html>
