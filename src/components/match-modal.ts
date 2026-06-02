@@ -871,12 +871,12 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         order: -1;
       }
       .limpiar-btn {
-        width: auto;
-        min-width: 60px;
-        min-height: 48px;
+        width: 100%;
         margin-left: 0;
-        font-size: 11px;
-        padding: 4px 12px;
+        margin-top: 8px;
+        min-height: 48px;
+        font-size: 13px;
+        padding: 6px 16px;
       }
       .odds-block {
         padding: 10px 10px 0;

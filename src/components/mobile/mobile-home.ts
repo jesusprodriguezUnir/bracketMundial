@@ -4,6 +4,7 @@ import { useTournamentStore } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
 import { t } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
+import { showToast } from '../../lib/interaction';
 
 /** Partido inaugural: 11 jun 2026, 21:00 CEST = 19:00 UTC */
 const KICKOFF_UTC = Date.UTC(2026, 5, 11, 19, 0, 0);
@@ -17,7 +18,7 @@ function calcCountdown(): Countdown {
 }
 
 /**
- * Vista de inicio del shell móvil: hero, stats, countdown y quick-grid.
+ * Vista de inicio del shell móvil: hero, stats, countdown, simulación y quick-grid.
  * Cableada al store real (resultados, estadísticas del torneo).
  */
 @customElement('mobile-home')
@@ -49,6 +50,25 @@ export class MobileHome extends LitElement {
 
   private _navigate(view: string) {
     this.dispatchEvent(new CustomEvent('mobile-navigate', { detail: view, bubbles: true, composed: true }));
+  }
+
+  private _simulateAll() {
+    const store = useTournamentStore.getState();
+    store.autoSimulateGroups();
+    store.autoSimulateKnockout();
+    this._played =
+      store.groupMatches.filter(m => m.scoreA !== null).length +
+      Object.values(store.knockoutMatches).filter(m => m.isPlayed).length;
+    showToast('Torneo completo simulado 🎲');
+  }
+
+  private _resetAll() {
+    if (confirm('¿Reiniciar todo el torneo?')) {
+      const store = useTournamentStore.getState();
+      store.resetTournament();
+      this._played = 0;
+      showToast('Torneo reiniciado 🔄');
+    }
   }
 
   static readonly styles = [
@@ -129,7 +149,7 @@ export class MobileHome extends LitElement {
 
       /* ── Countdown ── */
       .countdown {
-        margin: 0 16px 16px;
+        margin: 16px 16px 16px;
         background: var(--retro-yellow);
         border: 3px solid var(--ink);
         box-shadow: var(--shadow-hard-md);
@@ -169,7 +189,7 @@ export class MobileHome extends LitElement {
         font-size: 16px;
         color: var(--paper-3);
         letter-spacing: 0.08em;
-        margin: 0 16px 16px;
+        margin: 16px 16px 16px;
         animation: pulse-live 2s ease-in-out infinite;
       }
       @keyframes pulse-live {
@@ -177,6 +197,36 @@ export class MobileHome extends LitElement {
         50% { opacity: 0.7; }
       }
       @media (prefers-reduced-motion: reduce) { .cd-live { animation: none; } }
+
+      /* ── Simulación Rápida ── */
+      .sim-card {
+        margin: 0 16px 16px;
+        background: var(--paper-2);
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow-hard-md);
+        padding: 14px 16px;
+      }
+      .sim-title {
+        font-family: var(--font-var);
+        font-size: 16px;
+        color: var(--ink);
+        margin-bottom: 4px;
+        letter-spacing: 0.02em;
+      }
+      .sim-desc {
+        font-family: var(--font-body);
+        font-size: 11px;
+        color: var(--dim);
+        line-height: 1.45;
+        margin-bottom: 12px;
+      }
+      .sim-actions {
+        display: flex;
+        gap: 9px;
+      }
+      .sim-actions .btn {
+        flex: 1;
+      }
 
       /* ── Quick grid ── */
       .quick-grid {
@@ -286,6 +336,20 @@ export class MobileHome extends LitElement {
             </div>
           </div>
         `}
+
+      <!-- Bloque de Simulación Rápida -->
+      <div class="sim-card">
+        <div class="sim-title">⚡ SIMULACIÓN DEL TORNEO</div>
+        <div class="sim-desc">¿Quieres rellenar todo el torneo al instante? Simula los 104 partidos (tanto en grupos como en la fase eliminatoria) de una sola vez desde aquí.</div>
+        <div class="sim-actions">
+          <button class="btn btn-primary" @click="${this._simulateAll}">
+            <span class="btn-icon">🎲</span> SIMULAR TODO
+          </button>
+          <button class="btn" style="color: var(--retro-red)" @click="${this._resetAll}">
+            REINICIAR
+          </button>
+        </div>
+      </div>
 
       <!-- Quick grid -->
       <div class="quick-grid">

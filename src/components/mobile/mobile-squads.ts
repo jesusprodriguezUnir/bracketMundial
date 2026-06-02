@@ -1,11 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { TEAMS_2026 } from '../../data/fifa-2026';
-import { SQUADS, LINEUPS, type Player } from '../../data/squads/index';
+import { SQUADS, LINEUPS, type Player, isOfficialSquad } from '../../data/squads/index';
 import { COACHES } from '../../data/coaches/index';
 import { hasPlayerPhoto, playerPhotoSrc } from '../../lib/player-photo';
 import { resolveCoachPhoto } from '../../lib/coach-photo';
 import { mobileShared } from './mobile-shared.css';
+import { t } from '../../i18n';
+import { normalize } from '../../lib/text-utils';
 
 const POS_ORDER: Array<Player['position']> = ['GK', 'DF', 'MF', 'FW'];
 const POS_NAME: Record<string, string> = {
@@ -26,11 +28,35 @@ function calcAge(born: string): number {
   return age;
 }
 
-/** Vista de Plantillas del shell móvil — lista + vista de cancha */
+/** Vista de Plantillas del shell móvil — lista + vista de cancha + buscador y grupos */
 @customElement('mobile-squads')
 export class MobileSquads extends LitElement {
-  @state() private _activeTeam = 'ESP';
+  @state() private _activeTeam: string | null = null;
   @state() private _mode: SquadMode = 'list';
+  @state() private searchQuery = '';
+
+  private _getPlayerResults() {
+    const q = normalize(this.searchQuery.trim());
+    if (q.length < 2) return [];
+    const results: Array<{ teamId: string; number: number; name: string; position: string; club: string }> = [];
+    for (const [teamId, players] of Object.entries(SQUADS)) {
+      for (const player of players) {
+        if (normalize(player.name).includes(q) || normalize(player.club).includes(q)) {
+          results.push({ teamId, number: player.number, name: player.name, position: player.position, club: player.club });
+          if (results.length >= 8) return results;
+        }
+      }
+    }
+    return results;
+  }
+
+  private _teamMatchesQuery(teamId: string): boolean {
+    const q = normalize(this.searchQuery.trim());
+    if (q.length < 2) return true;
+    const team = TEAMS_2026.find(t => t.id === teamId);
+    if (!team) return false;
+    return normalize(team.name).includes(q) || normalize(team.shortName).includes(q);
+  }
 
   private _renderCoachBanner(teamId: string) {
     const coach = COACHES[teamId];
@@ -134,28 +160,6 @@ export class MobileSquads extends LitElement {
     mobileShared,
     css`
       :host { display: block; }
-
-      /* ── Team selector ── */
-      .team-selector {
-        display: flex; gap: 8px; padding: 0 16px 14px;
-        overflow-x: auto; scrollbar-width: none;
-      }
-      .team-selector::-webkit-scrollbar { display: none; }
-      .team-pick {
-        all: unset; cursor: pointer; flex-shrink: 0;
-        display: flex; flex-direction: column; align-items: center; gap: 5px;
-        width: 58px; padding: 8px 4px;
-        border: 2px solid var(--ink);
-        background: var(--paper-3);
-        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-      }
-      .team-pick.active { background: var(--retro-blue); }
-      .team-pick.active .tp-code { color: var(--paper); }
-      .team-pick .flag-box { width: 30px; height: 20px; font-size: 16px; }
-      .team-pick .tp-code {
-        font-family: var(--font-mono); font-size: 9px;
-        font-weight: 700; letter-spacing: 0.06em; color: var(--ink);
-      }
 
       /* ── Coach banner ── */
       .coach-banner {
@@ -261,30 +265,275 @@ export class MobileSquads extends LitElement {
         letter-spacing: 0.04em; max-width: 64px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
       }
+
+      /* ── Búsqueda y grupos (modo normal adaptado a móvil) ── */
+      .back-btn {
+        all: unset;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        margin: 0 16px 14px;
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow-hard-sm);
+        background: var(--paper-2);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink);
+        box-sizing: border-box;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .back-btn:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 0 var(--ink);
+      }
+
+      .search-bar {
+        margin: 0 16px 16px;
+        position: relative;
+      }
+      .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #E84B1A;
+        font-size: 16px;
+        pointer-events: none;
+        line-height: 1;
+        z-index: 1;
+      }
+      .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
+        font-family: var(--font-body);
+        font-size: 14px;
+        color: #1A1933;
+        background: var(--paper-3);
+        border: 1px solid rgba(26,25,51,0.2);
+        border-radius: 8px;
+        outline: none;
+        box-shadow: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .search-input::placeholder {
+        color: rgba(26,25,51,0.4);
+      }
+      .search-input:focus {
+        border-color: #E84B1A;
+        box-shadow: 0 0 0 3px rgba(232,75,26,0.15);
+      }
+
+      .player-results {
+        margin-top: 10px;
+        display: grid;
+        gap: 6px;
+      }
+      .player-result-btn {
+        all: unset;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border: 2px solid var(--ink);
+        box-shadow: var(--shadow-hard-sm);
+        background: var(--paper-2);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        box-sizing: border-box;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .player-result-btn:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 0 var(--ink);
+      }
+      .player-number {
+        font-family: var(--font-var);
+        font-size: 14px;
+        min-width: 20px;
+        text-align: center;
+        color: var(--retro-orange);
+      }
+      .player-pos {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        padding: 1px 5px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+        letter-spacing: 0.08em;
+      }
+
+      .groups-stack {
+        display: grid;
+        gap: 16px;
+        padding: 0 16px 24px;
+      }
+      .group-block {
+        border: 3px solid var(--ink);
+        box-shadow: var(--shadow-hard-md);
+        background: var(--paper-2);
+        overflow: hidden;
+      }
+      .group-header {
+        background: var(--retro-blue);
+        color: var(--paper);
+        padding: 8px 12px;
+        border-bottom: 3px solid var(--ink);
+      }
+      .group-title {
+        font-family: var(--font-var);
+        font-size: 20px;
+        line-height: 1;
+      }
+      .teams-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px;
+      }
+      .team-card {
+        all: unset;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 2px solid var(--ink);
+        box-shadow: var(--shadow-hard-sm);
+        background: var(--paper-3);
+        box-sizing: border-box;
+        min-height: 48px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .team-card:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 0 var(--ink);
+      }
+      .tc-flag {
+        font-size: 24px;
+        line-height: 1;
+      }
+      .tc-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .tc-name {
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: bold;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tc-meta {
+        font-family: var(--font-mono);
+        font-size: 8px;
+        color: var(--dim);
+      }
     `,
   ];
 
   render() {
     const tid = this._activeTeam;
-    // Selector de los 12 equipos featured + todos accesibles en scroll
-    const featured = ['ESP','ARG','BRA','FRA','GER','ENG','POR','NED','MEX','USA','CRO','BEL'];
-    const allTeamIds = TEAMS_2026.map(t => t.id);
-    // Mostrar featured primero, luego el resto
-    const ordered = [...new Set([...featured, ...allTeamIds])];
 
-    const picks = ordered.map(id => {
-      const team = TEAMS_2026.find(t => t.id === id);
-      if (!team) return html``;
+    if (!tid) {
+      const groups = 'ABCDEFGHIJKL'.split('');
+      const q = this.searchQuery.trim();
+      const isFiltering = q.length >= 2;
+      const playerResults = this._getPlayerResults();
+
+      const groupsWithMatch = isFiltering
+        ? groups.filter(group => TEAMS_2026.filter(t => t.group === group).some(t => this._teamMatchesQuery(t.id)))
+        : groups;
+
+      const showNoResults = isFiltering && groupsWithMatch.length === 0 && playerResults.length === 0;
+
       return html`
-        <button class="team-pick ${id === tid ? 'active' : ''}" @click="${() => { this._activeTeam = id; }}">
-          <span class="flag-box big">${team.flag}</span>
-          <span class="tp-code">${id}</span>
-        </button>`;
-    });
+        <!-- Buscador -->
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input
+            type="search"
+            class="search-input"
+            placeholder=${t('squads.list.searchPlaceholder')}
+            aria-label=${t('squads.list.searchLabel')}
+            .value=${this.searchQuery}
+            @input=${(e: InputEvent) => { this.searchQuery = (e.target as HTMLInputElement).value; }}
+          >
+          ${playerResults.length > 0 ? html`
+            <div class="player-results">
+              ${playerResults.map(p => {
+                const team = TEAMS_2026.find(t => t.id === p.teamId);
+                return html`
+                  <button class="player-result-btn" @click=${() => { this._activeTeam = p.teamId; this.searchQuery = ''; }}>
+                    <span class="player-number">${p.number}</span>
+                    <span class="player-pos">${p.position}</span>
+                    <span>${p.name}</span>
+                    <span style="color: var(--dim); font-size: 10px;">· ${p.club}</span>
+                    <span class="player-team-flag" style="margin-left: auto;">${team?.flag ?? ''}</span>
+                  </button>
+                `;
+              })}
+            </div>
+          ` : ''}
+        </div>
+
+        ${showNoResults ? html`<div class="no-results" style="margin: 0 16px 14px; padding: 20px; border: 3px dashed var(--ink); background: var(--paper-2); font-family: var(--font-mono); font-size: 12px; color: var(--dim); text-align: center; letter-spacing: 0.08em;">${t('squads.list.noResults')}</div>` : ''}
+
+        <!-- Lista de Grupos -->
+        <div class="groups-stack">
+          ${groupsWithMatch.map(group => {
+            const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
+            return html`
+              <section class="group-block">
+                <div class="group-header">
+                  <div class="group-title">${t('squads.list.groupTitle', { letter: group })}</div>
+                </div>
+                <div class="teams-grid">
+                  ${teamsInGroup.map(team => {
+                    const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
+                    const squadLen = (SQUADS[team.id] ?? []).length;
+                    return html`
+                      <button
+                        class="team-card"
+                        style="${dimmed ? 'opacity: 0.25; pointer-events: none;' : ''}"
+                        @click=${() => { this._activeTeam = team.id; this.searchQuery = ''; }}>
+                        <span class="tc-flag">${team.flag}</span>
+                        <div class="tc-info">
+                          <span class="tc-name">${team.name}</span>
+                          <span class="tc-meta">
+                            ${isOfficialSquad(team.id)
+                              ? html`✓ ${squadLen} JUGADORES`
+                              : html`${squadLen} JUGADORES`}
+                          </span>
+                        </div>
+                      </button>
+                    `;
+                  })}
+                </div>
+              </section>
+            `;
+          })}
+        </div>
+      `;
+    }
 
     return html`
-      <!-- Selector -->
-      <div class="team-selector">${picks}</div>
+      <!-- Botón Volver -->
+      <button class="back-btn" @click="${() => { this._activeTeam = null; }}">← ${t('squads.back')}</button>
 
       <!-- Coach banner -->
       ${this._renderCoachBanner(tid)}

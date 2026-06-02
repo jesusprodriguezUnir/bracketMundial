@@ -3,9 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, type KnockoutMatchResult, getWinnerId } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
 import { KNOCKOUT_BRACKET } from '../../data/fifa-2026';
-import { STADIUMS } from '../../data/stadiums';
 import { TEAMS_2026 } from '../../data/fifa-2026';
-import { openMatchModal } from '../../lib/match-modal-service';
 import { showToast } from '../../lib/interaction';
 import { mobileShared } from './mobile-shared.css';
 
@@ -34,8 +32,12 @@ function teamName(id: string | null) {
   if (!id) return 'POR DEFINIR';
   return TEAMS_2026.find(t => t.id === id)?.name ?? id;
 }
+function teamShort(id: string | null) {
+  if (!id) return '?';
+  return TEAMS_2026.find(t => t.id === id)?.shortName ?? id;
+}
 
-/** Vista de Bracket eliminatorio del shell móvil */
+/** Vista de Bracket eliminatorio con steppers +/- inline y editor de penaltis (sin modal) */
 @customElement('mobile-bracket')
 export class MobileBracket extends LitElement {
   @state() private _activeRound = 'r32';
@@ -55,28 +57,28 @@ export class MobileBracket extends LitElement {
 
   disconnectedCallback() { this._unsub?.(); super.disconnectedCallback(); }
 
-  private _openKnockoutMatch(m: KnockoutMatchResult) {
-    const stadium = STADIUMS.find(st => st.name === m.venue);
-    openMatchModal({
-      matchId: m.matchId,
-      teamA: m.teamA ?? 'TBD',
-      teamB: m.teamB ?? 'TBD',
-      initialScoreA: m.scoreA,
-      initialScoreB: m.scoreB,
-      initialPenaltyScoreA: m.penaltyScoreA ?? null,
-      initialPenaltyScoreB: m.penaltyScoreB ?? null,
-      phase: 'knockout',
-      goalScorers: m.goalScorers,
-      venue: m.venue ?? '',
-      city: m.city ?? '',
-      timeSpain: m.timeSpain ?? '',
-      stadiumImage: stadium?.image,
-      onSave: ({ scoreA, scoreB, penaltyScoreA, penaltyScoreB }) => {
-        useTournamentStore.getState().setKnockoutMatchResult(
-          m.matchId, scoreA, scoreB, penaltyScoreA, penaltyScoreB,
-        );
-      },
-    });
+  private _bump(matchId: string, side: 0 | 1, delta: number) {
+    const m = this._knockoutMatches[matchId];
+    if (!m) return;
+    let a = m.scoreA ?? 0;
+    let b = m.scoreB ?? 0;
+    if (side === 0) a = Math.max(0, a + delta);
+    else b = Math.max(0, b + delta);
+    const penA = a === b ? (m.penaltyScoreA ?? null) : null;
+    const penB = a === b ? (m.penaltyScoreB ?? null) : null;
+    useTournamentStore.getState().setKnockoutMatchResult(matchId, a, b, penA, penB);
+  }
+
+  private _bumpPens(matchId: string, side: 0 | 1, delta: number) {
+    const m = this._knockoutMatches[matchId];
+    if (!m) return;
+    const penA = side === 0 ? Math.max(0, (m.penaltyScoreA ?? 0) + delta) : (m.penaltyScoreA ?? 0);
+    const penB = side === 1 ? Math.max(0, (m.penaltyScoreB ?? 0) + delta) : (m.penaltyScoreB ?? 0);
+    useTournamentStore.getState().setKnockoutMatchResult(matchId, m.scoreA, m.scoreB, penA, penB);
+  }
+
+  private _resetMatch(matchId: string) {
+    useTournamentStore.getState().setKnockoutMatchResult(matchId, null, null, null, null);
   }
 
   private _simulate() {
@@ -96,32 +98,58 @@ export class MobileBracket extends LitElement {
     if (!m) return html``;
     const played = m.isPlayed && m.scoreA !== null;
     const winner = played ? getWinnerId(m.teamA, m.teamB, m.scoreA, m.scoreB, m.penaltyScoreA ?? null, m.penaltyScoreB ?? null) : null;
+    const tied = m.scoreA !== null && m.scoreB !== null && m.scoreA === m.scoreB;
 
-    const row = (id: string | null, score: number | null) => {
-      const isW = winner && winner === id;
-      const isL = winner && winner !== id;
+    const row = (id: string | null, score: number | null, side: 0 | 1) => {
+      const isW = winner !== null && winner === id;
+      const isL = winner !== null && winner !== id;
       return html`
         <div class="krow ${isW ? 'winner' : ''} ${isL ? 'loser' : ''}" style="${isW ? `background:${accent}` : ''}">
           <div class="team-info">
             <span class="flag-box">${teamFlag(id)}</span>
             <span class="nm">${teamName(id)}</span>
           </div>
-          <div class="kscore ${played ? '' : 'pending'}">${played ? String(score ?? 0) : '—'}</div>
+          <div class="kstepper stepper">
+            <button class="step minus" @click="${() => this._bump(matchId, side, -1)}" aria-label="Menos">−</button>
+            <span class="step-val ${m.scoreA !== null ? '' : 'pending'}">${m.scoreA !== null ? String(score ?? 0) : '–'}</span>
+            <button class="step plus" @click="${() => this._bump(matchId, side, 1)}" aria-label="Más">+</button>
+          </div>
         </div>`;
     };
 
-    const hasPens = m.penaltyScoreA !== null && m.penaltyScoreA !== undefined;
+    const penEditor = tied ? html`
+      <div class="pen-editor">
+        <span class="pen-lbl">PENALTIS · DESEMPATE</span>
+        <div class="pen-steppers">
+          <div class="stepper">
+            <button class="step minus" @click="${() => this._bumpPens(matchId, 0, -1)}">−</button>
+            <span class="step-val">${m.penaltyScoreA ?? 0}</span>
+            <button class="step plus" @click="${() => this._bumpPens(matchId, 0, 1)}">+</button>
+          </div>
+          <span class="pen-mid">${teamShort(m.teamA)} · ${teamShort(m.teamB)}</span>
+          <div class="stepper">
+            <button class="step minus" @click="${() => this._bumpPens(matchId, 1, -1)}">−</button>
+            <span class="step-val">${m.penaltyScoreB ?? 0}</span>
+            <button class="step plus" @click="${() => this._bumpPens(matchId, 1, 1)}">+</button>
+          </div>
+        </div>
+      </div>` : html``;
 
     return html`
-      <div class="kmatch" @click="${() => this._openKnockoutMatch(m)}">
+      <div class="kmatch">
         <div class="kmatch-tag">
           <span>${label}</span>
-          ${hasPens ? html`<span>PENALTIS</span>` : ''}
+          ${played ? html`<button class="meta-clear" @click="${() => this._resetMatch(matchId)}" aria-label="Borrar resultado">✕</button>` : ''}
         </div>
-        ${row(m.teamA, m.scoreA)}
+        ${m.venue ? html`
+          <div class="kmatch-meta">
+            <span>📍 ${m.venue}</span>
+            ${m.timeSpain ? html`<span class="kmatch-date">· ${m.timeSpain}</span>` : ''}
+          </div>` : ''}
+        ${row(m.teamA, m.scoreA, 0)}
         <div class="ksep"></div>
-        ${row(m.teamB, m.scoreB)}
-        ${hasPens ? html`<div class="kmatch-note">Penaltis · ${m.penaltyScoreA}-${m.penaltyScoreB}</div>` : ''}
+        ${row(m.teamB, m.scoreB, 1)}
+        ${penEditor}
       </div>`;
   }
 
@@ -164,7 +192,7 @@ export class MobileBracket extends LitElement {
       <div class="champion-box">
         <div class="champion-title">🏆 CAMPEÓN DEL MUNDO</div>
         <div class="champion-team ${winnerId ? '' : 'tbd'}">
-          ${winnerId ? html`<span class="flag-box big">${teamFlag(winnerId)}</span> ${teamName(winnerId)}` : 'POR DEFINIR'}
+          ${winnerId ? html`<span class="flag-box big">${teamFlag(winnerId)}</span> ${teamName(winnerId).toUpperCase()}` : 'POR DEFINIR'}
         </div>
       </div>`;
   }
@@ -193,7 +221,7 @@ export class MobileBracket extends LitElement {
         border: 3px solid var(--ink);
       }
 
-      /* ── Steps ── */
+      /* ── Steps de ronda ── */
       .round-steps {
         display: flex; gap: 5px; padding: 10px 16px 14px;
         overflow-x: auto; scrollbar-width: none;
@@ -232,36 +260,91 @@ export class MobileBracket extends LitElement {
       .rn-name { font-family: var(--font-var); font-size: 18px; line-height: 1; }
       .rn-count { font-family: var(--font-mono); font-size: 9px; color: var(--retro-yellow); letter-spacing: 0.15em; margin-top: 3px; }
 
-      /* ── Matches ── */
+      /* ── Bracket list ── */
       .bracket-list { padding: 8px 16px; display: grid; gap: 11px; }
+
+      /* ── kmatch (tarjeta de partido eliminatorio) ── */
       .kmatch {
         background: var(--paper-2); border: 2.5px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm); overflow: hidden; cursor: pointer;
-        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-        transition: transform 0.08s, box-shadow 0.08s;
+        box-shadow: var(--shadow-hard-sm); overflow: hidden;
       }
-      .kmatch:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
       .kmatch-tag {
         font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em;
-        color: var(--dim); padding: 5px 12px 0; text-transform: uppercase;
-        display: flex; justify-content: space-between;
-      }
-      .krow {
+        color: var(--dim); padding: 6px 12px 0; text-transform: uppercase;
         display: flex; justify-content: space-between; align-items: center;
-        padding: 11px 12px; min-height: 46px;
+      }
+      .kmatch-meta {
+        font-family: var(--font-mono); font-size: 9px; color: var(--dim);
+        padding: 3px 12px 7px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center;
+        border-bottom: 1.5px dashed rgba(26,25,51,0.25);
+      }
+      .kmatch-date { color: var(--retro-yellow); font-weight: 700; }
+
+      /* ── krow (fila de equipo) ── */
+      .krow {
+        display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        padding: 8px 12px; min-height: 52px;
       }
       .krow.winner { color: var(--paper); }
       .krow.loser { opacity: 0.5; }
       .krow .team-info { display: flex; align-items: center; gap: 9px; font-family: var(--font-body); font-size: 14px; font-weight: 800; overflow: hidden; }
       .krow .team-info .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .krow .kscore { font-family: var(--font-var); font-size: 17px; flex-shrink: 0; }
-      .krow .kscore.pending { color: var(--dim); opacity: 0.5; font-size: 14px; }
+      .kstepper { flex-shrink: 0; }
       .ksep { height: 2px; background: var(--ink); margin: 0 12px; }
-      .kmatch-note {
-        padding: 5px 12px; border-top: 1px solid var(--ink); background: rgba(0,0,0,0.05);
-        font-family: var(--font-mono); font-size: 8px; color: var(--dim);
-        letter-spacing: 0.08em; text-transform: uppercase;
-        display: flex; align-items: center; gap: 6px;
+
+      /* ── Stepper (compartido) ── */
+      .stepper {
+        display: flex; align-items: center;
+        border: 2px solid var(--ink);
+        background: var(--paper);
+        box-shadow: 2px 2px 0 0 var(--ink);
+      }
+      .step {
+        width: 40px; height: 40px; border: none; background: var(--paper);
+        font-family: var(--font-var); font-size: 22px; line-height: 1; color: var(--ink);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      .step.minus { border-right: 2px solid var(--ink); }
+      .step.plus  { border-left: 2px solid var(--ink); }
+      .step:active { background: var(--ink); color: var(--paper); }
+      .step-val {
+        min-width: 38px; text-align: center;
+        font-family: var(--font-var); font-size: 22px; font-weight: 700; color: var(--ink);
+      }
+      .step-val.pending { color: var(--dim); opacity: 0.55; }
+
+      /* ── Clear button ── */
+      .meta-clear {
+        width: 22px; height: 22px; flex-shrink: 0;
+        border: 1.5px solid var(--ink); background: var(--paper-2); color: var(--ink);
+        font-family: var(--font-mono); font-size: 10px; line-height: 1; cursor: pointer;
+        display: grid; place-items: center;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      }
+      .meta-clear:active { background: var(--ink); color: var(--paper); }
+
+      /* ── Penalty editor ── */
+      .pen-editor {
+        border-top: 1.5px solid var(--ink);
+        background: rgba(196,30,44,0.08);
+        padding: 8px 12px 10px;
+      }
+      .pen-lbl {
+        font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em;
+        color: var(--retro-red); font-weight: 700; text-transform: uppercase;
+      }
+      .pen-steppers {
+        display: flex; align-items: center; justify-content: center;
+        gap: 10px; margin-top: 7px;
+      }
+      .pen-steppers .stepper { box-shadow: 1.5px 1.5px 0 0 var(--ink); }
+      .pen-steppers .step { width: 34px; height: 34px; font-size: 18px; }
+      .pen-steppers .step-val { min-width: 30px; font-size: 18px; }
+      .pen-mid {
+        font-family: var(--font-mono); font-size: 9px;
+        color: var(--dim); font-weight: 700;
       }
 
       /* ── Champion ── */
@@ -301,11 +384,6 @@ export class MobileBracket extends LitElement {
 
       <!-- Contenido de la ronda -->
       ${this._renderRound()}
-
-      <!-- Indicador de swipe para navegar -->
-      <div style="text-align:center;font-family:var(--font-mono);font-size:8px;color:var(--dim);padding:18px 16px;letter-spacing:0.12em">
-        TOCA LAS FLECHAS PARA CAMBIAR DE RONDA
-      </div>
     `;
   }
 }

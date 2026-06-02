@@ -29,7 +29,9 @@
       "Bash(Write-Output \"Directorios creados\")",
       "Bash(mkdir -p \"d:/Personal/bracketMundial/.claude/skills/update-team\" \"d:/Personal/bracketMundial/.claude/skills/update-results\" && echo \"OK\")",
       "Edit(/.claude/skills/update-team/**)",
-      "Edit(/.claude/skills/update-results/**)"
+      "Edit(/.claude/skills/update-results/**)",
+      "Bash(ls \"C:\\\\Users\\\\jesus\\\\Downloads\\\\Bracket \\(4\\)\\\\design_handoff_movil_marcadores\")",
+      "Read(//c/Users/jesus/Downloads/Bracket \\(4\\)/design_handoff_movil_marcadores/**)"
     ],
     "additionalDirectories": [
       "D:\\Personal\\bracketMundial\\.claude\\skills",

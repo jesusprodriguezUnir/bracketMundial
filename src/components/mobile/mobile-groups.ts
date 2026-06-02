@@ -3,24 +3,21 @@ import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore, type GroupMatchResult, type GroupStanding } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
 import { TEAMS_2026 } from '../../data/fifa-2026';
-import { STADIUMS } from '../../data/stadiums';
 import { calculateBestThirds, type TeamStats } from '../../lib/bracket-logic';
 import { getAllOdds, type MatchOdds } from '../../lib/odds-service';
-import { openMatchModal } from '../../lib/match-modal-service';
 import { formatShortDate } from '../../lib/date-utils';
 import { showToast } from '../../lib/interaction';
 import { t } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
-
-
 
 const GROUPS = 'ABCDEFGHIJKL'.split('');
 const GROUP_COLORS = ['var(--retro-orange)','var(--retro-blue)','var(--retro-green)','var(--retro-red)'];
 
 function teamById(id: string) { return TEAMS_2026.find(t => t.id === id); }
 function teamFlag(id: string) { return teamById(id)?.flag ?? '?'; }
+function teamShort(id: string) { return teamById(id)?.shortName ?? id; }
 
-/** Vista de grupos del shell móvil — calca el diseño de Bracket Móvil.html */
+/** Vista de grupos del shell móvil con steppers +/- inline (sin modal) */
 @customElement('mobile-groups')
 export class MobileGroups extends LitElement {
   @state() private _activeGroup = 'A';
@@ -48,30 +45,23 @@ export class MobileGroups extends LitElement {
     this._standings = s.groupStandings;
     this._matches = s.groupMatches;
     this._thirds = calculateBestThirds(s.getBestThirds());
-    // Cargar odds (async, no bloqueante)
     void getAllOdds().then(odds => { this._odds = odds; });
   }
 
   disconnectedCallback() { this._unsub?.(); super.disconnectedCallback(); }
 
-  private _openMatch(m: GroupMatchResult) {
-    const stadium = STADIUMS.find(st => st.name === m.venue);
-    openMatchModal({
-      matchId: m.matchId,
-      teamA: m.teamA,
-      teamB: m.teamB,
-      initialScoreA: m.scoreA,
-      initialScoreB: m.scoreB,
-      phase: 'group',
-      goalScorers: m.goalScorers,
-      venue: m.venue ?? '',
-      city: m.city ?? '',
-      timeSpain: m.timeSpain ?? '',
-      stadiumImage: stadium?.image,
-      onSave: ({ scoreA, scoreB }) => {
-        useTournamentStore.getState().setGroupMatchResult(m.matchId, scoreA, scoreB);
-      },
-    });
+  private _bump(matchId: string, side: 0 | 1, delta: number) {
+    const m = this._matches.find(m => m.matchId === matchId);
+    if (!m) return;
+    let a = m.scoreA ?? 0;
+    let b = m.scoreB ?? 0;
+    if (side === 0) a = Math.max(0, a + delta);
+    else b = Math.max(0, b + delta);
+    useTournamentStore.getState().setGroupMatchResult(matchId, a, b);
+  }
+
+  private _resetScore(matchId: string) {
+    useTournamentStore.getState().setGroupMatchResult(matchId, null, null);
   }
 
   private _simulate() {
@@ -89,15 +79,17 @@ export class MobileGroups extends LitElement {
   private _renderStandings(letter: string) {
     const rows = (this._standings[letter] ?? []).map((s, idx) => {
       const qualify = idx < 2;
-      const t = teamById(s.teamId);
+      const team = teamById(s.teamId);
+      const gd = s.goalDiff;
       return html`
         <div class="standing-row ${qualify ? '' : 'muted'}">
           <div class="rank-badge ${qualify ? 'qualify' : ''}">${idx + 1}</div>
           <div class="team-cell">
-            <span class="flag-box">${t?.flag ?? '?'}</span>
-            <span class="nm">${t?.name ?? s.teamId}</span>
+            <span class="flag-box">${team?.flag ?? '?'}</span>
+            <span class="nm">${team?.name ?? s.teamId}</span>
             ${qualify ? html`<span class="pos-badge">${idx === 0 ? '1°' : '2°'}</span>` : ''}
           </div>
+          <span class="gd">${gd > 0 ? '+' + gd : gd}</span>
           <span class="wdl">${s.won}-${s.drawn}-${s.lost}</span>
           <span class="pts ${qualify ? '' : 'muted'}">${s.points}</span>
         </div>`;
@@ -109,27 +101,42 @@ export class MobileGroups extends LitElement {
     const matches = this._matches.filter(m => m.group === letter);
     const items = matches.map(m => {
       const played = m.scoreA !== null && m.scoreB !== null;
+      const sa = m.scoreA;
+      const sb = m.scoreB;
+      const winA = played && sa! > sb!;
+      const winB = played && sb! > sa!;
       const odds = this._odds[m.matchId];
       const dateStr = m.date ? formatShortDate(m.date) : '';
+      const shortA = teamShort(m.teamA);
+      const shortB = teamShort(m.teamB);
+
       return html`
-        <div class="match-item" @click="${() => this._openMatch(m)}">
-          <div class="match-top">
-            <div class="match-teams">
-              <span class="flag-box">${teamFlag(m.teamA)}</span>
-              <strong>${m.teamA}</strong>
-              <span class="vs">vs</span>
-              <span class="flag-box">${teamFlag(m.teamB)}</span>
-              <strong>${m.teamB}</strong>
-            </div>
-            <div class="match-score ${played ? '' : 'pending'}">
-              ${played ? `${m.scoreA} - ${m.scoreB}` : 'EDITAR'}
-            </div>
-          </div>
+        <div class="match-item ${played ? 'is-played' : ''}">
           <div class="match-meta">
             <span class="jornada">J${m.matchDay}</span>
             ${dateStr ? html`<span>${dateStr}</span>` : ''}
-            ${m.timeSpain ? html`<span style="color:var(--retro-yellow);font-weight:700">· ${m.timeSpain}</span>` : ''}
+            ${m.timeSpain ? html`<span class="match-time">· ${m.timeSpain}</span>` : ''}
             <span class="badge ${played ? 'badge-played' : 'badge-upcoming'}">${played ? 'Jugado' : 'Próx.'}</span>
+            ${played ? html`<button class="meta-clear" @click="${(e: Event) => { e.stopPropagation(); this._resetScore(m.matchId); }}" aria-label="Borrar resultado">✕</button>` : ''}
+          </div>
+          <div class="score-editor">
+            <div class="se-team ${winA ? 'win' : ''}">
+              <span class="se-id"><span class="flag-box">${teamFlag(m.teamA)}</span><strong>${shortA}</strong></span>
+              <div class="stepper">
+                <button class="step minus" @click="${() => this._bump(m.matchId, 0, -1)}" aria-label="Menos">−</button>
+                <span class="step-val ${played ? '' : 'pending'}">${played ? sa : '–'}</span>
+                <button class="step plus" @click="${() => this._bump(m.matchId, 0, 1)}" aria-label="Más">+</button>
+              </div>
+            </div>
+            <div class="se-sep">–</div>
+            <div class="se-team ${winB ? 'win' : ''}">
+              <span class="se-id"><span class="flag-box">${teamFlag(m.teamB)}</span><strong>${shortB}</strong></span>
+              <div class="stepper">
+                <button class="step minus" @click="${() => this._bump(m.matchId, 1, -1)}" aria-label="Menos">−</button>
+                <span class="step-val ${played ? '' : 'pending'}">${played ? sb : '–'}</span>
+                <button class="step plus" @click="${() => this._bump(m.matchId, 1, 1)}" aria-label="Más">+</button>
+              </div>
+            </div>
           </div>
           ${odds ? html`
             <div class="odds-row">
@@ -241,11 +248,11 @@ export class MobileGroups extends LitElement {
         letter-spacing: 0.1em;
       }
 
-      /* ── Standings ── */
+      /* ── Standings (con columna GD) ── */
       .standings { padding: 6px 10px; }
       .standing-row {
         display: grid;
-        grid-template-columns: 22px 1fr auto auto;
+        grid-template-columns: 22px 1fr auto auto auto;
         gap: 9px;
         align-items: center;
         padding: 7px 0;
@@ -265,11 +272,12 @@ export class MobileGroups extends LitElement {
         padding: 1px 4px; border: 1px solid var(--ink); margin-left: auto;
         white-space: nowrap;
       }
+      .gd { font-family: var(--font-mono); font-size: 10px; color: var(--dim); white-space: nowrap; min-width: 22px; text-align: right; }
       .wdl { font-family: var(--font-mono); font-size: 11px; color: var(--dim); white-space: nowrap; }
       .pts { font-family: var(--font-var); font-size: 19px; color: var(--ink); min-width: 20px; text-align: right; }
       .pts.muted { color: var(--dim); }
 
-      /* ── Matches ── */
+      /* ── Matches list ── */
       .matches-header {
         font-family: var(--font-mono); font-size: 9px; color: var(--dim);
         letter-spacing: 0.12em; padding: 8px 10px 4px;
@@ -278,52 +286,85 @@ export class MobileGroups extends LitElement {
       }
       .matches-list {
         padding: 10px;
-        background: rgba(26,25,51,0.04);
+        background: rgba(26,25,51,0.05);
         display: grid; gap: 8px;
       }
       .match-item {
-        padding: 9px 10px;
+        padding: 10px 11px;
         border: 2px solid var(--ink);
         box-shadow: var(--shadow-hard-sm);
         background: var(--paper-3);
-        cursor: pointer;
-        transition: transform 0.08s, box-shadow 0.08s;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
       }
-      .match-item:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 0 var(--ink); }
-      .match-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-      .match-teams {
-        display: flex; align-items: center; gap: 6px;
-        font-family: var(--font-body); font-size: 13px; font-weight: 800;
-        flex: 1; overflow: hidden;
-      }
-      .match-teams .vs { color: var(--dim); font-weight: 400; font-size: 11px; }
-      .match-score {
-        font-family: var(--font-var); font-size: 15px; color: var(--paper);
-        background: var(--retro-blue); border: 2px solid var(--ink);
-        padding: 3px 9px; min-width: 46px; text-align: center; flex-shrink: 0;
-      }
-      .match-score.pending { background: var(--paper-2); color: var(--dim); font-size: 11px; }
+      .match-item.is-played { background: var(--paper); }
+
+      /* ── Match meta ── */
       .match-meta {
-        margin-top: 6px; font-family: var(--font-mono); font-size: 9.5px;
-        color: var(--dim); display: flex; gap: 7px; flex-wrap: wrap; align-items: center;
+        font-family: var(--font-mono); font-size: 9.5px;
+        color: var(--dim); display: flex; gap: 7px;
+        flex-wrap: wrap; align-items: center;
       }
       .match-meta .jornada { color: var(--retro-red); font-weight: 700; }
+      .match-time { color: var(--retro-yellow); font-weight: 700; }
       .badge { font-family: var(--font-mono); font-size: 8px; padding: 1px 5px; border: 1px solid var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
       .badge-played { background: var(--retro-yellow); color: var(--ink); }
       .badge-upcoming { background: var(--paper-2); color: var(--dim); }
+      .meta-clear {
+        margin-left: auto; width: 22px; height: 22px; flex-shrink: 0;
+        border: 1.5px solid var(--ink); background: var(--paper-2); color: var(--ink);
+        font-family: var(--font-mono); font-size: 10px; line-height: 1; cursor: pointer;
+        display: grid; place-items: center;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      }
+      .meta-clear:active { background: var(--ink); color: var(--paper); }
 
-      /* ── Odds ── */
+      /* ── Score editor con steppers ── */
+      .score-editor {
+        display: grid; grid-template-columns: 1fr auto 1fr;
+        align-items: start; gap: 8px; margin-top: 9px;
+      }
+      .se-team { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .se-id {
+        display: flex; align-items: center; gap: 6px;
+        font-family: var(--font-body); font-weight: 800; font-size: 13px;
+      }
+      .se-team.win .se-id { color: var(--retro-blue); }
+      .se-sep {
+        align-self: center; font-family: var(--font-var);
+        font-size: 20px; color: var(--dim); padding-top: 22px;
+      }
+
+      /* ── Stepper (compartido grupos y bracket) ── */
+      .stepper {
+        display: flex; align-items: center;
+        border: 2px solid var(--ink);
+        background: var(--paper);
+        box-shadow: 2px 2px 0 0 var(--ink);
+      }
+      .step {
+        width: 40px; height: 40px; border: none; background: var(--paper);
+        font-family: var(--font-var); font-size: 22px; line-height: 1; color: var(--ink);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      .step.minus { border-right: 2px solid var(--ink); }
+      .step.plus  { border-left: 2px solid var(--ink); }
+      .step:active { background: var(--ink); color: var(--paper); }
+      .step-val {
+        min-width: 38px; text-align: center;
+        font-family: var(--font-var); font-size: 22px; font-weight: 700; color: var(--ink);
+      }
+      .step-val.pending { color: var(--dim); opacity: 0.55; }
+
+      /* ── Odds bar ── */
       .odds-row {
-        display: flex; margin-top: 7px; overflow: hidden;
+        display: flex; margin-top: 8px; overflow: hidden;
         border: 1px solid var(--ink); height: 14px;
       }
       .odds-seg {
         font-family: var(--font-mono); font-size: 7px; color: var(--paper);
         display: flex; align-items: center; justify-content: center;
-        overflow: hidden; letter-spacing: 0.04em;
-        flex-shrink: 0;
+        overflow: hidden; letter-spacing: 0.04em; flex-shrink: 0;
       }
 
       /* ── Thirds ── */
