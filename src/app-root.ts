@@ -9,6 +9,15 @@ import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/au
 import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
 import './components/ad-block';
 
+/** Media query para conmutación desktop ↔ móvil */
+const MQ_MOBILE = window.matchMedia('(max-width: 768px)');
+let _mobileImportDone = false;
+async function ensureMobileApp() {
+  if (_mobileImportDone) return;
+  _mobileImportDone = true;
+  await import('./components/mobile/mobile-app');
+}
+
 type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
 const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
@@ -23,6 +32,13 @@ function hashToTab(hash: string): PhaseTab | null {
 export class AppRoot extends LitElement {
   private unsubscribeStore?: () => void;
   private unsubscribeLocale?: () => void;
+
+  /** true cuando el viewport es ≤768px — activa el shell móvil dedicado */
+  @state() private _isMobile = MQ_MOBILE.matches;
+  private _mqListener = (e: MediaQueryListEvent) => {
+    this._isMobile = e.matches;
+    if (e.matches) void ensureMobileApp();
+  };
 
   @state() private _isOffline = !navigator.onLine;
   @state() private _toastMessage = '';
@@ -503,6 +519,10 @@ export class AppRoot extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Registrar media query para shell móvil
+    MQ_MOBILE.addEventListener('change', this._mqListener);
+    if (MQ_MOBILE.matches) void ensureMobileApp();
+
     window.addEventListener('online', this._onOnline);
     window.addEventListener('offline', this._onOffline);
     window.addEventListener('click', this._closeMenusOnOutsideClick);
@@ -668,6 +688,7 @@ export class AppRoot extends LitElement {
   }
 
   disconnectedCallback() {
+    MQ_MOBILE.removeEventListener('change', this._mqListener);
     window.removeEventListener('online', this._onOnline);
     window.removeEventListener('offline', this._onOffline);
     window.removeEventListener('click', this._closeMenusOnOutsideClick);
@@ -784,6 +805,12 @@ export class AppRoot extends LitElement {
   }
 
   render() {
+    // ── Shell móvil dedicado (viewport ≤768px) ──────────────────────
+    if (this._isMobile) {
+      return html`<mobile-app></mobile-app>`;
+    }
+
+    // ── Shell de escritorio (sin cambios) ───────────────────────────
     const state = useTournamentStore.getState();
     const groupPlayed = state.groupMatches.filter(m => m.scoreA !== null).length;
     const knockoutPlayed = Object.values(state.knockoutMatches).filter(m => m.isPlayed).length;

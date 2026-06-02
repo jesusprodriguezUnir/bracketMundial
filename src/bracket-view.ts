@@ -221,6 +221,27 @@ export class BracketView extends LitElement {
       border-radius: 0;
     }
 
+    /* ─── Botón central destacado (Bracket) — diseño pr-movil ─── */
+    .bottom-nav-btn.center { justify-content: flex-start; }
+    .bottom-nav-btn.center .nav-icon {
+      width: 48px;
+      height: 48px;
+      margin-top: -18px;
+      background: var(--retro-yellow);
+      border: 3px solid var(--paper);
+      box-shadow: 2px 2px 0 0 var(--ink);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+    }
+    .bottom-nav-btn.center .nav-icon svg { color: var(--ink); }
+    .bottom-nav-btn.center.active .nav-icon { background: var(--retro-orange); color: var(--paper); }
+    .bottom-nav-btn.center.active .nav-icon svg { color: var(--paper); }
+    .bottom-nav-btn.center .nav-label { color: var(--on-dark-soft); }
+    .bottom-nav-btn.center.active .nav-label { color: var(--retro-yellow); }
+    /* El medallón ya indica el activo — sin barra superior adicional */
+    .bottom-nav-btn.center.active::after { display: none; }
+
     /* ─── More Bottom Sheet (mobile) ─── */
     .more-sheet-backdrop {
       display: none;
@@ -547,6 +568,9 @@ export class BracketView extends LitElement {
         font-size: 8px;
         letter-spacing: 0.04em;
       }
+      /* Medallón central: mantener tamaño usable en pantallas muy estrechas */
+      .bottom-nav-btn.center .nav-icon { width: 44px; height: 44px; }
+      .bottom-nav-btn.center .nav-icon svg { width: 22px; height: 22px; }
     }
   `;
 
@@ -887,7 +911,7 @@ export class BracketView extends LitElement {
         <nav class="bottom-nav" aria-label="${t('tabs.label')}">
           ${mainTabs.map(item => html`
             <button
-              class="bottom-nav-btn ${at === item.tab ? 'active' : ''}"
+              class="bottom-nav-btn ${at === item.tab ? 'active' : ''} ${item.tab === 'knockout' ? 'center' : ''}"
               aria-label="${t('tabs.view', { tab: item.label })}"
               aria-current="${at === item.tab ? 'page' : undefined}"
               @click="${() => this._selectTab(item.tab)}">
