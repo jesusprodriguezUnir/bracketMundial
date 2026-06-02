@@ -77,6 +77,7 @@ export class MobileApp extends LitElement {
 
     // Evento de navegación de vistas hijas
     this.addEventListener('mobile-navigate', this._onNavigate as EventListener);
+    this.addEventListener('navigate', this._onStandardNavigate as EventListener);
   }
 
   disconnectedCallback() {
@@ -86,6 +87,7 @@ export class MobileApp extends LitElement {
     this._unsubAuth?.();
     this._unsubUnpublished?.();
     this.removeEventListener('mobile-navigate', this._onNavigate as EventListener);
+    this.removeEventListener('navigate', this._onStandardNavigate as EventListener);
     super.disconnectedCallback();
   }
 
@@ -94,6 +96,19 @@ export class MobileApp extends LitElement {
   private _onNavigate = (e: CustomEvent<string>) => {
     const v = e.detail;
     if (validView(v)) this._go(v);
+  };
+
+  private _onStandardNavigate = (e: CustomEvent<string>) => {
+    const v = e.detail;
+    let targetView = v;
+    if (v === 'hero') {
+      targetView = 'home';
+    } else if (v === 'knockout') {
+      targetView = 'bracket';
+    }
+    if (validView(targetView)) {
+      this._go(targetView);
+    }
   };
 
   private _restoreView() {
