@@ -6,6 +6,7 @@ import { KNOCKOUT_BRACKET } from '../../data/fifa-2026';
 import { TEAMS_2026 } from '../../data/fifa-2026';
 import { showToast } from '../../lib/interaction';
 import { mobileShared } from './mobile-shared.css';
+import { t, useLocaleStore } from '../../i18n';
 
 interface Round {
   id: string;
@@ -24,12 +25,34 @@ const ROUNDS: Round[] = [
   { id: 'final', name: 'LA GRAN FINAL',      short: 'FINAL',   color: 'c-ink',    accent: 'var(--ink)',          matchIds: [KNOCKOUT_BRACKET.final.id] },
 ];
 
+function getRoundName(roundId: string, locale: string): string {
+  switch (roundId) {
+    case 'r32': return locale === 'es' ? '1/16 · DIECISÉIS' : 'ROUND OF 32';
+    case 'r16': return locale === 'es' ? 'OCTAVOS DE FINAL' : 'ROUND OF 16';
+    case 'qf': return locale === 'es' ? 'CUARTOS DE FINAL' : 'QUARTERFINALS';
+    case 'sf': return locale === 'es' ? 'SEMIFINALES' : 'SEMIFINALS';
+    case 'final': return locale === 'es' ? 'LA GRAN FINAL' : 'THE GRAND FINAL';
+    default: return '';
+  }
+}
+
+function getRoundShort(roundId: string, locale: string): string {
+  switch (roundId) {
+    case 'r32': return locale === 'es' ? '1/16' : 'R32';
+    case 'r16': return locale === 'es' ? 'OCTAVOS' : 'R16';
+    case 'qf': return locale === 'es' ? 'CUARTOS' : 'QF';
+    case 'sf': return locale === 'es' ? 'SEMIS' : 'SF';
+    case 'final': return locale === 'es' ? 'FINAL' : 'FINAL';
+    default: return '';
+  }
+}
+
 function teamFlag(id: string | null) {
   if (!id) return '?';
   return TEAMS_2026.find(t => t.id === id)?.flag ?? '?';
 }
 function teamName(id: string | null) {
-  if (!id) return 'POR DEFINIR';
+  if (!id) return t('knockout.toBeDefined');
   return TEAMS_2026.find(t => t.id === id)?.name ?? id;
 }
 function teamShort(id: string | null) {
@@ -44,6 +67,7 @@ export class MobileBracket extends LitElement {
   @state() private _knockoutMatches: Record<string, KnockoutMatchResult> = {};
 
   private _unsub?: () => void;
+  private _unsubLocale?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
@@ -53,9 +77,14 @@ export class MobileBracket extends LitElement {
       km => { this._knockoutMatches = km; },
     );
     this._knockoutMatches = useTournamentStore.getState().knockoutMatches;
+    this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
-  disconnectedCallback() { this._unsub?.(); super.disconnectedCallback(); }
+  disconnectedCallback() {
+    this._unsub?.();
+    this._unsubLocale?.();
+    super.disconnectedCallback();
+  }
 
   private _bump(matchId: string, side: 0 | 1, delta: number) {
     const m = this._knockoutMatches[matchId];
@@ -83,12 +112,14 @@ export class MobileBracket extends LitElement {
 
   private _simulate() {
     useTournamentStore.getState().autoSimulateKnockout();
-    showToast('Bracket simulado 🎲');
+    const locale = useLocaleStore.getState().locale;
+    showToast(locale === 'es' ? 'Bracket simulado 🎲' : 'Bracket simulated 🎲');
   }
 
   private _generate() {
     useTournamentStore.getState().initializeKnockoutFromGroups();
-    showToast('Bracket generado ⚡');
+    const locale = useLocaleStore.getState().locale;
+    showToast(locale === 'es' ? 'Bracket generado ⚡' : 'Bracket generated ⚡');
   }
 
   private _roundIndex() { return ROUNDS.findIndex(r => r.id === this._activeRound); }
@@ -119,7 +150,7 @@ export class MobileBracket extends LitElement {
 
     const penEditor = tied ? html`
       <div class="pen-editor">
-        <span class="pen-lbl">PENALTIS · DESEMPATE</span>
+        <span class="pen-lbl">${useLocaleStore.getState().locale === 'es' ? 'PENALTIS · DESEMPATE' : 'PENALTY SHOOTOUT'}</span>
         <div class="pen-steppers">
           <div class="stepper">
             <button class="step minus" @click="${() => this._bumpPens(matchId, 0, -1)}">−</button>
@@ -139,7 +170,7 @@ export class MobileBracket extends LitElement {
       <div class="kmatch">
         <div class="kmatch-tag">
           <span>${label}</span>
-          ${played ? html`<button class="meta-clear" @click="${() => this._resetMatch(matchId)}" aria-label="Borrar resultado">✕</button>` : ''}
+          ${played ? html`<button class="meta-clear" @click="${() => this._resetMatch(matchId)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Borrar resultado' : 'Clear result'}">✕</button>` : ''}
         </div>
         ${m.venue ? html`
           <div class="kmatch-meta">
@@ -154,6 +185,7 @@ export class MobileBracket extends LitElement {
   }
 
   private _renderRound() {
+    const locale = useLocaleStore.getState().locale;
     const idx = this._roundIndex();
     const round = ROUNDS[idx];
     const prev = idx > 0 ? ROUNDS[idx - 1] : null;
@@ -163,21 +195,21 @@ export class MobileBracket extends LitElement {
       <div class="round-nav">
         <button class="rn-arrow" ?disabled="${!prev}" @click="${() => prev && (this._activeRound = prev.id)}">‹</button>
         <div class="rn-center">
-          <div class="rn-name">${round.name}</div>
-          <div class="rn-count">${round.matchIds.length} ${round.matchIds.length === 1 ? 'PARTIDO' : 'PARTIDOS'}</div>
+          <div class="rn-name">${getRoundName(round.id, locale)}</div>
+          <div class="rn-count">${round.matchIds.length} ${round.matchIds.length === 1 ? t('knockout.matchSingular') : t('knockout.matchPlural')}</div>
         </div>
         <button class="rn-arrow" ?disabled="${!next}" @click="${() => next && (this._activeRound = next.id)}">›</button>
       </div>`;
 
     const matches = round.matchIds.map((id, i) =>
-      this._renderMatch(id, round.accent, `${round.short} ${i + 1}`),
+      this._renderMatch(id, round.accent, `${getRoundShort(round.id, locale)} ${i + 1}`),
     );
 
     let extra = html``;
     if (round.id === 'final') {
       const tp = this._knockoutMatches[KNOCKOUT_BRACKET.thirdPlace.id];
       if (tp) extra = html`
-        ${this._renderMatch(KNOCKOUT_BRACKET.thirdPlace.id, 'var(--retro-red)', 'TERCER PUESTO')}
+        ${this._renderMatch(KNOCKOUT_BRACKET.thirdPlace.id, 'var(--retro-red)', t('knockout.thirdPlace'))}
         ${this._renderChampion()}
       `;
     }
@@ -190,9 +222,9 @@ export class MobileBracket extends LitElement {
     const winnerId = fin ? getWinnerId(fin.teamA, fin.teamB, fin.scoreA, fin.scoreB, fin.penaltyScoreA ?? null, fin.penaltyScoreB ?? null) : null;
     return html`
       <div class="champion-box">
-        <div class="champion-title">🏆 CAMPEÓN DEL MUNDO</div>
+        <div class="champion-title">🏆 ${t('knockout.worldChampion').toUpperCase()}</div>
         <div class="champion-team ${winnerId ? '' : 'tbd'}">
-          ${winnerId ? html`<span class="flag-box big">${teamFlag(winnerId)}</span> ${teamName(winnerId).toUpperCase()}` : 'POR DEFINIR'}
+          ${winnerId ? html`<span class="flag-box big">${teamFlag(winnerId)}</span> ${teamName(winnerId).toUpperCase()}` : t('knockout.toBeDefined')}
         </div>
       </div>`;
   }
@@ -362,15 +394,16 @@ export class MobileBracket extends LitElement {
   ];
 
   render() {
+    const locale = useLocaleStore.getState().locale;
     return html`
       <!-- Acciones -->
       <div class="bracket-actions">
-        <button class="btn btn-primary" @click="${this._generate}"><span class="btn-icon">⚡</span> GENERAR</button>
-        <button class="btn" @click="${this._simulate}"><span class="btn-icon">🎲</span> SIMULAR</button>
+        <button class="btn btn-primary" @click="${this._generate}"><span class="btn-icon">⚡</span> ${locale === 'es' ? 'GENERAR' : 'GENERATE'}</button>
+        <button class="btn" @click="${this._simulate}"><span class="btn-icon">🎲</span> ${locale === 'es' ? 'SIMULAR' : 'SIMULATE'}</button>
       </div>
 
       <!-- Banner final -->
-      <div class="final-banner">★ DOM 19 JUL · METLIFE STADIUM · NUEVA JERSEY ★</div>
+      <div class="final-banner">★ ${locale === 'es' ? 'DOM 19 JUL' : 'SUN JUL 19'} · METLIFE STADIUM · ${locale === 'es' ? 'NUEVA JERSEY' : 'NEW JERSEY'} ★</div>
 
       <!-- Steps de ronda -->
       <div class="round-steps">
@@ -378,7 +411,7 @@ export class MobileBracket extends LitElement {
           <button
             class="rstep ${r.id === this._activeRound ? 'active ' + r.color : ''}"
             @click="${() => { this._activeRound = r.id; }}"
-          >${r.short}</button>
+          >${getRoundShort(r.id, locale)}</button>
         `)}
       </div>
 

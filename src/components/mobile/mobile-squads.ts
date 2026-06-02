@@ -10,9 +10,6 @@ import { t } from '../../i18n';
 import { normalize } from '../../lib/text-utils';
 
 const POS_ORDER: Array<Player['position']> = ['GK', 'DF', 'MF', 'FW'];
-const POS_NAME: Record<string, string> = {
-  GK: 'Porteros', DF: 'Defensas', MF: 'Centrocampistas', FW: 'Delanteros',
-};
 const POS_CLASS: Record<string, string> = {
   GK: 'POR', DF: 'DEF', MF: 'MED', FW: 'DEL',
 };
@@ -71,11 +68,11 @@ export class MobileSquads extends LitElement {
             : html`<div class="coach-photo initials">${coach.name.split(' ').map(w => w[0]).slice(0,2).join('')}</div>`}
           <div>
             <div class="coach-name">${coach.name}</div>
-            <div class="coach-role">SELECCIONADOR · ${teamId}</div>
+            <div class="coach-role">${t('squads.coach.role')} · ${teamId}</div>
           </div>
         </div>
         <div class="coach-meta">
-          <span class="cmeta-chip"><b>${age}</b> años</span>
+          <span class="cmeta-chip"><b>${age}</b> ${t('squads.years')}</span>
           <span class="cmeta-chip">${coach.nationality}</span>
         </div>
       </div>`;
@@ -100,12 +97,12 @@ export class MobileSquads extends LitElement {
               <div class="player-name">${p.name}${p.captain ? ' ©' : ''}</div>
               <div class="player-club">${p.club}</div>
             </div>
-            <div class="player-age">${p.age}a</div>
+            <div class="player-age">${p.age}${t('squads.age.suffix')}</div>
           </div>`;
       });
       return html`
         <div class="pos-group">
-          <span class="pos-label ${POS_CLASS[pos]}">${POS_NAME[pos]}</span>
+          <span class="pos-label ${POS_CLASS[pos]}">${t(`squads.pos.${pos}` as any)}</span>
           ${rows}
         </div>`;
     });
@@ -480,7 +477,7 @@ export class MobileSquads extends LitElement {
                 return html`
                   <button class="player-result-btn" @click=${() => { this._activeTeam = p.teamId; this.searchQuery = ''; }}>
                     <span class="player-number">${p.number}</span>
-                    <span class="player-pos">${p.position}</span>
+                    <span class="player-pos">${t(`squads.pos.short.${p.position}` as any)}</span>
                     <span>${p.name}</span>
                     <span style="color: var(--dim); font-size: 10px;">· ${p.club}</span>
                     <span class="player-team-flag" style="margin-left: auto;">${team?.flag ?? ''}</span>
@@ -516,8 +513,8 @@ export class MobileSquads extends LitElement {
                           <span class="tc-name">${team.name}</span>
                           <span class="tc-meta">
                             ${isOfficialSquad(team.id)
-                              ? html`✓ ${squadLen} JUGADORES`
-                              : html`${squadLen} JUGADORES`}
+                              ? html`✓ ${t('squads.card.playersMany', { n: squadLen }).toUpperCase()}`
+                              : html`${t('squads.card.playersMany', { n: squadLen }).toUpperCase()}`}
                           </span>
                         </div>
                       </button>
@@ -533,15 +530,15 @@ export class MobileSquads extends LitElement {
 
     return html`
       <!-- Botón Volver -->
-      <button class="back-btn" @click="${() => { this._activeTeam = null; }}">← ${t('squads.back')}</button>
+      <button class="back-btn" @click="${() => { this._activeTeam = null; }}">${t('squads.back')}</button>
 
       <!-- Coach banner -->
       ${this._renderCoachBanner(tid)}
 
       <!-- Toggle lista/cancha -->
       <div class="squad-toggle">
-        <button class="${this._mode === 'list' ? 'active' : ''}" @click="${() => { this._mode = 'list'; }}">▤ LISTA</button>
-        <button class="${this._mode === 'pitch' ? 'active' : ''}" @click="${() => { this._mode = 'pitch'; }}">▦ CANCHA</button>
+        <button class="${this._mode === 'list' ? 'active' : ''}" @click="${() => { this._mode = 'list'; }}">▤ ${t('squads.list.viewList').toUpperCase()}</button>
+        <button class="${this._mode === 'pitch' ? 'active' : ''}" @click="${() => { this._mode = 'pitch'; }}">▦ ${t('squads.list.viewPitch').toUpperCase()}</button>
       </div>
 
       <!-- Contenido -->

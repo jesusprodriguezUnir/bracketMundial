@@ -532,14 +532,14 @@ export class MobileApp extends LitElement {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/>
           </svg>
-          <span class="nav-label">Inicio</span>
+          <span class="nav-label">${t('tabs.hero')}</span>
         </button>
         <button class="nav-item ${this._navActive('groups') ? 'active' : ''}" @click="${() => this._go('groups')}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
             <rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/>
             <rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/>
           </svg>
-          <span class="nav-label">Grupos</span>
+          <span class="nav-label">${t('tabs.groups')}</span>
         </button>
         <button class="nav-item center ${this._navActive('bracket') ? 'active' : ''}" @click="${() => this._go('bracket')}">
           <div class="nav-icon-wrap">
@@ -547,17 +547,17 @@ export class MobileApp extends LitElement {
               <path d="M7 4h4v6h3"/><path d="M7 20h4v-6h3"/><path d="M14 12h3"/><path d="M17 7v10"/>
             </svg>
           </div>
-          <span class="nav-label">Bracket</span>
+          <span class="nav-label">${t('knockout.mobileTitle')}</span>
         </button>
         <button class="nav-item ${this._navActive('squads') ? 'active' : ''}" @click="${() => this._go('squads')}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 4l-4 3 2 3 2-1.5V20h8V8.5L18 10l2-3-4-3-1.5 2h-5z"/>
           </svg>
-          <span class="nav-label">Plantillas</span>
+          <span class="nav-label">${t('tabs.squads')}</span>
         </button>
         <button class="nav-item ${this._navActive('more') ? 'active' : ''}" @click="${() => { this._sheetOpen = true; }}">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-          <span class="nav-label">Más</span>
+          <span class="nav-label">${t('tabs.more')}</span>
         </button>
       </nav>
 
@@ -569,74 +569,115 @@ export class MobileApp extends LitElement {
         <div class="sheet-handle"></div>
         <div class="sheet-title">${t('tabs.more')}</div>
 
-        <div class="sheet-section-label">Explorar</div>
-        <button class="sheet-item" @click="${() => this._go('calendar')}">
-          <span class="si-glyph">🗓️</span>
-          <span class="si-text"><span>${t('tabs.calendar')}</span><span class="si-sub">104 partidos · jornadas</span></span>
-          <span class="si-arrow">›</span>
-        </button>
-        <button class="sheet-item" @click="${() => this._go('stadiums')}">
-          <span class="si-glyph">◍</span>
-          <span class="si-text"><span>${t('tabs.stadiums')}</span><span class="si-sub">16 sedes · 3 países</span></span>
-          <span class="si-arrow">›</span>
-        </button>
-        <button class="sheet-item" @click="${() => this._go('coaches')}">
-          <span class="si-glyph">👔</span>
-          <span class="si-text"><span>${t('tabs.coaches')}</span><span class="si-sub">48 seleccionadores</span></span>
-          <span class="si-arrow">›</span>
-        </button>
-        <button class="sheet-item" @click="${() => this._go('guide')}">
-          <span class="si-glyph">📖</span>
-          <span class="si-text"><span>${t('tabs.guide')}</span><span class="si-sub">Reglamento y formato</span></span>
-          <span class="si-arrow">›</span>
-        </button>
-        <button class="sheet-item" @click="${() => this._go('league')}">
-          <span class="si-glyph">📊</span>
-          <span class="si-text"><span>${t('tabs.league')}</span><span class="si-sub">Ligas y competiciones</span></span>
-          <span class="si-arrow">›</span>
-        </button>
+        ${(() => {
+          const locale = useLocaleStore.getState().locale;
+          return html`
+            <div class="sheet-section-label">${locale === 'es' ? 'Explorar' : 'Explore'}</div>
+            <button class="sheet-item" @click="${() => this._go('calendar')}">
+              <span class="si-glyph">🗓️</span>
+              <span class="si-text">
+                <span>${t('tabs.calendar')}</span>
+                <span class="si-sub">${locale === 'es' ? '104 partidos · jornadas' : '104 matches · matchdays'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('stadiums')}">
+              <span class="si-glyph">◍</span>
+              <span class="si-text">
+                <span>${t('tabs.stadiums')}</span>
+                <span class="si-sub">${locale === 'es' ? '16 sedes · 3 países' : '16 venues · 3 countries'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('coaches')}">
+              <span class="si-glyph">👔</span>
+              <span class="si-text">
+                <span>${t('tabs.coaches')}</span>
+                <span class="si-sub">${locale === 'es' ? '48 seleccionadores' : '48 head coaches'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('guide')}">
+              <span class="si-glyph">📖</span>
+              <span class="si-text">
+                <span>${t('tabs.guide')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Reglamento y formato' : 'Rules and format'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('league')}">
+              <span class="si-glyph">📊</span>
+              <span class="si-text">
+                <span>${t('tabs.league')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Ligas y competiciones' : 'Leagues and competitions'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
 
-        <div class="sheet-section-label">Tu predicción</div>
-        <button class="sheet-item" @click="${this._handleShare}">
-          <span class="si-glyph">↗</span>
-          <span class="si-text"><span>${t('header.share')}</span><span class="si-sub">Genera un enlace</span></span>
-        </button>
-        <button class="sheet-item" @click="${this._handleExport}">
-          <span class="si-glyph">⤓</span>
-          <span class="si-text"><span>${t('header.excel')}</span><span class="si-sub">Exportar como archivo</span></span>
-        </button>
-        <button class="sheet-item" @click="${this._handleImport}">
-          <span class="si-glyph">⤒</span>
-          <span class="si-text"><span>Importar Excel</span><span class="si-sub">Cargar predicción</span></span>
-        </button>
-        ${this._authEmail ? html`
-          <button class="sheet-item" @click="${this._handlePublish}">
-            <span class="si-glyph">☁</span>
-            <span class="si-text">
-              <span>Publicar${this._hasUnpublished ? ' ●' : ''}</span>
-              <span class="si-sub">${this._authEmail}</span>
-            </span>
-          </button>
-        ` : ''}
+            <div class="sheet-section-label">${locale === 'es' ? 'Tu predicción' : 'Your prediction'}</div>
+            <button class="sheet-item" @click="${this._handleShare}">
+              <span class="si-glyph">↗</span>
+              <span class="si-text">
+                <span>${t('header.share')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Genera un enlace' : 'Generate a link'}</span>
+              </span>
+            </button>
+            <button class="sheet-item" @click="${this._handleExport}">
+              <span class="si-glyph">⤓</span>
+              <span class="si-text">
+                <span>${t('header.excel')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Exportar como archivo' : 'Export as file'}</span>
+              </span>
+            </button>
+            <button class="sheet-item" @click="${this._handleImport}">
+              <span class="si-glyph">⤒</span>
+              <span class="si-text">
+                <span>${t('header.importExcel')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Cargar predicción' : 'Load prediction'}</span>
+              </span>
+            </button>
+            ${this._authEmail ? html`
+              <button class="sheet-item" @click="${this._handlePublish}">
+                <span class="si-glyph">☁</span>
+                <span class="si-text">
+                  <span>${locale === 'es' ? 'Publicar' : 'Publish'}${this._hasUnpublished ? ' ●' : ''}</span>
+                  <span class="si-sub">${this._authEmail}</span>
+                </span>
+              </button>
+            ` : ''}
 
-        <div class="sheet-section-label">Ajustes</div>
-        <button class="sheet-item" @click="${() => { toggleLocale(); this._sheetOpen = false; }}">
-          <span class="si-glyph">🌐</span>
-          <span class="si-text"><span>${t('header.langToggle')}</span><span class="si-sub">Español · English</span></span>
-        </button>
-        <button class="sheet-item" @click="${this._toggleTheme}">
-          <span class="si-glyph">${isDark ? '☀️' : '🌙'}</span>
-          <span class="si-text"><span>${isDark ? t('header.dayTitle') : t('header.nightTitle')}</span><span class="si-sub">Tema ${isDark ? 'claro' : 'oscuro'} Panini</span></span>
-        </button>
-        ${this._authEmail
-          ? html`<button class="sheet-item" @click="${this._handleAuth}">
-              <span class="si-glyph">👤</span>
-              <span class="si-text"><span>Cerrar sesión</span><span class="si-sub">${this._authEmail}</span></span>
-            </button>`
-          : html`<button class="sheet-item" @click="${this._handleAuth}">
-              <span class="si-glyph">👤</span>
-              <span class="si-text"><span>Iniciar sesión</span><span class="si-sub">Sincroniza tu bracket</span></span>
-            </button>`}
+            <div class="sheet-section-label">${locale === 'es' ? 'Ajustes' : 'Settings'}</div>
+            <button class="sheet-item" @click="${() => { toggleLocale(); this._sheetOpen = false; }}">
+              <span class="si-glyph">🌐</span>
+              <span class="si-text">
+                <span>${t('header.langToggle')}</span>
+                <span class="si-sub">Español · English</span>
+              </span>
+            </button>
+            <button class="sheet-item" @click="${this._toggleTheme}">
+              <span class="si-glyph">${isDark ? '☀️' : '🌙'}</span>
+              <span class="si-text">
+                <span>${isDark ? t('header.dayTitle') : t('header.nightTitle')}</span>
+                <span class="si-sub">${locale === 'es' ? `Tema ${isDark ? 'claro' : 'oscuro'} Panini` : `Panini ${isDark ? 'light' : 'dark'} theme`}</span>
+              </span>
+            </button>
+            ${this._authEmail
+              ? html`<button class="sheet-item" @click="${this._handleAuth}">
+                  <span class="si-glyph">👤</span>
+                  <span class="si-text">
+                    <span>${t('account.signOut')}</span>
+                    <span class="si-sub">${this._authEmail}</span>
+                  </span>
+                </button>`
+              : html`<button class="sheet-item" @click="${this._handleAuth}">
+                  <span class="si-glyph">👤</span>
+                  <span class="si-text">
+                    <span>${t('account.signIn')}</span>
+                    <span class="si-sub">${locale === 'es' ? 'Sincroniza tu bracket' : 'Sync your bracket'}</span>
+                  </span>
+                </button>`}
+          `;
+        })()}
       </div>
 
       <!-- Toast -->

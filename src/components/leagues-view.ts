@@ -2888,9 +2888,7 @@ export class LeaguesView extends LitElement {
     const hasExisting = me.groupScores.some(s => s.scoreA !== null || s.scoreB !== null)
       || me.knockoutScores.some(s => s.scoreA !== null || s.scoreB !== null);
     if (hasExisting) {
-      const ok = window.confirm(
-        '¿Guardar y publicar tus predicciones en esta liga?\n\nEsto reemplazará las predicciones que tenías guardadas en la nube. Esta acción no se puede deshacer.',
-      );
+      const ok = window.confirm(t('league.confirmPublish'));
       if (!ok) return;
     }
 
@@ -2917,7 +2915,7 @@ export class LeaguesView extends LitElement {
 
     // Publicar en la nube.
     this._syncing = true;
-    this._syncFeedback = '⟳ Publicando en la liga…';
+    this._syncFeedback = t('sync.banner.feedback.publishing');
     try {
       const ok = await updateMyPredictionsInCloud(
         this._activeLeagueId,
@@ -2927,10 +2925,10 @@ export class LeaguesView extends LitElement {
         bracket.mvp,
       );
       if (ok) {
-        this._syncFeedback = '✓ Predicciones publicadas en la liga.';
+        this._syncFeedback = t('sync.banner.feedback.published');
         await refreshLeagueMembers(this._activeLeagueId);
       } else {
-        this._syncFeedback = '✕ No se pudo publicar. Inténtalo de nuevo.';
+        this._syncFeedback = t('sync.banner.feedback.publishFailed');
       }
     } catch (err) {
       console.error('[leagues-view] _publishMyBracketToLeague failed:', err);
@@ -3103,19 +3101,19 @@ export class LeaguesView extends LitElement {
 
   private async _forcePushAll() {
     if (!useAuthStore.getState().session) {
-      this._syncFeedback = '⚠ Inicia sesión primero';
+      this._syncFeedback = t('sync.banner.feedback.signinFirst');
       this._openAuthFromBanner();
       return;
     }
     this._syncing = true;
-    this._syncFeedback = '⟳ Subiendo a la nube…';
+    this._syncFeedback = t('sync.banner.feedback.uploadingCloud');
     try {
       const { forcePushAll } = await import('../lib/league-sync');
       const result = await forcePushAll();
       if (result.ok) {
-        this._syncFeedback = `✓ ${result.count} liga(s) sincronizadas. Revisa la consola si algo falló.`;
+        this._syncFeedback = t('sync.banner.feedback.synced', { count: result.count });
       } else {
-        this._syncFeedback = '✕ No se pudo sincronizar (sin sesión).';
+        this._syncFeedback = t('sync.banner.feedback.syncFailedNoSession');
       }
     } catch (err) {
       console.error('[leagues-view] forcePushAll failed:', err);
@@ -3136,19 +3134,19 @@ export class LeaguesView extends LitElement {
       return html`
         <div class="lg-confirm-box" style="border-color: var(--retro-orange); background: color-mix(in srgb, var(--retro-orange) 8%, var(--paper));">
           <span style="flex:1;">
-            ⚠ <strong>Sin sesión</strong> — Tus ligas están solo en este navegador. Inicia sesión para guardarlas en la nube e invitar amigos.
+            ⚠ <strong>${t('sync.banner.noSession')}</strong> ${t('sync.banner.noSessionText')}
           </span>
-          <button class="lg-btn-sm" @click=${this._openAuthFromBanner}>Iniciar sesión</button>
+          <button class="lg-btn-sm" @click=${this._openAuthFromBanner}>${t('header.signInTitle')}</button>
         </div>
       `;
     }
     return html`
       <div class="lg-confirm-box" style="border-color: var(--retro-green, #2a8a3a); background: color-mix(in srgb, var(--retro-green, #2a8a3a) 8%, var(--paper)); flex-wrap: wrap;">
         <span style="flex:1; min-width: 200px;">
-          ✓ Sesión: <strong>${email ?? ''}</strong>
+          ✓ ${t('sync.banner.session')} <strong>${email ?? ''}</strong>
         </span>
         <button class="lg-btn-sm" @click=${this._forcePushAll} ?disabled=${this._syncing}>
-          ${this._syncing ? '⟳ Subiendo…' : 'Subir a la nube'}
+          ${this._syncing ? t('sync.banner.uploading') : t('sync.banner.uploadCloud')}
         </button>
         ${this._syncFeedback ? html`<span style="flex-basis:100%; font-family:var(--font-mono); font-size:11px;">${this._syncFeedback}</span>` : ''}
       </div>

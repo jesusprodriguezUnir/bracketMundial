@@ -7,7 +7,7 @@ import { calculateBestThirds, type TeamStats } from '../../lib/bracket-logic';
 import { getAllOdds, type MatchOdds } from '../../lib/odds-service';
 import { formatShortDate } from '../../lib/date-utils';
 import { showToast } from '../../lib/interaction';
-import { t } from '../../i18n';
+import { t, useLocaleStore } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
 
 const GROUPS = 'ABCDEFGHIJKL'.split('');
@@ -66,13 +66,15 @@ export class MobileGroups extends LitElement {
 
   private _simulate() {
     useTournamentStore.getState().autoSimulateGroups();
-    showToast('Grupos simulados 🎲');
+    const locale = useLocaleStore.getState().locale;
+    showToast(locale === 'es' ? 'Grupos simulados 🎲' : 'Groups simulated 🎲');
   }
 
   private _reset() {
-    if (confirm('¿Reiniciar todo el torneo?')) {
+    const locale = useLocaleStore.getState().locale;
+    if (confirm(locale === 'es' ? '¿Reiniciar todo el torneo?' : 'Reset the whole tournament?')) {
       useTournamentStore.getState().resetTournament();
-      showToast('Torneo reiniciado');
+      showToast(locale === 'es' ? 'Torneo reiniciado' : 'Tournament reset');
     }
   }
 
@@ -87,7 +89,7 @@ export class MobileGroups extends LitElement {
           <div class="team-cell">
             <span class="flag-box">${team?.flag ?? '?'}</span>
             <span class="nm">${team?.name ?? s.teamId}</span>
-            ${qualify ? html`<span class="pos-badge">${idx === 0 ? '1°' : '2°'}</span>` : ''}
+            ${qualify ? html`<span class="pos-badge">${idx === 0 ? (useLocaleStore.getState().locale === 'es' ? '1°' : '1st') : (useLocaleStore.getState().locale === 'es' ? '2°' : '2nd')}</span>` : ''}
           </div>
           <span class="gd">${gd > 0 ? '+' + gd : gd}</span>
           <span class="wdl">${s.won}-${s.drawn}-${s.lost}</span>
@@ -116,32 +118,32 @@ export class MobileGroups extends LitElement {
             <span class="jornada">J${m.matchDay}</span>
             ${dateStr ? html`<span>${dateStr}</span>` : ''}
             ${m.timeSpain ? html`<span class="match-time">· ${m.timeSpain}</span>` : ''}
-            <span class="badge ${played ? 'badge-played' : 'badge-upcoming'}">${played ? 'Jugado' : 'Próx.'}</span>
-            ${played ? html`<button class="meta-clear" @click="${(e: Event) => { e.stopPropagation(); this._resetScore(m.matchId); }}" aria-label="Borrar resultado">✕</button>` : ''}
+            <span class="badge ${played ? 'badge-played' : 'badge-upcoming'}">${played ? (useLocaleStore.getState().locale === 'es' ? 'Jugado' : 'Played') : (useLocaleStore.getState().locale === 'es' ? 'Próx.' : 'Upcoming')}</span>
+            ${played ? html`<button class="meta-clear" @click="${(e: Event) => { e.stopPropagation(); this._resetScore(m.matchId); }}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Borrar resultado' : 'Clear result'}">✕</button>` : ''}
           </div>
           <div class="score-editor">
             <div class="se-team ${winA ? 'win' : ''}">
               <span class="se-id"><span class="flag-box">${teamFlag(m.teamA)}</span><strong>${shortA}</strong></span>
               <div class="stepper">
-                <button class="step minus" @click="${() => this._bump(m.matchId, 0, -1)}" aria-label="Menos">−</button>
+                <button class="step minus" @click="${() => this._bump(m.matchId, 0, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
                 <span class="step-val ${played ? '' : 'pending'}">${played ? sa : '–'}</span>
-                <button class="step plus" @click="${() => this._bump(m.matchId, 0, 1)}" aria-label="Más">+</button>
+                <button class="step plus" @click="${() => this._bump(m.matchId, 0, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
               </div>
             </div>
             <div class="se-sep">–</div>
             <div class="se-team ${winB ? 'win' : ''}">
               <span class="se-id"><span class="flag-box">${teamFlag(m.teamB)}</span><strong>${shortB}</strong></span>
               <div class="stepper">
-                <button class="step minus" @click="${() => this._bump(m.matchId, 1, -1)}" aria-label="Menos">−</button>
+                <button class="step minus" @click="${() => this._bump(m.matchId, 1, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
                 <span class="step-val ${played ? '' : 'pending'}">${played ? sb : '–'}</span>
-                <button class="step plus" @click="${() => this._bump(m.matchId, 1, 1)}" aria-label="Más">+</button>
+                <button class="step plus" @click="${() => this._bump(m.matchId, 1, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
               </div>
             </div>
           </div>
           ${odds ? html`
             <div class="odds-row">
               <span class="odds-seg" style="width:${odds.home}%;background:var(--retro-blue)" title="1 – ${m.teamA}: ${odds.home}%">${odds.home}%</span>
-              <span class="odds-seg" style="width:${odds.draw}%;background:var(--dim)" title="X – Empate: ${odds.draw}%">${odds.draw}%</span>
+              <span class="odds-seg" style="width:${odds.draw}%;background:var(--dim)" title="X – ${useLocaleStore.getState().locale === 'es' ? 'Empate' : 'Draw'}: ${odds.draw}%">${odds.draw}%</span>
               <span class="odds-seg" style="width:${odds.away}%;background:var(--retro-red)" title="2 – ${m.teamB}: ${odds.away}%">${odds.away}%</span>
             </div>
           ` : ''}
@@ -149,7 +151,7 @@ export class MobileGroups extends LitElement {
     });
     const playedCount = matches.filter(m => m.scoreA !== null).length;
     return html`
-      <div class="matches-header">PARTIDOS · ${playedCount}/6 JUGADOS</div>
+      <div class="matches-header">${t('header.statsMatches').toUpperCase()} · ${t('groups.played', { n: playedCount })}</div>
       <div class="matches-list">${items}</div>`;
   }
 
@@ -172,10 +174,10 @@ export class MobileGroups extends LitElement {
     });
     return html`
       <div class="thirds">
-        <div class="thirds-header">★ MEJORES 8 TERCEROS</div>
+        <div class="thirds-header">★ ${t('groups.bestThirds').toUpperCase()}</div>
         <div class="thirds-row head">
-          <span>#</span><span>EQUIPO</span>
-          <span class="t-stat">GRP</span><span class="t-stat">DIF</span>
+          <span>#</span><span>${t('groups.tableTeam')}</span>
+          <span class="t-stat">${t('groups.tableGroup')}</span><span class="t-stat">${t('groups.statGD')}</span>
           <span style="text-align:center">PTS</span><span></span>
         </div>
         ${rows}
@@ -434,8 +436,8 @@ export class MobileGroups extends LitElement {
       <!-- Tarjeta del grupo -->
       <div class="group-card">
         <div class="group-header" style="background-color:${color}">
-          <span class="group-header-title">GRUPO ${letter}</span>
-          <span class="group-header-badge">${playedCount}/6 JUGADOS</span>
+          <span class="group-header-title">${t('groups.group', { letter })}</span>
+          <span class="group-header-badge">${t('groups.played', { n: playedCount })}</span>
         </div>
         ${this._renderStandings(letter)}
         ${this._renderMatches(letter)}

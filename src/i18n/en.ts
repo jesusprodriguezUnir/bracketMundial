@@ -853,4 +853,45 @@ export const en: Record<TranslationKey, string> = {
   'modal.saveClose': 'Save and close',
   'modal.discard': 'Discard',
 
+  // New keys for completing translations
+  'header.shop': 'Shop',
+  'shop.panini': '🛒 Panini Album 2026',
+  'shop.poster': '🖼 World Cup 2026 Poster',
+  'shop.book': '📖 World Cup 2026 Book',
+  'shop.fifa': '📕 Official FIFA Book',
+  'footer.legal': 'Legal',
+  'footer.about': 'ℹ️ About Us',
+  'footer.legalNotice': '⚖️ Legal Notice',
+  'footer.privacy': '🔒 Privacy Policy',
+  'footer.cookies': '🍪 Cookies Policy',
+  'view.offline': '📡 Offline — changes are saved locally',
+
+  // Squad positions and abbreviations
+  'squads.pos.GK': 'Goalkeepers',
+  'squads.pos.DF': 'Defenders',
+  'squads.pos.MF': 'Midfielders',
+  'squads.pos.FW': 'Forwards',
+  'squads.pos.short.GK': 'GK',
+  'squads.pos.short.DF': 'DF',
+  'squads.pos.short.MF': 'MF',
+  'squads.pos.short.FW': 'FW',
+  'squads.coach.role': 'HEAD COACH',
+  'squads.years': 'years',
+  'squads.age.suffix': 'y',
+
+  // Leagues and Sync
+  'league.confirmPublish': 'Save and publish your predictions to this league?\n\nThis will replace any predictions you previously saved in the cloud. This action cannot be undone.',
+  'sync.banner.noSession': 'No session',
+  'sync.banner.noSessionText': '— Your leagues are only stored in this browser. Sign in to save them to the cloud and invite friends.',
+  'sync.banner.session': 'Session:',
+  'sync.banner.uploading': '⟳ Uploading…',
+  'sync.banner.uploadCloud': 'Upload to cloud',
+  'sync.banner.feedback.publishing': '⟳ Publishing to the league…',
+  'sync.banner.feedback.published': '✓ Predictions published to the league.',
+  'sync.banner.feedback.publishFailed': '✕ Could not publish. Try again.',
+  'sync.banner.feedback.signinFirst': '⚠ Sign in first',
+  'sync.banner.feedback.uploadingCloud': '⟳ Uploading to cloud…',
+  'sync.banner.feedback.synced': '✓ {count} league(s) synced. Check console if anything failed.',
+  'sync.banner.feedback.syncFailedNoSession': '✕ Could not sync (no session).',
+
 };

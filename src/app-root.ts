@@ -616,16 +616,25 @@ export class AppRoot extends LitElement {
       // Esperar a que la sesión esté resuelta (evita la race-condition de connectedCallback).
       const session = await waitForAuthReady();
 
+      const locale = useLocaleStore.getState().locale;
       if (!session) {
         // Sin sesión: avisar y conservar el hash para que se procese tras login.
         // _onSignedIn → onLeagueSignedIn ya recarga la liga; nosotros guardamos el hash
         // en sessionStorage para retomarlo si el usuario hace login con magic-link.
         try { sessionStorage.setItem('wm2026_pending_invite_hash', hash); } catch (_) { /* noop */ }
-        showToast('Inicia sesión para unirte a la liga. El enlace se retomará tras el login.');
+        showToast(
+          locale === 'es'
+            ? 'Inicia sesión para unirte a la liga. El enlace se retomará tras el login.'
+            : 'Please sign in to join the league. The invite link will be resumed after login.'
+        );
         return;
       }
 
-      const name = prompt('¿Quieres unirte a esta liga?\n\nEscribe tu nombre:');
+      const name = prompt(
+        locale === 'es'
+          ? '¿Quieres unirte a esta liga?\n\nEscribe tu nombre:'
+          : 'Do you want to join this league?\n\nEnter your name:'
+      );
       if (!name?.trim()) return;
 
       const { joinLeagueInCloud, fetchLeagueNameFromCloud, refreshLeagueMembers } = await import('./lib/league-sync');
@@ -638,7 +647,11 @@ export class AppRoot extends LitElement {
         this._activeTab = 'league';
         window.location.hash = '#league';
       } else {
-        showToast('No se pudo unir a la liga. Comprueba que el enlace es válido e inténtalo de nuevo.');
+        showToast(
+          locale === 'es'
+            ? 'No se pudo unir a la liga. Comprueba que el enlace es válido e inténtalo de nuevo.'
+            : 'Could not join the league. Please check that the link is valid and try again.'
+        );
       }
       return;
     }
@@ -650,7 +663,12 @@ export class AppRoot extends LitElement {
       if (leagueHash.type === 'invite') {
         const invite = decodeLeagueInvite(leagueHash.raw);
         if (invite) {
-          const name = prompt(`¿Quieres unirte a la liga "${invite.name}"?\n\nEscribe tu nombre:`);
+          const locale = useLocaleStore.getState().locale;
+          const name = prompt(
+            locale === 'es'
+              ? `¿Quieres unirte a la liga "${invite.name}"?\n\nEscribe tu nombre:`
+              : `Do you want to join the league "${invite.name}"?\n\nEnter your name:`
+          );
           if (name && name.trim()) {
             const { useLeaguesStore } = await import('./store/leagues-store');
             useLeaguesStore.getState().joinLeagueFromInvite(invite.leagueId, invite.name, name.trim());
@@ -661,7 +679,12 @@ export class AppRoot extends LitElement {
       } else if (leagueHash.type === 'participant') {
         const share = decodeParticipantShare(leagueHash.raw);
         if (share) {
-          const ok = window.confirm(`¿Importar las predicciones de "${share.participantName}" a la liga?`);
+          const locale = useLocaleStore.getState().locale;
+          const ok = window.confirm(
+            locale === 'es'
+              ? `¿Importar las predicciones de "${share.participantName}" a la liga?`
+              : `Import predictions from "${share.participantName}" to the league?`
+          );
           if (ok) {
             const { useLeaguesStore } = await import('./store/leagues-store');
             const result = useLeaguesStore.getState().importParticipantFromShare(
@@ -680,7 +703,12 @@ export class AppRoot extends LitElement {
     const { readSharedBracketFromHash } = await import('./lib/bracket-codec');
     const data = readSharedBracketFromHash();
     if (!data) return;
-    const ok = window.confirm('¿Cargar el bracket compartido? Esto sobrescribirá tu predicción actual.');
+    const locale = useLocaleStore.getState().locale;
+    const ok = window.confirm(
+      locale === 'es'
+        ? '¿Cargar el bracket compartido? Esto sobrescribirá tu predicción actual.'
+        : 'Load the shared bracket? This will overwrite your current prediction.'
+    );
     if (ok) {
       useTournamentStore.getState().applySharedBracket(data);
     }
@@ -855,7 +883,7 @@ export class AppRoot extends LitElement {
             <div class="header-actions">
               ${this._authEmail
                 ? html`<button class="ha-btn-sm" @click="${this._handleAuth}" title="${this._authEmail}">${this._authEmail}</button>`
-                : html`<button class="ha-btn-primary" @click="${this._handleAuth}">Iniciar sesión</button>`}
+                : html`<button class="ha-btn-primary" @click="${this._handleAuth}">${t('header.signInTitle')}</button>`}
               <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
               <button class="ha-btn-sm" @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
                 ${this._isDark ? html`☀️` : html`🌙`}
@@ -898,11 +926,11 @@ export class AppRoot extends LitElement {
                       <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
                     </div>
                     <div class="dropdown-section">
-                      <span>Tienda</span>
-                      <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer">🛒 Álbum Panini 2026</a>
-                      <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer">🖼 Póster Mundial 2026</a>
-                      <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer">📖 Libro Mundial 2026</a>
-                      <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer">📕 Libro Oficial FIFA</a>
+                      <span>${t('header.shop')}</span>
+                      <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer">${t('shop.panini')}</a>
+                      <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer">${t('shop.poster')}</a>
+                      <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer">${t('shop.book')}</a>
+                      <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer">${t('shop.fifa')}</a>
                     </div>
                   </div>
                 ` : ''}
@@ -948,7 +976,7 @@ export class AppRoot extends LitElement {
         <!-- Offline banner -->
         ${this._isOffline ? html`
           <div class="offline-banner">
-            <span>📡 Sin conexión — los cambios se guardan localmente</span>
+            <span>${t('view.offline')}</span>
           </div>
         ` : ''}
 
@@ -968,19 +996,19 @@ export class AppRoot extends LitElement {
 
         <footer class="site-footer">
           <div class="footer-section">
-            <span class="footer-label">Tienda</span>
+            <span class="footer-label">${t('header.shop')}</span>
             <div class="footer-social">
-              <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" aria-label="Comprar Álbum Panini en Amazon">
-                🛒 Álbum Panini 2026
+              <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
+                ${t('shop.panini')}
               </a>
-              <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" aria-label="Comprar Póster Mundial 2026 en Amazon">
-                🖼 Póster Mundial 2026
+              <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
+                ${t('shop.poster')}
               </a>
-              <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" aria-label="Comprar Libro Mundial 2026 en Amazon">
-                📖 Libro Mundial 2026
+              <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
+                ${t('shop.book')}
               </a>
-              <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" aria-label="Comprar Libro Oficial FIFA en Amazon">
-                📕 Libro Oficial FIFA
+              <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
+                ${t('shop.fifa')}
               </a>
             </div>
           </div>
@@ -1008,19 +1036,19 @@ export class AppRoot extends LitElement {
           <span class="footer-sep">·</span>
 
           <div class="footer-section">
-            <span class="footer-label">Legal</span>
+            <span class="footer-label">${t('footer.legal')}</span>
             <div class="footer-social">
-              <a href="/acerca-de.html" aria-label="Quiénes Somos">
-                ℹ️ Quiénes Somos
+              <a href="/acerca-de.html" aria-label="${t('footer.about')}">
+                ${t('footer.about')}
               </a>
-              <a href="/aviso-legal.html" aria-label="Aviso Legal">
-                ⚖️ Aviso Legal
+              <a href="/aviso-legal.html" aria-label="${t('footer.legalNotice')}">
+                ${t('footer.legalNotice')}
               </a>
-              <a href="/privacy-policy.html" aria-label="Política de Privacidad">
-                🔒 Privacidad
+              <a href="/privacy-policy.html" aria-label="${t('footer.privacy')}">
+                ${t('footer.privacy')}
               </a>
-              <a href="/politica-cookies.html" aria-label="Política de Cookies">
-                🍪 Cookies
+              <a href="/politica-cookies.html" aria-label="${t('footer.cookies')}">
+                ${t('footer.cookies')}
               </a>
             </div>
           </div>

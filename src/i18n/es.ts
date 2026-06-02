@@ -861,6 +861,47 @@ export const es = {
   'modal.saveClose': 'Guardar y cerrar',
   'modal.discard': 'Descartar',
 
+  // Nuevas claves para completar traducciones
+  'header.shop': 'Tienda',
+  'shop.panini': '🛒 Álbum Panini 2026',
+  'shop.poster': '🖼 Póster Mundial 2026',
+  'shop.book': '📖 Libro Mundial 2026',
+  'shop.fifa': '📕 Libro Oficial FIFA',
+  'footer.legal': 'Legal',
+  'footer.about': 'ℹ️ Quiénes Somos',
+  'footer.legalNotice': '⚖️ Aviso Legal',
+  'footer.privacy': '🔒 Privacidad',
+  'footer.cookies': '🍪 Cookies',
+  'view.offline': '📡 Sin conexión — los cambios se guardan localmente',
+
+  // Squad positions and abbreviations
+  'squads.pos.GK': 'Porteros',
+  'squads.pos.DF': 'Defensas',
+  'squads.pos.MF': 'Centrocampistas',
+  'squads.pos.FW': 'Delanteros',
+  'squads.pos.short.GK': 'POR',
+  'squads.pos.short.DF': 'DEF',
+  'squads.pos.short.MF': 'MED',
+  'squads.pos.short.FW': 'DEL',
+  'squads.coach.role': 'SELECCIONADOR',
+  'squads.years': 'años',
+  'squads.age.suffix': 'a',
+
+  // Leagues and Sync
+  'league.confirmPublish': '¿Guardar y publicar tus predicciones en esta liga?\n\nEsto reemplazará las predicciones que tenías guardadas en la nube. Esta acción no se puede deshacer.',
+  'sync.banner.noSession': 'Sin sesión',
+  'sync.banner.noSessionText': '— Tus ligas están solo en este navegador. Inicia sesión para guardarlas en la nube e invitar amigos.',
+  'sync.banner.session': 'Sesión:',
+  'sync.banner.uploading': '⟳ Subiendo…',
+  'sync.banner.uploadCloud': 'Subir a la nube',
+  'sync.banner.feedback.publishing': '⟳ Publicando en la liga…',
+  'sync.banner.feedback.published': '✓ Predicciones publicadas en la liga.',
+  'sync.banner.feedback.publishFailed': '✕ No se pudo publicar. Inténtalo de nuevo.',
+  'sync.banner.feedback.signinFirst': '⚠ Inicia sesión primero',
+  'sync.banner.feedback.uploadingCloud': '⟳ Subiendo a la nube…',
+  'sync.banner.feedback.synced': '✓ {count} liga(s) sincronizadas. Revisa la consola si algo falló.',
+  'sync.banner.feedback.syncFailedNoSession': '✕ No se pudo sincronizar (sin sesión).',
+
 } as const;
 
 export type TranslationKey = keyof typeof es;

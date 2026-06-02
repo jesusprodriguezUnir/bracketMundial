@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
-import { t } from '../../i18n';
+import { t, useLocaleStore } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
 import { showToast } from '../../lib/interaction';
 
@@ -59,15 +59,17 @@ export class MobileHome extends LitElement {
     this._played =
       store.groupMatches.filter(m => m.scoreA !== null).length +
       Object.values(store.knockoutMatches).filter(m => m.isPlayed).length;
-    showToast('Torneo completo simulado 🎲');
+    const locale = useLocaleStore.getState().locale;
+    showToast(locale === 'es' ? 'Torneo completo simulado 🎲' : 'Full tournament simulated 🎲');
   }
 
   private _resetAll() {
-    if (confirm('¿Reiniciar todo el torneo?')) {
+    const locale = useLocaleStore.getState().locale;
+    if (confirm(locale === 'es' ? '¿Reiniciar todo el torneo?' : 'Reset the whole tournament?')) {
       const store = useTournamentStore.getState();
       store.resetTournament();
       this._played = 0;
-      showToast('Torneo reiniciado 🔄');
+      showToast(locale === 'es' ? 'Torneo reiniciado 🔄' : 'Tournament reset 🔄');
     }
   }
 
@@ -286,16 +288,19 @@ export class MobileHome extends LitElement {
   render() {
     const cd = this._cd;
     const played = this._played;
+    const locale = useLocaleStore.getState().locale;
 
     return html`
       <!-- Hero oscuro -->
       <section class="hero">
         <div class="hero-eyebrow">★ FIFA WORLD CUP · 26 ★</div>
         <h1 class="hero-title">
-          PREDICE<span class="accent">EL MUNDIAL</span>
+          ${locale === 'es' ? html`PREDICE<span class="accent">EL MUNDIAL</span>` : html`PREDICT<span class="accent">THE WORLD CUP</span>`}
         </h1>
         <p class="hero-sub">
-          Simula los 12 grupos, avanza por las eliminatorias de 48 selecciones y corona a tu campeón.
+          ${locale === 'es'
+            ? 'Simula los 12 grupos, avanza por las eliminatorias de 48 selecciones y corona a tu campeón.'
+            : 'Simulate the 12 groups, advance through the 48-team knockout rounds and crown your champion.'}
         </p>
         <div class="hero-flags">
           ${['🇪🇸','🇧🇷','🇦🇷','🇫🇷','🇩🇪','🇲🇽','🏴󠁧󠁢󠁥󠁮󠁧󠁿','🇵🇹'].map(f => html`<span>${f}</span>`)}
@@ -317,36 +322,40 @@ export class MobileHome extends LitElement {
 
       <!-- Jugados (si hay resultados) -->
       ${played > 0 ? html`
-        <div class="played-banner">⚽ ${played}/104 partidos disputados</div>
+        <div class="played-banner">⚽ ${locale === 'es' ? `${played}/104 partidos disputados` : `${played}/104 matches played`}</div>
       ` : ''}
 
       <!-- Countdown o EN CURSO -->
       ${cd.started
-        ? html`<div class="cd-live">⚽ EN CURSO — MUNDIAL 2026</div>`
+        ? html`<div class="cd-live">⚽ ${locale === 'es' ? 'EN CURSO — MUNDIAL 2026' : 'LIVE — WORLD CUP 2026'}</div>`
         : html`
           <div class="countdown">
             <div>
-              <div class="cd-label">Faltan</div>
-              <div class="cd-days">${cd.days} días</div>
+              <div class="cd-label">${locale === 'es' ? 'Faltan' : 'Countdown'}</div>
+              <div class="cd-days">${cd.days} ${locale === 'es' ? 'días' : 'days'}</div>
             </div>
             <div class="cd-date">
               11 JUN 2026<br>
-              México vs Sudáfrica<br>
-              Estadio Azteca
+              ${locale === 'es' ? 'México vs Sudáfrica' : 'Mexico vs South Africa'}<br>
+              ${locale === 'es' ? 'Estadio Azteca' : 'Azteca Stadium'}
             </div>
           </div>
         `}
 
       <!-- Bloque de Simulación Rápida -->
       <div class="sim-card">
-        <div class="sim-title">⚡ SIMULACIÓN DEL TORNEO</div>
-        <div class="sim-desc">¿Quieres rellenar todo el torneo al instante? Simula los 104 partidos (tanto en grupos como en la fase eliminatoria) de una sola vez desde aquí.</div>
+        <div class="sim-title">⚡ ${locale === 'es' ? 'SIMULACIÓN DEL TORNEO' : 'TOURNAMENT SIMULATION'}</div>
+        <div class="sim-desc">
+          ${locale === 'es'
+            ? '¿Quieres rellenar todo el torneo al instante? Simula los 104 partidos (tanto en grupos como en la fase eliminatoria) de una sola vez desde aquí.'
+            : 'Want to fill the entire tournament instantly? Simulate all 104 matches (both group stage and knockout rounds) at once from here.'}
+        </div>
         <div class="sim-actions">
           <button class="btn btn-primary" @click="${this._simulateAll}">
-            <span class="btn-icon">🎲</span> SIMULAR TODO
+            <span class="btn-icon">🎲</span> ${locale === 'es' ? 'SIMULAR TODO' : 'SIMULATE ALL'}
           </button>
           <button class="btn" style="color: var(--retro-red)" @click="${this._resetAll}">
-            REINICIAR
+            ${t('groups.reset').toUpperCase()}
           </button>
         </div>
       </div>
@@ -355,23 +364,23 @@ export class MobileHome extends LitElement {
       <div class="quick-grid">
         <button class="quick-card" @click="${() => this._navigate('groups')}">
           <div class="qc-glyph" style="background:var(--retro-orange)">▦</div>
-          <div class="qc-title">GRUPOS</div>
-          <div class="qc-desc">12 grupos · clasificación</div>
+          <div class="qc-title">${t('tabs.groups').toUpperCase()}</div>
+          <div class="qc-desc">${locale === 'es' ? '12 grupos · clasificación' : '12 groups · standings'}</div>
         </button>
         <button class="quick-card" @click="${() => this._navigate('bracket')}">
           <div class="qc-glyph" style="background:var(--retro-green)">🏆</div>
-          <div class="qc-title">BRACKET</div>
-          <div class="qc-desc">De 1/16 a la Final</div>
+          <div class="qc-title">${t('knockout.mobileTitle').toUpperCase()}</div>
+          <div class="qc-desc">${locale === 'es' ? 'De 1/16 a la Final' : 'From R32 to the Final'}</div>
         </button>
         <button class="quick-card" @click="${() => this._navigate('squads')}">
           <div class="qc-glyph" style="background:var(--retro-blue)">★</div>
-          <div class="qc-title">PLANTILLAS</div>
-          <div class="qc-desc">48 convocatorias</div>
+          <div class="qc-title">${t('tabs.squads').toUpperCase()}</div>
+          <div class="qc-desc">${locale === 'es' ? '48 convocatorias' : '48 squads'}</div>
         </button>
         <button class="quick-card" @click="${() => this._navigate('stadiums')}">
           <div class="qc-glyph" style="background:var(--retro-red)">◍</div>
-          <div class="qc-title">ESTADIOS</div>
-          <div class="qc-desc">16 sedes · 3 países</div>
+          <div class="qc-title">${t('tabs.stadiums').toUpperCase()}</div>
+          <div class="qc-desc">${locale === 'es' ? '16 sedes · 3 países' : '16 venues · 3 countries'}</div>
         </button>
       </div>
     `;
