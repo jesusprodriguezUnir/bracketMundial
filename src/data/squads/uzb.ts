@@ -2,30 +2,36 @@ import type { Player } from './index';
 export const squad: Player[] = [
   { number: 1, name: 'Utkir Yusupov', position: 'GK', age: 35, club: 'Navbahor' },
   { number: 12, name: 'Abduvohid Nematov', position: 'GK', age: 24, club: 'Nasaf' },
-  { number: 23, name: 'Dilshodbek Hamidov', position: 'GK', age: 27, club: 'Pakhtakor' },
-  { number: 2, name: 'Khojiakbar Alijonov', position: 'DF', age: 29, club: 'Pakhtakor' },
-  { number: 3, name: 'Rustam Ashurmatov', position: 'DF', age: 30, club: 'Rubin Kazan' },
-  { number: 4, name: 'Abdukodir Khusanov', position: 'DF', age: 22, club: 'Manchester City' },
-  { number: 5, name: 'Husniddin Aliqulov', position: 'DF', age: 26, club: 'Rizespor' },
-  { number: 13, name: 'Zafarmurod Abdirakhmatov', position: 'DF', age: 23, club: 'Pakhtakor' },
-  { number: 14, name: 'Akmal Mozgovoy', position: 'DF', age: 27, club: 'Nasaf' },
-  { number: 15, name: 'Sherzod Nasrullayev', position: 'DF', age: 28, club: 'Alanyaspor' },
-  { number: 6, name: 'Otabek Shukurov', position: 'MF', age: 30, club: 'Fatih Karagümrük' },
-  { number: 8, name: 'Jasurbek Yakhshiboev', position: 'MF', age: 29, club: 'Ordabasy' },
-  { number: 10, name: 'Jaloliddin Masharipov', position: 'MF', age: 33, club: 'Esteghlal', captain: true },
-  { number: 16, name: 'Abbosbek Fayzullaev', position: 'MF', age: 23, club: 'CSKA Moscú' },
-  { number: 17, name: 'Oston Urunov', position: 'MF', age: 25, club: 'Navbahor' },
-  { number: 18, name: 'Bobir Abdikholikov', position: 'MF', age: 28, club: 'Ordabasy' },
-  { number: 7, name: 'Eldor Shomurodov', position: 'FW', age: 31, club: 'Roma' },
-  { number: 9, name: 'Igor Sergeev', position: 'FW', age: 32, club: 'Tobol' },
-  { number: 11, name: 'Khojimat Erkinov', position: 'FW', age: 25, club: 'Al-Wahda' },
-  { number: 19, name: 'Azizbek Turgunboev', position: 'FW', age: 31, club: 'Pakhtakor' },
-  { number: 20, name: 'Sherzod Esanov', position: 'FW', age: 23, club: 'Bunyodkor' },
-  { number: 21, name: 'Dostonbek Khamdamov', position: 'FW', age: 29, club: 'Andijon' },
-  { number: 22, name: 'Khusayin Norchaev', position: 'FW', age: 24, club: 'Neftchi' },
+  { number: 16, name: 'Botirali Ergashev', position: 'GK', age: 30, club: 'Neftchi Farg\'ona' },
+
+  { number: 2, name: 'Abdukodir Khusanov', position: 'DF', age: 22, club: 'Manchester City' },
+  { number: 3, name: 'Khojiakbar Alijonov', position: 'DF', age: 29, club: 'Pakhtakor' },
+  { number: 4, name: 'Farrukh Sayfiev', position: 'DF', age: 35, club: 'Neftchi Farg\'ona' },
+  { number: 5, name: 'Rustam Ashurmatov', position: 'DF', age: 30, club: 'Esteghlal' },
+  { number: 13, name: 'Sherzod Nasrullayev', position: 'DF', age: 28, club: 'Pakhtakor' },
+  { number: 15, name: 'Umarbek Eshmurodov', position: 'DF', age: 33, club: 'Nasaf' },
+  { number: 18, name: 'Abdulla Abdullaev', position: 'DF', age: 28, club: 'Dibba FC' },
+  { number: 24, name: 'Behruz Karimov', position: 'DF', age: 18, club: 'Surkhon' },
+  { number: 25, name: 'Avazbek Ulmasaliev', position: 'DF', age: 26, club: 'OKMK' },
+  { number: 26, name: 'Jakhongir Urozov', position: 'DF', age: 22, club: 'Dinamo Samarkand' },
+
+  { number: 6, name: 'Akmal Mozgovoy', position: 'MF', age: 27, club: 'Pakhtakor' },
+  { number: 7, name: 'Otabek Shukurov', position: 'MF', age: 30, club: 'Baniyas' },
+  { number: 8, name: 'Jamshid Iskanderov', position: 'MF', age: 32, club: 'Neftchi Farg\'ona' },
+  { number: 9, name: 'Odiljon Khamrobekov', position: 'MF', age: 30, club: 'Tractor' },
+  { number: 17, name: 'Dostonbek Khamdamov', position: 'MF', age: 29, club: 'Pakhtakor' },
+  { number: 19, name: 'Azizjon Ganiev', position: 'MF', age: 28, club: 'Al Bataeh' },
+  { number: 23, name: 'Sherzod Esanov', position: 'MF', age: 23, club: 'Buxoro' },
+
+  { number: 10, name: 'Jaloliddin Masharipov', position: 'FW', age: 33, club: 'Esteghlal' },
+  { number: 11, name: 'Oston Urunov', position: 'FW', age: 25, club: 'Persepolis' },
+  { number: 14, name: 'Eldor Shomurodov', position: 'FW', age: 31, club: 'Başakşehir', captain: true },
+  { number: 20, name: 'Azizbek Amonov', position: 'FW', age: 28, club: 'Dinamo Samarkand' },
+  { number: 21, name: 'Igor Sergeev', position: 'FW', age: 32, club: 'Persepolis' },
+  { number: 22, name: 'Abbosbek Fayzullaev', position: 'FW', age: 23, club: 'Başakşehir' },
 ];
 
 export const lineup = {
   formation: '4-2-3-1',
-  startingXI: [1, 2, 4, 5, 15, 6, 14, 16, 10, 17, 7]
+  startingXI: [1, 3, 2, 5, 13, 7, 6, 22, 10, 11, 14]
 };

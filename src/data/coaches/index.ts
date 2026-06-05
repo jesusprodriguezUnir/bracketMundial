@@ -256,13 +256,12 @@ export const COACHES: Record<string, Coach> = {
 
   // Group G
   BEL: {
-    name: 'Domenico Tedesco',
-    born: '1985-12-12',
-    nationality: 'Alemania',
-    photoUrl: 'https://r2.thesportsdb.com/images/media/player/thumb/vs6jr71622208802.jpg',
+    name: 'Rudi García',
+    born: '1964-02-20',
+    nationality: 'Francia',
     bio: {
-      es: 'Técnico italo-alemán que revitalizó la Golden Generation belga. Llevó a Bélgica al Euro 2024.',
-      en: 'Italian-German coach who reinvigorated Belgium\'s Golden Generation. He led Belgium to Euro 2024.',
+      es: 'Experimentado entrenador francés con una exitosa trayectoria en clubes europeos como el Lille, Roma, Olympique de Marsella y Lyon. Fue nombrado seleccionador de Bélgica en enero de 2025 para liderar al equipo en el Mundial 2026.',
+      en: 'Experienced French manager with a successful track record at European clubs such as Lille, Roma, Marseille, and Lyon. Appointed Belgium head coach in January 2025 to lead the team at the 2026 World Cup.',
     },
   },
   EGY: {
@@ -428,12 +427,12 @@ export const COACHES: Record<string, Coach> = {
     },
   },
   UZB: {
-    name: 'Srecko Katanec',
-    born: '1963-03-16',
-    nationality: 'Eslovenia',
+    name: 'Fabio Cannavaro',
+    born: '1973-09-13',
+    nationality: 'Italia',
     bio: {
-      es: 'Con Uzbekistán guió a los «Lobos Blancos» hasta las semifinales de la Copa Asiática 2023.',
-      en: 'With Uzbekistan he led the "White Wolves" to the semi-finals of the 2023 AFC Asian Cup.',
+      es: 'Leyenda del fútbol italiano y ganador del Balón de Oro en 2006. Asumió la dirección técnica de Uzbekistán con el reto de liderar al combinado asiático en su debut histórico en una Copa del Mundo.',
+      en: "Italian football legend and 2006 Ballon d'Or winner. He took over as Uzbekistan's head coach with the challenge of leading the Asian nation in their historic World Cup debut.",
     },
   },
   COL: {
