@@ -10,6 +10,7 @@
     "photo": "node scripts/fetch-squad-assets.mjs --type player",
     "photos:extract": "node scripts/extract-from-image.mjs",
     "assets:report": "node scripts/fetch-squad-assets.mjs --report",
+    "guardian": "node scripts/fetch-guardian-squads.mjs",
     "crests": "node scripts/fetch-crests.mjs",
     "kits": "node scripts/fetch-kits.mjs",
     "pages": "tsx scripts/generate-pages.mjs",

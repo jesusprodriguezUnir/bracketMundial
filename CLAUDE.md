@@ -102,11 +102,31 @@ Los jugadores sin foto en el manifiesto muestran iniciales directamente.
 - **Entrenadores:** 45/48 con foto local · faltan CPV, HAI, KSA
 - **Reporte completo:** [`docs/missing-assets.md`](docs/missing-assets.md) (regenerar con `npm run assets:report`)
 
+### Fuente prioritaria para jugadores: Guardian Player Guide (2026)
+
+El script [`scripts/fetch-guardian-squads.mjs`](scripts/fetch-guardian-squads.mjs) sincroniza **datos y fotos** de los 1248 jugadores (48 equipos) directamente desde la guía interactiva del Guardian:
+
+- **JSON maestro** (sin auth): `interactive.guim.co.uk/docsdata/1_ZAfmUkTZ4BvDgvhEGaEruakfu4aWIIjjzXaMAiT1yc.json`
+- **JSON por equipo**: `.../docsdata/{spreadsheet}.json` → `{name, position, number, club, date of birth, grid_image}`
+- **Fotos**: `media.guim.co.uk/{hash}/{crop}/500.jpg` — URL directa, sin auth
+
+```bash
+npm run guardian -- ARG --dry-run   # Ver cambios sin escribir
+npm run guardian -- ARG             # Datos + fotos de ARG
+npm run guardian                    # Todos los 48 equipos
+npm run guardian -- --data          # Solo reescribir squads .ts
+npm run guardian -- --photos        # Solo descargar fotos
+```
+
+La skill `/guardian-players` de Claude Code orquesta el flujo completo (ver [`.claude/skills/guardian-players/SKILL.md`](.claude/skills/guardian-players/SKILL.md)).
+
+Si `GUARDIAN_MASTER_ID` cambia (el Guardian publica un nuevo atom), actualizar la constante en el script o pasar como env variable.
+
 ### Notas de mantenimiento
 
 - Tras descargar fotos, el script regenera automáticamente ambos manifiestos.
 - No editar `player-photos.ts` ni `coach-photos.ts` a mano.
-- La skill `/fetch-squads` de Claude Code orquesta el flujo completo (ver [`.claude/skills/fetch-squads/SKILL.md`](.claude/skills/fetch-squads/SKILL.md)).
+- La skill `/fetch-squads` de Claude Code usa la cascada API-Football → TheSportsDB → Wikipedia (ver [`.claude/skills/fetch-squads/SKILL.md`](.claude/skills/fetch-squads/SKILL.md)); úsala para entrenadores o como respaldo cuando el Guardian no tiene foto de algún jugador.
 
 ## Sistema de Noticias
 

@@ -1,35 +1,39 @@
 import type { Player } from './index';
 
 export const squad: Player[] = [
+  // Porteros
   { number: 1, name: 'Luis Mejía', position: 'GK', age: 35, club: 'Nacional' },
-  { number: 12, name: 'Orlando Mosquera', position: 'GK', age: 31, club: 'Al-Fayha' },
-  { number: 23, name: 'César Samudio', position: 'GK', age: 31, club: 'Marathón' },
-  { number: 2, name: 'Amir Murillo', position: 'DF', age: 30, club: 'Besiktas' },
-  { number: 3, name: 'Andrés Andrade', position: 'DF', age: 27, club: 'LASK' },
-  { number: 4, name: 'Fidel Escobar', position: 'DF', age: 31, club: 'Deportivo Saprissa', captain: true },
-  { number: 5, name: 'José Córdoba', position: 'DF', age: 24, club: 'Norwich City' },
-  { number: 13, name: 'Eric Davis', position: 'DF', age: 35, club: 'Plaza Amador' },
-  { number: 14, name: 'Jorge Gutiérrez', position: 'DF', age: 27, club: 'Deportivo La Guaira' },
-  { number: 15, name: 'César Blackman', position: 'DF', age: 27, club: 'Slovan Bratislava' },
-  { number: 24, name: 'Edgardo Fariña', position: 'DF', age: 24, club: 'Pari Nizhny Novgorod' },
-  { number: 25, name: 'Jiovany Ramos', position: 'DF', age: 29, club: 'Academia Puerto Cabello' },
-  { number: 26, name: 'Roderick Miller', position: 'DF', age: 34, club: 'Turan Tovuz' },
-  { number: 6, name: 'Adalberto Carrasquilla', position: 'MF', age: 27, club: 'Pumas UNAM' },
-  { number: 8, name: 'Cristian Martínez', position: 'MF', age: 29, club: 'Ironi Kiryat Shmona' },
-  { number: 10, name: 'Yoel Bárcenas', position: 'MF', age: 32, club: 'Mazatlán' },
-  { number: 16, name: 'Aníbal Godoy', position: 'MF', age: 36, club: 'San Diego FC' },
-  { number: 17, name: 'José Luis Rodríguez', position: 'MF', age: 27, club: 'Juárez' },
-  { number: 18, name: 'Carlos Harvey', position: 'MF', age: 26, club: 'Minnesota United' },
-  { number: 19, name: 'Alberto Quintero', position: 'MF', age: 38, club: 'Plaza Amador' },
-  { number: 21, name: 'César Yanis', position: 'MF', age: 30, club: 'Cobresal' },
-  { number: 22, name: 'Azarías Londoño', position: 'MF', age: 24, club: 'Universidad Católica' },
-  { number: 7, name: 'Tomás Rodríguez', position: 'FW', age: 27, club: 'Deportivo Saprissa' },
-  { number: 9, name: 'Ismael Díaz', position: 'FW', age: 29, club: 'Club León' },
-  { number: 11, name: 'Cecilio Waterman', position: 'FW', age: 35, club: 'Universidad de Concepción' },
-  { number: 20, name: 'José Fajardo', position: 'FW', age: 32, club: 'Universidad Católica de Ecuador' },
+  { number: 12, name: 'César Samudio', position: 'GK', age: 31, club: 'Marathón' },
+  { number: 22, name: 'Orlando Mosquera', position: 'GK', age: 31, club: 'Al-Fayha' },
+  // Defensores
+  { number: 2, name: 'César Blackman', position: 'DF', age: 28, club: 'Slovan Bratislava' },
+  { number: 3, name: 'José Córdoba', position: 'DF', age: 25, club: 'Norwich' },
+  { number: 4, name: 'Fidel Escobar', position: 'DF', age: 30, club: 'Saprissa', captain: true },
+  { number: 5, name: 'Edgardo Fariña', position: 'DF', age: 24, club: 'Nizhny Novgorod' },
+  { number: 13, name: 'Jiovany Ramos', position: 'DF', age: 29, club: 'Academia Puerto Cabello' },
+  { number: 15, name: 'Eric Davis', position: 'DF', age: 35, club: 'Plaza Amador' },
+  { number: 16, name: 'Andrés Andrade', position: 'DF', age: 27, club: 'LASK' },
+  { number: 23, name: 'Michael Amir Murillo', position: 'DF', age: 29, club: 'Besiktas' },
+  { number: 25, name: 'Roderick Miller', position: 'DF', age: 34, club: 'Turan Tovuz' },
+  { number: 26, name: 'Jorge Gutiérrez', position: 'DF', age: 28, club: 'Deportivo La Guaira' },
+  // Volantes
+  { number: 6, name: 'Cristian Martínez', position: 'MF', age: 29, club: 'Kiryat Shmona' },
+  { number: 8, name: 'Adalberto Carrasquilla', position: 'MF', age: 27, club: 'Pumas' },
+  { number: 14, name: 'Carlos Harvey', position: 'MF', age: 26, club: 'Minnesota United' },
+  { number: 20, name: 'Aníbal Godoy', position: 'MF', age: 35, club: 'San Diego FC' },
+  // Delanteros
+  { number: 7, name: 'José Luis Rodríguez', position: 'FW', age: 27, club: 'FC Juárez' },
+  { number: 9, name: 'Tomás Rodríguez', position: 'FW', age: 26, club: 'Saprissa' },
+  { number: 10, name: 'Ismael Díaz', position: 'FW', age: 28, club: 'Club León' },
+  { number: 11, name: 'Édgar Yoel Bárcenas', position: 'FW', age: 32, club: 'Mazatlán' },
+  { number: 17, name: 'José Fajardo', position: 'FW', age: 32, club: 'Universidad Católica' },
+  { number: 18, name: 'Cecilio Waterman', position: 'FW', age: 35, club: 'Universidad de Concepción' },
+  { number: 19, name: 'Alberto Quintero', position: 'FW', age: 38, club: 'Plaza Amador' },
+  { number: 21, name: 'César Yanis', position: 'FW', age: 30, club: 'Cobresal' },
+  { number: 24, name: 'Azarías Londoño', position: 'FW', age: 24, club: 'Universidad Católica' },
 ];
 
 export const lineup = {
   formation: '3-4-3',
-  startingXI: [12, 3, 4, 18, 13, 6, 16, 2, 8, 20, 9]
+  startingXI: [22, 16, 4, 14, 15, 8, 20, 23, 6, 17, 10]
 };
