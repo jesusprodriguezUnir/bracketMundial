@@ -7,6 +7,10 @@ export interface Player {
   captain?: boolean;
   thesportsdbId?: string;
   photoUrl?: string;
+  bio?: string;
+  caps?: number;
+  goals?: number;
+  special?: string;
 }
 
 export interface Lineup {
