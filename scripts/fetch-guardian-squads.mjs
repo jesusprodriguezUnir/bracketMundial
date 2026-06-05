@@ -155,12 +155,24 @@ function generatePlayerManifest() {
   return keys.length;
 }
 
-// ── Parser del squad .ts existente ───────────────────────────────────────────
-/** Extrae el valor de un campo string con comillas simples, manejando escapes. */
+/** Extrae el valor de un campo string con comillas simples o dobles (JSON), manejando escapes. */
 function extractStr(text, field) {
-  const re = new RegExp(`${field}:\\s*'((?:[^'\\\\]|\\\\.)*)'`);
-  const m = re.exec(text);
-  return m ? m[1].replace(/\\'/g, "'") : null;
+  // Try single quotes first (existing format)
+  let re = new RegExp(`${field}:\\s*'((?:[^'\\\\]|\\\\.)*)'`);
+  let m = re.exec(text);
+  if (m) return m[1].replace(/\\'/g, "'");
+
+  // Try double quotes (JSON.stringify format)
+  re = new RegExp(`${field}:\\s*"((?:[^"\\\\]|\\\\.)*)"`);
+  m = re.exec(text);
+  if (m) {
+    try {
+      return JSON.parse(`"${m[1]}"`);
+    } catch {
+      return m[1].replace(/\\"/g, '"');
+    }
+  }
+  return null;
 }
 
 function parseExistingSquad(filePath) {
@@ -187,7 +199,11 @@ function parseExistingSquad(filePath) {
       const captain = /captain:\s*true/.test(o) ? true : undefined;
       const thesportsdbId = extractStr(o, 'thesportsdbId') ?? undefined;
       const photoUrl = extractStr(o, 'photoUrl') ?? undefined;
-      if (name) players.push({ number, name, position, age, club, captain, thesportsdbId, photoUrl });
+      const bio     = extractStr(o, 'bio') ?? undefined;
+      const caps    = /caps:\s*(\d+)/.exec(o) ? +(/caps:\s*(\d+)/.exec(o)[1]) : undefined;
+      const goals   = /goals:\s*(\d+)/.exec(o) ? +(/goals:\s*(\d+)/.exec(o)[1]) : undefined;
+      const special = extractStr(o, 'special') ?? undefined;
+      if (name) players.push({ number, name, position, age, club, captain, thesportsdbId, photoUrl, bio, caps, goals, special });
     }
   }
 
@@ -217,7 +233,6 @@ function esc(s) {
   return String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-// ── Emitir archivo .ts del squad ─────────────────────────────────────────────
 function emitSquadTs(code, players, lineup, coachName) {
   const sorted = [...players].sort(
     (a, b) => (POS_ORDER[a.position] ?? 3) - (POS_ORDER[b.position] ?? 3) || a.number - b.number,
@@ -237,6 +252,10 @@ function emitSquadTs(code, players, lineup, coachName) {
     if (p.captain)         out += `, captain: true`;
     if (p.thesportsdbId)   out += `, thesportsdbId: '${esc(p.thesportsdbId)}'`;
     if (p.photoUrl)        out += `, photoUrl: '${esc(p.photoUrl)}'`;
+    if (p.bio)             out += `, bio: ${JSON.stringify(p.bio)}`;
+    if (p.caps !== undefined) out += `, caps: ${p.caps}`;
+    if (p.goals !== undefined) out += `, goals: ${p.goals}`;
+    if (p.special)         out += `, special: ${JSON.stringify(p.special)}`;
     out += ` },\n`;
   }
   out += `];\n\nexport const lineup = {\n  formation: '${esc(lineup.formation)}',\n  startingXI: [${lineup.startingXI.join(', ')}]\n};\n`;
@@ -306,14 +325,25 @@ async function processTeam(code, rawPlayers) {
   // Normalizar campos del Guardian
   const gPlayers = rawPlayers
     .filter(p => String(p.name ?? '').trim())
-    .map(p => ({
-      number:     +p.number || 0,
-      name:       String(p.name ?? '').trim(),
-      position:   POS_MAP[String(p.position ?? '').toLowerCase()] ?? 'FW',
-      age:        calcAge(p['date of birth'] ?? p.dob),
-      club:       String(p.club ?? '').trim(),
-      grid_image: String(p.grid_image ?? p['grid image'] ?? '').trim(),
-    }))
+    .map(p => {
+      const bioRaw = String(p.bio ?? '').trim();
+      const bio = bioRaw ? bioRaw.replace(/<[^>]+>/g, '').trim() : undefined;
+      const capsVal = p.caps !== undefined && p.caps !== '' ? +p.caps : undefined;
+      const goalsVal = p['goals for country'] !== undefined && p['goals for country'] !== '' ? +p['goals for country'] : undefined;
+      const specialVal = String(p['special player? (eg. key player, promising talent, etc) OPTIONAL'] ?? p.special ?? '').trim();
+      return {
+        number:     +p.number || 0,
+        name:       String(p.name ?? '').trim(),
+        position:   POS_MAP[String(p.position ?? '').toLowerCase()] ?? 'FW',
+        age:        calcAge(p['date of birth'] ?? p.dob),
+        club:       String(p.club ?? '').trim(),
+        grid_image: String(p.grid_image ?? p['grid image'] ?? '').trim(),
+        bio,
+        caps:       isNaN(capsVal) ? undefined : capsVal,
+        goals:      isNaN(goalsVal) ? undefined : goalsVal,
+        special:    specialVal || undefined,
+      };
+    })
     .filter(p => p.number > 0 && p.name.length > 0);
 
   if (gPlayers.length < 5) {
@@ -338,6 +368,10 @@ async function processTeam(code, rawPlayers) {
       captain:       ep?.captain,
       thesportsdbId: ep?.thesportsdbId,
       photoUrl:      ep?.photoUrl,
+      bio:           gp.bio ?? ep?.bio,
+      caps:          gp.caps !== undefined ? gp.caps : ep?.caps,
+      goals:         gp.goals !== undefined ? gp.goals : ep?.goals,
+      special:       gp.special ?? ep?.special,
     };
   });
 

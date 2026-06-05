@@ -36,5 +36,5 @@ export const squad: Player[] = [
 
 export const lineup = {
   formation: '4-3-3',
-  startingXI: [23, 3, 22, 14, 5, 8, 20, 17, 21, 19]
+  startingXI: [23, 3, 22, 14, 5, 16, 8, 20, 17, 21, 19]
 };

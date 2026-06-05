@@ -798,6 +798,9 @@ export const en: Record<TranslationKey, string> = {
   'player.ageSuffix': '{n} years',
   'player.socialTwitter': 'Twitter',
   'player.socialInstagram': 'Instagram',
+  'player.labelCaps': 'Caps',
+  'player.labelGoals': 'Goals',
+  'player.special': 'One to watch',
 
   // Squads table & details
   'squads.table.player': 'Player',

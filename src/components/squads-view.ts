@@ -17,6 +17,7 @@ import { subscribeSlice } from '../store/store-utils';
 import { resolvePlayerPhoto } from '../lib/player-photo';
 import { resolveCoachPhoto } from '../lib/coach-photo';
 import '../components/player-card';
+import '../components/player-hover-card';
 import '../components/lineup-view';
 import { t, useLocaleStore } from '../i18n';
 import { getOddsForMatch } from '../lib/odds-service';
@@ -50,6 +51,7 @@ export class SquadsView extends LitElement {
   @state() private squadViewMode: 'list' | 'pitch' = 'list';
   @state() private searchQuery = '';
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
+  @state() private _hover: { player: Player; teamId: string; x: number; y: number } | null = null;
   @state() private _news: NewsItem[] | null = null;
   @state() private _newsLoading = false;
   @state() private _newsError = false;
@@ -1742,6 +1744,37 @@ export class SquadsView extends LitElement {
     this.activeTab = 'squad';
     this._newsKey = null;
     this._news = null;
+    this._hover = null;
+  }
+
+  private _handlePlayerMouseEnter(e: MouseEvent, player: Player, teamId: string) {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    const target = e.currentTarget as HTMLElement;
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    
+    // Position the card 12px to the right of the hovered avatar, aligned near the top
+    const hoverCardWidth = 290;
+    const hoverCardHeight = 220; // approximate height
+    
+    let x = rect.right + 12;
+    if (x + hoverCardWidth > window.innerWidth) {
+      x = rect.left - hoverCardWidth - 12;
+    }
+    
+    let y = rect.top - 10;
+    if (y + hoverCardHeight > window.innerHeight) {
+      y = window.innerHeight - hoverCardHeight - 12;
+    }
+    if (y < 12) {
+      y = 12;
+    }
+    
+    this._hover = { player, teamId, x, y };
+  }
+
+  private _handlePlayerMouseLeave() {
+    this._hover = null;
   }
 
   render() {
@@ -1772,6 +1805,15 @@ export class SquadsView extends LitElement {
           .teamId=${this._openPlayer.teamId}
           @close=${() => { this._openPlayer = null; }}
         ></player-card>
+      ` : ''}
+
+      ${this._hover ? html`
+        <player-hover-card
+          .player=${this._hover.player}
+          .teamId=${this._hover.teamId}
+          .x=${this._hover.x}
+          .y=${this._hover.y}
+        ></player-hover-card>
       ` : ''}
 
       <button class="back-btn" @click=${() => this.goBack()}>${t('squads.back')}</button>
@@ -1832,7 +1874,10 @@ export class SquadsView extends LitElement {
                       class="player-row"
                       @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
                     >
-                      <td><div class="player-avatar">
+                      <td><div class="player-avatar"
+                        @mouseenter=${(e: MouseEvent) => this._handlePlayerMouseEnter(e, player, selectedTeam.id)}
+                        @mouseleave=${this._handlePlayerMouseLeave}
+                      >
                         ${photo
                           ? html`<img src="${photo}" alt="${player.name}" loading="lazy" decoding="async">`
                           : getInitials(player.name)}
@@ -1859,7 +1904,10 @@ export class SquadsView extends LitElement {
                   class="mob-player-card"
                   @click=${() => { this._openPlayer = { player, teamId: selectedTeam.id }; }}
                 >
-                  <div class="mob-player-avatar">
+                  <div class="mob-player-avatar"
+                    @mouseenter=${(e: MouseEvent) => this._handlePlayerMouseEnter(e, player, selectedTeam.id)}
+                    @mouseleave=${this._handlePlayerMouseLeave}
+                  >
                     ${photo
                       ? html`<img src="${photo}" alt="${player.name}" loading="lazy" decoding="async">`
                       : getInitials(player.name)}

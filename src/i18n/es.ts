@@ -806,6 +806,9 @@ export const es = {
   'player.ageSuffix': '{n} años',
   'player.socialTwitter': 'Twitter',
   'player.socialInstagram': 'Instagram',
+  'player.labelCaps': 'Partidos',
+  'player.labelGoals': 'Goles',
+  'player.special': 'Jugador a seguir',
 
   // Squads table & details
   'squads.table.player': 'Jugador',
