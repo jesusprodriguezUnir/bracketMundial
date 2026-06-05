@@ -70,11 +70,14 @@ npm run guardian -- ARG
 # Solo datos (reescribir src/data/squads/arg.ts)
 npm run guardian -- ARG --data
 
+# Solo biografías (enriquece bio, caps, goals, special sin tocar alineaciones ni dorsales)
+npm run guardian -- ARG --bio-only
+
 # Solo fotos (descargar avatares)
 npm run guardian -- ARG --photos
 
-# Todos los equipos
-npm run guardian
+# Todos los equipos (solo biografías, recomendada para enriquecimiento seguro)
+npm run guardian -- --bio-only
 ```
 
 **Comportamiento de fotos:**
@@ -84,10 +87,11 @@ npm run guardian
 - Al final regenera automáticamente `src/data/player-photos.ts`.
 
 **Comportamiento de datos (`src/data/squads/*.ts`):**
-- Reemplaza `number`, `name`, `position`, `age`, `club` con los datos del Guardian.
+- Reemplaza `number`, `name`, `position`, `age`, `club` con los datos del Guardian por defecto.
 - **Preserva** `captain`, `thesportsdbId`, `photoUrl` del squad anterior (matching por nombre).
 - **Reconcilia** `lineup.startingXI` al nuevo dorsal de cada titular (si el dorsal cambia).
 - Si un titular ya no está en la plantilla del Guardian → se elimina del XI y se avisa.
+- **Modo `--bio-only`**: Utiliza `existing.players` como base de roster y solo enriquece `bio`, `caps`, `goals`, y `special` desde la guía del Guardian si coincide el nombre (umbral `>= 0.6`). No altera alineaciones ni dorsales.
 
 ### 4. Validar
 

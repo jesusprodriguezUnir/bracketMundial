@@ -11,6 +11,7 @@ export class PlayerHoverCard extends LitElement {
   @property() teamId = '';
   @property({ type: Number }) x = 0;
   @property({ type: Number }) y = 0;
+  @property() locale = 'es';
 
   override updated(changedProps: PropertyValues) {
     if (changedProps.has('x') || changedProps.has('y')) {
@@ -47,6 +48,9 @@ export class PlayerHoverCard extends LitElement {
       display: flex;
       flex-direction: column;
       animation: fadeIn 0.12s ease-out;
+      max-height: 78vh;
+      overflow-y: auto;
+      pointer-events: auto;
     }
 
     @keyframes fadeIn {
@@ -162,10 +166,6 @@ export class PlayerHoverCard extends LitElement {
       font-size: 11px;
       line-height: 1.4;
       color: var(--ink-soft);
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px dashed rgba(26, 25, 51, 0.15);
@@ -184,6 +184,15 @@ export class PlayerHoverCard extends LitElement {
       statsParts.push(`${this.player.goals} ${t('player.labelGoals')}`);
     }
     const statsStr = statsParts.join(' · ');
+
+    let bioText = '';
+    if (this.player.bio) {
+      if (typeof this.player.bio === 'object') {
+        bioText = this.player.bio[this.locale as 'es' | 'en'] || this.player.bio.es || this.player.bio.en;
+      } else {
+        bioText = this.player.bio;
+      }
+    }
 
     return html`
       <div class="hover-card">
@@ -204,7 +213,7 @@ export class PlayerHoverCard extends LitElement {
             ${this.player.special ? html`<div class="special-badge">⭐ ${t('player.special')}</div>` : ''}
           </div>
         </div>
-        ${this.player.bio ? html`<div class="bio">${this.player.bio}</div>` : ''}
+        ${bioText ? html`<div class="bio">${bioText}</div>` : ''}
       </div>
     `;
   }

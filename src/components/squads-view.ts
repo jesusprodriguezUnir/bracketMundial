@@ -63,6 +63,7 @@ export class SquadsView extends LitElement {
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
+  private _hoverTimer: number | null = null;
 
   override updated(changedProps: PropertyValues) {
     if (changedProps.has('targetTeamId') && this.targetTeamId) {
@@ -1749,13 +1750,17 @@ export class SquadsView extends LitElement {
 
   private _handlePlayerMouseEnter(e: MouseEvent, player: Player, teamId: string) {
     if (!window.matchMedia('(hover: hover)').matches) return;
+    if (this._hoverTimer) {
+      clearTimeout(this._hoverTimer);
+      this._hoverTimer = null;
+    }
     const target = e.currentTarget as HTMLElement;
     if (!target) return;
     const rect = target.getBoundingClientRect();
     
     // Position the card 12px to the right of the hovered avatar, aligned near the top
     const hoverCardWidth = 290;
-    const hoverCardHeight = 220; // approximate height
+    const hoverCardHeight = 380; // alturaEstimada de la tarjeta más alta
     
     let x = rect.right + 12;
     if (x + hoverCardWidth > window.innerWidth) {
@@ -1763,7 +1768,7 @@ export class SquadsView extends LitElement {
     }
     
     let y = rect.top - 10;
-    if (y + hoverCardHeight > window.innerHeight) {
+    if (y + hoverCardHeight > window.innerHeight - 12) {
       y = window.innerHeight - hoverCardHeight - 12;
     }
     if (y < 12) {
@@ -1774,7 +1779,13 @@ export class SquadsView extends LitElement {
   }
 
   private _handlePlayerMouseLeave() {
-    this._hover = null;
+    if (this._hoverTimer) {
+      clearTimeout(this._hoverTimer);
+    }
+    this._hoverTimer = window.setTimeout(() => {
+      this._hover = null;
+      this._hoverTimer = null;
+    }, 140);
   }
 
   render() {
@@ -1813,6 +1824,9 @@ export class SquadsView extends LitElement {
           .teamId=${this._hover.teamId}
           .x=${this._hover.x}
           .y=${this._hover.y}
+          .locale=${locale}
+          @mouseenter=${() => { if (this._hoverTimer) clearTimeout(this._hoverTimer); }}
+          @mouseleave=${this._handlePlayerMouseLeave}
         ></player-hover-card>
       ` : ''}
 

@@ -88,11 +88,12 @@ const POS_ORDER = { GK: 0, DF: 1, MF: 2, FW: 3 };
 // ── CLI ───────────────────────────────────────────────────────────────────────
 const args        = process.argv.slice(2);
 const teamFilter  = new Set(args.filter(a => !a.startsWith('--') && /^[A-Z]{2,3}$/.test(a)));
+const flagBioOnly = args.includes('--bio-only');
 const flagData    = args.includes('--data');
 const flagPhotos  = args.includes('--photos');
 const dryRun      = args.includes('--dry-run');
-const doData      = flagData  || (!flagData && !flagPhotos);
-const doPhotos    = flagPhotos || (!flagData && !flagPhotos);
+const doData      = flagData  || flagBioOnly || (!flagData && !flagPhotos);
+const doPhotos    = flagPhotos || (!flagData && !flagPhotos && !flagBioOnly);
 
 if (doPhotos && !doData && !dryRun) {
   console.warn('⚠ --photos sin --data: los dorsales en disco usarán los del Guardian pero los squads .ts no se actualizarán. Considera ejecutar sin flags para hacer ambas fases juntas.');
@@ -351,73 +352,108 @@ async function processTeam(code, rawPlayers) {
     return { skipped: true };
   }
 
-  // Merge: trasladar captain/thesportsdbId/photoUrl del squad existente cuando coincide el nombre
-  const mergedPlayers = gPlayers.map(gp => {
-    let best = null, bestSim = 0;
-    for (const ep of existing.players) {
-      const sim = nameSimilarity(gp.name, ep.name);
-      if (sim > bestSim) { bestSim = sim; best = ep; }
-    }
-    const ep = bestSim >= 0.6 ? best : null;
-    return {
-      number:        gp.number,
-      name:          gp.name,
-      position:      gp.position,
-      age:           gp.age > 0 ? gp.age : (ep?.age ?? 0),
-      club:          gp.club || (ep?.club ?? ''),
-      captain:       ep?.captain,
-      thesportsdbId: ep?.thesportsdbId,
-      photoUrl:      ep?.photoUrl,
-      bio:           gp.bio ?? ep?.bio,
-      caps:          gp.caps !== undefined ? gp.caps : ep?.caps,
-      goals:         gp.goals !== undefined ? gp.goals : ep?.goals,
-      special:       gp.special ?? ep?.special,
-    };
-  });
+  let mergedPlayers;
+  let newLineup;
+  let addedCount = 0;
+  let removedCount = 0;
 
-  // Reconciliar XI con los nuevos dorsales
-  const { newXI, msgs: xiMsgs } = reconcileLineup(
-    existing.lineup.startingXI, existing.players, mergedPlayers,
-  );
-  const newLineup = { formation: existing.lineup.formation, startingXI: newXI };
-
-  // Estadísticas de cambio (por nombre, no por dorsal)
-  const trulyNew = mergedPlayers.filter(gp => {
-    let best = 0;
-    for (const ep of existing.players) {
-      const s = nameSimilarity(gp.name, ep.name);
-      if (s > best) best = s;
-    }
-    return best < 0.6;
-  });
-  const trulyRemoved = existing.players.filter(ep => {
-    let best = 0;
-    for (const gp of mergedPlayers) {
-      const s = nameSimilarity(ep.name, gp.name);
-      if (s > best) best = s;
-    }
-    return best < 0.6;
-  });
-  const numberChanged = mergedPlayers.filter(gp => {
-    const ep = existing.players.find(p => nameSimilarity(p.name, gp.name) >= 0.6);
-    return ep && ep.number !== gp.number;
-  });
-
-  const captain    = mergedPlayers.find(p => p.captain);
-  const hadCaptain = existing.players.some(p => p.captain);
-
-  console.log(`📋 ${code} — Guardian: ${gPlayers.length} jugadores`);
-  if (trulyNew.length)     console.log(`  ✚ Nuevos (${trulyNew.length}): ${trulyNew.slice(0,5).map(p=>`${p.name} #${p.number}`).join(', ')}${trulyNew.length>5?'…':''}`);
-  if (trulyRemoved.length) console.log(`  ✖ Eliminados (${trulyRemoved.length}): ${trulyRemoved.slice(0,5).map(p=>`${p.name} #${p.number}`).join(', ')}${trulyRemoved.length>5?'…':''}`);
-  if (numberChanged.length) {
-    const changes = numberChanged.slice(0,5).map(gp => {
-      const ep = existing.players.find(p => nameSimilarity(p.name, gp.name) >= 0.6);
-      return `${gp.name.split(' ').pop()} ${ep?.number}→${gp.number}`;
+  if (flagBioOnly) {
+    // Usar existing.players como base
+    mergedPlayers = existing.players.map(ep => {
+      let best = null, bestSim = 0;
+      for (const gp of gPlayers) {
+        const sim = nameSimilarity(ep.name, gp.name);
+        if (sim > bestSim) { bestSim = sim; best = gp; }
+      }
+      const gp = bestSim >= 0.6 ? best : null;
+      return {
+        number:        ep.number,
+        name:          ep.name,
+        position:      ep.position,
+        age:           ep.age,
+        club:          ep.club,
+        captain:       ep.captain,
+        thesportsdbId: ep.thesportsdbId,
+        photoUrl:      ep.photoUrl,
+        bio:           gp ? (gp.bio ?? ep.bio) : ep.bio,
+        caps:          gp ? (gp.caps !== undefined ? gp.caps : ep.caps) : ep.caps,
+        goals:         gp ? (gp.goals !== undefined ? gp.goals : ep.goals) : ep.goals,
+        special:       gp ? (gp.special ?? ep.special) : ep.special,
+      };
     });
-    console.log(`  ↔ Dorsales cambiados (${numberChanged.length}): ${changes.join(', ')}${numberChanged.length>5?'…':''}`);
+    newLineup = existing.lineup;
+    console.log(`📋 ${code} (bio-only) — Squad base: ${existing.players.length} jugadores.`);
+  } else {
+    // Merge: trasladar captain/thesportsdbId/photoUrl del squad existente cuando coincide el nombre
+    mergedPlayers = gPlayers.map(gp => {
+      let best = null, bestSim = 0;
+      for (const ep of existing.players) {
+        const sim = nameSimilarity(gp.name, ep.name);
+        if (sim > bestSim) { bestSim = sim; best = ep; }
+      }
+      const ep = bestSim >= 0.6 ? best : null;
+      return {
+        number:        gp.number,
+        name:          gp.name,
+        position:      gp.position,
+        age:           gp.age > 0 ? gp.age : (ep?.age ?? 0),
+        club:          gp.club || (ep?.club ?? ''),
+        captain:       ep?.captain,
+        thesportsdbId: ep?.thesportsdbId,
+        photoUrl:      ep?.photoUrl,
+        bio:           gp.bio ?? ep?.bio,
+        caps:          gp.caps !== undefined ? gp.caps : ep?.caps,
+        goals:         gp.goals !== undefined ? gp.goals : ep?.goals,
+        special:       gp.special ?? ep?.special,
+      };
+    });
+
+    // Reconciliar XI con los nuevos dorsales
+    const { newXI, msgs: xiMsgs } = reconcileLineup(
+      existing.lineup.startingXI, existing.players, mergedPlayers,
+    );
+    newLineup = { formation: existing.lineup.formation, startingXI: newXI };
+
+    // Estadísticas de cambio (por nombre, no por dorsal)
+    const trulyNew = mergedPlayers.filter(gp => {
+      let best = 0;
+      for (const ep of existing.players) {
+        const s = nameSimilarity(gp.name, ep.name);
+        if (s > best) best = s;
+      }
+      return best < 0.6;
+    });
+    const trulyRemoved = existing.players.filter(ep => {
+      let best = 0;
+      for (const gp of mergedPlayers) {
+        const s = nameSimilarity(ep.name, gp.name);
+        if (s > best) best = s;
+      }
+      return best < 0.6;
+    });
+    addedCount = trulyNew.length;
+    removedCount = trulyRemoved.length;
+    const numberChanged = mergedPlayers.filter(gp => {
+      const ep = existing.players.find(p => nameSimilarity(p.name, gp.name) >= 0.6);
+      return ep && ep.number !== gp.number;
+    });
+
+    const captain    = mergedPlayers.find(p => p.captain);
+    const hadCaptain = existing.players.some(p => p.captain);
+
+    console.log(`📋 ${code} — Guardian: ${gPlayers.length} jugadores`);
+    if (trulyNew.length)     console.log(`  ✚ Nuevos (${trulyNew.length}): ${trulyNew.slice(0,5).map(p=>`${p.name} #${p.number}`).join(', ')}${trulyNew.length>5?'…':''}`);
+    if (trulyRemoved.length) console.log(`  ✖ Eliminados (${trulyRemoved.length}): ${trulyRemoved.slice(0,5).map(p=>`${p.name} #${p.number}`).join(', ')}${trulyRemoved.length>5?'…':''}`);
+    if (numberChanged.length) {
+      const changes = numberChanged.slice(0,5).map(gp => {
+        const ep = existing.players.find(p => nameSimilarity(p.name, gp.name) >= 0.6);
+        return `${gp.name.split(' ').pop()} ${ep?.number}→${gp.number}`;
+      });
+      console.log(`  ↔ Dorsales cambiados (${numberChanged.length}): ${changes.join(', ')}${numberChanged.length>5?'…':''}`);
+    }
+    if (hadCaptain && !captain)    console.log(`  ⚠ Capitán no encontrado en la nueva plantilla`);
+    for (const msg of xiMsgs)      console.log(msg);
   }
-  if (hadCaptain && !captain)    console.log(`  ⚠ Capitán no encontrado en la nueva plantilla`);
-  for (const msg of xiMsgs)      console.log(msg);
 
   // ── Fase de datos ──────────────────────────────────────────────────────────
   if (doData) {
@@ -457,7 +493,7 @@ async function processTeam(code, rawPlayers) {
     console.log(`  ${tag} ${summary.join(', ')}`);
   }
 
-  return { ok: true, count: gPlayers.length, added: trulyNew.length, removed: trulyRemoved.length };
+  return { ok: true, count: gPlayers.length, added: addedCount, removed: removedCount };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
