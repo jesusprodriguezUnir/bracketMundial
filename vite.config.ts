@@ -17,6 +17,7 @@ export default defineConfig({
           '**/seleccion/**',
           'en/**',
         ],
+        maximumFileSizeToCacheInBytes: 4194304, // 4 MiB para acomodar el bundle de datos bilingües
         skipWaiting: true,
         clientsClaim: true,
       },
