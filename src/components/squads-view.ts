@@ -1247,6 +1247,12 @@ export class SquadsView extends LitElement {
       flex-direction: column;
       align-items: center;
       gap: 2px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .pitch-dot:hover {
+      transform: translate(-50%, -50%) scale(1.1);
     }
 
     .pitch-dot .pdnum {
@@ -1866,7 +1872,14 @@ export class SquadsView extends LitElement {
             </div>
             
             ${this.squadViewMode === 'pitch' && getLineup(selectedTeam.id) ? html`
-              <lineup-view .squad=${squad} .lineup=${getLineup(selectedTeam.id)} .teamId=${selectedTeam.id}></lineup-view>
+              <lineup-view 
+                .squad=${squad} 
+                .lineup=${getLineup(selectedTeam.id)} 
+                .teamId=${selectedTeam.id}
+                @player-click=${(e: CustomEvent) => { this._openPlayer = { player: e.detail.player, teamId: e.detail.teamId }; }}
+                @player-mouseenter=${(e: CustomEvent) => this._handlePlayerMouseEnter(e.detail.originalEvent, e.detail.player, e.detail.teamId)}
+                @player-mouseleave=${this._handlePlayerMouseLeave}
+              ></lineup-view>
             ` : html`
               <div class="table-wrap">
                 <table>
@@ -2038,9 +2051,9 @@ export class SquadsView extends LitElement {
                                     <rect x="120" y="5"   width="160" height="78" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
                                     <rect x="120" y="557" width="160" height="78" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2"/>
                                   </svg>
-                                  ${lineup ? this._renderPitchTeam(squad, lineup, true, 'var(--retro-orange)') : ''}
+                                  ${lineup ? this._renderPitchTeam(squad, lineup, true, 'var(--retro-orange)', selectedTeam.id) : ''}
                                   ${opponentLineup && match.opponentId
-                                    ? this._renderPitchTeam(getSquad(match.opponentId), opponentLineup, false, 'var(--retro-blue)')
+                                    ? this._renderPitchTeam(getSquad(match.opponentId), opponentLineup, false, 'var(--retro-blue)', match.opponentId)
                                     : ''}
                                   <div class="pitch-tag" style="top:8px;left:8px">
                                     ${selectedTeam.name} · ${lineup?.formation ?? ''}
@@ -2194,7 +2207,7 @@ export class SquadsView extends LitElement {
     `;
   }
 
-  private _renderPitchTeam(squad: Player[], lineup: { formation: string; startingXI: number[] }, isTop: boolean, color: string) {
+  private _renderPitchTeam(squad: Player[], lineup: { formation: string; startingXI: number[] }, isTop: boolean, color: string, teamId: string) {
     const FORMATIONS: Record<string, number[][]> = {
       '4-3-3':   [[50,8],[12,28],[38,26],[62,26],[88,28],[25,55],[50,50],[75,55],[18,88],[50,90],[82,88]],
       '4-2-3-1': [[50,8],[12,28],[38,26],[62,26],[88,28],[32,45],[68,45],[22,72],[50,72],[78,72],[50,90]],
@@ -2216,7 +2229,13 @@ export class SquadsView extends LitElement {
       const y = isTop ? 3 + sy * 0.44 : 97 - sy * 0.44;
       const lastName = player.name.trim().split(/\s+/).at(-1) ?? player.name;
       return html`
-        <div class="pitch-dot" style="left:${x}%;top:${y}%">
+        <div 
+          class="pitch-dot" 
+          style="left:${x}%;top:${y}%"
+          @click=${() => { this._openPlayer = { player, teamId }; }}
+          @mouseenter=${(e: MouseEvent) => this._handlePlayerMouseEnter(e, player, teamId)}
+          @mouseleave=${this._handlePlayerMouseLeave}
+        >
           <div class="pdnum" style="background:${color}">${player.number}</div>
           <div class="pdname">${lastName}</div>
         </div>

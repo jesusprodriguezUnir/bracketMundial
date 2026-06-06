@@ -104,6 +104,12 @@ export class LineupView extends LitElement {
       align-items: center;
       gap: 4px;
       width: 72px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .player:hover {
+      transform: scale(1.05);
     }
 
     .player-token {
@@ -272,7 +278,35 @@ export class LineupView extends LitElement {
               const fallback = player ? getInitials(player.name) : '?';
 
               return html`
-                <div class="player">
+                <div 
+                  class="player"
+                  @click=${() => {
+                    if (player) {
+                      this.dispatchEvent(new CustomEvent('player-click', {
+                        detail: { player, teamId: this.teamId },
+                        bubbles: true,
+                        composed: true
+                      }));
+                    }
+                  }}
+                  @mouseenter=${(e: MouseEvent) => {
+                    if (player) {
+                      this.dispatchEvent(new CustomEvent('player-mouseenter', {
+                        detail: { player, teamId: this.teamId, originalEvent: e },
+                        bubbles: true,
+                        composed: true
+                      }));
+                    }
+                  }}
+                  @mouseleave=${() => {
+                    if (player) {
+                      this.dispatchEvent(new CustomEvent('player-mouseleave', {
+                        bubbles: true,
+                        composed: true
+                      }));
+                    }
+                  }}
+                >
                   <div class="player-token ${photo ? 'has-photo' : ''}">
                     <div
                       class="photo-frame"
