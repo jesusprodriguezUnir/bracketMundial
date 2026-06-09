@@ -1,153 +1,73 @@
 // Genera el PDF completo de la Guía del Mundial 2026
-// a partir del componente unificado e imprimible de la app.
+// SIN servidor Vite — renderiza HTML estático + Playwright
 //
 // Uso:
-//   node scripts/generate-guide-pdf.mjs [--lang es|en] [--mode auto|user] [--output RUTA]
-//
+//   npm run guide:pdf [--lang es|en] [--mode auto|user] [--output RUTA]
 
-import { chromium } from 'playwright';
-import { join, isAbsolute } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import {
-  rootDir, DEV_URL, sleep, ensureDevServer,
-  gotoView, applyLocaleAndTheme,
-} from './lib/recording-utils.mjs';
+import { generateGuideData } from '../src/lib/guide-service.ts';
+import { renderGuideHtml } from './lib/guide-html-renderer.ts';
+import { generatePdfFromHtml } from './lib/guide-pdf-generator.ts';
+import { join, isAbsolute, dirname } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(__dirname, '..');
 
 function parseArgs(argv) {
   const opts = { lang: 'es', mode: 'auto', output: null };
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--lang') {
-      opts.lang = argv[++i];
-    } else if (argv[i] === '--mode') {
-      opts.mode = argv[++i];
-    } else if (argv[i] === '--output') {
-      opts.output = argv[++i];
-    }
+    if (argv[i] === '--lang') opts.lang = argv[++i];
+    else if (argv[i] === '--mode') opts.mode = argv[++i];
+    else if (argv[i] === '--output') opts.output = argv[++i];
   }
   return opts;
 }
 
 function ensureDir(p) {
-  if (!existsSync(p)) {
-    mkdirSync(p, { recursive: true });
-  }
+  if (!existsSync(p)) mkdirSync(p, { recursive: true });
   return p;
 }
 
-async function generate(opts) {
+async function main() {
+  const opts = parseArgs(process.argv.slice(2));
   const lang = opts.lang === 'en' ? 'en' : 'es';
   const mode = opts.mode === 'user' ? 'user' : 'auto';
-  
+
   const baseDir = ensureDir(join(rootDir, 'marketing', 'guide'));
-  
-  const defaultFilename = lang === 'en'
-    ? 'world-cup-2026-guide-en.pdf'
-    : 'guia-mundial-2026-es.pdf';
-    
-  let outputPath = opts.output;
-  if (outputPath) {
-    if (!isAbsolute(outputPath)) {
-      outputPath = join(rootDir, outputPath);
-    }
-    ensureDir(join(outputPath, '..'));
-  } else {
-    outputPath = join(baseDir, defaultFilename);
-  }
+  const defaultFilename = lang === 'en' ? 'world-cup-2026-guide-en.pdf' : 'guia-mundial-2026-es.pdf';
+  const outputPath = opts.output
+    ? (isAbsolute(opts.output) ? opts.output : join(rootDir, opts.output))
+    : join(baseDir, defaultFilename);
+
+  if (opts.output) ensureDir(join(outputPath, '..'));
 
   console.log('\n📖 Generador de Guía del Mundial 2026 en PDF');
   console.log(`   Idioma: ${lang.toUpperCase()}`);
-  console.log(`   Modo de Datos: ${mode.toUpperCase()} (${mode === 'auto' ? 'Simulado IA' : 'Predicciones de Usuario'})`);
+  console.log(`   Modo: ${mode.toUpperCase()}`);
   console.log(`   Destino: ${outputPath}\n`);
 
-  let server, browser;
-  try {
-    console.log('🚀 Iniciando servidor dev...');
-    server = await ensureDevServer();
-    console.log('✅ Servidor listo\n');
+  // 1. Generar datos (todo en Node, sin navegador)
+  console.log('📊 Generando datos...');
+  const data = generateGuideData(mode);
+  console.log(`   ✅ ${data.teams.length} equipos, ${data.groupMatches.length} partidos de grupo, ${data.knockoutMatches.length} eliminatorias`);
 
-    console.log('🌐 Iniciando navegador headless...');
-    browser = await chromium.launch({ headless: true });
-    
-    // Crear contexto de navegador (con pantalla de alta resolución para capturas nítidas)
-    const ctx = await browser.newContext({
-      viewport: { width: 1200, height: 1600 },
-      deviceScaleFactor: 2,
-    });
-    
-    const page = await ctx.newPage();
-    
-    console.log('🔗 Navegando a la aplicación...');
-    await page.goto(DEV_URL, { waitUntil: 'networkidle' });
-    await sleep(1500);
+  // 2. Renderizar HTML estático
+  console.log('🖌 Renderizando HTML...');
+  const html = renderGuideHtml(data, lang, rootDir);
+  const htmlPath = outputPath.replace(/\.pdf$/i, '.html');
+  writeFileSync(htmlPath, html, 'utf-8');
+  console.log(`   ✅ HTML guardado: ${htmlPath} (${(html.length / 1024).toFixed(0)} KB)`);
 
-    console.log(`🌍 Aplicando idioma (${lang.toUpperCase()}) y tema claro...`);
-    await applyLocaleAndTheme(page, { lang, theme: 'light' });
-    
-    console.log('📄 Cargando la vista de la guía imprimible...');
-    await gotoView(page, 'guide-print');
-    await sleep(2500); // Dar tiempo para renderizado inicial del componente
+  // 3. Generar PDF con Playwright (sin servidor)
+  console.log('🌐 Abriendo navegador headless...');
+  await generatePdfFromHtml(html, outputPath);
 
-    console.log(`⚙️ Configurando modo de datos a "${mode}"...`);
-    const success = await page.evaluate((m) => {
-      const el = document.querySelector('app-root')
-        ?.shadowRoot?.querySelector('bracket-view')
-        ?.shadowRoot?.querySelector('guide-print-view');
-      if (el) {
-        // TypeScript compilation preserves methods as js properties
-        el._mode = m;
-        el._regenerate();
-        el.requestUpdate();
-        return true;
-      }
-      return false;
-    }, mode);
-
-    if (!success) {
-      throw new Error('No se pudo encontrar el componente <guide-print-view> en el DOM.');
-    }
-
-    console.log('⏳ Esperando a que se carguen todas las imágenes y fuentes...');
-    await sleep(4000); // Esperar descarga de banderas y fotos locales
-
-    console.log('📸 Capturando y ensamblando el documento en PDF...');
-    console.log('   (Esto tardará unos segundos mientras se procesan las páginas)');
-
-    // Iniciar escucha del evento de descarga en Playwright
-    const downloadPromise = page.waitForEvent('download', { timeout: 120000 });
-
-    // Hacer click en el botón de PDF a nivel DOM
-    await page.evaluate(() => {
-      const el = document.querySelector('app-root')
-        ?.shadowRoot?.querySelector('bracket-view')
-        ?.shadowRoot?.querySelector('guide-print-view');
-      const pdfBtn = el?.shadowRoot?.querySelector('.pdf-btn');
-      if (pdfBtn) {
-        pdfBtn.click();
-      } else {
-        throw new Error('Botón de descarga de PDF no encontrado en <guide-print-view>');
-      }
-    });
-
-    const download = await downloadPromise;
-    
-    console.log('💾 Guardando archivo PDF...');
-    await download.saveAs(outputPath);
-
-    console.log(`\n🎉 ¡Guía generada con éxito!`);
-    console.log(`   Ruta: ${outputPath}\n`);
-
-  } catch (err) {
-    console.error('\n❌ Error al generar la guía:', err.message);
-    process.exitCode = 1;
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-    if (server) {
-      server.kill();
-      console.log('🛑 Servidor dev detenido\n');
-    }
-  }
+  console.log(`\n🎉 ¡Guía generada con éxito!`);
+  console.log(`   Ruta: ${outputPath}\n`);
 }
 
-generate(parseArgs(process.argv.slice(2)));
+main().catch(err => {
+  console.error('\n❌ Error:', err.message);
+  process.exitCode = 1;
+});

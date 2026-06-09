@@ -266,6 +266,26 @@ export class BracketKnockout extends LitElement {
       border-left-width: 1.5px;
       border-right-width: 4px;
     }
+    .mode-badge {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 7px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border: 1px solid var(--ink);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 2px 6px;
+    }
+    .mode-badge.real {
+      background: var(--retro-green);
+      color: var(--paper);
+    }
+    .mode-badge.prediction {
+      background: var(--retro-blue);
+      color: var(--paper);
+    }
 
     .team-row {
       display: flex;
@@ -1605,10 +1625,11 @@ export class BracketKnockout extends LitElement {
       s => [
         s.knockoutMatches,
         s.myTopScorerPrediction ? `${s.myTopScorerPrediction.teamId}:${s.myTopScorerPrediction.playerName}` : '',
-        s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : ''
+        s.myMvpPrediction ? `${s.myMvpPrediction.teamId}:${s.myMvpPrediction.playerName}` : '',
+        s.viewMode
       ] as const,
       () => this.requestUpdate(),
-      (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2],
+      (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3],
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._mql = globalThis.matchMedia('(max-width: 768px)');
@@ -1616,7 +1637,6 @@ export class BracketKnockout extends LitElement {
     this._mql.addEventListener('change', this._onMqlChange);
     if (!this._oddsLoaded) {
       this._oddsLoaded = true;
-      // Preload group-stage odds; knockout odds are fetched on demand via _getOdds()
       getAllOdds().then(o => { if (this.isConnected) this._odds = o; });
     }
   }
@@ -1808,7 +1828,9 @@ export class BracketKnockout extends LitElement {
   }
 
   private openMatch(matchId: string) {
-    const match = useTournamentStore.getState().knockoutMatches[matchId];
+    const store = useTournamentStore.getState();
+    if (store.viewMode === 'real') return;
+    const match = store.knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
     if (!isMatchPending(match.date ?? '', match.timeSpain ?? '')) return;
 
@@ -1837,7 +1859,9 @@ export class BracketKnockout extends LitElement {
 
   private adjustInlineKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
+    const store = useTournamentStore.getState();
+    if (store.viewMode === 'real') return;
+    const m = store.knockoutMatches[matchId];
     if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
     const curA = m.scoreA ?? 0;
     const curB = m.scoreB ?? 0;
@@ -1853,7 +1877,9 @@ export class BracketKnockout extends LitElement {
 
   private adjustPenaltyKnockout(e: Event, matchId: string, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
-    const m = useTournamentStore.getState().knockoutMatches[matchId];
+    const store = useTournamentStore.getState();
+    if (store.viewMode === 'real') return;
+    const m = store.knockoutMatches[matchId];
     if (!m || !isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
     const curA = m.penaltyScoreA ?? 0;
     const curB = m.penaltyScoreB ?? 0;
@@ -1962,6 +1988,10 @@ export class BracketKnockout extends LitElement {
             .showFigures=${true}></odds-bar>
         `;
 
+    const isRealMode = useTournamentStore.getState().viewMode === 'real';
+    const modeBadgeClass = isRealMode ? 'mode-badge real' : 'mode-badge prediction';
+    const modeBadgeText = isRealMode ? 'REAL' : 'PRED';
+
     return html`
       <div
         data-mid="${matchId}"
@@ -1989,6 +2019,7 @@ export class BracketKnockout extends LitElement {
             </span>
           </div>
         ` : ''}
+        ${isPlayed ? html`<span class="${modeBadgeClass}">${modeBadgeText}</span>` : ''}
       </div>
     `;
   }

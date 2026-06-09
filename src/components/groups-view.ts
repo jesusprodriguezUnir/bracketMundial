@@ -482,6 +482,24 @@ export class GroupsView extends LitElement {
       background: var(--paper-2);
       color: var(--dim);
     }
+    .mode-badge {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border: 1px solid var(--ink);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-left: 4px;
+    }
+    .mode-badge.real {
+      background: var(--retro-green);
+      color: var(--paper);
+    }
+    .mode-badge.prediction {
+      background: var(--retro-blue);
+      color: var(--paper);
+    }
 
     /* Tabla de mejores terceros */
     .thirds-section {
@@ -722,9 +740,9 @@ export class GroupsView extends LitElement {
     super.connectedCallback();
     this.unsubscribeStore = subscribeSlice(
       useTournamentStore,
-      s => ({ gm: s.groupMatches, gs: s.groupStandings }),
+      s => ({ gm: s.groupMatches, gs: s.groupStandings, vm: s.viewMode }),
       () => this.requestUpdate(),
-      (a, b) => a.gm === b.gm && a.gs === b.gs,
+      (a, b) => a.gm === b.gm && a.gs === b.gs && a.vm === b.vm,
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     window.addEventListener('keydown', this._onKeyNav);
@@ -748,6 +766,8 @@ export class GroupsView extends LitElement {
   }
 
   private openMatch(matchId: string, date?: string, timeSpain?: string) {
+    const store = useTournamentStore.getState();
+    if (store.viewMode === 'real') return;
     if (!isMatchPending(date ?? '', timeSpain ?? '')) return;
     this.dispatchEvent(new CustomEvent('open-match', {
       detail: { matchId },
@@ -758,6 +778,8 @@ export class GroupsView extends LitElement {
 
   private adjustInline(e: Event, m: GroupMatchResult, team: 'A' | 'B', delta: number) {
     e.stopPropagation();
+    const store = useTournamentStore.getState();
+    if (store.viewMode === 'real') return;
     if (!isMatchPending(m.date ?? '', m.timeSpain ?? '')) return;
     const curA = m.scoreA ?? 0, curB = m.scoreB ?? 0;
     const nextA = team === 'A' ? Math.max(0, curA + delta) : curA;
@@ -914,6 +936,9 @@ export class GroupsView extends LitElement {
                   }
                   const badgeClass = isPlayed ? 'badge-played' : 'badge-upcoming';
                   const badgeText = isPlayed ? t('groups.badgePlayed') : t('groups.badgeNext');
+                  const isRealMode = useTournamentStore.getState().viewMode === 'real';
+                  const modeBadgeClass = isRealMode ? 'mode-badge real' : 'mode-badge prediction';
+                  const modeBadgeText = isRealMode ? 'REAL' : 'PRED';
                   return html`
                     <div class="match-item ${this._flashMatchId === m.matchId ? 'row-flash' : ''}" role="button" tabindex="0"
                       @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
@@ -937,6 +962,7 @@ export class GroupsView extends LitElement {
                         ${m.city ? html`<span>· ${m.city}</span>` : ''}
                         ${venueMeta}
                         <span class="badge ${badgeClass}">${badgeText}</span>
+                        ${isPlayed ? html`<span class="${modeBadgeClass}">${modeBadgeText}</span>` : ''}
                       </div>
                     </div>
                   `;
@@ -965,11 +991,12 @@ export class GroupsView extends LitElement {
     const half = Math.ceil(bestThirds.length / 2);
     const leftThirds = bestThirds.slice(0, half);
     const rightThirds = bestThirds.slice(half);
+    const isRealMode = store.viewMode === 'real';
 
     return html`
       <div class="group-actions">
-        <button class="btn btn-primary" @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
-        <button class="btn" style="color: var(--retro-red)" @click="${this.handleReset}">${t('groups.reset')}</button>
+        <button class="btn btn-primary" ?disabled=${isRealMode} @click="${this.handleSimulateAll}">${t('groups.simulate')}</button>
+        <button class="btn" style="color: var(--retro-red)" ?disabled=${isRealMode} @click="${this.handleReset}">${t('groups.reset')}</button>
         <button class="btn" @click=${() => { this._bracketMode = !this._bracketMode; }}>
           ${this._bracketMode ? t('groups.classicView') : t('groups.resultsBracket')}
         </button>

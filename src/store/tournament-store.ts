@@ -13,6 +13,7 @@ import type { DecodedBracket } from '../lib/bracket-codec';
 import type { LeagueParticipant } from './leagues-store';
 
 export type ActiveContext = { kind: 'personal' } | { kind: 'league'; leagueId: string };
+export type ViewMode = 'predictions' | 'real';
 
 interface BracketSnapshot {
   groupMatches: GroupMatchResult[];
@@ -228,6 +229,10 @@ interface TournamentState {
   myTopScorerPrediction: { teamId: string; playerName: string } | null;
   myMvpPrediction: { teamId: string; playerName: string } | null;
 
+  viewMode: ViewMode;
+  realGroupResults: Record<string, { scoreA: number | null; scoreB: number | null }>;
+  realKnockoutResults: Record<string, { scoreA: number | null; scoreB: number | null; penaltyScoreA?: number | null; penaltyScoreB?: number | null }>;
+
   setGroupMatchResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setKnockoutMatchResult: (
     matchId: string,
@@ -256,6 +261,9 @@ interface TournamentState {
   setMyKnockoutPrediction: (matchId: string, scoreA: number | null, scoreB: number | null, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => void;
   setMyTopScorerPrediction: (topScorer: { teamId: string; playerName: string } | null) => void;
   setMyMvpPrediction: (mvp: { teamId: string; playerName: string } | null) => void;
+  setViewMode: (mode: ViewMode) => void;
+  setRealGroupResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
+  setRealKnockoutResult: (matchId: string, scoreA: number | null, scoreB: number | null, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => void;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -430,9 +438,16 @@ export const useTournamentStore = createStore<TournamentState>()(
       myKnockoutPredictions: {},
       myTopScorerPrediction: null,
       myMvpPrediction: null,
+      viewMode: 'predictions' as ViewMode,
+      realGroupResults: {},
+      realKnockoutResults: {},
 
       setGroupMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
+          if (state.viewMode === 'real') {
+            return state;
+          }
+
           const matches = state.groupMatches.map(m =>
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
           );
@@ -449,6 +464,10 @@ export const useTournamentStore = createStore<TournamentState>()(
 
       setKnockoutMatchResult: (matchId, scoreA, scoreB, penaltyScoreA = null, penaltyScoreB = null) => {
         set(state => {
+          if (state.viewMode === 'real') {
+            return state;
+          }
+
           const match = state.knockoutMatches[matchId];
           if (!match) {
             return state;
@@ -496,6 +515,9 @@ export const useTournamentStore = createStore<TournamentState>()(
         myKnockoutPredictions: {},
         myTopScorerPrediction: null,
         myMvpPrediction: null,
+        viewMode: 'predictions' as ViewMode,
+        realGroupResults: {},
+        realKnockoutResults: {},
       }),
 
       autoSimulateGroups: () => {
@@ -764,6 +786,129 @@ export const useTournamentStore = createStore<TournamentState>()(
       setMyMvpPrediction: (mvp) => {
         set({ myMvpPrediction: mvp });
       },
+
+      setViewMode: (mode) => {
+        set(state => {
+          if (state.viewMode === mode) return state;
+
+          if (mode === 'real') {
+            const matches = state.groupMatches.map(m => {
+              const real = state.realGroupResults[m.matchId];
+              return real
+                ? { ...m, scoreA: real.scoreA, scoreB: real.scoreB, goalScorers: undefined }
+                : { ...m, scoreA: null, scoreB: null, goalScorers: undefined };
+            });
+            const standings = recalculateStandings(matches);
+            let knockout = resolveKnockoutMatches(standings, {});
+
+            for (const matchId of getKnockoutMatchOrder()) {
+              const real = state.realKnockoutResults[matchId];
+              const match = knockout[matchId];
+              if (!match || !real || real.scoreA === null || real.scoreB === null) continue;
+
+              const isDraw = real.scoreA === real.scoreB;
+              const psa = isDraw ? real.penaltyScoreA : null;
+              const psb = isDraw ? real.penaltyScoreB : null;
+              const winnerId = getWinnerId(match.teamA, match.teamB, real.scoreA, real.scoreB, psa, psb);
+              knockout = resolveKnockoutMatches(standings, {
+                ...knockout,
+                [matchId]: { ...match, scoreA: real.scoreA, scoreB: real.scoreB, penaltyScoreA: psa, penaltyScoreB: psb, goalScorers: undefined, winnerId, isPlayed: winnerId !== null },
+              });
+            }
+
+            return { viewMode: mode, groupMatches: matches, groupStandings: standings, knockoutMatches: knockout };
+          } else {
+            const matches = state.groupMatches.map(m => {
+              const pred = state.myGroupPredictions[m.matchId];
+              return pred
+                ? { ...m, scoreA: pred.scoreA, scoreB: pred.scoreB, goalScorers: undefined }
+                : { ...m, scoreA: null, scoreB: null, goalScorers: undefined };
+            });
+            const standings = recalculateStandings(matches);
+            let knockout = resolveKnockoutMatches(standings, {});
+
+            for (const matchId of getKnockoutMatchOrder()) {
+              const pred = state.myKnockoutPredictions[matchId];
+              const match = knockout[matchId];
+              if (!match || !pred || pred.scoreA === null || pred.scoreB === null) continue;
+
+              const isDraw = pred.scoreA === pred.scoreB;
+              const psa = isDraw ? pred.penaltyScoreA : null;
+              const psb = isDraw ? pred.penaltyScoreB : null;
+              const winnerId = getWinnerId(match.teamA, match.teamB, pred.scoreA, pred.scoreB, psa, psb);
+              knockout = resolveKnockoutMatches(standings, {
+                ...knockout,
+                [matchId]: { ...match, scoreA: pred.scoreA, scoreB: pred.scoreB, penaltyScoreA: psa, penaltyScoreB: psb, goalScorers: undefined, winnerId, isPlayed: winnerId !== null },
+              });
+            }
+
+            return { viewMode: mode, groupMatches: matches, groupStandings: standings, knockoutMatches: knockout };
+          }
+        });
+      },
+
+      setRealGroupResult: (matchId, scoreA, scoreB) => {
+        set(state => {
+          const realGroupResults = { ...state.realGroupResults, [matchId]: { scoreA, scoreB } };
+
+          if (state.viewMode === 'real') {
+            const matches = state.groupMatches.map(m =>
+              m.matchId === matchId ? { ...m, scoreA, scoreB, goalScorers: undefined } : m
+            );
+            const standings = recalculateStandings(matches);
+            return {
+              realGroupResults,
+              groupMatches: matches,
+              groupStandings: standings,
+              knockoutMatches: resolveKnockoutMatches(standings, state.knockoutMatches),
+            };
+          }
+
+          return { realGroupResults };
+        });
+      },
+
+      setRealKnockoutResult: (matchId, scoreA, scoreB, penaltyScoreA = null, penaltyScoreB = null) => {
+        set(state => {
+          const isDrawAfterRegularTime = scoreA !== null && scoreB !== null && scoreA === scoreB;
+          const resolvedPenaltyScoreA = isDrawAfterRegularTime ? penaltyScoreA : null;
+          const resolvedPenaltyScoreB = isDrawAfterRegularTime ? penaltyScoreB : null;
+
+          const realKnockoutResults = {
+            ...state.realKnockoutResults,
+            [matchId]: { scoreA, scoreB, penaltyScoreA: resolvedPenaltyScoreA, penaltyScoreB: resolvedPenaltyScoreB },
+          };
+
+          if (state.viewMode === 'real') {
+            const match = state.knockoutMatches[matchId];
+            if (!match) return { realKnockoutResults };
+
+            const winnerId = getWinnerId(match.teamA, match.teamB, scoreA, scoreB, resolvedPenaltyScoreA, resolvedPenaltyScoreB);
+            const isPlayed = winnerId !== null;
+
+            const updated = {
+              ...state.knockoutMatches,
+              [matchId]: {
+                ...match,
+                scoreA,
+                scoreB,
+                penaltyScoreA: resolvedPenaltyScoreA,
+                penaltyScoreB: resolvedPenaltyScoreB,
+                goalScorers: undefined,
+                winnerId,
+                isPlayed,
+              },
+            };
+
+            return {
+              realKnockoutResults,
+              knockoutMatches: resolveKnockoutMatches(state.groupStandings, updated),
+            };
+          }
+
+          return { realKnockoutResults };
+        });
+      },
     }),
     {
       name: 'mundial-2026-tournament',
@@ -804,8 +949,25 @@ export const useTournamentStore = createStore<TournamentState>()(
         const myTopScorerPrediction = p.myTopScorerPrediction ?? null;
         const myMvpPrediction = p.myMvpPrediction ?? null;
         const activeContext: ActiveContext = p.activeContext ?? { kind: 'personal' };
+        const viewMode: ViewMode = p.viewMode ?? 'predictions';
+        const realGroupResults = p.realGroupResults ?? {};
+        const realKnockoutResults = p.realKnockoutResults ?? {};
 
-        return { ...current, ...p, groupMatches, groupStandings, knockoutMatches, myGroupPredictions, myKnockoutPredictions, myTopScorerPrediction, myMvpPrediction, activeContext };
+        return { 
+          ...current, 
+          ...p, 
+          groupMatches, 
+          groupStandings, 
+          knockoutMatches, 
+          myGroupPredictions, 
+          myKnockoutPredictions, 
+          myTopScorerPrediction, 
+          myMvpPrediction, 
+          activeContext,
+          viewMode,
+          realGroupResults,
+          realKnockoutResults,
+        };
       },
     }
   )

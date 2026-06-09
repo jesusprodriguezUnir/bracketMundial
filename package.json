@@ -36,7 +36,7 @@
     "reel": "node scripts/record-reel.mjs",
     "reel:favorites": "node scripts/generate-favorites-reel.mjs",
     "play:assets": "node scripts/generate-play-assets.mjs",
-    "guide:pdf": "node scripts/generate-guide-pdf.mjs",
+    "guide:pdf": "tsx scripts/generate-guide-pdf.mjs",
     "x:post": "node scripts/generate-x-post.mjs",
     "youtube:promo": "node scripts/generate-youtube-promo.mjs",
     "db:inspect": "node scripts/supabase-inspect.mjs",

@@ -85,6 +85,7 @@ export class LeaguesView extends LitElement {
   @state()   private _officialBracket: DecodedBracket | null = null;
   private _initialMount = true;
   @state() private _awardsSearchQuery = '';
+  @state() private _participantForModal: LeagueParticipant | null = null;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
 
@@ -3614,6 +3615,9 @@ export class LeaguesView extends LitElement {
                     <span style="color:${ac.topScorer ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.topScorer ? '✓ (+15)' : '✗'}</span>
                   ` : ''}
                 ` : '—'}
+                ${isMyParticipant(participant as LeagueParticipant, useAuthStore.getState().session?.user?.id) && !this._tournamentStarted ? html`
+                  <button style="all:unset; cursor:pointer; color:var(--retro-orange); text-decoration:underline; font-size:10px; margin-left:6px; font-weight:bold;" @click=${(e: Event) => { e.stopPropagation(); this._openAwardsSelector('topScorer', participant as LeagueParticipant); }}>Editar</button>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -3629,6 +3633,9 @@ export class LeaguesView extends LitElement {
                     <span style="color:${ac.mvp ? 'var(--retro-green)' : 'var(--retro-red)'}; font-weight:bold;">${ac.mvp ? '✓ (+15)' : '✗'}</span>
                   ` : ''}
                 ` : '—'}
+                ${isMyParticipant(participant as LeagueParticipant, useAuthStore.getState().session?.user?.id) && !this._tournamentStarted ? html`
+                  <button style="all:unset; cursor:pointer; color:var(--retro-orange); text-decoration:underline; font-size:10px; margin-left:6px; font-weight:bold;" @click=${(e: Event) => { e.stopPropagation(); this._openAwardsSelector('mvp', participant as LeagueParticipant); }}>Editar</button>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -4140,8 +4147,9 @@ export class LeaguesView extends LitElement {
     `;
   }
 
-  private _openAwardsSelector(type: 'topScorer' | 'mvp') {
+  private _openAwardsSelector(type: 'topScorer' | 'mvp', participant: LeagueParticipant) {
     this._showAwardsModal = type;
+    this._participantForModal = participant;
     this._selectedTeamIdForSelector = '';
     this._awardsSearchQuery = '';
     this.requestUpdate();
@@ -4244,7 +4252,7 @@ export class LeaguesView extends LitElement {
                 </div>
               </div>
             </div>
-            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('topScorer')}>
+            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('topScorer', participant)}>
               ${participant.topScorer ? 'Cambiar' : 'Seleccionar'}
             </button>
           </div>
@@ -4259,7 +4267,7 @@ export class LeaguesView extends LitElement {
                 </div>
               </div>
             </div>
-            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('mvp')}>
+            <button class="lg-btn-sm" @click=${() => this._openAwardsSelector('mvp', participant)}>
               ${participant.mvp ? 'Cambiar' : 'Seleccionar'}
             </button>
           </div>
@@ -4511,6 +4519,7 @@ export class LeaguesView extends LitElement {
     return html`
       ${content}
       <league-rules-modal ?open=${this._showRulesModal} @close=${this._closeRulesModal}></league-rules-modal>
+      ${this._showAwardsModal && this._participantForModal ? this._renderAwardsSelectionModal(this._participantForModal) : ''}
     `;
   }
 }

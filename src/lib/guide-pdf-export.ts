@@ -1,8 +1,8 @@
 import { toJpeg } from 'html-to-image';
 
-const EXPORT_WIDTH_PX = 794;
-const EXPORT_PIXEL_RATIO = 1.25;
-const EXPORT_JPEG_QUALITY = 0.72;
+const EXPORT_WIDTH_PX = 1200;
+const EXPORT_PIXEL_RATIO = 2.5;
+const EXPORT_JPEG_QUALITY = 0.92;
 
 /** Wait for all <img> elements inside a node to fully decode. */
 async function waitForSectionImages(el: HTMLElement): Promise<void> {
@@ -12,6 +12,46 @@ async function waitForSectionImages(el: HTMLElement): Promise<void> {
       img.complete ? Promise.resolve() : img.decode().catch(() => {})
     )
   );
+}
+
+/** Preload Google Fonts used in the guide for premium PDF rendering. */
+async function preloadGuideFonts(): Promise<void> {
+  const fontFamilies = [
+    { family: 'Bowlby One', weight: '400' },
+    { family: 'Archivo Black', weight: '400' },
+    { family: 'Archivo', weight: '400' },
+    { family: 'Archivo', weight: '500' },
+    { family: 'Archivo', weight: '700' },
+    { family: 'Space Mono', weight: '400' },
+    { family: 'Space Mono', weight: '700' },
+  ];
+
+  const fontPromises = fontFamilies.map(({ family, weight }) => {
+    return document.fonts.load(`${weight} 16px "${family}"`).catch(() => {});
+  });
+
+  await Promise.allSettled(fontPromises);
+  // Give extra time for fonts to fully render
+  await new Promise(r => setTimeout(r, 500));
+}
+
+/** Preload all images in a cloned section to avoid ERR_ABORTED during capture. */
+async function preloadAllImages(el: HTMLElement): Promise<void> {
+  const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
+  const promises = imgs.map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Don't fail if image doesn't load
+      // Force reload to ensure it's in cache
+      const src = img.src;
+      img.src = '';
+      img.src = src;
+    });
+  });
+  await Promise.allSettled(promises);
+  // Extra time for all images to fully decode
+  await new Promise(r => setTimeout(r, 1000));
 }
 
 async function prepareGuideCloneForExport(
@@ -52,11 +92,17 @@ async function sectionToJpeg(
   const pxW = EXPORT_WIDTH_PX;
   const pxH = el.scrollHeight || el.offsetHeight || 1122;
 
+  // Wait for web fonts to load before capture
+  await document.fonts.ready;
+
+  // Preload all images in the section to avoid ERR_ABORTED
+  await preloadAllImages(el);
+
   const imgData = await toJpeg(el, {
     pixelRatio: EXPORT_PIXEL_RATIO,
     quality: EXPORT_JPEG_QUALITY,
     cacheBust: true,
-    skipFonts: true,   // avoid cross-origin SecurityError from Google Fonts CORS
+    skipFonts: true,  // Fonts are preloaded via document.fonts.load(), skip inline to avoid CORS
     backgroundColor: bgColor,
     width: pxW,
     height: pxH,
@@ -114,6 +160,9 @@ export async function exportGuidePdf(
     shadowRoot.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')
   );
   for (const img of lazyImgs) img.removeAttribute('loading');
+
+  // Preload Google Fonts used in the guide
+  await preloadGuideFonts();
 
   await document.fonts.ready;
 

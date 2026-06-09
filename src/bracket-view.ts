@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, type ActiveContext } from './store/tournament-store';
+import { useTournamentStore, type ActiveContext, type ViewMode } from './store/tournament-store';
+import { subscribeSlice } from './store/store-utils';
 // Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
 import './components/match-modal';
@@ -75,6 +76,7 @@ export class BracketView extends LitElement {
   @state() private _publishing = false;
   @state() private _publishFeedback: string | null = null;
   @state() private _hasUnpublished = false;
+  @state() private _viewMode: ViewMode = 'predictions';
 
   private _swipeStartX = 0;
   private _swipeStartY = 0;
@@ -83,6 +85,7 @@ export class BracketView extends LitElement {
   private _tabHistory: PhaseTab[] = ['hero'];
   private _unsubContext?: () => void;
   private _unsubUnpublished?: () => void;
+  private _unsubViewMode?: () => void;
 
 
   static readonly styles = css`
@@ -139,6 +142,43 @@ export class BracketView extends LitElement {
     .context-return-btn:hover {
       background: var(--ink);
       color: var(--retro-yellow);
+    }
+
+    /* ─── View Mode Toggle (predictions vs real) ─── */
+    .view-mode-toggle {
+      display: flex;
+      gap: 0;
+      margin: 12px auto;
+      max-width: 360px;
+      border: 2px solid var(--ink);
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--paper-2);
+    }
+    .view-mode-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .view-mode-btn.active {
+      background: var(--retro-yellow);
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+    }
+    .view-mode-btn:not(.active):hover {
+      background: var(--paper-3);
+    }
+    .view-mode-btn.real.active {
+      background: var(--retro-green);
+      color: var(--paper);
     }
 
     /* ─── Bottom Navigation (mobile) ─── */
@@ -582,6 +622,12 @@ export class BracketView extends LitElement {
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._updateContext();
     this._unsubContext = useTournamentStore.subscribe(() => this._updateContext());
+    this._viewMode = useTournamentStore.getState().viewMode;
+    this._unsubViewMode = subscribeSlice(
+      useTournamentStore,
+      s => s.viewMode,
+      (mode) => { this._viewMode = mode; }
+    );
     this._hasUnpublished = getUnpublished();
     this._unsubUnpublished = subscribeUnpublished((dirty) => {
       this._hasUnpublished = dirty;
@@ -602,6 +648,7 @@ export class BracketView extends LitElement {
     this.unsubscribeLocale?.();
     this._unsubContext?.();
     this._unsubUnpublished?.();
+    this._unsubViewMode?.();
     if (this._hashChangeHandler) {
       window.removeEventListener('hashchange', this._hashChangeHandler);
     }
@@ -907,6 +954,20 @@ export class BracketView extends LitElement {
           </div>
         `;
         })()}
+        ${(at === 'groups' || at === 'knockout') ? html`
+          <div class="view-mode-toggle">
+            <button 
+              class="view-mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
+              @click=${() => useTournamentStore.getState().setViewMode('predictions')}>
+              Mis Predicciones
+            </button>
+            <button 
+              class="view-mode-btn real ${this._viewMode === 'real' ? 'active' : ''}"
+              @click=${() => useTournamentStore.getState().setViewMode('real')}>
+              Resultados Reales
+            </button>
+          </div>
+        ` : ''}
         <!-- Mobile: bottom navigation -->
         <nav class="bottom-nav" aria-label="${t('tabs.label')}">
           ${mainTabs.map(item => html`

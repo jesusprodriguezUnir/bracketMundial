@@ -3,6 +3,8 @@ import { customElement, state } from 'lit/decorators.js';
 import { generateGuideData, type GuideData, type GuideTeamData, type GuideMatch } from '../lib/guide-service';
 import { t, useLocaleStore } from '../i18n';
 import { subscribeSlice } from '../store/store-utils';
+import { STADIUMS } from '../data/stadiums';
+import { TEAMS_2026 } from '../data/fifa-2026';
 
 // GROUPS variable removed as it is declared inside render()
 
@@ -45,6 +47,39 @@ const FORMATIONS: Record<string, ReadonlyArray<readonly [number, number]>> = {
     [36, 38], [64, 38],
   ],
 };
+
+/** Historical World Cup winners for the history section */
+const WORLD_CUP_HISTORY = [
+  { year: 1930, host: 'Uruguay', winner: 'URU', runnerUp: 'ARG', score: '4-2' },
+  { year: 1934, host: 'Italia', winner: 'ITA', runnerUp: 'CZE', score: '2-1' },
+  { year: 1938, host: 'Francia', winner: 'ITA', runnerUp: 'HUN', score: '4-2' },
+  { year: 1950, host: 'Brasil', winner: 'URU', runnerUp: 'BRA', score: '2-1' },
+  { year: 1954, host: 'Suiza', winner: 'GER', runnerUp: 'HUN', score: '3-2' },
+  { year: 1958, host: 'Suecia', winner: 'BRA', runnerUp: 'SWE', score: '5-2' },
+  { year: 1962, host: 'Chile', winner: 'BRA', runnerUp: 'CZE', score: '3-1' },
+  { year: 1966, host: 'Inglaterra', winner: 'ENG', runnerUp: 'GER', score: '4-2' },
+  { year: 1970, host: 'México', winner: 'BRA', runnerUp: 'ITA', score: '4-1' },
+  { year: 1974, host: 'Alemania', winner: 'GER', runnerUp: 'NED', score: '2-1' },
+  { year: 1978, host: 'Argentina', winner: 'ARG', runnerUp: 'NED', score: '3-1' },
+  { year: 1982, host: 'España', winner: 'ITA', runnerUp: 'GER', score: '3-1' },
+  { year: 1986, host: 'México', winner: 'ARG', runnerUp: 'GER', score: '3-2' },
+  { year: 1990, host: 'Italia', winner: 'GER', runnerUp: 'ARG', score: '1-0' },
+  { year: 1994, host: 'EE. UU.', winner: 'BRA', runnerUp: 'ITA', score: '0-0 (3-2 pen.)' },
+  { year: 1998, host: 'Francia', winner: 'FRA', runnerUp: 'BRA', score: '3-0' },
+  { year: 2002, host: 'Corea/Japón', winner: 'BRA', runnerUp: 'GER', score: '2-0' },
+  { year: 2006, host: 'Alemania', winner: 'ITA', runnerUp: 'FRA', score: '1-1 (5-3 pen.)' },
+  { year: 2010, host: 'Sudáfrica', winner: 'ESP', runnerUp: 'NED', score: '1-0' },
+  { year: 2014, host: 'Brasil', winner: 'GER', runnerUp: 'ARG', score: '1-0' },
+  { year: 2018, host: 'Rusia', winner: 'FRA', runnerUp: 'CRO', score: '4-2' },
+  { year: 2022, host: 'Catar', winner: 'ARG', runnerUp: 'FRA', score: '3-3 (4-2 pen.)' },
+];
+
+/** Get flag URL for historical teams (some may not be in TEAMS_2026) */
+function getHistoryFlagUrl(teamId: string): string {
+  const team = TEAMS_2026.find(t => t.id === teamId);
+  if (team?.flagUrl) return team.flagUrl;
+  return `/assets/flags/${teamId.toLowerCase()}.svg`;
+}
 
 const lastName = (name: string): string => {
   const parts = name.trim().split(/\s+/);
@@ -189,6 +224,30 @@ export class GuidePrintView extends LitElement {
       color: var(--ink);
       font-family: var(--font-body);
     }
+    .guide-document.pdf-exporting .stadiums-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .guide-document.pdf-exporting .stadium-card-image {
+      height: 130px;
+    }
+    .guide-document.pdf-exporting .stadium-card-name {
+      font-size: 14px;
+    }
+    .guide-document.pdf-exporting .stadium-card-desc {
+      font-size: 9px;
+    }
+    .guide-document.pdf-exporting .kits-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .guide-document.pdf-exporting .history-item {
+      padding: 6px 10px;
+      margin-bottom: 8px;
+    }
+    .guide-document.pdf-exporting .history-year {
+      font-size: 14px;
+      min-width: 40px;
+    }
     .guide-document.pdf-exporting .calendar-match {
       grid-template-columns: 45px minmax(0, 1fr) 70px minmax(0, 1fr) 55px;
       gap: 6px;
@@ -216,36 +275,47 @@ export class GuidePrintView extends LitElement {
       min-height: auto;
       height: 1100px;
       justify-content: flex-start;
-      padding-top: 80px;
+      padding-top: 60px;
     }
     .guide-document.pdf-exporting .cover-eyebrow {
       font-size: 14px;
       letter-spacing: 0.35em;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .guide-document.pdf-exporting .cover-title {
-      font-size: 56px;
+      font-size: 60px;
     }
     .guide-document.pdf-exporting .cover-subtitle {
       font-size: 22px;
-      margin-bottom: 40px;
+      margin-bottom: 28px;
     }
     .guide-document.pdf-exporting .cover-badge {
       font-size: 12px;
       padding: 12px 28px;
-      margin-bottom: 48px;
+      margin-bottom: 24px;
+    }
+    .guide-document.pdf-exporting .cover-stats-bar {
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .guide-document.pdf-exporting .cover-stat-num {
+      font-size: 30px;
     }
     .guide-document.pdf-exporting .cover-flags {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      gap: 8px;
+      gap: 6px;
       max-width: 100%;
-      margin-top: 32px;
+      margin-top: 12px;
     }
     .guide-document.pdf-exporting .cover-flag {
       width: 100%;
       height: auto;
       aspect-ratio: 3 / 2;
+    }
+    .guide-document.pdf-exporting .cover-bottom-bar {
+      margin-top: 16px;
+      font-size: 10px;
     }
 
     /* ── Cabecera y pie de página para PDF ── */
@@ -275,7 +345,7 @@ export class GuidePrintView extends LitElement {
       margin-top: 16px;
     }
 
-    /* ── Portada ── */
+    /* ── Portada Premium ── */
     .cover-page {
       page-break-after: always;
       display: flex;
@@ -284,29 +354,51 @@ export class GuidePrintView extends LitElement {
       justify-content: center;
       min-height: 90vh;
       text-align: center;
-      padding: 40px;
+      padding: 40px 40px 20px;
       border: 4px solid var(--ink);
-      box-shadow: inset 0 0 60px rgba(26,25,51,0.06);
+      box-shadow: inset 0 0 80px rgba(26,25,51,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .cover-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(255,200,50,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 70%, rgba(230,70,50,0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .cover-top-strip {
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, var(--retro-orange), var(--retro-yellow), var(--retro-green));
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 24px;
     }
     .cover-eyebrow {
       font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.3em;
+      font-size: 13px;
+      letter-spacing: 0.35em;
       color: var(--retro-orange);
       margin-bottom: 16px;
+      position: relative;
     }
     .cover-title {
       font-family: var(--font-var);
-      font-size: clamp(36px, 6vw, 64px);
-      line-height: 1;
+      font-size: clamp(42px, 7vw, 72px);
+      line-height: 0.95;
       color: var(--ink);
       margin-bottom: 12px;
+      position: relative;
+      text-shadow: 2px 2px 0 var(--retro-yellow);
     }
     .cover-subtitle {
       font-family: var(--font-var);
       font-size: clamp(16px, 2.5vw, 24px);
       color: var(--dim);
-      margin-bottom: 32px;
+      margin-bottom: 24px;
+      position: relative;
     }
     .cover-badge {
       display: inline-block;
@@ -318,15 +410,46 @@ export class GuidePrintView extends LitElement {
       letter-spacing: 0.15em;
       background: var(--retro-yellow);
       color: var(--ink);
-      margin-bottom: 40px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .cover-stats-bar {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .cover-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 18px;
+      border: 2px solid var(--ink);
+      background: var(--paper-2);
+    }
+    .cover-stat-num {
+      font-family: var(--font-var);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--retro-orange);
+    }
+    .cover-stat-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-top: 2px;
     }
     .cover-flags {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 6px;
-      max-width: 600px;
-      margin-top: 24px;
+      gap: 5px;
+      max-width: 640px;
+      margin-top: 8px;
+      position: relative;
     }
     .cover-flag {
       width: 36px;
@@ -334,6 +457,21 @@ export class GuidePrintView extends LitElement {
       object-fit: cover;
       border: 1px solid var(--ink);
       box-shadow: 1px 1px 0 var(--ink);
+    }
+    .cover-bottom-bar {
+      width: 100%;
+      margin-top: 20px;
+      padding: 8px 0;
+      border-top: 2px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: relative;
     }
 
     /* ── Secciones ── */
@@ -834,6 +972,215 @@ export class GuidePrintView extends LitElement {
       letter-spacing: 0.1em;
     }
 
+    /* ── Estadios ── */
+    .stadiums-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .stadium-card {
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      background: var(--paper-2);
+      page-break-inside: avoid;
+    }
+    .stadium-card-image {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-bottom: 2px solid var(--ink);
+      display: block;
+    }
+    .stadium-card-body {
+      padding: 10px 12px;
+    }
+    .stadium-card-name {
+      font-family: var(--font-var);
+      font-size: 15px;
+      font-weight: bold;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .stadium-card-location {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .stadium-card-capacity {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 2px 8px;
+      margin-bottom: 6px;
+    }
+    .stadium-card-desc {
+      font-family: var(--font-body);
+      font-size: 10px;
+      line-height: 1.4;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .stadium-card-matches {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      color: var(--dim);
+      border-top: 1px dashed rgba(26,25,51,0.2);
+      padding-top: 5px;
+    }
+    .stadium-card-highlight {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      background: var(--retro-yellow);
+      color: var(--ink);
+      padding: 1px 5px;
+      margin-top: 4px;
+    }
+
+    /* ── Kits (crest-based since no kit photos) ── */
+    .kits-group-block {
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+    .kits-group-header {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 5px 10px;
+      margin-bottom: 8px;
+    }
+    .kits-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .kit-card {
+      border: 1.5px solid var(--ink);
+      box-shadow: 1.5px 1.5px 0 var(--ink);
+      background: var(--paper-2);
+      padding: 8px;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .kit-crest {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      margin-bottom: 6px;
+    }
+    .kit-team-name {
+      font-family: var(--font-var);
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .kit-color-bar {
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .kit-color-swatch {
+      width: 20px;
+      height: 10px;
+      border: 1px solid var(--ink);
+    }
+    .kit-label {
+      font-family: var(--font-mono);
+      font-size: 7px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Historia ── */
+    .history-timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+    .history-timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--ink);
+    }
+    .history-item {
+      position: relative;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--ink);
+      box-shadow: 1.5px 1.5px 0 var(--ink);
+      background: var(--paper-2);
+      page-break-inside: avoid;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .history-item::before {
+      content: '';
+      position: absolute;
+      left: -26px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--retro-orange);
+      border: 2px solid var(--ink);
+    }
+    .history-item.champion-item::before {
+      background: var(--retro-yellow);
+    }
+    .history-year {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--retro-orange);
+      min-width: 48px;
+    }
+    .history-flags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+    .history-flag {
+      width: 28px;
+      height: 19px;
+      object-fit: cover;
+      border: 1px solid var(--ink);
+    }
+    .history-vs {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--dim);
+    }
+    .history-score {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: bold;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 1px 6px;
+    }
+    .history-host {
+      font-family: var(--font-body);
+      font-size: 9px;
+      color: var(--dim);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
     /* ── Impresión ── */
     @media print {
       @page {
@@ -1016,16 +1363,36 @@ export class GuidePrintView extends LitElement {
       </div>
 
       <div class="guide-document">
-        <!-- PORTADA -->
+        <!-- PORTADA PREMIUM -->
         <div class="cover-page">
+          <div class="cover-top-strip"></div>
           <div class="cover-eyebrow">FIFA WORLD CUP 2026</div>
           <div class="cover-title">${t('section.guide.title')}</div>
           <div class="cover-subtitle">${t('guide.coverSubtitle')}</div>
           <div class="cover-badge">${this._mode === 'auto' ? t('guide.modeAuto') : t('guide.modeUser')}</div>
+          <div class="cover-stats-bar">
+            <div class="cover-stat">
+              <span class="cover-stat-num">48</span>
+              <span class="cover-stat-label">${locale === 'es' ? 'Selecciones' : 'Teams'}</span>
+            </div>
+            <div class="cover-stat">
+              <span class="cover-stat-num">16</span>
+              <span class="cover-stat-label">${locale === 'es' ? 'Estadios' : 'Stadiums'}</span>
+            </div>
+            <div class="cover-stat">
+              <span class="cover-stat-num">104</span>
+              <span class="cover-stat-label">${locale === 'es' ? 'Partidos' : 'Matches'}</span>
+            </div>
+          </div>
           <div class="cover-flags">
             ${data.teams.slice(0, 48).map(t => html`
               <img class="cover-flag" src="${t.flagUrl}" alt="${t.name}" loading="lazy" />
             `)}
+          </div>
+          <div class="cover-bottom-bar">
+            <span>${locale === 'es' ? 'Guía oficial de bracketmundial.com' : 'Official guide by bracketmundial.com'}</span>
+            <span>· 11 Jun · 19 Jul 2026 ·</span>
+            <span>${locale === 'es' ? 'EE.UU. · México · Canadá' : 'USA · Mexico · Canada'}</span>
           </div>
         </div>
 
@@ -1109,6 +1476,15 @@ export class GuidePrintView extends LitElement {
           const groupTeams = teamsByGroup[letter] ?? [];
           return groupTeams.map(team => this._renderTeamSheet(team, locale, data));
         })}
+
+        <!-- ESTADIOS -->
+        ${this._renderStadiumsSection(locale)}
+
+        <!-- ESCUDOS Y COLORES -->
+        ${this._renderKitsSection(locale, data)}
+
+        <!-- HISTORIA -->
+        ${this._renderHistorySection(locale)}
 
         <!-- PREDICCIÓN -->
         <div class="prediction-page">
@@ -1207,7 +1583,7 @@ export class GuidePrintView extends LitElement {
             ${team.coach ? html`
               <div class="coach-block-mini">
                 ${team.hasCoachPhoto
-                  ? html`<img class="coach-photo-mini" src="${team.coachPhotoUrl}" alt="${team.coach.name}" />`
+                  ? html`<img class="coach-photo-mini" src="${this._upscaledUrl(team.coachPhotoUrl)}" alt="${team.coach.name}" />`
                   : html`<div class="coach-photo-mini" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--paper-3);">👤</div>`}
                 <div class="coach-info-mini">
                   <div class="coach-name-mini">${team.coach.name}</div>
@@ -1246,7 +1622,7 @@ export class GuidePrintView extends LitElement {
           ${sortedPlayers.map(p => html`
             <div class="player-card-mini">
               ${p.hasPhoto
-                ? html`<img class="player-photo-mini" src="${p.photoUrl}" alt="${p.name}" />`
+                ? html`<img class="player-photo-mini" src="${this._upscaledUrl(p.photoUrl)}" alt="${p.name}" />`
                 : html`<div class="player-photo-placeholder-mini">⚽</div>`}
               <div class="player-info-mini">
                 <div class="player-meta-mini">
@@ -1302,6 +1678,143 @@ export class GuidePrintView extends LitElement {
             </div>
           `;
         })}
+      </div>
+    `;
+  }
+
+  private _upscaledUrl(url: string): string {
+    return url.replace('/players/', '/players-upscaled/');
+  }
+
+  private _renderStadiumsSection(locale: string): TemplateResult {
+    const title = locale === 'es' ? 'Estadios' : 'Stadiums';
+    const subtitle = locale === 'es'
+      ? 'Las 16 sedes que albergarán la Copa del Mundo 2026'
+      : 'The 16 venues hosting the 2026 World Cup';
+    const capLabel = locale === 'es' ? 'Capacidad' : 'Capacity';
+    const matchesLabel = locale === 'es' ? 'Partidos' : 'Matches';
+    return html`
+      <div class="section-page">
+        <div class="section-header">
+          <div class="section-eyebrow">🏟 ${title}</div>
+          <div class="section-title">${subtitle}</div>
+        </div>
+        <div class="stadiums-grid">
+          ${STADIUMS.map(s => html`
+            <div class="stadium-card">
+              <img class="stadium-card-image" src="${s.image}" alt="${s.name}" loading="lazy" crossorigin="anonymous" />
+              <div class="stadium-card-body">
+                <div class="stadium-card-name">${s.name}</div>
+                <div class="stadium-card-location">${s.city}, ${s.country}</div>
+                <div class="stadium-card-capacity">${capLabel}: ${s.capacity.toLocaleString()}</div>
+                <div class="stadium-card-desc">${s.description}</div>
+                <div class="stadium-card-matches">${matchesLabel}: ${s.matchesSummary}</div>
+                <div class="stadium-card-highlight">${s.highlight}</div>
+              </div>
+            </div>
+          `)}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderKitsSection(locale: string, data: GuideData): TemplateResult {
+    const title = locale === 'es' ? 'Escudos y Países' : 'Crests & Countries';
+    const subtitle = locale === 'es'
+      ? 'Las 48 selecciones participantes agrupadas por grupo'
+      : 'All 48 participating nations grouped by stage';
+    const homeLabel = locale === 'es' ? 'Local' : 'Home';
+    const awayLabel = locale === 'es' ? 'Visitante' : 'Away';
+    const teamColors: Record<string, [string, string]> = {
+      ARG: ['#75AADB', '#fff'], AUS: ['#FFD700', '#00843D'], AUT: ['#ED2939', '#fff'],
+      BEL: ['#E42B2B', '#000'], BOL: ['#1D7D3A', '#FFD700'], BRA: ['#FFD700', '#009739'],
+      CAN: ['#E42B2B', '#fff'], CHI: ['#E42B2B', '#0047AB'], COL: ['#FFD700', '#003893'],
+      CRC: ['#E42B2B', '#0015FF'], CRO: ['#E42B2B', '#fff'], CZE: ['#003399', '#E42B2B'],
+      DEN: ['#E42B2B', '#fff'], ECU: ['#FFD700', '#034EA2'], EGY: ['#E42B2B', '#fff'],
+      ENG: ['#fff', '#C8102E'], ESP: ['#E42B2B', '#FFC400'], FRA: ['#002395', '#E42B2B'],
+      GER: ['#fff', '#000'], GHA: ['#E42B2B', '#00843D'], GRE: ['#0035BC', '#fff'],
+      HUN: ['#E42B2B', '#477050'], IRN: ['#fff', '#239F40'], ITA: ['#008FD7', '#fff'],
+      JAM: ['#009B3A', '#FFD200'], JOR: ['#fff', '#E42B2B'], JPN: ['#0044AD', '#fff'],
+      KSA: ['#fff', '#006C35'], KOR: ['#E42B2B', '#0047AB'], MAR: ['#E42B2B', '#006233'],
+      MEX: ['#006847', '#E42B2B'], NGA: ['#008751', '#fff'], NED: ['#FF6600', '#fff'],
+      NOR: ['#E42B2B', '#00205B'], NZL: ['#fff', '#000'], PAR: ['#E42B2B', '#0035BC'],
+      PER: ['#E42B2B', '#fff'], POL: ['#fff', '#DC143C'], POR: ['#006600', '#E42B2B'],
+      QAT: ['#fff', '#731A22'], IRL: ['#169B62', '#fff'], ROU: ['#FFD700', '#0035BC'],
+      SEN: ['#00853F', '#FFD700'], SRB: ['#E42B2B', '#003399'], SVK: ['#fff', '#003399'],
+      SLO: ['#fff', '#005DA4'], RSA: ['#FFD700', '#00843D'], SWE: ['#FFD700', '#005B99'],
+      SUI: ['#E42B2B', '#fff'], TUN: ['#E42B2B', '#fff'], UKR: ['#0057B7', '#FFD700'],
+      URU: ['#75AADB', '#fff'], USA: ['#E42B2B', '#fff'], VEN: ['#FFD700', '#003893'],
+      WAL: ['#E42B2B', '#fff'],
+    };
+
+    const teamsByGroup = groupBy(data.teams, team => team.group);
+    const groupLetters = 'ABCDEFGHIJKL'.split('');
+
+    return html`
+      <div class="section-page">
+        <div class="section-header">
+          <div class="section-eyebrow">🎨 ${title}</div>
+          <div class="section-title">${subtitle}</div>
+        </div>
+        ${groupLetters.map(letter => {
+          const groupTeams = teamsByGroup[letter] ?? [];
+          if (groupTeams.length === 0) return html``;
+          return html`
+            <div class="kits-group-block">
+              <div class="kits-group-header">${locale === 'es' ? 'Grupo' : 'Group'} ${letter}</div>
+              <div class="kits-grid">
+                ${groupTeams.map(t => {
+                  const colors = teamColors[t.teamId] ?? ['#ccc', '#999'];
+                  return html`
+                    <div class="kit-card">
+                      <img class="kit-crest" src="${t.flagUrl.replace('/flags/', '/crests/').replace('.svg', '.png')}" alt="${t.name}" loading="lazy" @error="${(e: Event) => { (e.target as HTMLImageElement).src = t.flagUrl; }}" />
+                      <div class="kit-team-name">${t.shortName || t.name}</div>
+                      <div class="kit-color-bar">
+                        <span class="kit-color-swatch" style="background:${colors[0]};"></span>
+                        <span class="kit-color-swatch" style="background:${colors[1]};"></span>
+                      </div>
+                      <div class="kit-label">${homeLabel} / ${awayLabel}</div>
+                    </div>
+                  `;
+                })}
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderHistorySection(locale: string): TemplateResult {
+    const title = locale === 'es' ? 'Historia de la Copa del Mundo' : 'World Cup History';
+    const subtitle = locale === 'es'
+      ? 'Todos los campeones desde 1930 hasta 2022'
+      : 'Every champion from 1930 to 2022';
+    return html`
+      <div class="section-page">
+        <div class="section-header">
+          <div class="section-eyebrow">🏆 ${title}</div>
+          <div class="section-title">${subtitle}</div>
+        </div>
+        <div class="history-timeline">
+          ${WORLD_CUP_HISTORY.map(h => html`
+            <div class="history-item ${h.winner === 'ARG' || h.winner === 'BRA' || h.winner === 'GER' || h.winner === 'ITA' || h.winner === 'FRA' || h.winner === 'ESP' || h.winner === 'ENG' || h.winner === 'URU' ? 'champion-item' : ''}">
+              <div class="history-year">${h.year}</div>
+              <div class="history-flags">
+                <img class="history-flag" src="${getHistoryFlagUrl(h.winner)}" alt="${h.winner}" loading="lazy" />
+                <span class="history-vs">vs</span>
+                <img class="history-flag" src="${getHistoryFlagUrl(h.runnerUp)}" alt="${h.runnerUp}" loading="lazy" />
+                <span class="history-score">${h.score}</span>
+              </div>
+              <div class="history-host">${h.host}</div>
+            </div>
+          `)}
+        </div>
+        <div class="footer-line" style="margin-top: 24px;">
+          ${locale === 'es'
+            ? '2026 será el año en que la historia se escriba de nuevo'
+            : '2026 will be the year history is rewritten'}
+        </div>
       </div>
     `;
   }
