@@ -11,7 +11,7 @@ import { renderFlag } from '../lib/render-flag';
 import { t, useLocaleStore } from '../i18n';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-codec';
-import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud, findLeagueByCode, joinLeagueInCloud } from '../lib/league-sync';
+import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud, findLeagueByCode, joinLeagueInCloud, removeParticipantFromCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
@@ -66,6 +66,7 @@ export class LeaguesView extends LitElement {
   @state() private _newLeagueName = '';
   @state() private _newOwnerName = '';
   @state() private _confirmDeleteLeague: string | null = null;
+  @state() private _confirmRemoveParticipant: { id: string; name: string } | null = null;
   @state() private _bracketData: BracketScreenData | null = null;
   @state() private _showInvite = false;
   @state() private _copiedInvite = false;
@@ -2826,11 +2827,50 @@ export class LeaguesView extends LitElement {
     input.value = '';
   }
 
-  private _removeParticipant(participantId: string) {
+  private _requestRemoveParticipant(participantId: string, name: string) {
+    this._confirmRemoveParticipant = { id: participantId, name };
+  }
+
+  private _cancelRemove() {
+    this._confirmRemoveParticipant = null;
+  }
+
+  private async _confirmRemove() {
+    if (!this._confirmRemoveParticipant) return;
+    const { id, name } = this._confirmRemoveParticipant;
     const leagueId = this._activeLeagueId;
-    if (!leagueId) return;
-    useLeaguesStore.getState().removeParticipant(leagueId, participantId);
-    if (this._expandedId === participantId) this._expandedId = null;
+    if (!leagueId) {
+      this._confirmRemoveParticipant = null;
+      return;
+    }
+
+    const league = this._leagues.find(l => l.id === leagueId);
+    if (!league) {
+      this._confirmRemoveParticipant = null;
+      return;
+    }
+
+    const participant = league.participants.find(p => p.id === id);
+    if (participant?.userId && useAuthStore.getState().session) {
+      this._syncing = true;
+      const ok = await removeParticipantFromCloud(leagueId, participant.userId);
+      if (ok) {
+        useLeaguesStore.getState().removeParticipant(leagueId, id);
+        if (this._expandedId === id) this._expandedId = null;
+        await refreshLeagueMembers(leagueId);
+        this._syncFeedback = `✓ ${name} ha sido eliminado de la liga.`;
+      } else {
+        this._syncFeedback = `✕ No se pudo eliminar a ${name} de la nube.`;
+      }
+      this._syncing = false;
+    } else {
+      // Participante local o modo sin sesión
+      useLeaguesStore.getState().removeParticipant(leagueId, id);
+      if (this._expandedId === id) this._expandedId = null;
+      this._syncFeedback = `✓ ${name} ha sido eliminado.`;
+    }
+
+    this._confirmRemoveParticipant = null;
   }
 
   private async _renameParticipantPrompt(participantId: string, currentName: string) {
@@ -3724,7 +3764,7 @@ export class LeaguesView extends LitElement {
                 </label>
               ` : ''}
               ${currentUserIsOwner && !isMe ? html`
-                <button class="lg-delete-btn" @click=${() => this._removeParticipant(score.participant.id)}>
+                <button class="lg-delete-btn" @click=${() => this._requestRemoveParticipant(score.participant.id, score.participant.name)}>
                   ${t('league.removeBtn')}
                 </button>
               ` : ''}
@@ -3998,6 +4038,14 @@ export class LeaguesView extends LitElement {
         ${!this._officialBracket ? html`
           <div class="lg-projection-banner" style="background:color-mix(in srgb, var(--retro-orange) 22%, var(--paper-3));">
             <span>Aún sin resultados oficiales — el ranking se actualizará cuando comiencen los partidos.</span>
+          </div>
+        ` : ''}
+
+        ${this._confirmRemoveParticipant ? html`
+          <div class="lg-confirm-box">
+            <span>${t('league.confirmRemoveParticipant', { name: this._confirmRemoveParticipant.name })}</span>
+            <button class="lg-danger-btn" @click=${this._confirmRemove}>${t('league.confirmYes')}</button>
+            <button class="lg-btn-back" @click=${this._cancelRemove}>${t('league.confirmNo')}</button>
           </div>
         ` : ''}
 

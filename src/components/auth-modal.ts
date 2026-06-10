@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, state, property } from 'lit/decorators.js';
 import { DragToDismissMixin } from '../mixins/drag-to-dismiss';
 import { useAuthStore } from '../store/auth-store';
 import type { AuthStatus } from '../store/auth-store';
@@ -10,12 +10,16 @@ const RESEND_COOLDOWN = 60;
 
 @customElement('auth-modal')
 export class AuthModal extends DragToDismissMixin(LitElement) {
+  @property({ type: String }) initialMode?: 'signin' | 'signup' | 'magic' | 'forgot_password' | 'reset_password';
   @state() private _status: AuthStatus = useAuthStore.getState().status;
-  @state() private _mode: 'signin' | 'signup' | 'magic' = 'signin';
+  @state() private _mode: 'signin' | 'signup' | 'magic' | 'forgot_password' | 'reset_password' = 'signin';
   @state() private _email = '';
   @state() private _password = '';
+  @state() private _currentPassword = '';
+  @state() private _confirmPassword = '';
   @state() private _emailForDisplay = '';
   @state() private _resendCountdown = 0;
+  @state() private _isVoluntaryChange = false;
 
   private _unsubAuth?: () => void;
   private _unsubLocale?: () => void;
@@ -234,6 +238,9 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
 
   override connectedCallback() {
     super.connectedCallback();
+    if (this.initialMode) {
+      this._mode = this.initialMode;
+    }
     document.addEventListener('keydown', this._handleKeydown);
     this.addEventListener('click', this._handleHostClick);
     this._unsubAuth = useAuthStore.subscribe(() => {
@@ -242,6 +249,12 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
       this._status = next;
       // Cierre automático cuando se acaba de iniciar sesión correctamente.
       if (next === 'signed_in' && prev !== 'signed_in' && prev !== 'init') {
+        if (this._mode === 'reset_password') {
+          import('../lib/interaction').then(({ showToast }) => {
+            const locale = useLocaleStore.getState().locale;
+            showToast(locale === 'es' ? 'Contraseña actualizada con éxito' : 'Password updated successfully');
+          });
+        }
         setTimeout(() => this._close(), 350);
         return;
       }
@@ -272,16 +285,46 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     this._password = (e.target as HTMLInputElement).value;
   }
 
-  private _switchMode(mode: 'signin' | 'signup' | 'magic') {
+  private _onCurrentPasswordInput(e: Event) {
+    this._currentPassword = (e.target as HTMLInputElement).value;
+  }
+
+  private _onConfirmPasswordInput(e: Event) {
+    this._confirmPassword = (e.target as HTMLInputElement).value;
+  }
+
+  private _switchMode(mode: 'signin' | 'signup' | 'magic' | 'forgot_password' | 'reset_password') {
     this._mode = mode;
     useAuthStore.getState().resetError();
   }
 
   private async _submit(e: Event) {
     e.preventDefault();
+    const auth = useAuthStore.getState();
+
+    if (this._mode === 'reset_password') {
+      if (auth.isRecoveringPassword) {
+        if (!this._password) return;
+        await auth.updatePassword(this._password);
+      } else if (this._isVoluntaryChange) {
+        if (!this._currentPassword || !this._password || !this._confirmPassword) return;
+        if (this._password !== this._confirmPassword) {
+          useAuthStore.setState({ status: 'error', lastError: 'password_mismatch' });
+          return;
+        }
+        await auth.changePassword(this._currentPassword, this._password);
+      }
+      return;
+    }
+
     if (!this._email) return;
     this._emailForDisplay = this._email;
-    const auth = useAuthStore.getState();
+
+    if (this._mode === 'forgot_password') {
+      await auth.sendPasswordResetEmail(this._email);
+      return;
+    }
+
     if (this._mode === 'magic') {
       await auth.signInWithMagicLink(this._email);
       const st = useAuthStore.getState().status;
@@ -346,23 +389,151 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
 
   private _renderBody() {
     if (this._status === 'signed_in') {
-      const email = useAuthStore.getState().email ?? '';
+      const storeState = useAuthStore.getState();
+      const email = storeState.email ?? '';
+      const isRecoveringFromEmail = storeState.isRecoveringPassword;
+      const isVoluntaryChange = this._isVoluntaryChange && this._mode === 'reset_password';
+      const showPasswordForm = isRecoveringFromEmail || isVoluntaryChange;
+
+      if (showPasswordForm) {
+        const storeStatus = useAuthStore.getState().status;
+        const isSending = storeStatus === 'sending';
+        const hasError = storeStatus === 'error';
+        const errorMsg = this._friendlyError(useAuthStore.getState().lastError);
+
+        if (isRecoveringFromEmail) {
+          return html`
+            <form @submit="${this._submit}" class="field-stack">
+              <div class="signed-label">${t('auth.resetPasswordTitle')}</div>
+              <div class="signed-email">${email}</div>
+
+              <div>
+                <div class="field-label">${t('auth.newPasswordLabel')}</div>
+                <input
+                  class="field-input"
+                  type="password"
+                  required
+                  minlength="6"
+                  placeholder="${t('auth.newPasswordPlaceholder')}"
+                  .value="${this._password}"
+                  @input="${this._onPasswordInput}"
+                  ?disabled="${isSending}"
+                >
+              </div>
+
+              ${hasError ? html`<div class="error-text">${errorMsg}</div>` : ''}
+
+              <button class="btn btn-primary" type="submit" ?disabled="${isSending || !this._password}">
+                ${isSending ? t('auth.updatingPassword') : t('auth.updatePassword')}
+              </button>
+
+              <button type="button" class="toggle-link" @click="${() => {
+                useAuthStore.setState({ isRecoveringPassword: false });
+                this._switchMode('signin');
+              }}">
+                ${t('auth.closeLabel')}
+              </button>
+            </form>
+          `;
+        }
+
+        return html`
+          <form @submit="${this._submit}" class="field-stack">
+            <div class="signed-label">${t('auth.resetPasswordTitle')}</div>
+            <div class="signed-email">${email}</div>
+
+            <div>
+              <div class="field-label">${t('auth.currentPasswordLabel')}</div>
+              <input
+                class="field-input"
+                type="password"
+                required
+                minlength="6"
+                autocomplete="current-password"
+                placeholder="${t('auth.currentPasswordPlaceholder')}"
+                .value="${this._currentPassword}"
+                @input="${this._onCurrentPasswordInput}"
+                ?disabled="${isSending}"
+              >
+            </div>
+
+            <div>
+              <div class="field-label">${t('auth.newPasswordLabel')}</div>
+              <input
+                class="field-input"
+                type="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                placeholder="${t('auth.newPasswordPlaceholder')}"
+                .value="${this._password}"
+                @input="${this._onPasswordInput}"
+                ?disabled="${isSending}"
+              >
+            </div>
+
+            <div>
+              <div class="field-label">${t('auth.confirmPasswordLabel')}</div>
+              <input
+                class="field-input"
+                type="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                placeholder="${t('auth.confirmPasswordPlaceholder')}"
+                .value="${this._confirmPassword}"
+                @input="${this._onConfirmPasswordInput}"
+                ?disabled="${isSending}"
+              >
+            </div>
+
+            ${hasError ? html`<div class="error-text">${errorMsg}</div>` : ''}
+
+            <button class="btn btn-primary" type="submit" ?disabled="${isSending || !this._currentPassword || !this._password || !this._confirmPassword}">
+              ${isSending ? t('auth.updatingPassword') : t('auth.updatePassword')}
+            </button>
+
+            <button type="button" class="toggle-link" @click="${() => {
+              this._isVoluntaryChange = false;
+              this._currentPassword = '';
+              this._confirmPassword = '';
+              useAuthStore.setState({ lastError: null });
+              this.requestUpdate();
+            }}">
+              ${t('auth.closeLabel')}
+            </button>
+          </form>
+        `;
+      }
+
       return html`
         <div>
           <div class="signed-label">${t('account.signedInAs')}</div>
           <div class="signed-email">${email}</div>
         </div>
+        <button class="btn btn-secondary" @click="${() => {
+          this._isVoluntaryChange = true;
+          this._mode = 'reset_password';
+          this._currentPassword = '';
+          this._password = '';
+          this._confirmPassword = '';
+          useAuthStore.setState({ lastError: null });
+          this.requestUpdate();
+        }}">${t('auth.updatePassword')}</button>
         <button class="btn btn-danger" @click="${this._signOut}">${t('account.signOut')}</button>
       `;
     }
 
-    if (this._status === 'sent' || this._status === 'sent_signup') {
+    if (this._status === 'sent' || this._status === 'sent_signup' || this._status === 'sent_password_reset') {
       const canResend = this._resendCountdown <= 0;
       const resendLabel = canResend
         ? t('auth.resend')
         : t('auth.resendIn', { s: this._resendCountdown });
       const isSignup = this._status === 'sent_signup';
-      const bodyMsg = isSignup
+      const isReset = this._status === 'sent_password_reset';
+      const bodyMsg = isReset
+        ? t('auth.checkInboxReset', { email: this._emailForDisplay })
+        : isSignup
         ? t('auth.checkInboxSignup', { email: this._emailForDisplay })
         : t('auth.checkInbox', { email: this._emailForDisplay });
       return html`
@@ -372,9 +543,11 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
             ${bodyMsg}
           </div>
         </div>
-        <button class="btn btn-secondary" ?disabled="${!canResend}" @click="${this._resend}">
-          ${resendLabel}
-        </button>
+        ${isReset ? '' : html`
+          <button class="btn btn-secondary" ?disabled="${!canResend}" @click="${this._resend}">
+            ${resendLabel}
+          </button>
+        `}
         <button class="toggle-link" @click="${() => this._switchMode('signin')}">${t('auth.toggleToSignIn')}</button>
       `;
     }
@@ -384,13 +557,14 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
     const errorMsg = this._friendlyError(useAuthStore.getState().lastError);
     const isMagic = this._mode === 'magic';
     const isSignUp = this._mode === 'signup';
+    const isForgot = this._mode === 'forgot_password';
 
     const submitDisabled = isSending
       || !this._email
-      || (!isMagic && !this._password);
+      || (!isMagic && !isForgot && !this._password);
     const submitLabel = isSending
-      ? (isMagic ? t('auth.sending') : isSignUp ? t('auth.signingUp') : t('auth.signingIn'))
-      : (isMagic ? t('auth.sendLink') : isSignUp ? t('auth.signUp') : t('auth.signIn'));
+      ? (isForgot ? t('auth.sending') : isMagic ? t('auth.sending') : isSignUp ? t('auth.signingUp') : t('auth.signingIn'))
+      : (isForgot ? t('auth.sendResetLink') : isMagic ? t('auth.sendLink') : isSignUp ? t('auth.signUp') : t('auth.signIn'));
 
     return html`
       <form @submit="${this._submit}" class="field-stack">
@@ -408,7 +582,7 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
           >
         </div>
 
-        ${isMagic ? '' : html`
+        ${(isMagic || isForgot) ? '' : html`
           <div>
             <div class="field-label">${t('auth.passwordLabel')}</div>
             <input
@@ -431,7 +605,13 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
           ${submitLabel}
         </button>
 
-        ${isMagic
+        ${isForgot
+          ? html`
+              <button type="button" class="toggle-link" @click="${() => this._switchMode('signin')}">
+                ${t('auth.toggleToSignIn')}
+              </button>
+            `
+          : isMagic
           ? html`
               <button type="button" class="toggle-link" @click="${() => this._switchMode('signin')}">
                 ${t('auth.toggleToSignIn')}
@@ -441,8 +621,11 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
               <button type="button" class="toggle-link" @click="${() => this._switchMode(isSignUp ? 'signin' : 'signup')}">
                 ${isSignUp ? t('auth.toggleToSignIn') : t('auth.toggleToSignUp')}
               </button>
+              <button type="button" class="toggle-link" @click="${() => this._switchMode('forgot_password')}">
+                ${t('auth.forgotPasswordLink')}
+              </button>
               <button type="button" class="magic-link" @click="${() => this._switchMode('magic')}">
-                ${t('auth.forgotPassword')}
+                ${t('auth.magicLinkLink')}
               </button>
             `}
       </form>
@@ -468,14 +651,20 @@ export class AuthModal extends DragToDismissMixin(LitElement) {
       return t('auth.errorOtpExpired');
     }
     if (lower === 'not_configured') return t('auth.notConfigured');
+    if (lower === 'password_mismatch') return t('auth.errorPasswordMismatch');
+    if (lower === 'invalid_current_password') return t('auth.errorInvalidCurrentPassword');
+    if (lower.includes('new password should be different')) return t('auth.errorSamePassword');
     return raw;
   }
 }
 
-export function openAuthModal(): void {
+export function openAuthModal(initialMode?: 'signin' | 'signup' | 'magic' | 'forgot_password' | 'reset_password'): void {
   const existing = document.querySelector('auth-modal');
   if (existing) { existing.remove(); }
-  const modal = document.createElement('auth-modal');
+  const modal = document.createElement('auth-modal') as AuthModal;
+  if (initialMode) {
+    modal.initialMode = initialMode;
+  }
   document.body.appendChild(modal);
 }
 

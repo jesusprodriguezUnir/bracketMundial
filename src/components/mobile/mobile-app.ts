@@ -190,12 +190,8 @@ export class MobileApp extends LitElement {
 
   private async _handleAuth() {
     this._sheetOpen = false;
-    if (useAuthStore.getState().session) {
-      await useAuthStore.getState().signOut();
-    } else {
-      const { openAuthModal } = await import('../../components/auth-modal');
-      openAuthModal();
-    }
+    const { openAuthModal } = await import('../../components/auth-modal');
+    openAuthModal();
   }
 
   private async _handlePublish() {

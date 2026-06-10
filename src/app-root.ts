@@ -811,12 +811,8 @@ export class AppRoot extends LitElement {
   }
 
   private async _handleAuth() {
-    if (useAuthStore.getState().session) {
-      await useAuthStore.getState().signOut();
-    } else {
-      const { openAuthModal } = await import('./components/auth-modal');
-      openAuthModal();
-    }
+    const { openAuthModal } = await import('./components/auth-modal');
+    openAuthModal();
   }
 
   private triggerImportExcel() {

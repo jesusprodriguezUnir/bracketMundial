@@ -28,16 +28,20 @@ export function waitForAuthReady(): Promise<Session | null> {
   });
 }
 
-export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'sent_signup' | 'error';
+export type AuthStatus = 'init' | 'signed_out' | 'signed_in' | 'sending' | 'sent' | 'sent_signup' | 'error' | 'sent_password_reset';
 
 interface AuthState {
   status: AuthStatus;
   session: Session | null;
   email: string | null;
   lastError: string | null;
+  isRecoveringPassword: boolean;
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signUpWithPassword: (email: string, password: string) => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   resendSignupConfirmation: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetError: () => void;
@@ -56,6 +60,8 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
   session: null,
   email: null,
   lastError: null,
+
+  isRecoveringPassword: false,
 
   signInWithPassword: async (email, password) => {
     const sb = getSupabase();
@@ -133,9 +139,63 @@ export const useAuthStore = createStore<AuthState>()((set, _get) => ({
     set(error ? { status: 'error', lastError: error.message } : { status: 'sent' });
   },
 
+  sendPasswordResetEmail: async (email) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'sending', lastError: null });
+    const emailRedirectTo = await buildRedirectUrl();
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: emailRedirectTo });
+    console.log('[auth] resetPasswordForEmail response', { email, error: error?.message });
+    set(error ? { status: 'error', lastError: error.message } : { status: 'sent_password_reset' });
+  },
+
+  updatePassword: async (password) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'sending', lastError: null });
+    const { error } = await sb.auth.updateUser({ password });
+    console.log('[auth] updatePassword response', { error: error?.message });
+    if (error) {
+      set({ status: 'error', lastError: error.message });
+    } else {
+      set({ status: 'signed_in', lastError: null, isRecoveringPassword: false });
+    }
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const sb = getSupabase();
+    if (!sb) { set({ status: 'error', lastError: 'not_configured' }); return; }
+    set({ status: 'sending', lastError: null });
+
+    const state = _get();
+    const email = state.email;
+    if (!email) {
+      set({ status: 'error', lastError: 'invalid_current_password' });
+      return;
+    }
+
+    console.log('[auth] changePassword: reauthenticating with current password');
+    const { error: signInError } = await sb.auth.signInWithPassword({ email, password: currentPassword });
+    if (signInError) {
+      console.log('[auth] changePassword: reauth failed', { error: signInError.message });
+      set({ status: 'error', lastError: 'invalid_current_password' });
+      return;
+    }
+
+    console.log('[auth] changePassword: reauth ok, updating password');
+    const { error: updateError } = await sb.auth.updateUser({ password: newPassword });
+    console.log('[auth] changePassword response', { error: updateError?.message });
+    if (updateError) {
+      set({ status: 'error', lastError: updateError.message });
+    } else {
+      set({ status: 'signed_in', lastError: null, isRecoveringPassword: false });
+    }
+  },
+
   signOut: async () => {
     const sb = getSupabase();
     await sb?.auth.signOut();
+    set({ isRecoveringPassword: false });
   },
 
   resetError: () => set({ status: 'signed_out', lastError: null }),
@@ -171,11 +231,18 @@ export function initAuth(): void {
     }
   });
 
-  sb.auth.onAuthStateChange((_event, session) => {
+  sb.auth.onAuthStateChange((event, session) => {
     const prev = useAuthStore.getState().session;
     const wasInit = useAuthStore.getState().status === 'init';
     if (session || !urlError) {
       useAuthStore.getState()._setSession(session);
+    }
+
+    if (event === 'PASSWORD_RECOVERY') {
+      useAuthStore.setState({ isRecoveringPassword: true });
+      import('../components/auth-modal').then(({ openAuthModal }) => {
+        openAuthModal('reset_password');
+      });
     }
 
     if (session && (!prev || wasInit)) {

@@ -553,3 +553,21 @@ export async function refreshLeagueMembers(leagueId: string): Promise<void> {
   const merged = mergeParticipants(league.participants, cloudParticipants, userId);
   store._patchLeague(leagueId, { participants: merged });
 }
+
+export async function removeParticipantFromCloud(leagueId: string, participantId: string): Promise<boolean> {
+  const sb = getSupabase();
+  const userId = useAuthStore.getState().session?.user.id;
+  if (!sb || !userId) return false;
+
+  const { error } = await sb.from('league_members')
+    .delete()
+    .eq('league_id', leagueId)
+    .eq('user_id', participantId);
+
+  if (error) {
+    console.error('[league-sync] removeParticipantFromCloud error:', error);
+    return false;
+  }
+  return true;
+}
+
