@@ -26,6 +26,21 @@ window.addEventListener('unhandledrejection', (e) => {
   handleChunkError(e.reason);
 });
 
+import { registerSW } from 'virtual:pwa-register';
+
+registerSW({
+  onRegisteredSW(_swUrl, registration) {
+    // Chequea updates cada hora: clientes con pestañas abiertas mucho tiempo
+    // no se quedan con un SW desfasado entre deploys del Mundial
+    if (registration) {
+      setInterval(() => registration.update().catch(() => {}), 60 * 60 * 1000);
+    }
+  },
+  onRegisterError(error) {
+    console.warn('[PWA] Fallo registrando el service worker', error);
+  },
+});
+
 import './index.css';
 import './app-root';
 import { applyLocaleFromRoute, applyDeepLinkTab } from './lib/route-bootstrap';

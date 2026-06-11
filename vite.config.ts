@@ -22,7 +22,9 @@ export default defineConfig({
         clientsClaim: true,
       },
       devOptions: {
-        enabled: true
+        // El SW en dev oculta cambios recientes (hard reload constante);
+        // poner true solo para probar la PWA en local
+        enabled: false
       },
       manifest: {
         name: 'Bracket Mundial 2026',
