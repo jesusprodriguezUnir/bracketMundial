@@ -1891,7 +1891,6 @@ export class BracketKnockout extends LitElement {
     this._flashMobId = matchId;
     setTimeout(() => { this._flashMobId = null; }, 500);
   }
-
   private renderMatch(matchId: string, accentColor: string, idx = 0, isRightSide = false) {
     const m = useTournamentStore.getState().knockoutMatches[matchId];
     const tA = this.getTeam(m?.teamA ?? null);
@@ -1903,7 +1902,8 @@ export class BracketKnockout extends LitElement {
     const decidedOnPenalties = penaltyScoreA !== null && penaltyScoreB !== null;
     const isPending = isPlayed === false;
     const label = `${tA?.shortName ?? 'TBD'} vs ${tB?.shortName ?? 'TBD'}`;
-    const canEdit = !!(m?.teamA && m?.teamB && isMatchPending(m?.date ?? '', m?.timeSpain ?? ''));
+    const isEditable = useTournamentStore.getState().isMatchEditable(matchId);
+    const canEdit = !!(m?.teamA && m?.teamB && isMatchPending(m?.date ?? '', m?.timeSpain ?? '') && isEditable);
     const scoreAVal = m?.scoreA ?? 0;
     const scoreBVal = m?.scoreB ?? 0;
     const isDraw = canEdit && m?.scoreA !== null && m?.scoreB !== null && m?.scoreA === m?.scoreB;
@@ -1916,7 +1916,7 @@ export class BracketKnockout extends LitElement {
       const isLoser  = winnerId !== null && winnerId !== teamId;
       const stepVal  = teamAB === 'A' ? scoreAVal : scoreBVal;
       const scoreClass = isPending ? 'pending' : '';
-      const scoreText = isPlayed ? score : '—';
+      const scoreText = isPlayed ? score : (isEditable ? '—' : '🔒');
       const scoreContent = canEdit
         ? html`<score-stepper
             .value=${stepVal}
@@ -2109,7 +2109,8 @@ export class BracketKnockout extends LitElement {
     const winA = m.winnerId !== null && m.winnerId === m.teamA;
     const winB = m.winnerId !== null && m.winnerId === m.teamB;
     const isPending = !m.isPlayed;
-    const canEdit = !!(m.teamA && m.teamB && isMatchPending(m.date ?? '', m.timeSpain ?? ''));
+    const isEditable = useTournamentStore.getState().isMatchEditable(matchId);
+    const canEdit = !!(m.teamA && m.teamB && isMatchPending(m.date ?? '', m.timeSpain ?? '') && isEditable);
     const isDraw = canEdit && m.scoreA !== null && m.scoreB !== null && m.scoreA === m.scoreB;
     const penAVal = m.penaltyScoreA ?? 0;
     const penBVal = m.penaltyScoreB ?? 0;
@@ -2117,7 +2118,7 @@ export class BracketKnockout extends LitElement {
     const row = (team: ReturnType<typeof this.getTeam>, score: number | null, teamAB: 'A' | 'B', isWin: boolean, isLose: boolean) => {
       const stepVal = teamAB === 'A' ? (m.scoreA ?? 0) : (m.scoreB ?? 0);
       const mobileScoreClass = isPending && score === null ? 'pending' : '';
-      const mobileScoreText = m.isPlayed ? score : '—';
+      const mobileScoreText = m.isPlayed ? score : (isEditable ? '—' : '🔒');
       const mobileScoreContent = canEdit
         ? html`<score-stepper
             .value=${stepVal}

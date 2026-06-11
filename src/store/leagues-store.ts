@@ -5,6 +5,7 @@ import { GROUP_MATCHES } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from './tournament-store';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { useAuthStore } from './auth-store';
+import { registerLeagueGetter } from './league-context-bridge';
 
 export interface LeagueParticipant {
   id: string;
@@ -26,6 +27,10 @@ export interface League {
   participants: LeagueParticipant[];
   /** Código de invitación corto (XXX-XXXX). Persistido en la nube. */
   joinCode?: string;
+  /** El owner congela toda la edición de predicciones (default false). */
+  frozen?: boolean;
+  /** YYYY-MM-DD. Partidos con fecha < lockedBeforeDate quedan bloqueados y no puntúan. */
+  lockedBeforeDate?: string;
 }
 
 let idCounter = 0;
@@ -61,7 +66,8 @@ interface LeaguesState {
   leagues: League[];
   activeLeagueId: string | null;
 
-  createLeague: (name: string, ownerName?: string) => string;
+  createLeague: (name: string, ownerName?: string, opts?: { frozen?: boolean; lockFromToday?: boolean }) => string;
+  setLeagueFrozen: (id: string, frozen: boolean) => void;
   renameLeague: (id: string, name: string) => void;
   deleteLeague: (id: string) => void;
   setActiveLeague: (id: string | null) => void;
@@ -99,11 +105,14 @@ export const useLeaguesStore = createStore<LeaguesState>()(
       leagues: [],
       activeLeagueId: null,
 
-      createLeague: (name, ownerName) => {
+      createLeague: (name, ownerName, opts) => {
         const id = generateLid();
         const cleanedOwnerName = (ownerName ?? '').trim() || 'Me';
         const userId = useAuthStore.getState().session?.user.id;
         const pid = userId || generatePid();
+        const today = opts?.lockFromToday
+          ? new Date().toISOString().slice(0, 10)
+          : undefined;
         const league: League = {
           id,
           name: name.trim(),
@@ -120,9 +129,15 @@ export const useLeaguesStore = createStore<LeaguesState>()(
               userId,
             },
           ],
+          ...(opts?.frozen ? { frozen: true } : {}),
+          ...(today ? { lockedBeforeDate: today } : {}),
         };
         set({ leagues: [...get().leagues, league], activeLeagueId: id });
         return id;
+      },
+
+      setLeagueFrozen: (id, frozen) => {
+        get()._patchLeague(id, { frozen });
       },
 
       renameLeague: (id, name) => {
@@ -395,10 +410,11 @@ export const useLeaguesStore = createStore<LeaguesState>()(
     }),
     {
       name: 'mundial-2026-leagues',
-      version: 1,
-      migrate: (persisted: unknown) => {
+      version: 2,
+      migrate: (persisted: unknown, version: number) => {
         const p = persisted as { leagues?: League[] };
-        if (p.leagues) {
+        if (version < 1 && p.leagues) {
+          // v0 → v1: marcar isOwner al primer participante
           p.leagues = p.leagues.map(l => ({
             ...l,
             participants: l.participants.map((participant, i) =>
@@ -406,13 +422,12 @@ export const useLeaguesStore = createStore<LeaguesState>()(
             ),
           }));
         }
+        // v1 → v2: frozen y lockedBeforeDate son opcionales; no requieren migración de datos.
         return p as Record<string, unknown>;
       },
     },
   ),
 );
-
-// ── Identity helpers ──
 
 /** Determina si un participante soy yo, usando coincidencia de userId si hay sesión y el registro la tiene, o isOwner como fallback. */
 export function isMyParticipant(p: { id: string; userId?: string; isOwner?: boolean }, sessionUserId: string | null | undefined): boolean {
@@ -426,3 +441,10 @@ export function isMyParticipant(p: { id: string; userId?: string; isOwner?: bool
 export function findMyParticipant(league: League | undefined, sessionUserId: string | null | undefined): LeagueParticipant | undefined {
   return league?.participants.find(p => isMyParticipant(p, sessionUserId));
 }
+
+// Registrar el getter de liga en el puente para tournament-store
+registerLeagueGetter((leagueId: string) => {
+  const l = useLeaguesStore.getState().leagues.find(l => l.id === leagueId);
+  if (!l) return null;
+  return { frozen: l.frozen, lockedBeforeDate: l.lockedBeforeDate };
+});

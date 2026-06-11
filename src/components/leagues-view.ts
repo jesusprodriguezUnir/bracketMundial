@@ -14,7 +14,7 @@ import { buildParticipantShareUrl, decodeParticipantShare } from '../lib/league-
 import { refreshLeagueMembers, updateMyPredictionsInCloud, updateMyNameInCloud, deleteLeagueFromCloud, leaveLeagueInCloud, findLeagueByCode, joinLeagueInCloud, removeParticipantFromCloud } from '../lib/league-sync';
 import { useAuthStore } from '../store/auth-store';
 import { ExcelService } from '../lib/excel-service';
-import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed } from '../lib/league-fixture';
+import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed, getLeagueLockedMatchIds } from '../lib/league-fixture';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
 import { loadOfficialResults } from '../lib/official-results';
@@ -87,6 +87,8 @@ export class LeaguesView extends LitElement {
   private _initialMount = true;
   @state() private _awardsSearchQuery = '';
   @state() private _participantForModal: LeagueParticipant | null = null;
+  @state() private _createFrozen = false;
+  @state() private _lockFromToday = false;
   private _leagueSummaries: Map<string, { leaderName: string; leaderPoints: number; participantCount: number }> = new Map();
   private _knockoutDisplayScores: RealScores[] = [];
 
@@ -2570,10 +2572,11 @@ export class LeaguesView extends LitElement {
 
     this._leagueSummaries = new Map();
     for (const l of this._leagues) {
+      const excludedMatchIds = getLeagueLockedMatchIds(l);
       const allParticipants = l.participants;
       const scored: ParticipantScore[] = [];
       for (const p of allParticipants) {
-        scored.push(scoreParticipant(p, groupScoresForRanking, knockoutScoresForRanking));
+        scored.push(scoreParticipant(p, groupScoresForRanking, knockoutScoresForRanking, { excludedMatchIds }));
       }
       const ranked = rankParticipants(scored);
       const leader = ranked[0];
@@ -2586,9 +2589,10 @@ export class LeaguesView extends LitElement {
 
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
     if (league) {
+      const excludedMatchIds = getLeagueLockedMatchIds(league);
       const scored: ParticipantScore[] = [];
       for (const participant of league.participants) {
-        scored.push(scoreParticipant(participant, groupScoresForRanking, knockoutScoresForRanking));
+        scored.push(scoreParticipant(participant, groupScoresForRanking, knockoutScoresForRanking, { excludedMatchIds }));
       }
       this._scores = rankParticipants(scored);
     } else {
@@ -2600,6 +2604,9 @@ export class LeaguesView extends LitElement {
 
   private async _editPredictionForLeague() {
     if (!this._activeLeagueId) return;
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    // No abrir editor si la liga está congelada (el bloqueo por partido lo gestiona el store)
+    if (league?.frozen) return;
     await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
     this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
   }
@@ -2744,11 +2751,45 @@ export class LeaguesView extends LitElement {
     const name = this._newLeagueName.trim();
     if (!name) return;
     const ownerName = this._newOwnerName.trim() || this._defaultOwnerName();
-    useLeaguesStore.getState().createLeague(name, ownerName);
+    const opts = {
+      frozen: this._createFrozen,
+      lockFromToday: this._lockFromToday && this._tournamentStarted,
+    };
+    const leagueId = useLeaguesStore.getState().createLeague(name, ownerName, opts);
+    // Sincronizar a la nube con los opts si hay sesión
+    const session = useAuthStore.getState().session;
+    if (session) {
+      const league = useLeaguesStore.getState().leagues.find(l => l.id === leagueId);
+      import('../lib/league-sync').then(({ createLeagueInCloud }) => {
+        createLeagueInCloud(name, ownerName, leagueId, {
+          frozen: opts.frozen || false,
+          lockedBeforeDate: league?.lockedBeforeDate,
+        }).then(result => {
+          if (result?.joinCode) {
+            useLeaguesStore.getState()._patchLeague(leagueId, { joinCode: result.joinCode });
+          }
+        });
+      });
+    }
     this._newLeagueName = '';
     this._newOwnerName = '';
+    this._createFrozen = false;
+    this._lockFromToday = false;
     this._manualListMode = false;
     this._screen = 'detail';
+  }
+
+  /** El owner activa/desactiva el congelado de la liga. */
+  private async _toggleLeagueFrozen(league: League) {
+    const newFrozen = !league.frozen;
+    useLeaguesStore.getState().setLeagueFrozen(league.id, newFrozen);
+    try {
+      const { updateLeagueConfigInCloud } = await import('../lib/league-sync');
+      await updateLeagueConfigInCloud(league.id, { frozen: newFrozen });
+      await import('../lib/league-sync').then(m => m.refreshLeagueMembers(league.id));
+    } catch (err) {
+      console.warn('[leagues-view] _toggleLeagueFrozen cloud update failed:', err);
+    }
   }
 
   private _defaultOwnerName(): string {
@@ -3317,6 +3358,25 @@ export class LeaguesView extends LitElement {
             <span>${t('league.createBtn')}</span>
           </button>
         </div>
+
+        ${this._tournamentStarted ? html`
+          <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;margin-bottom:4px;padding:0 2px;">
+            <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;cursor:pointer;color:var(--ink);">
+              <input type="checkbox"
+                .checked=${this._lockFromToday}
+                @change=${(e: Event) => { this._lockFromToday = (e.target as HTMLInputElement).checked; }}
+              />
+              ${t('league.cfgLockPlayedLabel')}
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;cursor:pointer;color:var(--ink);">
+              <input type="checkbox"
+                .checked=${this._createFrozen}
+                @change=${(e: Event) => { this._createFrozen = (e.target as HTMLInputElement).checked; }}
+              />
+              🔒 ${t('league.cfgFreezeLabel')} (iniciar bloqueada)
+            </label>
+          </div>
+        ` : ''}
 
         ${this._renderSyncBanner()}
 
@@ -3966,11 +4026,16 @@ export class LeaguesView extends LitElement {
         </div>
 
         <div class="lg-v2-edit-prediction-row">
-          <button class="lg-v2-btn primary" @click=${this._editPredictionForLeague}>
+          ${league.frozen ? html`
+            <div style="background:color-mix(in srgb,var(--retro-orange) 18%,var(--paper-3));border:2.5px solid var(--ink);padding:8px 14px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              🔒 ${t('league.cfgFrozenBanner')}
+            </div>
+          ` : ''}
+          <button class="lg-v2-btn primary" @click=${this._editPredictionForLeague} ?disabled=${!!league.frozen}>
             <span class="lg-v2-btn-ic">✎</span>
             <span>
               Editar mi predicción en esta liga<br/>
-              <span class="lg-v2-btn-sub">Grupos, eliminatorias, MVP y goleador independientes</span>
+              <span class="lg-v2-btn-sub">${league.frozen ? t('league.cfgFrozenBanner') : 'Grupos, eliminatorias, MVP y goleador independientes'}</span>
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
@@ -4010,7 +4075,19 @@ export class LeaguesView extends LitElement {
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
+          ${isOwner ? html`
+            <button class="lg-v2-btn" @click=${() => this._toggleLeagueFrozen(league)}
+              style="${league.frozen ? 'border-color:var(--retro-orange);' : ''}">
+              <span class="lg-v2-btn-ic">${league.frozen ? '🔓' : '🔒'}</span>
+              <span>
+                ${league.frozen ? 'Descongelar predicciones' : 'Congelar predicciones'}<br/>
+                <span class="lg-v2-btn-sub">${league.frozen ? 'Permitir editar de nuevo' : 'Bloquear edición para todos'}</span>
+              </span>
+              <span class="lg-v2-btn-arrow">→</span>
+            </button>
+          ` : ''}
         </div>
+
 
         <div class="lg-v2-section-bar">
           <h3>${t('league.modeReal')}</h3>

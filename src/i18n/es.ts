@@ -924,6 +924,13 @@ export const es = {
   'sync.banner.feedback.synced': '✓ {count} liga(s) sincronizadas. Revisa la consola si algo falló.',
   'sync.banner.feedback.syncFailedNoSession': '✕ No se pudo sincronizar (sin sesión).',
 
+  // Liga — configuración de bloqueo
+  'league.settingsTitle': 'Ajustes de la liga',
+  'league.cfgFreezeLabel': 'Permitir editar predicciones',
+  'league.cfgFrozenBanner': '🔒 Liga congelada — predicciones cerradas por el organizador',
+  'league.cfgLockPlayedLabel': 'Bloquear partidos ya jugados (no puntúan)',
+  'league.matchLocked': '🔒 Partido bloqueado — no editable en esta liga',
+
 } as const;
 
 export type TranslationKey = keyof typeof es;

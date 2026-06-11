@@ -916,4 +916,11 @@ export const en: Record<TranslationKey, string> = {
   'sync.banner.feedback.synced': '✓ {count} league(s) synced. Check console if anything failed.',
   'sync.banner.feedback.syncFailedNoSession': '✕ Could not sync (no session).',
 
+  // League — edit-locking config
+  'league.settingsTitle': 'League settings',
+  'league.cfgFreezeLabel': 'Allow prediction editing',
+  'league.cfgFrozenBanner': '🔒 League frozen — predictions locked by the organiser',
+  'league.cfgLockPlayedLabel': 'Lock already-played matches (no points)',
+  'league.matchLocked': '🔒 Match locked — not editable in this league',
+
 };

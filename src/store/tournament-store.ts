@@ -11,6 +11,8 @@ import { generateGoalScorers } from '../lib/goal-scorers';
 import type { GoalEvent } from '../types';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import type { LeagueParticipant } from './leagues-store';
+import { getLeagueState } from './league-context-bridge';
+import { GROUP_MATCHES } from '../data/match-schedule';
 
 export type ActiveContext = { kind: 'personal' } | { kind: 'league'; leagueId: string };
 export type ViewMode = 'predictions' | 'real';
@@ -264,6 +266,8 @@ interface TournamentState {
   setViewMode: (mode: ViewMode) => void;
   setRealGroupResult: (matchId: string, scoreA: number | null, scoreB: number | null) => void;
   setRealKnockoutResult: (matchId: string, scoreA: number | null, scoreB: number | null, penaltyScoreA?: number | null, penaltyScoreB?: number | null) => void;
+  /** Selector público: true si el partido puede editarse en el contexto activo. */
+  isMatchEditable: (matchId: string) => boolean;
 }
 
 function createInitialStandings(): Record<string, GroupStanding[]> {
@@ -442,11 +446,38 @@ export const useTournamentStore = createStore<TournamentState>()(
       realGroupResults: {},
       realKnockoutResults: {},
 
+      isMatchEditable: (matchId: string): boolean => {
+        const ctx = _get().activeContext;
+        if (ctx.kind !== 'league') return true;
+        const leagueId = (ctx as { kind: 'league'; leagueId: string }).leagueId;
+        const league = getLeagueState(leagueId);
+        if (!league) return true;
+        // Si la liga está congelada: nunca editable
+        if (league.frozen) return false;
+        // Si el partido está en el rango lockedBeforeDate: no editable
+        if (league.lockedBeforeDate) {
+          const cutoff = league.lockedBeforeDate;
+          const groupMatch = GROUP_MATCHES.find(m => m.matchId === matchId);
+          if (groupMatch && groupMatch.date < cutoff) return false;
+          const koDate = KNOCKOUT_SCHEDULE[matchId]?.date;
+          if (koDate && koDate < cutoff) return false;
+        }
+        // Bloqueo estándar: fecha del partido ya pasó
+        const today = new Date().toISOString().slice(0, 10);
+        const groupDate = GROUP_MATCHES.find(m => m.matchId === matchId)?.date;
+        const matchDate = groupDate ?? KNOCKOUT_SCHEDULE[matchId]?.date;
+        if (matchDate && matchDate < today) return false;
+        return true;
+      },
+
       setGroupMatchResult: (matchId, scoreA, scoreB) => {
         set(state => {
           if (state.viewMode === 'real') {
             return state;
           }
+
+          // Bloqueo de liga: no editar si el partido no es editable en contexto de liga
+          if (!_get().isMatchEditable(matchId)) return state;
 
           const matches = state.groupMatches.map(m =>
             m.matchId === matchId ? { ...m, scoreA, scoreB } : m
@@ -467,6 +498,9 @@ export const useTournamentStore = createStore<TournamentState>()(
           if (state.viewMode === 'real') {
             return state;
           }
+
+          // Bloqueo de liga: no editar si el partido no es editable en contexto de liga
+          if (!_get().isMatchEditable(matchId)) return state;
 
           const match = state.knockoutMatches[matchId];
           if (!match) {
@@ -780,10 +814,22 @@ export const useTournamentStore = createStore<TournamentState>()(
       },
 
       setMyTopScorerPrediction: (topScorer) => {
+        // Bloquear si la liga activa está congelada
+        const ctx = _get().activeContext;
+        if (ctx.kind === 'league') {
+          const league = getLeagueState((ctx as { kind: 'league'; leagueId: string }).leagueId);
+          if (league?.frozen) return;
+        }
         set({ myTopScorerPrediction: topScorer });
       },
 
       setMyMvpPrediction: (mvp) => {
+        // Bloquear si la liga activa está congelada
+        const ctx = _get().activeContext;
+        if (ctx.kind === 'league') {
+          const league = getLeagueState((ctx as { kind: 'league'; leagueId: string }).leagueId);
+          if (league?.frozen) return;
+        }
         set({ myMvpPrediction: mvp });
       },
 

@@ -1,5 +1,6 @@
 import { GROUP_MATCHES, KNOCKOUT_SCHEDULE, type ScheduledKnockoutMatch } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from '../store/tournament-store';
+// League type imported structurally below — no runtime import needed
 
 const groupDateById = new Map(GROUP_MATCHES.map(m => [m.matchId, m.date]));
 
@@ -9,6 +10,45 @@ export function hasMatchDatePassed(matchId: string, now: Date = new Date()): boo
   if (!date) return false;
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   return date < today;
+}
+
+/**
+ * Devuelve el conjunto de matchIds cuyos partidos tienen fecha anterior a
+ * `league.lockedBeforeDate`. Estos partidos quedan bloqueados para editar
+ * y excluidos del scoring cuando la liga se creó con `lockFromToday`.
+ */
+export function getLeagueLockedMatchIds(league: { lockedBeforeDate?: string }): Set<string> {
+  if (!league.lockedBeforeDate) return new Set();
+  const cutoff = league.lockedBeforeDate; // YYYY-MM-DD
+  const locked = new Set<string>();
+  for (const m of GROUP_MATCHES) {
+    if (m.date < cutoff) locked.add(m.matchId);
+  }
+  const koOrder = getKnockoutMatchOrder();
+  for (const matchId of koOrder) {
+    const d = KNOCKOUT_SCHEDULE[matchId]?.date;
+    if (d && d < cutoff) locked.add(matchId);
+  }
+  return locked;
+}
+
+/**
+ * Devuelve `true` si un partido es editable en el contexto de la liga dada.
+ * Retorna `false` si:
+ *   - la liga está congelada (`frozen`)
+ *   - el partido está en el conjunto bloqueado por `lockedBeforeDate`
+ *   - la fecha del partido ya pasó (igual que el bloqueo global del torneo)
+ */
+export function isMatchEditableInLeague(
+  league: { frozen?: boolean; lockedBeforeDate?: string },
+  matchId: string,
+  now: Date = new Date(),
+): boolean {
+  if (league.frozen) return false;
+  const locked = getLeagueLockedMatchIds(league);
+  if (locked.has(matchId)) return false;
+  if (hasMatchDatePassed(matchId, now)) return false;
+  return true;
 }
 
 export function filterRealByDate<T extends { matchId: string; scoreA: number | null; scoreB: number | null }>(

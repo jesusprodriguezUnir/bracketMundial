@@ -60,6 +60,8 @@ interface SupabaseLeague {
   created_at: string;
   updated_at: string;
   join_code: string | null;
+  frozen: boolean;
+  locked_before_date: string | null;
 }
 
 // ── Helpers de join_code ──
@@ -90,6 +92,7 @@ export async function createLeagueInCloud(
   name: string,
   ownerName: string,
   id?: string,
+  opts?: { frozen?: boolean; lockedBeforeDate?: string },
 ): Promise<{ id: string; joinCode: string } | null> {
   const sb = getSupabase();
   const userId = useAuthStore.getState().session?.user.id;
@@ -106,6 +109,8 @@ export async function createLeagueInCloud(
       name,
       owner_id: userId,
       join_code: joinCode,
+      ...(opts?.frozen ? { frozen: true } : {}),
+      ...(opts?.lockedBeforeDate ? { locked_before_date: opts.lockedBeforeDate } : {}),
     }));
     if (!leagueErr) break;
     // Código duplicado: reintentar con uno nuevo
@@ -160,6 +165,28 @@ export async function deleteLeagueFromCloud(leagueId: string): Promise<boolean> 
 
   const { error } = await sb.from('leagues').delete().eq('id', leagueId).eq('owner_id', userId);
   return !error;
+}
+
+/** Actualiza la configuración de la liga en la nube (solo owner). */
+export async function updateLeagueConfigInCloud(
+  leagueId: string,
+  config: { frozen?: boolean },
+): Promise<boolean> {
+  const sb = getSupabase();
+  const userId = useAuthStore.getState().session?.user.id;
+  if (!sb || !userId) return false;
+
+  const { error } = await sb
+    .from('leagues')
+    .update({ ...config })
+    .eq('id', leagueId)
+    .eq('owner_id', userId);
+
+  if (error) {
+    console.error('[league-sync] updateLeagueConfigInCloud error:', error);
+    return false;
+  }
+  return true;
 }
 
 export async function joinLeagueInCloud(leagueId: string, participantName: string): Promise<boolean> {
@@ -425,6 +452,9 @@ function hydrateStore(
       if (cl.join_code && !existingLocal.joinCode) {
         patch.joinCode = cl.join_code;
       }
+      // Sincronizar frozen y lockedBeforeDate desde la nube (la nube es fuente de verdad para config)
+      if (typeof cl.frozen === 'boolean') patch.frozen = cl.frozen;
+      if (cl.locked_before_date) patch.lockedBeforeDate = cl.locked_before_date;
       store._patchLeague(cl.id, patch);
     } else {
       const league: League = {
@@ -433,6 +463,8 @@ function hydrateStore(
         createdAt: new Date(cl.created_at).getTime(),
         participants,
         ...(cl.join_code ? { joinCode: cl.join_code } : {}),
+        ...(cl.frozen ? { frozen: cl.frozen } : {}),
+        ...(cl.locked_before_date ? { lockedBeforeDate: cl.locked_before_date } : {}),
       };
       store._addLeague(league);
     }
@@ -528,10 +560,17 @@ export async function refreshLeagueMembers(leagueId: string): Promise<void> {
   let ownerId = '';
   const { data: leagueData } = await sb
     .from('leagues')
-    .select('owner_id')
+    .select('owner_id, frozen, locked_before_date')
     .eq('id', leagueId)
     .maybeSingle();
-  if (leagueData) ownerId = (leagueData as { owner_id: string }).owner_id;
+  if (leagueData) {
+    ownerId = (leagueData as { owner_id: string }).owner_id;
+    // Sincronizar config de la liga desde la nube
+    const configPatch: Partial<League> = {};
+    if (typeof (leagueData as any).frozen === 'boolean') configPatch.frozen = (leagueData as any).frozen;
+    if ((leagueData as any).locked_before_date) configPatch.lockedBeforeDate = (leagueData as any).locked_before_date;
+    if (Object.keys(configPatch).length > 0) store._patchLeague(leagueId, configPatch);
+  }
 
   const cloudParticipants: LeagueParticipant[] = (members as SupabaseMember[]).map(m => {
     const preds = jsonToPredictions(m.predictions);

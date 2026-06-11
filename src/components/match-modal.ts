@@ -14,6 +14,7 @@ import { getPreview, type Preview } from '../data/previews';
 import { showToast, lightTap, mediumTap } from '../lib/interaction';
 import type { GoalEvent } from '../types';
 import './odds-bar';
+import { useTournamentStore } from '../store/tournament-store';
 
 
 @customElement('match-modal')
@@ -1393,6 +1394,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       && this._scoreA === this._scoreB;
     const penaltiesAreValid = !isDraw || (hasCompletePenalties && this._penaltyScoreA !== this._penaltyScoreB);
     const canSave = hasCompleteScore && penaltiesAreValid;
+    // Liga activa: verificar si el partido es editable (frozen o lockedBeforeDate)
+    const leagueLocked = !useTournamentStore.getState().isMatchEditable(this.matchId);
+    const canSaveEffective = canSave && !leagueLocked;
     const groupLetter = tA?.group ?? '?';
     const phaseLabel = this.phase === 'group'
       ? t('modal.phaseGroup', { letter: groupLetter })
@@ -1488,7 +1492,12 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         <!-- Tab: Edit -->
         <div class="info-tab-content ${this._infoTab === 'edit' ? 'active' : ''}">
           <div class="editor-section">
-            <div class="editor-label">${t('modal.editScore')}</div>
+            <div class="editor-label">
+                ${leagueLocked
+                  ? html`<span style="color:var(--retro-orange);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;">${t('league.matchLocked')}</span>`
+                  : t('modal.editScore')
+                }
+              </div>
             <div class="editor-stack">
               <div class="editor-row">
                 <div class="score-input">
@@ -1574,7 +1583,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
               <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
               <button
                 class="btn btn-primary"
-                ?disabled="${!canSave}"
+                ?disabled="${!canSaveEffective}"
                 @click="${this.save}">${t('modal.save')}</button>
             `}
         </div>

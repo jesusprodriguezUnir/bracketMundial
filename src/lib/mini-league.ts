@@ -124,6 +124,7 @@ export function scoreParticipant(
   participant: Pick<Participant, 'id' | 'name' | 'isOwner' | 'userId' | 'groupScores' | 'knockoutScores' | 'topScorer' | 'mvp'>,
   realGroupScores: readonly RealScores[],
   realKnockoutScores: readonly RealScores[],
+  opts?: { excludedMatchIds?: Set<string> },
 ): ParticipantScore {
   const breakdown: MatchPoints[] = [];
 
@@ -137,6 +138,8 @@ export function scoreParticipant(
 
   // 1. Fase de Grupos: puntuación por marcador de partido
   for (const real of realGroupScores) {
+    // Saltar partidos excluidos (creación a mitad de torneo)
+    if (opts?.excludedMatchIds?.has(real.matchId)) continue;
     const pred = predByMatchId.get(real.matchId);
     const { points, kind } = scoreMatch(
       pred?.scoreA ?? null,

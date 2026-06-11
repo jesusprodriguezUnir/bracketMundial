@@ -874,9 +874,10 @@ export class GroupsView extends LitElement {
                   const tB = this.getTeam(m.teamB);
                   const isPlayed = m.scoreA !== null;
                   const pending = isMatchPending(m.date ?? '', m.timeSpain ?? '');
-                  const showScoreSummary = pending === false;
+                  const isEditable = store.isMatchEditable(m.matchId);
+                  const showScoreSummary = pending === false || !isEditable;
                   const matchScoreClass = isPlayed ? '' : 'pending';
-                  const matchScoreText = isPlayed ? `${m.scoreA} - ${m.scoreB}` : t('groups.edit');
+                  const matchScoreText = isPlayed ? `${m.scoreA} - ${m.scoreB}` : (isEditable ? t('groups.edit') : '🔒');
                   const venueStadium = m.venue ? STADIUMS.find(st => st.name === m.venue) : null;
                   const venueThumb = venueStadium
                     ? html`<img src="${venueStadium.image}" style="width: 20px; height: 12px; object-fit: cover; border: 1px solid var(--ink);" alt="">`
@@ -897,7 +898,7 @@ export class GroupsView extends LitElement {
                         </div>
                       `
                     : '';
-                  const inlineScoreRow = pending
+                  const inlineScoreRow = (pending && isEditable)
                     ? html`
                         <div class="inline-score-row">
                           <score-stepper
