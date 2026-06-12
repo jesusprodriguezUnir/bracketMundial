@@ -11,13 +11,14 @@ import './mobile-home';
 import './mobile-groups';
 import './mobile-bracket';
 import './mobile-squads';
+import './mobile-awards';
 
 type MobileView =
   | 'home' | 'groups' | 'bracket' | 'squads'
-  | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+  | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
 const MAIN_VIEWS: MobileView[] = ['home', 'groups', 'bracket', 'squads'];
-const SHEET_VIEWS: MobileView[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const SHEET_VIEWS: MobileView[] = ['awards', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
 const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS];
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
@@ -213,6 +214,7 @@ export class MobileApp extends LitElement {
     if (v === 'groups') return html`<mobile-groups class="view-slot active"></mobile-groups>`;
     if (v === 'bracket') return html`<mobile-bracket class="view-slot active"></mobile-bracket>`;
     if (v === 'squads') return html`<mobile-squads class="view-slot active"></mobile-squads>`;
+    if (v === 'awards') return html`<mobile-awards class="view-slot active"></mobile-awards>`;
 
     // Vistas secundarias (reusan los componentes existentes)
     if (!loaded.has(v)) {
@@ -626,6 +628,14 @@ export class MobileApp extends LitElement {
             </button>
 
             <div class="sheet-section-label">${locale === 'es' ? 'Tu predicción' : 'Your prediction'}</div>
+            <button class="sheet-item" @click="${() => this._go('awards')}">
+              <span class="si-glyph">🏅</span>
+              <span class="si-text">
+                <span>${locale === 'es' ? 'Premios individuales' : 'Individual awards'}</span>
+                <span class="si-sub">${locale === 'es' ? 'Goleador y MVP · +15 pts en ligas' : 'Top scorer and MVP · +15 pts in leagues'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
             <button class="sheet-item" @click="${this._handleShare}">
               <span class="si-glyph">↗</span>
               <span class="si-text">

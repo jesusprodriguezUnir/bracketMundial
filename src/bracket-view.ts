@@ -922,7 +922,7 @@ export class BracketView extends LitElement {
     const isMore = this._isMoreTab;
 
     return html`
-      <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail as PhaseTab)}">
+      <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail === 'awards' ? 'knockout' : e.detail as PhaseTab)}">
         ${(() => {
           const isLeague = this._activeContext.kind === 'league';
           const hasSession = !!useAuthStore.getState().session;

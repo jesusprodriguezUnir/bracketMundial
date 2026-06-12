@@ -2611,6 +2611,16 @@ export class LeaguesView extends LitElement {
     this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
   }
 
+  /** Como _editPredictionForLeague, pero abre directamente el predictor de premios (goleador/MVP). */
+  private async _editAwardsForLeague() {
+    if (!this._activeLeagueId) return;
+    const league = this._leagues.find(l => l.id === this._activeLeagueId);
+    if (league?.frozen) return;
+    await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
+    // En móvil abre la vista 'awards'; en desktop bracket-view lo mapea a 'knockout' (donde vive el panel)
+    this.dispatchEvent(new CustomEvent('navigate', { detail: 'awards', bubbles: true, composed: true }));
+  }
+
   // ── v2 design helpers ──
   private static readonly _AVATAR_POOL = ['⚽','⭐','🏆','🔥','🎯','🚀','🐯','🐎','🎉','🥇','🎨','🦁','🐺','🐉','⚡'];
   private static readonly _COLOR_POOL = ['var(--retro-orange)','var(--retro-green)','var(--retro-blue)','var(--retro-red)','var(--retro-yellow)'];
@@ -4036,6 +4046,14 @@ export class LeaguesView extends LitElement {
             <span>
               Editar mi predicción en esta liga<br/>
               <span class="lg-v2-btn-sub">${league.frozen ? t('league.cfgFrozenBanner') : 'Grupos, eliminatorias, MVP y goleador independientes'}</span>
+            </span>
+            <span class="lg-v2-btn-arrow">→</span>
+          </button>
+          <button class="lg-v2-btn" @click=${this._editAwardsForLeague} ?disabled=${!!league.frozen}>
+            <span class="lg-v2-btn-ic">🏅</span>
+            <span>
+              Elegir goleador y MVP<br/>
+              <span class="lg-v2-btn-sub">${league.frozen ? t('league.cfgFrozenBanner') : 'Premios individuales · +15 pts por acierto'}</span>
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>
