@@ -26,7 +26,7 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY ?? ENV.API_FOOTBALL_KEY;
+const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY ?? ENV.FOOTBALL_DATA_KEY;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ENV.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ENV.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -34,8 +34,8 @@ const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
 const TRIGGERED_BY = process.env.GITHUB_EVENT_NAME ?? (process.env.CI ? 'cron' : 'manual');
 
-if (!API_FOOTBALL_KEY) {
-  console.error('❌ Falta API_FOOTBALL_KEY (env o .env).');
+if (!FOOTBALL_DATA_KEY) {
+  console.error('❌ Falta FOOTBALL_DATA_KEY (env o .env). Regístrate en https://www.football-data.org/client/register');
   process.exit(1);
 }
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
@@ -106,14 +106,17 @@ function getTeamIdByApiName(apiName: string): string | null {
   return matches[0].score > 0.6 ? matches[0].id : null;
 }
 
-// ── Fetch con reintentos exponenciales ───────────────────────────────────────
+// ── Fetch con reintentos exponenciales (football-data.org v4) ────────────────
 interface ApiFetchResult {
   fixtures: any[];
   httpStatus: number;
 }
 
+// Statuses de football-data.org que indican partido no empezado
+const SKIP_STATUSES = new Set(['SCHEDULED', 'TIMED', 'POSTPONED', 'CANCELLED', 'SUSPENDED']);
+
 async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
-  const url = 'https://v3.football.api-sports.io/fixtures?league=1&season=2026';
+  const url = 'https://api.football-data.org/v4/competitions/WC/matches';
   let lastError = '';
   let lastStatus = 0;
 
@@ -121,8 +124,7 @@ async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
     try {
       const resp = await fetch(url, {
         headers: {
-          'x-rapidapi-key': API_FOOTBALL_KEY!,
-          'x-apisports-key': API_FOOTBALL_KEY!,
+          'X-Auth-Token': FOOTBALL_DATA_KEY!,
         },
         signal: AbortSignal.timeout(20_000),
       });
@@ -130,14 +132,10 @@ async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
 
       if (resp.ok) {
         const json = await resp.json();
-        const errKeys = Object.keys(json.errors ?? {}).filter(k => json.errors[k]);
-        if (errKeys.length > 0) {
-          throw new Error(`API-Football error: ${errKeys.map(k => `${k}=${json.errors[k]}`).join(', ')}`);
-        }
-        return { fixtures: json.response ?? [], httpStatus: 200 };
+        return { fixtures: json.matches ?? [], httpStatus: 200 };
       }
 
-      // Recoverable
+      // Recoverable: rate limit or server error
       if (resp.status === 429 || resp.status >= 500) {
         lastError = `HTTP ${resp.status}`;
         if (attempt < retries) {
@@ -160,7 +158,7 @@ async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
       }
     }
   }
-  throw new Error(`API-Football falló tras ${retries + 1} intentos: ${lastError} (last status ${lastStatus})`);
+  throw new Error(`football-data.org falló tras ${retries + 1} intentos: ${lastError} (last status ${lastStatus})`);
 }
 
 // ── Auditoría en Supabase ────────────────────────────────────────────────────
@@ -172,7 +170,7 @@ async function recordRun(sb: SupabaseClient, row: {
   duration_ms: number;
 }) {
   const { error } = await sb.from('score_sync_runs').insert({
-    source: 'api-football',
+    source: 'football-data.org',
     triggered_by: TRIGGERED_BY,
     ...row,
   });
@@ -200,10 +198,20 @@ async function shouldSkip(sb: SupabaseClient): Promise<{ skip: boolean; reason: 
   return { skip: false, reason: 'last_run_stale' };
 }
 
+// ── Guard de fechas del torneo (belt-and-braces; el workflow ya filtra) ─────
+const TOURNAMENT_START = '2026-06-11';
+const TOURNAMENT_END = '2026-07-20'; // día después de la final, margen para correcciones
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function run() {
   const t0 = Date.now();
   logJson('info', 'start', { triggered_by: TRIGGERED_BY, force: FORCE });
+
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  if (!FORCE && (todayUtc < TOURNAMENT_START || todayUtc > TOURNAMENT_END)) {
+    logJson('info', 'skip', { reason: 'outside_tournament_window' });
+    return;
+  }
 
   const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
 
@@ -282,20 +290,23 @@ async function run() {
     return;
   }
 
-  // 4. Mapeo y actualización
+  // 4. Mapeo y actualización (football-data.org v4 structure)
   let updatedCount = 0;
   for (const f of fixtures) {
-    const status = f.fixture.status.short;
-    if (['NS', 'TBD', 'PST'].includes(status)) continue;
+    // football-data.org: status es SCHEDULED, TIMED, IN_PLAY, PAUSED, EXTRA_TIME,
+    // PENALTY_SHOOTOUT, FINISHED, SUSPENDED, POSTPONED, CANCELLED, AWARDED
+    if (SKIP_STATUSES.has(f.status)) continue;
 
-    const teamA_id = getTeamIdByApiName(f.teams.home.name);
-    const teamB_id = getTeamIdByApiName(f.teams.away.name);
+    const teamA_id = getTeamIdByApiName(f.homeTeam.name);
+    const teamB_id = getTeamIdByApiName(f.awayTeam.name);
     if (!teamA_id || !teamB_id) continue;
 
-    const scoreA = f.goals.home ?? 0;
-    const scoreB = f.goals.away ?? 0;
-    const penA = f.score.penalty.home;
-    const penB = f.score.penalty.away;
+    // fullTime contiene el marcador final (o actual si IN_PLAY)
+    const scoreA = f.score.fullTime.home ?? 0;
+    const scoreB = f.score.fullTime.away ?? 0;
+    // penalties aparece solo si duration === 'PENALTY_SHOOTOUT'
+    const penA = f.score.penalties?.home ?? null;
+    const penB = f.score.penalties?.away ?? null;
 
     const groupMatch = groupMatches.find(m =>
       (m.teamA === teamA_id && m.teamB === teamB_id) ||

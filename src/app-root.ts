@@ -7,7 +7,7 @@ import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/auth-store';
 import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
-import { refreshOfficialResults, subscribeOfficialResults } from './lib/official-results';
+import { refreshOfficialResults, subscribeOfficialResults, startOfficialResultsPolling, stopOfficialResultsPolling } from './lib/official-results';
 import { hasMatchDatePassed } from './lib/league-fixture';
 import './components/ad-block';
 
@@ -579,6 +579,7 @@ export class AppRoot extends LitElement {
       }
     });
     void refreshOfficialResults();
+    startOfficialResultsPolling();
     document.addEventListener('visibilitychange', this._onVisibilityChange);
   }
 
@@ -744,6 +745,7 @@ export class AppRoot extends LitElement {
     this._unsubAuth?.();
     this._unsubscribeToast?.();
     this._unsubOfficialResults?.();
+    stopOfficialResultsPolling();
     document.removeEventListener('visibilitychange', this._onVisibilityChange);
     super.disconnectedCallback();
   }

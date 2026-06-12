@@ -2,11 +2,14 @@ name: Update Live Scores
 
 on:
   schedule:
-    # Cada 5 min — el script tiene skip inteligente:
-    # - Si hay partido en ventana [-30min, +3h] → procede.
-    # - Si NO hay partido y la última run de auditoría fue hace <1h → salta.
-    # Resultado: cuota baja fuera del Mundial, frescura alta durante partidos.
-    - cron: '*/5 * * * *'
+    # Solo junio-julio (torneo: 11 jun – 19 jul 2026). El guard de fechas del
+    # primer step corta los días de jun/jul fuera del torneo sin gastar npm ci.
+    # Partidos ≈ 18:00–07:00 CEST = 16:00–05:00 UTC → cada 5 min en esa ventana.
+    # El script mantiene además su skip inteligente (ventana [-30min, +3h]).
+    - cron: '*/5 16-23 * 6,7 *'
+    - cron: '*/5 0-5 * 6,7 *'
+    # Respaldo horario fuera de ventana (correcciones tardías, aplazamientos):
+    - cron: '0 6-15 * 6,7 *'
   workflow_dispatch:
     inputs:
       force:
@@ -16,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: update-scores
@@ -27,36 +31,83 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Guard de fechas del torneo
+        id: guard
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$today" < "2026-06-11" || "$today" > "2026-07-20" ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "⏭ Fuera del torneo ($today) — no se ejecuta la sincronización" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.guard.outputs.run == 'true'
 
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.run == 'true'
         with:
           node-version: '24'
           cache: 'npm'
 
       - run: npm ci
+        if: steps.guard.outputs.run == 'true'
 
       - name: Validar secrets requeridos
+        if: steps.guard.outputs.run == 'true'
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY || vars.API_FOOTBALL_KEY || secrets.RAPIDAPI_KEY || vars.RAPIDAPI_KEY }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL || secrets.SUPABASE_URL || vars.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
+          FOOTBALL_DATA_KEY: ${{ secrets.FOOTBALL_DATA_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           missing=0
-          [ -z "$API_FOOTBALL_KEY" ] && { echo "❌ Falta API_FOOTBALL_KEY"; missing=1; }
+          [ -z "$FOOTBALL_DATA_KEY" ] && { echo "❌ Falta FOOTBALL_DATA_KEY"; missing=1; }
           [ -z "$VITE_SUPABASE_URL" ] && { echo "❌ Falta VITE_SUPABASE_URL"; missing=1; }
           [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && { echo "❌ Falta SUPABASE_SERVICE_ROLE_KEY"; missing=1; }
           [ "$missing" -eq 1 ] && exit 1
           echo "✅ Secrets OK"
 
       - name: Ejecutar update-live-scores
+        if: steps.guard.outputs.run == 'true'
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY || vars.API_FOOTBALL_KEY || secrets.RAPIDAPI_KEY || vars.RAPIDAPI_KEY }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL || secrets.SUPABASE_URL || vars.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
+          FOOTBALL_DATA_KEY: ${{ secrets.FOOTBALL_DATA_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
+          set -o pipefail
           ARGS=""
           if [ "${{ inputs.force }}" = "true" ]; then
             ARGS="$ARGS --force"
           fi
-          npm run scores:update -- $ARGS
+          npm run scores:update -- $ARGS | tee scores-output.log
+
+      - name: Resumen en el panel de Actions
+        if: always() && steps.guard.outputs.run == 'true'
+        run: |
+          {
+            echo "## Update Live Scores — $(date -u '+%F %T UTC')"
+            echo '```json'
+            grep -E '"event":"(skip|proceed|saved|no_updates|no_fixtures|api_ok|api_fetch_failed|load_official_failed|save_failed|unhandled)"' scores-output.log 2>/dev/null | tail -n 10 \
+              || tail -n 10 scores-output.log 2>/dev/null \
+              || echo '(sin salida del script)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notificar fallo (issue)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh label create scores-cron --color D93F0B --description "Fallos del cron de scores" 2>/dev/null || true
+          existing=$(gh issue list --label scores-cron --state open --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Nuevo fallo del cron de scores: $run_url"
+          else
+            gh issue create --title "update-scores falló" --label scores-cron \
+              --body "El workflow de sincronización de resultados falló. Run: $run_url"
+          fi
