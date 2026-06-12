@@ -130,6 +130,10 @@ async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
 
       if (resp.ok) {
         const json = await resp.json();
+        const errKeys = Object.keys(json.errors ?? {}).filter(k => json.errors[k]);
+        if (errKeys.length > 0) {
+          throw new Error(`API-Football error: ${errKeys.map(k => `${k}=${json.errors[k]}`).join(', ')}`);
+        }
         return { fixtures: json.response ?? [], httpStatus: 200 };
       }
 
@@ -229,14 +233,26 @@ async function run() {
     process.exit(1);
   }
 
-  let groupMatches = [...initialGroupMatches];
+  let groupMatches = [...initialGroupMatches].map(m => ({ ...m, scoreA: null as number | null, scoreB: null as number | null }));
   let knockoutMatches: Record<string, any> = {};
 
   if (resultsRow?.payload) {
     const decoded = decodeBracket(resultsRow.payload as string);
     if (decoded) {
-      groupMatches = decoded.groupMatches;
-      knockoutMatches = decoded.knockoutMatches;
+      const groupScoreMap = new Map(decoded.groupScores.map(s => [s.matchId, s]));
+      groupMatches = initialGroupMatches.map(m => {
+        const s = groupScoreMap.get(m.matchId);
+        return s ? { ...m, scoreA: s.scoreA, scoreB: s.scoreB } : { ...m };
+      });
+      for (const ks of decoded.knockoutScores) {
+        knockoutMatches[ks.matchId] = {
+          ...(knockoutMatches[ks.matchId] ?? { teamA: null, teamB: null, winnerId: null, isPlayed: false }),
+          scoreA: ks.scoreA,
+          scoreB: ks.scoreB,
+          penaltyScoreA: ks.penaltyScoreA ?? null,
+          penaltyScoreB: ks.penaltyScoreB ?? null,
+        };
+      }
     }
     logJson('info', 'official_loaded', { has_payload: true });
   } else {

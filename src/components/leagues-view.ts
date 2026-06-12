@@ -3250,6 +3250,9 @@ export class LeaguesView extends LitElement {
     this._syncing = true;
     try {
       await refreshLeagueMembers(this._activeLeagueId);
+      const bracket = await loadOfficialResults();
+      if (bracket) this._officialBracket = bracket;
+      this._recalc();
     } finally {
       this._syncing = false;
     }

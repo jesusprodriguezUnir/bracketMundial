@@ -9,7 +9,7 @@ export function hasMatchDatePassed(matchId: string, now: Date = new Date()): boo
   const date = groupDate ?? KNOCKOUT_SCHEDULE[matchId]?.date;
   if (!date) return false;
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  return date < today;
+  return date <= today;
 }
 
 /**
