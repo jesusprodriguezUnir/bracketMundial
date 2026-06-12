@@ -455,6 +455,44 @@ export class GroupsView extends LitElement {
       font-size: 11px;
     }
 
+    /* Marcador XL para partidos ya jugados */
+    .score-xl {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--retro-yellow);
+      border: 3px solid var(--ink);
+      box-shadow: var(--shadow-hard-md);
+      padding: 8px 12px;
+    }
+    .score-xl .sx-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-family: var(--font-head);
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .score-xl .sx-side.lose,
+    .score-xl .sx-num.lose {
+      opacity: 0.5;
+    }
+    .score-xl .sx-score {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-family: var(--font-var);
+      font-size: 28px;
+      line-height: 1;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .score-xl .sx-dash {
+      font-size: 18px;
+    }
+
     .match-meta {
       margin-top: 4px;
       font-family: var(--font-mono);
@@ -898,6 +936,39 @@ export class GroupsView extends LitElement {
                         </div>
                       `
                     : '';
+                  const winA = isPlayed && (m.scoreA ?? 0) > (m.scoreB ?? 0);
+                  const winB = isPlayed && (m.scoreB ?? 0) > (m.scoreA ?? 0);
+                  const hasWinner = winA || winB;
+                  const matchTop = isPlayed
+                    ? html`
+                        <div class="score-xl">
+                          <div class="sx-side ${hasWinner && !winA ? 'lose' : ''}">
+                            ${renderFlag(tA, { size: 'md', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                            <span class="sx-name">${tA?.shortName ?? m.teamA}</span>
+                          </div>
+                          <div class="sx-score">
+                            <span class="sx-num ${hasWinner && !winA ? 'lose' : ''}">${m.scoreA}</span>
+                            <span class="sx-dash">–</span>
+                            <span class="sx-num ${hasWinner && !winB ? 'lose' : ''}">${m.scoreB}</span>
+                          </div>
+                          <div class="sx-side ${hasWinner && !winB ? 'lose' : ''}">
+                            <span class="sx-name">${tB?.shortName ?? m.teamB}</span>
+                            ${renderFlag(tB, { size: 'md', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                          </div>
+                        </div>
+                      `
+                    : html`
+                        <div class="match-top">
+                          <div class="match-teams">
+                            ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                            <strong>${tA?.shortName ?? m.teamA}</strong>
+                            <span class="vs">${t('groups.vs')}</span>
+                            ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
+                            <strong>${tB?.shortName ?? m.teamB}</strong>
+                          </div>
+                          ${scoreSummary}
+                        </div>
+                      `;
                   const inlineScoreRow = (pending && isEditable)
                     ? html`
                         <div class="inline-score-row">
@@ -945,16 +1016,7 @@ export class GroupsView extends LitElement {
                       @click="${() => this.openMatch(m.matchId, m.date, m.timeSpain)}"
                       @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openMatch(m.matchId, m.date, m.timeSpain); } }}"
                     >
-                      <div class="match-top">
-                        <div class="match-teams">
-                          ${renderFlag(tA, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-                          <strong>${tA?.shortName ?? m.teamA}</strong>
-                          <span class="vs">${t('groups.vs')}</span>
-                          ${renderFlag(tB, { size: 'sm', imgClass: 'flag-img', flagClass: 'team-flag' })}
-                          <strong>${tB?.shortName ?? m.teamB}</strong>
-                        </div>
-                        ${scoreSummary}
-                      </div>
+                      ${matchTop}
                       ${inlineScoreRow}
                       ${oddsMeta}
                       <div class="match-meta">

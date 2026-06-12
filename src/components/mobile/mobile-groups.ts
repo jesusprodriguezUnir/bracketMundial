@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, type GroupMatchResult, type GroupStanding } from '../../store/tournament-store';
+import { useTournamentStore, type GroupMatchResult, type GroupStanding, type ViewMode } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
 import { TEAMS_2026 } from '../../data/fifa-2026';
 import { calculateBestThirds, type TeamStats } from '../../lib/bracket-logic';
@@ -25,6 +25,7 @@ export class MobileGroups extends LitElement {
   @state() private _matches: GroupMatchResult[] = [];
   @state() private _thirds: TeamStats[] = [];
   @state() private _odds: Record<string, MatchOdds> = {};
+  @state() private _viewMode: ViewMode = 'predictions';
 
   private _unsub?: () => void;
 
@@ -32,10 +33,11 @@ export class MobileGroups extends LitElement {
     super.connectedCallback();
     this._unsub = subscribeSlice(
       useTournamentStore,
-      s => ({ standings: s.groupStandings, matches: s.groupMatches }),
-      ({ standings, matches }) => {
+      s => ({ standings: s.groupStandings, matches: s.groupMatches, viewMode: s.viewMode }),
+      ({ standings, matches, viewMode }) => {
         this._standings = standings;
         this._matches = matches;
+        this._viewMode = viewMode;
         this._thirds = calculateBestThirds(
           useTournamentStore.getState().getBestThirds(),
         );
@@ -44,6 +46,7 @@ export class MobileGroups extends LitElement {
     const s = useTournamentStore.getState();
     this._standings = s.groupStandings;
     this._matches = s.groupMatches;
+    this._viewMode = s.viewMode;
     this._thirds = calculateBestThirds(s.getBestThirds());
     void getAllOdds().then(odds => { this._odds = odds; });
   }
@@ -111,6 +114,46 @@ export class MobileGroups extends LitElement {
       const dateStr = m.date ? formatShortDate(m.date) : '';
       const shortA = teamShort(m.teamA);
       const shortB = teamShort(m.teamB);
+      const isFinal = played && this._viewMode === 'real';
+      const hasWinner = winA || winB;
+
+      const scoreBlock = isFinal
+        ? html`
+            <div class="score-final">
+              <div class="sf-side ${hasWinner && !winA ? 'lose' : ''}">
+                <span class="flag-box">${teamFlag(m.teamA)}</span>
+                <strong>${shortA}</strong>
+              </div>
+              <div class="sf-score">
+                <span class="sf-num ${hasWinner && !winA ? 'lose' : ''}">${sa}</span>
+                <span class="sf-dash">–</span>
+                <span class="sf-num ${hasWinner && !winB ? 'lose' : ''}">${sb}</span>
+              </div>
+              <div class="sf-side ${hasWinner && !winB ? 'lose' : ''}">
+                <strong>${shortB}</strong>
+                <span class="flag-box">${teamFlag(m.teamB)}</span>
+              </div>
+            </div>`
+        : html`
+            <div class="score-editor">
+              <div class="se-team ${winA ? 'win' : ''}">
+                <span class="se-id"><span class="flag-box">${teamFlag(m.teamA)}</span><strong>${shortA}</strong></span>
+                <div class="stepper">
+                  <button class="step minus" @click="${() => this._bump(m.matchId, 0, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
+                  <span class="step-val ${played ? '' : 'pending'}">${played ? sa : '–'}</span>
+                  <button class="step plus" @click="${() => this._bump(m.matchId, 0, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
+                </div>
+              </div>
+              <div class="se-sep">–</div>
+              <div class="se-team ${winB ? 'win' : ''}">
+                <span class="se-id"><span class="flag-box">${teamFlag(m.teamB)}</span><strong>${shortB}</strong></span>
+                <div class="stepper">
+                  <button class="step minus" @click="${() => this._bump(m.matchId, 1, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
+                  <span class="step-val ${played ? '' : 'pending'}">${played ? sb : '–'}</span>
+                  <button class="step plus" @click="${() => this._bump(m.matchId, 1, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
+                </div>
+              </div>
+            </div>`;
 
       return html`
         <div class="match-item ${played ? 'is-played' : ''}">
@@ -119,27 +162,9 @@ export class MobileGroups extends LitElement {
             ${dateStr ? html`<span>${dateStr}</span>` : ''}
             ${m.timeSpain ? html`<span class="match-time">· ${m.timeSpain}</span>` : ''}
             <span class="badge ${played ? 'badge-played' : 'badge-upcoming'}">${played ? (useLocaleStore.getState().locale === 'es' ? 'Jugado' : 'Played') : (useLocaleStore.getState().locale === 'es' ? 'Próx.' : 'Upcoming')}</span>
-            ${played ? html`<button class="meta-clear" @click="${(e: Event) => { e.stopPropagation(); this._resetScore(m.matchId); }}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Borrar resultado' : 'Clear result'}">✕</button>` : ''}
+            ${played && !isFinal ? html`<button class="meta-clear" @click="${(e: Event) => { e.stopPropagation(); this._resetScore(m.matchId); }}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Borrar resultado' : 'Clear result'}">✕</button>` : ''}
           </div>
-          <div class="score-editor">
-            <div class="se-team ${winA ? 'win' : ''}">
-              <span class="se-id"><span class="flag-box">${teamFlag(m.teamA)}</span><strong>${shortA}</strong></span>
-              <div class="stepper">
-                <button class="step minus" @click="${() => this._bump(m.matchId, 0, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
-                <span class="step-val ${played ? '' : 'pending'}">${played ? sa : '–'}</span>
-                <button class="step plus" @click="${() => this._bump(m.matchId, 0, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
-              </div>
-            </div>
-            <div class="se-sep">–</div>
-            <div class="se-team ${winB ? 'win' : ''}">
-              <span class="se-id"><span class="flag-box">${teamFlag(m.teamB)}</span><strong>${shortB}</strong></span>
-              <div class="stepper">
-                <button class="step minus" @click="${() => this._bump(m.matchId, 1, -1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Menos' : 'Minus'}">−</button>
-                <span class="step-val ${played ? '' : 'pending'}">${played ? sb : '–'}</span>
-                <button class="step plus" @click="${() => this._bump(m.matchId, 1, 1)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Más' : 'Plus'}">+</button>
-              </div>
-            </div>
-          </div>
+          ${scoreBlock}
           ${odds ? html`
             <div class="odds-row">
               <span class="odds-seg" style="width:${odds.home}%;background:var(--retro-blue)" title="1 – ${m.teamA}: ${odds.home}%">${odds.home}%</span>
@@ -318,6 +343,27 @@ export class MobileGroups extends LitElement {
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
       .meta-clear:active { background: var(--ink); color: var(--paper); }
+
+      /* ── Marcador XL de solo lectura (resultado oficial) ── */
+      .score-final {
+        display: grid; grid-template-columns: 1fr auto 1fr;
+        align-items: center; gap: 8px; margin-top: 9px;
+        background: var(--retro-yellow);
+        border: 3px solid var(--ink);
+        box-shadow: 3px 3px 0 0 var(--ink);
+        padding: 10px 8px;
+      }
+      .sf-side {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        font-family: var(--font-body); font-weight: 800; font-size: 14px; color: var(--ink);
+        min-width: 0;
+      }
+      .sf-score {
+        display: flex; align-items: baseline; gap: 8px;
+        font-family: var(--font-var); font-size: 30px; line-height: 1; color: var(--ink);
+      }
+      .sf-dash { font-size: 18px; }
+      .sf-side.lose, .sf-num.lose { opacity: 0.5; }
 
       /* ── Score editor con steppers ── */
       .score-editor {
