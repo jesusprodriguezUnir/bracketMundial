@@ -17,7 +17,7 @@ import { ExcelService } from '../lib/excel-service';
 import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed, getLeagueLockedMatchIds } from '../lib/league-fixture';
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
-import { loadOfficialResults } from '../lib/official-results';
+import { refreshOfficialResults, subscribeOfficialResults } from '../lib/official-results';
 import './league-rules-modal';
 
 const TOTAL_MATCHES = 104;
@@ -96,6 +96,7 @@ export class LeaguesView extends LitElement {
   private _unsubLeagues?: () => void;
   private _unsubLocale?: () => void;
   private _unsubAuth?: () => void;
+  private _unsubOfficial?: () => void;
   static readonly styles = css`
     :host {
       display: block;
@@ -2476,10 +2477,11 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues = useLeaguesStore.subscribe(() => this._recalc());
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
     this._unsubAuth = useAuthStore.subscribe(() => this.requestUpdate());
-    loadOfficialResults().then(bracket => {
+    this._unsubOfficial = subscribeOfficialResults(bracket => {
       this._officialBracket = bracket;
       this._recalc();
-    }).catch(() => { this._recalc(); });
+    });
+    void refreshOfficialResults();
     this._recalc();
   }
 
@@ -2488,6 +2490,7 @@ export class LeaguesView extends LitElement {
     this._unsubLeagues?.();
     this._unsubLocale?.();
     this._unsubAuth?.();
+    this._unsubOfficial?.();
     super.disconnectedCallback();
   }
 
@@ -3250,8 +3253,8 @@ export class LeaguesView extends LitElement {
     this._syncing = true;
     try {
       await refreshLeagueMembers(this._activeLeagueId);
-      const bracket = await loadOfficialResults();
-      if (bracket) this._officialBracket = bracket;
+      // La suscripción a subscribeOfficialResults actualiza _officialBracket y recalcula.
+      await refreshOfficialResults({ force: true });
       this._recalc();
     } finally {
       this._syncing = false;

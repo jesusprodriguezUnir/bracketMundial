@@ -7,6 +7,8 @@ import { subscribeSlice } from './store/store-utils';
 import { t, toggleLocale, useLocaleStore } from './i18n';
 import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/auth-store';
 import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
+import { refreshOfficialResults, subscribeOfficialResults } from './lib/official-results';
+import { hasMatchDatePassed } from './lib/league-fixture';
 import './components/ad-block';
 
 /** Media query para conmutación desktop ↔ móvil */
@@ -564,6 +566,20 @@ export class AppRoot extends LitElement {
 
     this._loadSharedBracketIfPresent();
     this._unsubscribeToast = onToast(this._onToast.bind(this));
+
+    // Resultados oficiales: cargar al arrancar y re-aplicar en cada refresco.
+    // Con el Mundial ya en marcha, la app arranca en "Resultados Reales"
+    // (el usuario puede volver a "Mis Predicciones" durante la sesión).
+    this._unsubOfficialResults = subscribeOfficialResults(bracket => {
+      const store = useTournamentStore.getState();
+      store.applyOfficialResults(bracket);
+      if (!this._realModeForced && hasMatchDatePassed('M1')) {
+        this._realModeForced = true;
+        store.setViewMode('real');
+      }
+    });
+    void refreshOfficialResults();
+    document.addEventListener('visibilitychange', this._onVisibilityChange);
   }
 
   override firstUpdated() {
@@ -727,8 +743,16 @@ export class AppRoot extends LitElement {
     this.unsubscribeLocale?.();
     this._unsubAuth?.();
     this._unsubscribeToast?.();
+    this._unsubOfficialResults?.();
+    document.removeEventListener('visibilitychange', this._onVisibilityChange);
     super.disconnectedCallback();
   }
+
+  private _unsubOfficialResults?: () => void;
+  private _realModeForced = false;
+  private _onVisibilityChange = () => {
+    if (document.visibilityState === 'visible') void refreshOfficialResults();
+  };
 
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };

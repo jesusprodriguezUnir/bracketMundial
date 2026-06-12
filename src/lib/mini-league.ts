@@ -157,6 +157,9 @@ export function scoreParticipant(
   // Es la simulación real si contiene los partidos de grupos del Mundial (72 partidos) y al menos uno se ha jugado
   const playedGroupCount = realGroupScores.filter(r => r.scoreA !== null && r.scoreB !== null).length;
   const isRealBracket = realGroupScores.length >= 72 && playedGroupCount > 0;
+  // Los clasificados reales al knockout solo se conocen con TODOS los grupos completos:
+  // los mejores terceros dependen de los 72 partidos. Hasta entonces no se otorgan puntos KO.
+  const groupsComplete = realGroupScores.length >= 72 && playedGroupCount === realGroupScores.length;
 
   let knockoutTotal = 0;
   const koCorrectTeams = {
@@ -168,7 +171,7 @@ export function scoreParticipant(
     winner: [] as string[],
   };
 
-  if (isRealBracket) {
+  if (isRealBracket && groupsComplete) {
     // 2. Fase Eliminatoria: puntuación por Progresión de Equipos
     const participantDecoded = {
       groupScores: participant.groupScores,
@@ -286,7 +289,7 @@ export function scoreParticipant(
         koCorrectTeams.winner.push(t);
       }
     }
-  } else {
+  } else if (!isRealBracket) {
     // Comportamiento de test tradicional: comparación directa por partido
     const predByMatchIdKnockout = new Map<string, MatchPrediction>();
     for (const p of participant.knockoutScores) predByMatchIdKnockout.set(p.matchId, p);

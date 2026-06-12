@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { scoreMatch, scoreParticipant, rankParticipants, MUNDIAL_POINTS, REAL_AWARDS } from './mini-league';
 import type { Participant, ParticipantScore } from './mini-league';
+import { GROUP_MATCHES } from '../data/match-schedule';
 
 // --- scoreMatch ---
 
@@ -332,6 +333,49 @@ describe('league end-to-end', () => {
     // M1: exact 5, M2: pred 3-0 diff=3, real 2-0 diff=2 → sign (+2) → total 7
     expect(result2.total).toBe(7);
     expect(result2.exactCount).toBe(1);
+  });
+
+  it('does NOT award knockout progression points while groups are incomplete', () => {
+    // Escenario de producción: feed oficial con los 72 partidos pero solo 2 jugados
+    const realGroups = GROUP_MATCHES.map((m, i) => ({
+      matchId: m.matchId,
+      scoreA: i === 0 ? 2 : i === 1 ? 2 : null,
+      scoreB: i === 0 ? 0 : i === 1 ? 1 : null,
+    }));
+
+    // Participante con predicción completa (grupos + knockout)
+    const participant = makeParticipant({
+      groupScores: GROUP_MATCHES.map(m => ({ matchId: m.matchId, scoreA: 2, scoreB: 0 })),
+      knockoutScores: [],
+    });
+
+    const result = scoreParticipant(participant, realGroups, []);
+
+    // M1: exacto (2-0) → 5 pts; M2: real 2-1, pred 2-0 → signo → 2 pts
+    expect(result.byPhase.groups).toBe(MUNDIAL_POINTS.groupExact + MUNDIAL_POINTS.groupSign);
+    // Sin grupos completos no hay clasificados reales: 0 puntos de knockout
+    expect(result.byPhase.knockout).toBe(0);
+    expect(result.koCorrectTeams.roundOf32).toHaveLength(0);
+    expect(result.total).toBe(MUNDIAL_POINTS.groupExact + MUNDIAL_POINTS.groupSign);
+    // Y el breakdown no contiene entradas de knockout
+    expect(result.breakdown).toHaveLength(realGroups.length);
+  });
+
+  it('awards R32 progression points once all 72 group matches are played', () => {
+    const realGroups = GROUP_MATCHES.map(m => ({ matchId: m.matchId, scoreA: 2, scoreB: 0 }));
+
+    // Predicción idéntica a la realidad → acierta los 32 clasificados a R32
+    const participant = makeParticipant({
+      groupScores: realGroups.map(s => ({ ...s })),
+      knockoutScores: [],
+    });
+
+    const result = scoreParticipant(participant, realGroups, []);
+
+    expect(result.byPhase.groups).toBe(72 * MUNDIAL_POINTS.groupExact);
+    // 32 equipos clasificados acertados × 1 pt; rondas posteriores aún sin jugarse
+    expect(result.byPhase.knockout).toBe(32 * MUNDIAL_POINTS.koRoundOf32);
+    expect(result.koCorrectTeams.roundOf32).toHaveLength(32);
   });
 
   it('calculates progression points and individual awards correctly in real tournament context', () => {
