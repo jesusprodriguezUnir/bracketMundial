@@ -96,7 +96,36 @@ function nameSimilarity(a: string, b: string) {
   return maxLen === 0 ? 1 : 1 - levenshtein(na, nb) / maxLen;
 }
 
+// Mapa explícito: nombre inglés normalizado de football-data.org → ID del equipo.
+// Necesario porque los nombres en español de nuestra app difieren mucho
+// de los ingleses de la API (Levenshtein falla).
+// IMPORTANTE: las claves deben estar normalizadas (sin tildes, guiones ni
+// apóstrofos) para coincidir con la salida de normalizeStr().
+const TEAM_NAME_ALIASES: Record<string, string> = {
+  'mexico': 'MEX', 'south africa': 'RSA', 'south korea': 'KOR',
+  'korea republic': 'KOR', 'czechia': 'CZE', 'czech republic': 'CZE',
+  'canada': 'CAN', 'switzerland': 'SUI', 'qatar': 'QAT',
+  'bosniaherzegovina': 'BIH', 'bosnia and herzegovina': 'BIH',
+  'united states': 'USA', 'usa': 'USA', 'brazil': 'BRA',
+  'morocco': 'MAR', 'scotland': 'SCO', 'haiti': 'HAI',
+  'paraguay': 'PAR', 'australia': 'AUS', 'turkey': 'TUR',
+  'germany': 'GER', 'curacao': 'CUW', 'ivory coast': 'CIV',
+  'cote divoire': 'CIV', 'ecuador': 'ECU',
+  'netherlands': 'NED', 'japan': 'JPN', 'sweden': 'SWE', 'tunisia': 'TUN',
+  'belgium': 'BEL', 'egypt': 'EGY', 'iran': 'IRN', 'new zealand': 'NZL',
+  'spain': 'ESP', 'uruguay': 'URU', 'saudi arabia': 'KSA',
+  'cape verde': 'CPV', 'cape verde islands': 'CPV',
+  'france': 'FRA', 'senegal': 'SEN', 'norway': 'NOR', 'iraq': 'IRQ',
+  'argentina': 'ARG', 'austria': 'AUT', 'algeria': 'ALG', 'jordan': 'JOR',
+  'portugal': 'POR', 'colombia': 'COL', 'uzbekistan': 'UZB',
+  'congo dr': 'COD', 'dr congo': 'COD',
+  'england': 'ENG', 'croatia': 'CRO', 'ghana': 'GHA', 'panama': 'PAN',
+};
+
 function getTeamIdByApiName(apiName: string): string | null {
+  const key = normalizeStr(apiName);
+  if (TEAM_NAME_ALIASES[key]) return TEAM_NAME_ALIASES[key];
+
   const matches = TEAMS_2026.map(t => {
     const scoreES = nameSimilarity(t.name, apiName);
     const scoreShort = nameSimilarity(t.shortName, apiName);
