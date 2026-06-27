@@ -98,8 +98,12 @@ export class CalendarView extends LitElement {
   @state() private selectedVenue = 'all';
   @state() private selectedPhase = 'all';
   @state() private exporting: string | null = null;
+  // Días que el usuario expandió/colapsó manualmente, invirtiendo el estado por defecto
+  // (los días anteriores a hoy nacen colapsados; hoy y futuros, expandidos).
+  @state() private toggledDays = new Set<string>();
 
   private unsubscribeStore?: () => void;
+  private didScrollToToday = false;
 
   public static readonly styles = css`
     :host {
@@ -170,14 +174,39 @@ export class CalendarView extends LitElement {
     }
 
     .day-strip {
+      all: unset;
+      box-sizing: border-box;
+      width: 100%;
       display: flex;
-      justify-content: space-between;
       gap: 12px;
       align-items: center;
       padding: 12px 16px;
       background: var(--retro-blue);
       color: var(--paper);
       border-bottom: 3px solid var(--ink);
+      cursor: pointer;
+    }
+
+    .day-group.collapsed .day-strip {
+      border-bottom: none;
+    }
+
+    .day-strip:hover {
+      filter: brightness(1.06);
+    }
+
+    .day-strip:focus-visible {
+      outline: 3px solid var(--retro-yellow);
+      outline-offset: -3px;
+    }
+
+    .day-chevron {
+      flex: 0 0 auto;
+      transition: transform 0.15s ease;
+    }
+
+    .day-group.collapsed .day-chevron {
+      transform: rotate(-90deg);
     }
 
     .day-title {
@@ -186,11 +215,31 @@ export class CalendarView extends LitElement {
       line-height: 1;
     }
 
+    .day-today-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 3px 7px;
+      background: var(--paper);
+      color: var(--retro-red);
+      border: 2px solid var(--ink);
+    }
+
     .day-count {
+      margin-left: auto;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+
+    .day-group.today > .day-strip {
+      background: var(--retro-red);
+    }
+
+    .chip-today {
+      font-weight: 700;
     }
 
     .matches {
@@ -613,6 +662,46 @@ export class CalendarView extends LitElement {
     super.disconnectedCallback();
   }
 
+  protected firstUpdated() {
+    this.scrollToToday();
+  }
+
+  protected updated() {
+    // Reintenta si el día aún no estaba en el DOM al primer render (datos tardíos).
+    if (!this.didScrollToToday) this.scrollToToday();
+  }
+
+  // Localiza la sección del día actual (o el próximo día con partidos si hoy
+  // no tiene) dentro del Shadow DOM.
+  private findTodaySection(): HTMLElement | null {
+    const todayKey = this.getTodayKey();
+    const sections = [...this.renderRoot.querySelectorAll<HTMLElement>('.day-group[data-date]')];
+    return (
+      sections.find(s => s.dataset.date === todayKey) ??
+      sections.find(s => (s.dataset.date ?? '') >= todayKey) ??
+      null
+    );
+  }
+
+  // Centra la vista en el día actual una sola vez por montaje. Se reposiciona en
+  // varios frames seguidos para compensar el reflow de banderas/imágenes que
+  // cargan tarde y empujarían el contenido hacia abajo.
+  private scrollToToday() {
+    if (this.didScrollToToday) return;
+    const section = this.findTodaySection();
+    if (!section) return;
+    this.didScrollToToday = true;
+
+    let frame = 0;
+    const settle = () => {
+      const target = this.findTodaySection();
+      target?.scrollIntoView({ block: 'start' });
+      frame += 1;
+      if (frame < 6) requestAnimationFrame(settle);
+    };
+    requestAnimationFrame(settle);
+  }
+
   private getTeam(teamId: string | null) {
     return TEAMS_2026.find(team => team.id === teamId);
   }
@@ -667,8 +756,10 @@ export class CalendarView extends LitElement {
         venue: match?.venue ?? scheduled.venue,
         city: match?.city ?? scheduled.city,
         venueId: scheduled.venueId,
-        teamA: (match?.isPlayed) ? match.teamA : null,
-        teamB: (match?.isPlayed) ? match.teamB : null,
+        // Mostrar los equipos en cuanto el cruce está definido por la clasificación,
+        // aunque el partido aún no se haya jugado (como hace el match-centre de FIFA).
+        teamA: match?.teamA ?? null,
+        teamB: match?.teamB ?? null,
         scoreA: match?.scoreA ?? null,
         scoreB: match?.scoreB ?? null,
         penaltyScoreA: match?.penaltyScoreA ?? null,
@@ -716,6 +807,36 @@ export class CalendarView extends LitElement {
       groups[row.date] = [...(groups[row.date] ?? []), row];
       return groups;
     }, {});
+  }
+
+  // Fecha de hoy (YYYY-MM-DD) en la zona horaria del calendario (CEST/Madrid),
+  // para no desfasar de madrugada al usar UTC.
+  private getTodayKey(): string {
+    const { year, month, day } = getZonedParts(new Date(), MADRID_TIME_ZONE);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${year}-${pad(month)}-${pad(day)}`;
+  }
+
+  // Hay filtros activos cuando el usuario acotó la vista; en ese caso no colapsamos.
+  private get hasActiveFilter(): boolean {
+    return this.selectedDate !== 'all' || this.selectedVenue !== 'all' || this.selectedPhase !== 'all';
+  }
+
+  private isDayCollapsed(date: string): boolean {
+    if (this.hasActiveFilter) return false;
+    const past = date < this.getTodayKey();
+    // XOR con el override manual del usuario.
+    return past !== this.toggledDays.has(date);
+  }
+
+  private toggleDay(date: string) {
+    const next = new Set(this.toggledDays);
+    if (next.has(date)) {
+      next.delete(date);
+    } else {
+      next.add(date);
+    }
+    this.toggledDays = next;
   }
 
   private buildGCalUrl(row: CalendarRow): string | null {
@@ -794,6 +915,8 @@ export class CalendarView extends LitElement {
     const groupedRows = this.getGroupedRows(rows);
     const availableDates = [...new Set(this.getRows().map(row => row.date))];
     const locale = useLocaleStore.getState().locale;
+    const todayKey = this.getTodayKey();
+    const hasToday = availableDates.includes(todayKey);
 
     return html`
       <div class="export-section">
@@ -875,6 +998,12 @@ export class CalendarView extends LitElement {
           <div class="filter-label">Día</div>
           <div class="chips">
             <button class="chip ${this.selectedDate === 'all' ? 'active' : ''}" @click=${() => { this.selectedDate = 'all'; }}>Todos</button>
+            ${hasToday ? html`
+              <button class="chip chip-today ${this.selectedDate === todayKey ? 'active' : ''}"
+                      @click=${() => { this.selectedDate = todayKey; }}>
+                ${locale === 'en' ? 'Today' : 'Hoy'}
+              </button>
+            ` : ''}
             ${availableDates.map(date => html`
               <button class="chip ${this.selectedDate === date ? 'active' : ''}" @click=${() => { this.selectedDate = date; }}>
                 ${this.formatDateLabel(date)}
@@ -917,13 +1046,25 @@ export class CalendarView extends LitElement {
 
       ${rows.length === 0 ? html`<div class="empty">${t('calendar.empty')}</div>` : ''}
 
-      ${Object.entries(groupedRows).map(([date, dateRows]) => html`
-        <section class="day-group">
-          <div class="day-strip">
+      ${Object.entries(groupedRows).map(([date, dateRows]) => {
+        const collapsed = this.isDayCollapsed(date);
+        const isToday = date === todayKey;
+        return html`
+        <section class="day-group ${collapsed ? 'collapsed' : ''} ${isToday ? 'today' : ''}" data-date=${date}>
+          <button
+            class="day-strip"
+            type="button"
+            aria-expanded=${collapsed ? 'false' : 'true'}
+            @click=${() => this.toggleDay(date)}>
+            <svg class="day-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
             <div class="day-title">${this.formatDateLabel(date)}</div>
+            ${isToday ? html`<span class="day-today-tag">${locale === 'en' ? 'TODAY' : 'HOY'}</span>` : ''}
             <div class="day-count">${dateRows.length} partidos</div>
-          </div>
+          </button>
 
+          ${collapsed ? '' : html`
           <div class="matches">
             ${dateRows.map(row => {
               const teamA = this.getTeam(row.teamA);
@@ -989,8 +1130,10 @@ export class CalendarView extends LitElement {
               `;
             })}
           </div>
+          `}
         </section>
-      `)}
+      `;
+      })}
     `;
   }
 }

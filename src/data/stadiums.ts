@@ -22,7 +22,7 @@ export const STADIUMS: Stadium[] = [
     description: "Un estadio vibrante que ha sido testigo de momentos históricos del fútbol canadiense. Ubicado en Exhibition Place, este recinto será el epicentro del inicio del torneo en suelo canadiense.",
     matchesSummary: "Albergará 6 partidos, incluyendo el debut de la selección de Canadá en el torneo el 12 de junio.",
     timezone: "America/Toronto",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/toronto.webp"
   },
   {
     id: 'vancouver',
@@ -34,7 +34,7 @@ export const STADIUMS: Stadium[] = [
     description: "BC Place es una maravilla arquitectónica en la costa oeste de Canadá. Con su distintivo techo retráctil y su ubicación en el centro de la ciudad, ofrece una atmósfera inigualable.",
     matchesSummary: "Albergará 7 partidos, incluyendo encuentros de la fase de grupos y eliminatorias de octavos de final.",
     timezone: "America/Vancouver",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/vancouver.webp"
   },
   {
     id: 'azteca',
@@ -46,7 +46,7 @@ export const STADIUMS: Stadium[] = [
     description: "El 'Coloso de Santa Úrsula' es un templo del fútbol mundial. Será el primer estadio en la historia en albergar tres ediciones de la Copa del Mundo y tres partidos inaugurales (1970, 1986 y 2026).",
     matchesSummary: "Albergará 5 partidos, destacando el Gran Partido Inaugural el 11 de junio donde México hará su debut.",
     timezone: "America/Mexico_City",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/azteca.webp"
   },
   {
     id: 'akron',
@@ -58,7 +58,7 @@ export const STADIUMS: Stadium[] = [
     description: "Conocido localmente como Estadio Akron, su diseño se integra con el paisaje circundante simulando un volcán coronado por una nube. Es uno de los estadios más modernos y sostenibles de América Latina.",
     matchesSummary: "Albergará 4 partidos de la fase de grupos, convirtiéndose en el corazón futbolístico de Jalisco.",
     timezone: "America/Mexico_City",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/akron.webp"
   },
   {
     id: 'bbva',
@@ -70,7 +70,7 @@ export const STADIUMS: Stadium[] = [
     description: "El Estadio BBVA ofrece una de las vistas más espectaculares del mundo desde las gradas. Su estructura de acero y diseño de vanguardia lo convierten en una sede emblemática para el norte de México.",
     matchesSummary: "Albergará 4 partidos, incluyendo duelos decisivos de la fase de grupos y una eliminatoria de dieciseisavos.",
     timezone: "America/Mexico_City",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/bbva.webp"
   },
   {
     id: 'mercedes-benz',
@@ -82,7 +82,7 @@ export const STADIUMS: Stadium[] = [
     description: "Un estadio ultra-moderno con un techo retráctil único en forma de obturador de cámara. Es famoso por su pantalla circular de 360 grados y su compromiso con la sostenibilidad.",
     matchesSummary: "Albergará 8 partidos, incluyendo una de las semifinales y varios encuentros de alto perfil en la fase de grupos.",
     timezone: "America/New_York",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/mercedes-benz.webp"
   },
   {
     id: 'gillette',
@@ -94,7 +94,7 @@ export const STADIUMS: Stadium[] = [
     description: "Hogar de los New England Patriots, este estadio es conocido por su atmósfera eléctrica. Ha sido renovado recientemente para ofrecer una experiencia de clase mundial a los aficionados al fútbol.",
     matchesSummary: "Albergará 7 partidos, incluyendo cuartos de final y encuentros clave de la fase inicial.",
     timezone: "America/New_York",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/gillette.webp"
   },
   {
     id: 'att-stadium',
@@ -106,7 +106,7 @@ export const STADIUMS: Stadium[] = [
     description: "A menudo llamado 'Jerry World', es una de las instalaciones deportivas más imponentes del planeta. Destaca por su gigantesca pantalla central y su capacidad para crear un espectáculo sin igual.",
     matchesSummary: "Es el estadio que más partidos albergará del torneo con un total de 9, incluyendo una semifinal.",
     timezone: "America/Chicago",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/att-stadium.webp"
   },
   {
     id: 'nrg',
@@ -118,7 +118,7 @@ export const STADIUMS: Stadium[] = [
     description: "El primer estadio de la NFL con techo retráctil. Houston tiene una larga tradición de albergar grandes eventos internacionales y el NRG Stadium está diseñado para el máximo confort.",
     matchesSummary: "Albergará 7 partidos, con encuentros de fase de grupos, dieciseisavos y octavos de final.",
     timezone: "America/Chicago",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/nrg.webp"
   },
   {
     id: 'arrowhead',
@@ -130,7 +130,7 @@ export const STADIUMS: Stadium[] = [
     description: "Arrowhead Stadium ostenta el récord Guinness del estadio más ruidoso. Su diseño de tazón abierto asegura que cada grito de gol resuene con una intensidad sin precedentes.",
     matchesSummary: "Albergará 6 partidos, incluyendo un emocionante duelo de cuartos de final.",
     timezone: "America/Chicago",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/arrowhead.webp"
   },
   {
     id: 'sofi',
@@ -142,7 +142,7 @@ export const STADIUMS: Stadium[] = [
     description: "Considerado el estadio más caro y avanzado jamás construido. Su diseño 'indoor-outdoor' y su pantalla Infinity Screen de doble cara redefinen la experiencia del espectador.",
     matchesSummary: "Albergará 8 partidos, incluyendo el estreno de la selección de USA el 12 de junio y cuartos de final.",
     timezone: "America/Los_Angeles",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/sofi.webp"
   },
   {
     id: 'hard-rock',
@@ -154,7 +154,7 @@ export const STADIUMS: Stadium[] = [
     description: "Un destino global que combina el glamour de Miami con la pasión del fútbol. Recientemente remodelado con una cubierta que protege a los fans del sol y la lluvia.",
     matchesSummary: "Albergará 7 partidos, destacando el encuentro por el tercer puesto y un partido de cuartos de final.",
     timezone: "America/New_York",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/hard-rock.webp"
   },
   {
     id: 'metlife',
@@ -166,7 +166,7 @@ export const STADIUMS: Stadium[] = [
     description: "Ubicado a la sombra de Manhattan, el MetLife Stadium es el escenario elegido para el partido más importante del mundo. Su inmensa capacidad lo convierte en el coliseo perfecto para la final.",
     matchesSummary: "Albergará 8 partidos, culminando con la Final de la Copa Mundial de la FIFA el 19 de julio de 2026.",
     timezone: "America/New_York",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/metlife.webp"
   },
   {
     id: 'lincoln-financial',
@@ -178,7 +178,7 @@ export const STADIUMS: Stadium[] = [
     description: "El Lincoln Financial Field es conocido por su diseño ecológico, utilizando energía solar y eólica. Es una sede que combina modernidad con una afición apasionada.",
     matchesSummary: "Albergará 6 partidos, incluyendo encuentros de fase de grupos y una eliminatoria de octavos de final.",
     timezone: "America/New_York",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/lincoln-financial.webp"
   },
   {
     id: 'levis',
@@ -190,7 +190,7 @@ export const STADIUMS: Stadium[] = [
     description: "Ubicado en el epicentro de la tecnología mundial, el Levi's Stadium es un modelo de conectividad y sostenibilidad, siendo el primero en obtener la certificación LEED Gold.",
     matchesSummary: "Albergará 6 partidos de la fase de grupos y dieciseisavos de final.",
     timezone: "America/Los_Angeles",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/levis.webp"
   },
   {
     id: 'lumen-field',
@@ -202,6 +202,6 @@ export const STADIUMS: Stadium[] = [
     description: "Lumen Field es famoso por su diseño que amplifica el ruido de los aficionados. Su ubicación urbana ofrece vistas increíbles de la ciudad y el mar.",
     matchesSummary: "Albergará 6 partidos, incluyendo el segundo partido de la selección de Estados Unidos.",
     timezone: "America/Los_Angeles",
-    image: "/assets/images/stadium-placeholder.svg"
+    image: "/assets/stadiums/lumen-field.webp"
   }
 ];

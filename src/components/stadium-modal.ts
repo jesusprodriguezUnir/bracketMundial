@@ -220,7 +220,8 @@ export class StadiumModal extends LitElement {
         <div class="modal-content" @click="${(e: Event) => e.stopPropagation()}">
           <button class="close-btn" @click="${this._close}">×</button>
           
-          <img class="hero-image" src="${this.stadium.image}" alt="${this.stadium.name}">
+          <img class="hero-image" src="${this.stadium.image}" alt="${this.stadium.name}"
+            @error=${(e: Event) => { (e.target as HTMLImageElement).src = '/assets/images/stadium-placeholder.svg'; }}>
           
           <div class="stadium-header">
             <h2 class="stadium-name">${this.stadium.name}</h2>

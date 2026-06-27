@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,33 +31,44 @@ if (!fs.existsSync(dir)) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+const force = process.argv.includes('--force');
+
+function fetchBuffer(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    }, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed with status ${res.statusCode}`));
+        res.resume();
+        return;
+      }
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+    }).on('error', reject);
+  });
+}
+
 async function download() {
   for (const st of STADIUMS) {
-    const p = path.join(dir, `${st.id}.jpg`);
-    if (fs.existsSync(p)) {
-      console.log(`Skipping ${st.id}`);
+    const out = path.join(dir, `${st.id}.webp`);
+    if (fs.existsSync(out) && !force) {
+      console.log(`Skipping ${st.id} (ya existe)`);
       continue;
     }
-    console.log(`Downloading ${st.id}...`);
-    await new Promise((resolve, reject) => {
-      https.get(st.url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        }
-      }, (res) => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`Failed with status ${res.statusCode}`));
-          return;
-        }
-        const file = fs.createWriteStream(p);
-        res.pipe(file);
-        file.on('finish', () => {
-          file.close(resolve);
-        });
-      }).on('error', err => {
-        fs.unlink(p, () => reject(err));
-      });
-    }).catch(e => console.error(`Error downloading ${st.id}:`, e));
+    try {
+      console.log(`Downloading ${st.id}...`);
+      const buf = await fetchBuffer(st.url);
+      await sharp(buf)
+        .resize({ width: 1280, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(out);
+      const kb = (fs.statSync(out).size / 1024).toFixed(0);
+      console.log(`  -> ${st.id}.webp (${kb} KB)`);
+    } catch (e) {
+      console.error(`Error downloading ${st.id}:`, e.message);
+    }
   }
 }
 
