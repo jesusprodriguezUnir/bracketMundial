@@ -9,6 +9,8 @@ import { t, useLocaleStore } from '../i18n';
 // Helpers: derivar fases del torneo desde matchesSummary
 // (mantenemos el tipo Stadium intacto)
 // ─────────────────────────────────────────────────────────────
+const STADIUM_PLACEHOLDER_IMAGE = '/assets/images/stadium-placeholder.svg';
+
 type Phase = 'G' | 'R32' | 'R16' | 'QF' | 'SF' | '3RD' | 'F';
 
 const PHASE_LABEL: Record<Phase, string> = {
@@ -739,7 +741,8 @@ export class StadiumsView extends LitElement {
           <div class="detail-body">
             <div class="detail-photo-col">
               <div class="detail-photo-wrap">
-                <img src="${stadium.image}" alt="${stadium.name}" loading="lazy">
+                <img src="${stadium.image}" alt="${stadium.name}" loading="lazy"
+                  @error=${this._handleImageError}>
               </div>
             </div>
 
@@ -911,7 +914,8 @@ export class StadiumsView extends LitElement {
 
     return html`
       <div class="stadium-row" @click=${() => this._selectStadium(s)}>
-        <img class="row-img" src="${s.image}" alt="${s.name}" loading="lazy">
+        <img class="row-img" src="${s.image}" alt="${s.name}" loading="lazy"
+          @error=${this._handleImageError}>
 
         <div class="row-flag">
           <div class="emoji">${COUNTRY_FLAG[cc] || '🏟️'}</div>
@@ -945,5 +949,9 @@ export class StadiumsView extends LitElement {
 
   private _selectStadium(stadium: Stadium | null) {
     this._selectedStadium = stadium;
+  }
+
+  private _handleImageError(e: Event) {
+    (e.target as HTMLImageElement).src = STADIUM_PLACEHOLDER_IMAGE;
   }
 }
