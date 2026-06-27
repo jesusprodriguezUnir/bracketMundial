@@ -22,7 +22,7 @@ const SHEET_VIEWS: MobileView[] = ['awards', 'calendar', 'stadiums', 'coaches', 
 const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS];
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
-  calendar: () => import('../../components/calendar-view'),
+  calendar: () => import('./mobile-calendar'),
   stadiums: () => import('../../components/stadiums-view'),
   coaches:  () => import('../../components/coaches-view'),
   guide:    () => import('../../components/guide-view'),
@@ -226,7 +226,7 @@ export class MobileApp extends LitElement {
           <div class="section-eyebrow">104 PARTIDOS · 11 JUN – 19 JUL</div>
           <div class="section-title">${t('tabs.calendar')}</div>
         </div>
-        <calendar-view></calendar-view>
+        <mobile-calendar></mobile-calendar>
       </div>`;
     if (v === 'stadiums') return html`
       <div class="secondary-view">

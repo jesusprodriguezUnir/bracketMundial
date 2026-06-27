@@ -8,6 +8,7 @@ import { showToast } from '../../lib/interaction';
 import './mobile-awards';
 import { mobileShared } from './mobile-shared.css';
 import { t, useLocaleStore } from '../../i18n';
+import { formatShortDate } from '../../lib/date-utils';
 
 interface Round {
   id: string;
@@ -173,10 +174,10 @@ export class MobileBracket extends LitElement {
           <span>${label}</span>
           ${played ? html`<button class="meta-clear" @click="${() => this._resetMatch(matchId)}" aria-label="${useLocaleStore.getState().locale === 'es' ? 'Borrar resultado' : 'Clear result'}">✕</button>` : ''}
         </div>
-        ${m.venue ? html`
+        ${(m.venue || m.date) ? html`
           <div class="kmatch-meta">
-            <span>📍 ${m.venue}</span>
-            ${m.timeSpain ? html`<span class="kmatch-date">· ${m.timeSpain}</span>` : ''}
+            ${m.date ? html`<span class="kmatch-date">📅 ${formatShortDate(m.date)}${m.timeSpain ? ` · ${m.timeSpain} ESP` : ''}</span>` : ''}
+            ${m.venue ? html`<span>📍 ${m.venue}${m.city ? ` · ${m.city}` : ''}</span>` : ''}
           </div>` : ''}
         ${row(m.teamA, m.scoreA, 0)}
         <div class="ksep"></div>
@@ -311,7 +312,14 @@ export class MobileBracket extends LitElement {
         padding: 3px 12px 7px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center;
         border-bottom: 1.5px dashed rgba(26,25,51,0.25);
       }
-      .kmatch-date { color: var(--retro-yellow); font-weight: 700; }
+      .kmatch-date {
+        background: var(--retro-yellow);
+        color: var(--ink);
+        font-weight: 700;
+        padding: 2px 6px;
+        border: 1.5px solid var(--ink);
+        letter-spacing: 0.06em;
+      }
 
       /* ── krow (fila de equipo) ── */
       .krow {
