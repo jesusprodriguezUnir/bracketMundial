@@ -7,7 +7,7 @@ import { SQUADS, type Player } from '../data/squads/index';
 import './match-modal';
 import { STADIUMS } from '../data/stadiums';
 import { t, useLocaleStore } from '../i18n';
-import { isMatchPending } from '../lib/date-utils';
+import { isMatchPending, formatShortDate } from '../lib/date-utils';
 import { getAllOdds, getOddsForMatch, type MatchOdds } from '../lib/odds-service';
 import { openMatchModal } from '../lib/match-modal-service';
 import { renderFlag } from '../lib/render-flag';
@@ -419,6 +419,25 @@ export class BracketKnockout extends LitElement {
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+
+    /* Fecha y hora exactas de cada partido del bracket */
+    .ko-schedule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 2px 6px;
+      border-top: 1px solid var(--ink);
+      background: var(--retro-yellow);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .ko-sched-date { text-transform: uppercase; }
+    .ko-sched-time { opacity: 0.85; }
 
     /* Champion box — V3 double shadow + halftone overlay in template */
     .champion-box {
@@ -2008,6 +2027,13 @@ export class BracketKnockout extends LitElement {
         ${penaltyNote}
         ${oddsContent}
 
+        ${(m as any)?.date ? html`
+          <div class="ko-schedule">
+            <span class="ko-sched-date">${formatShortDate((m as any).date)}</span>
+            ${(m as any).timeSpain ? html`<span class="ko-sched-time">${(m as any).timeSpain} ESP</span>` : ''}
+          </div>
+        ` : ''}
+
         ${(m as any)?.venue ? html`
           <div style="padding: 2px 8px; border-top: 1px solid var(--ink); display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.03);">
             ${(() => {
@@ -2199,7 +2225,7 @@ export class BracketKnockout extends LitElement {
       ? STADIUMS.find(s => s.name === venueName)?.image ?? ''
       : '';
     const venueImageContent: TemplateResult | string = venueImage ? html`<img src="${venueImage}" class="mob-venue-img" alt="">` : '';
-    const matchDateLabel = matchDate ? ` · ${matchDate}` : '';
+    const matchDateLabel = matchDate ? ` · ${formatShortDate(matchDate)}` : '';
     const matchTimeLabel = matchTime ? ` · ${matchTime} ESP` : '';
     const venueContent: TemplateResult | string = venueName
       ? html`
