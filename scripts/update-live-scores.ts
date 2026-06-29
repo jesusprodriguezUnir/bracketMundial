@@ -296,6 +296,11 @@ async function run() {
     logJson('info', 'official_loaded', { has_payload: false });
   }
 
+  // Resolver cruces antes de mapear fixtures KO por equipos.
+  // Sin esto, teamA/teamB quedan null y nunca se actualizan partidos de eliminatorias.
+  const initialStandings = recalculateStandings(groupMatches);
+  knockoutMatches = syncKnockoutBracket(initialStandings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+
   // 3. Fetch API-Football con retries
   let fetchResult: ApiFetchResult;
   try {

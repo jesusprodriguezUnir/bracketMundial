@@ -211,7 +211,41 @@ const THIRD_POOLS: Record<string, string[]> = {
   'G-3-8': ['D', 'E', 'I', 'J', 'L'],
 };
 
+// Mapeo oficial FIFA para combinaciones publicadas de mejores terceros.
+// Key = grupos clasificados (ordenados). Value = grupo asignado por slot G-3-n.
+const THIRD_COMBINATION_OVERRIDES: Record<string, Record<string, string>> = {
+  BDEFIJKL: {
+    'G-3-1': 'D',
+    'G-3-2': 'F',
+    'G-3-3': 'B',
+    'G-3-4': 'I',
+    'G-3-5': 'E',
+    'G-3-6': 'K',
+    'G-3-7': 'J',
+    'G-3-8': 'L',
+  },
+};
+
 export function assignBestThirds(bestThirds: TeamStats[]): Record<string, string> {
+  const byGroup = new Map(bestThirds.map(team => [team.group, team]));
+  const comboKey = [...byGroup.keys()].sort().join('');
+  const forced = THIRD_COMBINATION_OVERRIDES[comboKey];
+  if (forced) {
+    const forcedResult: Record<string, string> = {};
+    for (const slot of Object.keys(THIRD_POOLS)) {
+      const group = forced[slot];
+      const team = group ? byGroup.get(group) : undefined;
+      if (!team) {
+        // Fallback seguro al solver genérico si el override no cuadra con el input real.
+        break;
+      }
+      forcedResult[slot] = team.id;
+    }
+    if (Object.keys(forcedResult).length === Object.keys(THIRD_POOLS).length) {
+      return forcedResult;
+    }
+  }
+
   const result: Record<string, string> = {};
   const slots = Object.keys(THIRD_POOLS);
   const usedTeams = new Set<string>();
@@ -299,4 +333,3 @@ export function generateKnockoutMatches(groups: Record<string, TeamStats[]>) {
     thirdsAssignment
   };
 }
-
