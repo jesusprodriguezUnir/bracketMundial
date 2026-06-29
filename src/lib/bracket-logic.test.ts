@@ -98,6 +98,38 @@ describe('Bracket Logic', () => {
     expect(knockout['R32-16'].teamB).toBe('D3');
   });
 
+  it('should apply FIFA official third-place slot mapping for combo BDEFIJKL', () => {
+    const qualifiedThirdGroups = new Set(['B', 'D', 'E', 'F', 'I', 'J', 'K', 'L']);
+    const standings = buildStandings(
+      Object.fromEntries(
+        GROUPS.map(group => [
+          group,
+          [
+            { teamId: `${group}1`, points: 9, goalDiff: 6, goalsFor: 7 },
+            { teamId: `${group}2`, points: 4, goalDiff: 1, goalsFor: 3 },
+            {
+              teamId: `${group}3`,
+              points: qualifiedThirdGroups.has(group) ? 4 : 0,
+              goalDiff: qualifiedThirdGroups.has(group) ? 1 : -5,
+              goalsFor: qualifiedThirdGroups.has(group) ? 3 : 0,
+            },
+          ],
+        ])
+      ) as Partial<Record<string, GroupStandingLike[]>>
+    );
+
+    const knockout = syncBracket(standings);
+
+    expect(knockout['R32-01'].teamB).toBe('D3');
+    expect(knockout['R32-02'].teamB).toBe('F3');
+    expect(knockout['R32-07'].teamB).toBe('B3');
+    expect(knockout['R32-08'].teamB).toBe('I3');
+    expect(knockout['R32-11'].teamB).toBe('E3');
+    expect(knockout['R32-12'].teamB).toBe('K3');
+    expect(knockout['R32-15'].teamB).toBe('J3');
+    expect(knockout['R32-16'].teamB).toBe('L3');
+  });
+
   it('should propagate winners decided on penalties', () => {
     const standings = buildStandings();
     const knockout = syncBracket(standings);
