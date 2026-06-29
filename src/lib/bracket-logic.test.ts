@@ -94,7 +94,9 @@ describe('Bracket Logic', () => {
     const knockout = syncBracket(buildStandings());
 
     expect(knockout['R32-11'].teamA).toBe('A1');
-    expect(knockout['R32-01'].teamB).toBe('A3');
+    // Annex C row for combination A,B,C,D,E,F,G,H: slot G-3-1 -> C
+    // (FIFA-mandated assignment; previous backtracking gave A)
+    expect(knockout['R32-01'].teamB).toBe('C3');
     expect(knockout['R32-16'].teamB).toBe('D3');
   });
 
@@ -251,5 +253,84 @@ describe('Bracket Logic', () => {
     expect(knockout['FIN-01'].teamB).toBe(knockout['SF-02'].winnerId);
     expect(knockout['TP-01'].teamA).toBe(knockout['SF-01'].teamB);
     expect(knockout['TP-01'].teamB).toBe(knockout['SF-02'].teamA);
+  });
+
+  // ── FIFA Regulations Annex C lookup ──────────────────────────────────────────
+  // The official 2026 third-place allocation is a fixed 495-row lookup table; a
+  // previous backtracking-only implementation produced a *valid* but *wrong*
+  // assignment (e.g. Germany paired with Sweden instead of Paraguay).
+
+  function buildStandingsWithThirds(
+    qualifiedThirdGroups: string[],
+    nonQualifiedThirdGroups: string[]
+  ): Record<string, GroupStandingLike[]> {
+    void nonQualifiedThirdGroups;
+    const overrides: Partial<Record<string, GroupStandingLike[]>> = {};
+    for (const g of GROUPS) {
+      const isQualified = qualifiedThirdGroups.includes(g);
+      // Qualified thirds get points 5–9 (still below 1st/2nd), non-qualified get 0.
+      const thirdSeed = isQualified
+        ? { points: 8 - qualifiedThirdGroups.indexOf(g), goalDiff: 1, goalsFor: 3 }
+        : { points: 0, goalDiff: -3, goalsFor: 0 };
+      overrides[g] = [
+        { teamId: `${g}1`, points: 9, goalDiff: 6, goalsFor: 7 },
+        { teamId: `${g}2`, points: 4, goalDiff: 1, goalsFor: 3 },
+        { teamId: `${g}3`, ...thirdSeed },
+      ];
+    }
+    return buildStandings(overrides);
+  }
+
+  it('assigns third-placed teams per FIFA Annex C: real 2026 combination (B,D,E,F,I,J,K,L)', () => {
+    const standings = buildStandingsWithThirds(
+      ['B', 'D', 'E', 'F', 'I', 'J', 'K', 'L'],
+      ['A', 'C', 'G', 'H']
+    );
+    const knockout = syncBracket(standings);
+
+    // R32-01 = Match 74: 1E (Germany) vs slot G-3-1 → 3D (Paraguay)
+    expect(knockout['R32-01'].teamA).toBe('E1');
+    expect(knockout['R32-01'].teamB).toBe('D3');
+    // R32-02 = Match 77: 1I (France)  vs slot G-3-2 → 3F (Sweden)
+    expect(knockout['R32-02'].teamB).toBe('F3');
+    // R32-07 = Match 81: 1D (USA)     vs slot G-3-3 → 3B (Bosnia)
+    expect(knockout['R32-07'].teamB).toBe('B3');
+    // R32-11 = Match 79: 1A (Mexico)  vs slot G-3-5 → 3E (Ecuador)
+    expect(knockout['R32-11'].teamB).toBe('E3');
+    // R32-08 = Match 82: 1G (Belgium) vs slot G-3-4 → 3I (Senegal)
+    expect(knockout['R32-08'].teamB).toBe('I3');
+    // R32-16 = Match 87: 1K (Colombia) vs slot G-3-8 → 3L (Ghana)
+    expect(knockout['R32-16'].teamB).toBe('L3');
+    // R32-12 = Match 80: 1L (England)  vs slot G-3-6 → 3K (DR Congo)
+    expect(knockout['R32-12'].teamB).toBe('K3');
+    // R32-15 = Match 85: 1B (Swiss)    vs slot G-3-7 → 3J (Algeria)
+    expect(knockout['R32-15'].teamB).toBe('J3');
+  });
+
+  it('assigns third-placed teams per FIFA Annex C: alternative combination (D,E,F,G,H,I,J,K)', () => {
+    const standings = buildStandingsWithThirds(
+      ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
+      ['A', 'B', 'C', 'L']
+    );
+    const knockout = syncBracket(standings);
+
+    // Row 9 of Annex C: E,G,J,D,H,F,I,K
+    // R32-01 = 1E vs slot G-3-1 → 3D
+    expect(knockout['R32-01'].teamA).toBe('E1');
+    expect(knockout['R32-01'].teamB).toBe('D3');
+    // R32-02 = 1I vs slot G-3-2 → 3F
+    expect(knockout['R32-02'].teamB).toBe('F3');
+    // R32-07 = 1D vs slot G-3-3 → 3J
+    expect(knockout['R32-07'].teamB).toBe('J3');
+    // R32-11 = 1A vs slot G-3-5 → 3E
+    expect(knockout['R32-11'].teamB).toBe('E3');
+    // R32-08 = 1G vs slot G-3-4 → 3H
+    expect(knockout['R32-08'].teamB).toBe('H3');
+    // R32-16 = 1K vs slot G-3-8 → 3I
+    expect(knockout['R32-16'].teamB).toBe('I3');
+    // R32-12 = 1L vs slot G-3-6 → 3K
+    expect(knockout['R32-12'].teamB).toBe('K3');
+    // R32-15 = 1B vs slot G-3-7 → 3G
+    expect(knockout['R32-15'].teamB).toBe('G3');
   });
 });
