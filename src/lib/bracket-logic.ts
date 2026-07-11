@@ -109,7 +109,9 @@ function createMatchState(
   schedule: MatchScheduleLike
 ): KnockoutMatchLike {
   const scheduled = schedule[matchId];
-  const teamsChanged = existing ? existing.teamA !== teamA || existing.teamB !== teamB : false;
+  const teamsChanged = existing && existing.teamA !== null && existing.teamB !== null
+    ? existing.teamA !== teamA || existing.teamB !== teamB
+    : false;
 
   return {
     matchId,

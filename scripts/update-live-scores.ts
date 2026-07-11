@@ -299,7 +299,25 @@ async function run() {
   // Resolver cruces antes de mapear fixtures KO por equipos.
   // Sin esto, teamA/teamB quedan null y nunca se actualizan partidos de eliminatorias.
   const initialStandings = recalculateStandings(groupMatches);
-  knockoutMatches = syncKnockoutBracket(initialStandings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+  let resolvedKnockout = syncKnockoutBracket(initialStandings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+
+  // Calcular e iterar de forma iterativa el winnerId para propagar los equipos a las siguientes rondas
+  for (const matchId of getKnockoutMatchOrder()) {
+    const match = resolvedKnockout[matchId];
+    if (match?.teamA && match?.teamB && match.scoreA !== null && match.scoreB !== null) {
+      match.winnerId = getWinnerId(
+        match.teamA,
+        match.teamB,
+        match.scoreA,
+        match.scoreB,
+        match.penaltyScoreA ?? null,
+        match.penaltyScoreB ?? null
+      );
+      match.isPlayed = match.winnerId !== null;
+      resolvedKnockout = syncKnockoutBracket(initialStandings, resolvedKnockout, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+    }
+  }
+  knockoutMatches = resolvedKnockout;
 
   // 3. Fetch API-Football con retries
   let fetchResult: ApiFetchResult;
@@ -324,51 +342,68 @@ async function run() {
     return;
   }
 
-  // 4. Mapeo y actualización (football-data.org v4 structure)
+  // 4. Mapeo y actualización iterativa
   let updatedCount = 0;
-  for (const f of fixtures) {
-    // football-data.org: status es SCHEDULED, TIMED, IN_PLAY, PAUSED, EXTRA_TIME,
-    // PENALTY_SHOOTOUT, FINISHED, SUSPENDED, POSTPONED, CANCELLED, AWARDED
-    if (SKIP_STATUSES.has(f.status)) continue;
+  let hasPendingUpdates = true;
+  const processedFixtures = new Set<string>();
 
-    const teamA_id = getTeamIdByApiName(f.homeTeam.name);
-    const teamB_id = getTeamIdByApiName(f.awayTeam.name);
-    if (!teamA_id || !teamB_id) continue;
+  while (hasPendingUpdates) {
+    hasPendingUpdates = false;
 
-    // fullTime contiene el marcador final (o actual si IN_PLAY)
-    const scoreA = f.score.fullTime.home ?? 0;
-    const scoreB = f.score.fullTime.away ?? 0;
-    // penalties aparece solo si duration === 'PENALTY_SHOOTOUT'
-    const penA = f.score.penalties?.home ?? null;
-    const penB = f.score.penalties?.away ?? null;
+    for (const f of fixtures) {
+      if (processedFixtures.has(f.id.toString())) continue;
+      if (SKIP_STATUSES.has(f.status)) continue;
 
-    const groupMatch = groupMatches.find(m =>
-      (m.teamA === teamA_id && m.teamB === teamB_id) ||
-      (m.teamA === teamB_id && m.teamB === teamA_id)
-    );
+      const teamA_id = getTeamIdByApiName(f.homeTeam.name);
+      const teamB_id = getTeamIdByApiName(f.awayTeam.name);
+      if (!teamA_id || !teamB_id) continue;
 
-    if (groupMatch) {
-      const isHomeA = groupMatch.teamA === teamA_id;
-      groupMatch.scoreA = isHomeA ? scoreA : scoreB;
-      groupMatch.scoreB = isHomeA ? scoreB : scoreA;
-      updatedCount++;
-    } else {
-      const koMatch = Object.values(knockoutMatches).find((m: any) =>
+      // fullTime contiene el marcador final (o actual si IN_PLAY)
+      const scoreA = f.score.fullTime.home ?? 0;
+      const scoreB = f.score.fullTime.away ?? 0;
+      // penalties aparece solo si duration === 'PENALTY_SHOOTOUT'
+      const penA = f.score.penalties?.home ?? null;
+      const penB = f.score.penalties?.away ?? null;
+
+      const groupMatch = groupMatches.find(m =>
         (m.teamA === teamA_id && m.teamB === teamB_id) ||
         (m.teamA === teamB_id && m.teamB === teamA_id)
-      ) as any;
+      );
 
-      if (koMatch) {
-        const isHomeA = koMatch.teamA === teamA_id;
-        koMatch.scoreA = isHomeA ? scoreA : scoreB;
-        koMatch.scoreB = isHomeA ? scoreB : scoreA;
-        if (penA !== null && penB !== null) {
-          koMatch.penaltyScoreA = isHomeA ? penA : penB;
-          koMatch.penaltyScoreB = isHomeA ? penB : penA;
-        }
-        koMatch.winnerId = getWinnerId(koMatch.teamA, koMatch.teamB, koMatch.scoreA, koMatch.scoreB, koMatch.penaltyScoreA ?? null, koMatch.penaltyScoreB ?? null);
-        koMatch.isPlayed = koMatch.winnerId !== null;
+      if (groupMatch) {
+        const isHomeA = groupMatch.teamA === teamA_id;
+        groupMatch.scoreA = isHomeA ? scoreA : scoreB;
+        groupMatch.scoreB = isHomeA ? scoreB : scoreA;
+        processedFixtures.add(f.id.toString());
         updatedCount++;
+        hasPendingUpdates = true;
+      } else {
+        const koMatchEntry = Object.entries(knockoutMatches).find(([_, m]: [string, any]) =>
+          (m.teamA === teamA_id && m.teamB === teamB_id) ||
+          (m.teamA === teamB_id && m.teamB === teamA_id)
+        );
+
+        if (koMatchEntry) {
+          const [matchId, koMatch] = koMatchEntry as [string, any];
+          const isHomeA = koMatch.teamA === teamA_id;
+          koMatch.scoreA = isHomeA ? scoreA : scoreB;
+          koMatch.scoreB = isHomeA ? scoreB : scoreA;
+          if (penA !== null && penB !== null) {
+            koMatch.penaltyScoreA = isHomeA ? penA : penB;
+            koMatch.penaltyScoreB = isHomeA ? penB : penA;
+          }
+          koMatch.winnerId = getWinnerId(koMatch.teamA, koMatch.teamB, koMatch.scoreA, koMatch.scoreB, koMatch.penaltyScoreA ?? null, koMatch.penaltyScoreB ?? null);
+          koMatch.isPlayed = koMatch.winnerId !== null;
+
+          processedFixtures.add(f.id.toString());
+          updatedCount++;
+          hasPendingUpdates = true;
+
+          // Propagar cambios de inmediato en la estructura en memoria para que la siguiente ronda
+          // pueda emparejar partidos basándose en los ganadores que acabamos de resolver.
+          const standings = recalculateStandings(groupMatches);
+          knockoutMatches = syncKnockoutBracket(standings, knockoutMatches as any, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
+        }
       }
     }
   }

@@ -20,6 +20,7 @@
     "preview": "vite preview",
     "news": "node scripts/ingest-news.mjs",
     "odds": "tsx scripts/generate-odds.mjs",
+    "cache:purge:cf": "node scripts/purge-cloudflare-cache.mjs",
     "scores:update": "tsx scripts/update-live-scores.ts",
     "test": "vitest run",
     "cap:sync": "npm run build && npx cap sync",

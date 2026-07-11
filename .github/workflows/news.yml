@@ -65,3 +65,16 @@ jobs:
             ARGS="$ARGS --force"
           fi
           node scripts/ingest-news.mjs $ARGS
+
+      - name: Purge Cloudflare cache (shell PWA)
+        if: success()
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          node scripts/purge-cloudflare-cache.mjs \
+            https://bracketmundial.com/ \
+            https://bracketmundial.com/index.html \
+            https://bracketmundial.com/sw.js \
+            https://bracketmundial.com/registerSW.js \
+            https://bracketmundial.com/manifest.webmanifest

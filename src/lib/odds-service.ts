@@ -114,3 +114,8 @@ export async function getMatchOdds(matchId: string): Promise<MatchOdds | null> {
   const all = await getAllOdds();
   return all[matchId] ?? null;
 }
+
+/** Limpia la caché local de odds. Útil tras refresh manual del feed. */
+export function clearOddsCache(): void {
+  try { localStorage.removeItem(CACHE_KEY); } catch { /* ignorar */ }
+}

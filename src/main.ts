@@ -27,6 +27,32 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 import { registerSW } from 'virtual:pwa-register';
+import { clearNewsCache } from './lib/news-service';
+import { clearOddsCache } from './lib/odds-service';
+
+declare global {
+  interface Window {
+    bracketMundialClearCache?: () => void;
+  }
+}
+
+function clearRuntimeCaches(): void {
+  clearNewsCache();
+  clearOddsCache();
+}
+
+// Soporte operativo: https://bracketmundial.com/?clearCache=1
+// permite limpiar cachés locales en una única navegación.
+if (typeof window !== 'undefined') {
+  window.bracketMundialClearCache = clearRuntimeCaches;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('clearCache') === '1') {
+    clearRuntimeCaches();
+    params.delete('clearCache');
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+    window.location.replace(next);
+  }
+}
 
 registerSW({
   onRegisteredSW(_swUrl, registration) {
