@@ -5,17 +5,7 @@ import { subscribeSlice } from '../../store/store-utils';
 import { t, useLocaleStore } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
 import { showToast } from '../../lib/interaction';
-
-/** Partido inaugural: 11 jun 2026, 21:00 CEST = 19:00 UTC */
-const KICKOFF_UTC = Date.UTC(2026, 5, 11, 19, 0, 0);
-
-interface Countdown { days: number; started: boolean }
-
-function calcCountdown(): Countdown {
-  const diff = KICKOFF_UTC - Date.now();
-  if (diff <= 0) return { days: 0, started: true };
-  return { days: Math.floor(diff / 86400000), started: false };
-}
+import { getCountdownValues, getTournamentPhase, type TournamentPhase } from '../../lib/tournament-phase';
 
 /**
  * Vista de inicio del shell móvil: hero, stats, countdown, simulación y quick-grid.
@@ -23,7 +13,8 @@ function calcCountdown(): Countdown {
  */
 @customElement('mobile-home')
 export class MobileHome extends LitElement {
-  @state() private _cd: Countdown = calcCountdown();
+  @state() private _phase: TournamentPhase = getTournamentPhase();
+  @state() private _cd = getCountdownValues();
   @state() private _played = 0;
 
   private _timer?: ReturnType<typeof setInterval>;
@@ -31,7 +22,13 @@ export class MobileHome extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._timer = setInterval(() => { this._cd = calcCountdown(); }, 60_000);
+    if (this._phase === 'countdown') {
+      this._timer = setInterval(() => {
+        this._cd = getCountdownValues();
+        this._phase = getTournamentPhase();
+        if (this._phase !== 'countdown') clearInterval(this._timer);
+      }, 60_000);
+    }
     this._unsub = subscribeSlice(
       useTournamentStore,
       s => s.groupMatches.filter(m => m.scoreA !== null).length + Object.values(s.knockoutMatches).filter(m => m.isPlayed).length,
@@ -179,20 +176,34 @@ export class MobileHome extends LitElement {
         color: var(--ink);
         text-align: right;
       }
-      .cd-live {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+      .cd-live,
+      .cd-archive {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
         padding: 10px 18px;
-        background: var(--retro-red);
         border: 3px solid var(--ink);
         box-shadow: var(--shadow-hard-md);
         font-family: var(--font-var);
         font-size: 16px;
-        color: var(--paper-3);
         letter-spacing: 0.08em;
         margin: 16px 16px 16px;
+      }
+      .cd-live {
+        background: var(--retro-red);
+        color: var(--paper-3);
         animation: pulse-live 2s ease-in-out infinite;
+      }
+      .cd-archive {
+        background: var(--retro-yellow);
+        color: var(--ink);
+      }
+      .cd-archive-hint {
+        font-family: var(--font-body);
+        font-size: 12px;
+        letter-spacing: 0;
+        font-weight: 500;
+        line-height: 1.35;
       }
       @keyframes pulse-live {
         0%, 100% { opacity: 1; }
@@ -325,22 +336,28 @@ export class MobileHome extends LitElement {
         <div class="played-banner">⚽ ${locale === 'es' ? `${played}/104 partidos disputados` : `${played}/104 matches played`}</div>
       ` : ''}
 
-      <!-- Countdown o EN CURSO -->
-      ${cd.started
-        ? html`<div class="cd-live">⚽ ${locale === 'es' ? 'EN CURSO — MUNDIAL 2026' : 'LIVE — WORLD CUP 2026'}</div>`
-        : html`
-          <div class="countdown">
-            <div>
-              <div class="cd-label">${locale === 'es' ? 'Faltan' : 'Countdown'}</div>
-              <div class="cd-days">${cd.days} ${locale === 'es' ? 'días' : 'days'}</div>
-            </div>
-            <div class="cd-date">
-              11 JUN 2026<br>
-              ${locale === 'es' ? 'México vs Sudáfrica' : 'Mexico vs South Africa'}<br>
-              ${locale === 'es' ? 'Estadio Azteca' : 'Azteca Stadium'}
-            </div>
+      ${this._phase === 'archive'
+        ? html`
+          <div class="cd-archive">
+            <span>${t('hero.archive')}</span>
+            <span class="cd-archive-hint">${t('hero.archiveHint')}</span>
           </div>
-        `}
+        `
+        : this._phase === 'live'
+          ? html`<div class="cd-live">${t('hero.live')}</div>`
+          : html`
+            <div class="countdown">
+              <div>
+                <div class="cd-label">${locale === 'es' ? 'Faltan' : 'Countdown'}</div>
+                <div class="cd-days">${cd.days} ${locale === 'es' ? 'días' : 'days'}</div>
+              </div>
+              <div class="cd-date">
+                11 JUN 2026<br>
+                ${locale === 'es' ? 'México vs Sudáfrica' : 'Mexico vs South Africa'}<br>
+                ${locale === 'es' ? 'Estadio Azteca' : 'Azteca Stadium'}
+              </div>
+            </div>
+          `}
 
       <!-- Bloque de Simulación Rápida -->
       <div class="sim-card">

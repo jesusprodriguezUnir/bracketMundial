@@ -59,6 +59,10 @@ export const es = {
   'hero.statChampion': 'CAMPEÓN',
   'hero.stickerNew': '★ NUEVO',
   'hero.stickerFree': 'GRATIS · SIN REGISTRO',
+  'hero.stickerArchive': '★ ARCHIVO',
+  'hero.live': '⚽ EN CURSO',
+  'hero.archive': 'ARCHIVO · 11 JUN – 19 JUL 2026',
+  'hero.archiveHint': 'El Mundial ya terminó. Sigue simulando grupos, cruces y tu porra.',
   'hero.tickerResults': '◉ RESULTADOS',
   'hero.tickerNext': '◉ PRÓXIMO',
 

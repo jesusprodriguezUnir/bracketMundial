@@ -58,6 +58,10 @@ export const en: Record<TranslationKey, string> = {
   'hero.statChampion': 'CHAMPION',
   'hero.stickerNew': '★ NEW',
   'hero.stickerFree': 'FREE · NO SIGN-UP',
+  'hero.stickerArchive': '★ ARCHIVE',
+  'hero.live': '⚽ LIVE',
+  'hero.archive': 'ARCHIVE · 11 JUN – 19 JUL 2026',
+  'hero.archiveHint': 'The World Cup is over. Keep simulating groups, knockouts and your bracket.',
   'hero.tickerResults': '◉ RESULTS',
   'hero.tickerNext': '◉ UPCOMING',
 

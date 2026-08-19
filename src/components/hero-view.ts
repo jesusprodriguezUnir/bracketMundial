@@ -4,34 +4,25 @@ import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { t } from '../i18n';
+import { getCountdownValues, getTournamentPhase, type TournamentPhase } from '../lib/tournament-phase';
 import './logo-crest';
-
-/** Opening match: June 11 2026, 21:00 CEST = 19:00 UTC */
-const KICKOFF_UTC = Date.UTC(2026, 5, 11, 19, 0, 0);
-
-interface CountdownValues { days: number; hours: number; minutes: number; seconds: number; started: boolean; }
-
-function calcCountdown(): CountdownValues {
-  const diff = KICKOFF_UTC - Date.now();
-  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, started: true };
-  return {
-    days: Math.floor(diff / 86400000),
-    hours: Math.floor((diff % 86400000) / 3600000),
-    minutes: Math.floor((diff % 3600000) / 60000),
-    seconds: Math.floor((diff % 60000) / 1000),
-    started: false,
-  };
-}
 
 @customElement('hero-view')
 export class HeroView extends LitElement {
-  @state() private _cd: CountdownValues = calcCountdown();
+  @state() private _phase: TournamentPhase = getTournamentPhase();
+  @state() private _cd = getCountdownValues();
   private _timer?: ReturnType<typeof setInterval>;
   private _unsubscribeStore?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
-    this._timer = setInterval(() => { this._cd = calcCountdown(); }, 1000);
+    if (this._phase === 'countdown') {
+      this._timer = setInterval(() => {
+        this._cd = getCountdownValues();
+        this._phase = getTournamentPhase();
+        if (this._phase !== 'countdown') clearInterval(this._timer);
+      }, 1000);
+    }
     this._unsubscribeStore = subscribeSlice(
       useTournamentStore,
       state => state.groupMatches,
@@ -218,24 +209,41 @@ export class HeroView extends LitElement {
       align-self: flex-start;
       padding-top: 10px;
     }
-    .cd-live {
+    .cd-live,
+    .cd-archive {
       display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
       padding: 10px 18px;
-      background: var(--retro-red);
       border: 3px solid var(--ink);
       box-shadow: var(--shadow-hard-md);
       font-family: var(--font-var);
       font-size: 16px;
-      color: var(--paper-3);
       letter-spacing: 0.08em;
+      margin-bottom: 22px;
+    }
+    .cd-live {
+      background: var(--retro-red);
+      color: var(--paper-3);
       animation: pulse-live 2s ease-in-out infinite;
+    }
+    .cd-archive {
+      background: var(--retro-yellow);
+      color: var(--ink);
+    }
+    .cd-archive-hint {
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0;
+      font-weight: 500;
+      max-width: 36ch;
     }
     @keyframes pulse-live {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
+    @media (prefers-reduced-motion: reduce) { .cd-live { animation: none; } }
 
     /* Stats strip */
     .stats-strip {
@@ -420,10 +428,18 @@ export class HeroView extends LitElement {
   }
 
   private _renderCountdown() {
-    const cd = this._cd;
-    if (cd.started) {
-      return html`<div class="cd-live">⚽ EN CURSO</div>`;
+    if (this._phase === 'archive') {
+      return html`
+        <div class="cd-archive">
+          <span>${t('hero.archive')}</span>
+          <span class="cd-archive-hint">${t('hero.archiveHint')}</span>
+        </div>
+      `;
     }
+    if (this._phase === 'live') {
+      return html`<div class="cd-live">${t('hero.live')}</div>`;
+    }
+    const cd = this._cd;
     const pad = (n: number) => String(n).padStart(2, '0');
     return html`
       <div class="countdown">
@@ -456,6 +472,7 @@ export class HeroView extends LitElement {
                 <span style="display:block"><span class="line-highlight">${t('hero.titleLine3')}</span></span>
               </h1>
               <p class="hero-tagline">${t('hero.titleSlogan')}</p>
+              ${this._renderCountdown()}
               <p class="hero-desc">
                 ${t('hero.description')}
                 <b>${t('hero.descriptionHighlight')}</b>
@@ -464,7 +481,6 @@ export class HeroView extends LitElement {
                 <button class="btn-cta-primary" @click="${this._goToBracket}">${t('hero.ctaPrimary')}</button>
                 <button class="btn-cta-secondary" @click="${this._goToGroups}">${t('hero.ctaSecondary')}</button>
               </div>
-              ${this._renderCountdown()}
             </div>
             <!-- Stats strip -->
             <div class="stats-strip">
@@ -482,7 +498,7 @@ export class HeroView extends LitElement {
             <div class="crest-wrapper">
               <logo-crest size="340"></logo-crest>
             </div>
-            <div class="sticker-new">${t('hero.stickerNew')}</div>
+            <div class="sticker-new">${this._phase === 'archive' ? t('hero.stickerArchive') : t('hero.stickerNew')}</div>
             <div class="sticker-free">${t('hero.stickerFree')}</div>
           </div>
         </div>

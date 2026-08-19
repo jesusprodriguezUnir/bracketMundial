@@ -9,7 +9,7 @@ Este proyecto utiliza un stack moderno y eficiente:
 - **Core**: [Lit](https://lit.dev/) (Web Components ligeros y rápidos).
 - **Lenguaje**: [TypeScript](https://www.typescriptlang.org/) para un desarrollo robusto y tipado.
 - **Build Tool**: [Vite](https://vitejs.dev/) para una experiencia de desarrollo instantánea.
-- **Backend**: [Firebase Data Connect](https://firebase.google.com/docs/data-connect) con PostgreSQL.
+- **Backend**: [Supabase](https://supabase.com/) (auth, ligas, noticias y resultados oficiales).
 - **PWA**: [Vite PWA Plugin](https://vite-pwa-org.netlify.app/) para soporte offline e instalación.
 - **Estilos**: CSS nativo con variables para un sistema de diseño dinámico y cohesivo.
 
@@ -19,7 +19,8 @@ Este proyecto utiliza un stack moderno y eficiente:
 - **Lógica Dinámica de Terceros**: Cálculo automático de los 8 mejores terceros y su asignación a los cruces de dieciseisavos (1/16) basada en las permutaciones oficiales.
 - **Sincronización en Tiempo Real**: El árbol de eliminatorias se actualiza dinámicamente a medida que se ingresan o limpian los resultados de la fase de grupos.
 - **Gestión de Resultados**: Posibilidad de ingresar marcadores o limpiar la información de un partido para revertir su impacto en las tablas y el bracket.
-- **Noticias del Torneo**: Feed dinámico de noticias de Google News para cada equipo, en español e inglés, actualizado diariamente vía GitHub Actions.
+- **Ligas privadas**: Porra con amigos, códigos de invitación y clasificación en la nube.
+- **Noticias y cuotas**: Feed por equipo y barras 1X2 (seed local si el feed remoto no está disponible).
 - **PWA Ready**: Instalable en dispositivos móviles y funcional sin conexión.
 - **UI Premium**: Diseño vibrante con estética retro tipo Panini, tipografías modernas y micro-animaciones.
 
@@ -69,7 +70,7 @@ npm run build
 ## 📂 Estructura del Proyecto
 
 - `src/`: Código fuente de la aplicación Lit.
-- `dataconnect/`: Configuración y esquemas de Firebase Data Connect.
+- `supabase/`: Migraciones y esquema (ligas, noticias, resultados).
 - `public/`: Activos estáticos.
 
 ---

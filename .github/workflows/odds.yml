@@ -1,9 +1,8 @@
 name: Update odds feed
 
 on:
-  schedule:
-    - cron: '0 6,18 * * *'  # twice daily: 06:00 and 18:00 UTC
-  workflow_dispatch:          # allow manual trigger
+  # Pausado tras el Mundial (19 jul 2026). Dispatch manual sigue activo.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -29,14 +28,9 @@ jobs:
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
 
-      - name: Publish to odds-data branch
-        id: publish_odds
+      - name: Detect feed changes
+        id: detect
         run: |
-          # Configure git identity
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Check if odds-feed.json changed compared to the odds-data branch
           git fetch origin odds-data 2>/dev/null || true
           REMOTE_HASH=$(git show origin/odds-data:odds-feed.json 2>/dev/null | sha256sum | cut -d' ' -f1 || echo "none")
           LOCAL_HASH=$(sha256sum odds-feed.json | cut -d' ' -f1)
@@ -44,13 +38,38 @@ jobs:
           if [ "$REMOTE_HASH" = "$LOCAL_HASH" ]; then
             echo "No changes in odds feed — skipping commit."
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-          # Safeguard the generated file BEFORE any git branch surgery
+      # Purge MUST run while main is still checked out. After the orphan
+      # checkout the scripts/ tree is gone (this was failing the job twice a day).
+      - name: Purge Cloudflare cache (shell PWA)
+        if: steps.detect.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          if [ ! -f scripts/purge-cloudflare-cache.mjs ]; then
+            echo "skip purge: script not in working tree"
+            exit 0
+          fi
+          node scripts/purge-cloudflare-cache.mjs \
+            https://bracketmundial.com/ \
+            https://bracketmundial.com/index.html \
+            https://bracketmundial.com/sw.js \
+            https://bracketmundial.com/registerSW.js \
+            https://bracketmundial.com/manifest.webmanifest
+
+      - name: Publish to odds-data branch
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           cp odds-feed.json /tmp/odds-feed.json
 
-          # Create / update orphan odds-data branch with only the JSON
           git checkout --orphan odds-data-tmp
           git rm -rf . --quiet
           cp /tmp/odds-feed.json odds-feed.json
@@ -68,17 +87,3 @@ jobs:
           git commit -m "chore: update odds feed $(date -u +%Y-%m-%d)"
           git push origin odds-data-tmp:odds-data --force
           echo "✅ odds-data branch updated."
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-      - name: Purge Cloudflare cache (shell PWA)
-        if: success() && steps.publish_odds.outputs.changed == 'true'
-        env:
-          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: |
-          node scripts/purge-cloudflare-cache.mjs \
-            https://bracketmundial.com/ \
-            https://bracketmundial.com/index.html \
-            https://bracketmundial.com/sw.js \
-            https://bracketmundial.com/registerSW.js \
-            https://bracketmundial.com/manifest.webmanifest
