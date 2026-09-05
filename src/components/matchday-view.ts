@@ -91,6 +91,16 @@ export class MatchdayView extends LitElement {
       transition: background 0.12s, border-color 0.12s;
     }
     .action-btn:hover { background: var(--fill-soft); border-color: var(--accent); }
+    .action-btn.primary-action {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+      box-shadow: var(--glow-accent-sm);
+    }
+    .action-btn.primary-action:hover {
+      filter: brightness(1.08);
+      border-color: var(--accent);
+    }
     .action-btn.clear { color: var(--retro-red); }
     .progress-pill {
       font-family: var(--font-mono);
@@ -191,16 +201,15 @@ export class MatchdayView extends LitElement {
 
   private _simulateCurrentMatchday() {
     const store = useTournamentStore.getState();
-    const rows = this._matches.filter(m => m.matchDay === this._matchday && store.isMatchEditable(m.matchId));
-    const commonScores = [
-      [1, 0], [2, 1], [1, 1], [2, 0], [3, 1], [0, 0], [1, 2], [0, 1], [2, 2], [3, 0], [2, 3]
-    ];
-    for (const m of rows) {
-      const pair = commonScores[Math.floor(Math.random() * commonScores.length)];
-      store.setGroupMatchResult(m.matchId, pair[0], pair[1]);
-    }
+    store.autoSimulateMatchday(this._matchday);
     const locale = useLocaleStore.getState().locale;
-    showToast(locale === 'es' ? `Jornada ${this._matchday} pronosticada 🎲` : `Matchday ${this._matchday} simulated 🎲`);
+    showToast(locale === 'es' ? `Jornada ${this._matchday} simulada con cuotas 🎲` : `Matchday ${this._matchday} simulated with odds 🎲`);
+  }
+
+  private _simulateAllMatchdays() {
+    useTournamentStore.getState().autoSimulateGroups();
+    const locale = useLocaleStore.getState().locale;
+    showToast(locale === 'es' ? 'Todas las jornadas simuladas con éxito 🎲' : 'All matchdays simulated successfully 🎲');
   }
 
   private _clearCurrentMatchday() {
@@ -256,6 +265,9 @@ export class MatchdayView extends LitElement {
           ${open ? html`
             <button class="action-btn" @click=${this._simulateCurrentMatchday}>
               🎲 ${locale === 'es' ? `Simular J${this._matchday}` : `Simulate MD${this._matchday}`}
+            </button>
+            <button class="action-btn primary-action" @click=${this._simulateAllMatchdays}>
+              ⚡ ${locale === 'es' ? 'Simular todas' : 'Simulate all'}
             </button>
             <button class="action-btn clear" @click=${this._clearCurrentMatchday}>
               ↺ ${locale === 'es' ? 'Limpiar' : 'Clear'}

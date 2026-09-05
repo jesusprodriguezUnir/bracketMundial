@@ -9,6 +9,7 @@
 import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync, copyFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const rootDir = join(__dirname, '..', '..');
@@ -97,13 +98,30 @@ export async function ensureDevServer() {
 // ── conversión de video ──
 
 /** Convierte un WebM crudo de Playwright a MP4 H.264 con ffmpeg y opcionalmente lo recorta al inicio. */
-export function convertToMp4(rawWebmPath, outMp4Path, startSeconds = 0) {
+export async function convertToMp4(rawWebmPath, outMp4Path, startSeconds = 0) {
+  let ffmpegBin = 'ffmpeg';
+  try {
+    const ffmpegStatic = (await import('ffmpeg-static')).default;
+    if (ffmpegStatic && existsSync(ffmpegStatic)) {
+      ffmpegBin = `"${ffmpegStatic}"`;
+    }
+  } catch {}
+
   return new Promise((resolve, reject) => {
     const ssArg = startSeconds > 0 ? `-ss ${startSeconds}` : '';
-    const cmd = `ffmpeg -y -i "${rawWebmPath}" ${ssArg} -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p "${outMp4Path}"`;
+    const cmd = `${ffmpegBin} -y -i "${rawWebmPath}" ${ssArg} -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p "${outMp4Path}"`;
     exec(cmd, (err) => {
-      if (err) reject(new Error(`ffmpeg falló: ${err.message}`));
-      else resolve(outMp4Path);
+      if (err) {
+        console.warn(`⚠️ ffmpeg falló (${err.message}). Usando archivo original como respaldo.`);
+        try {
+          copyFileSync(rawWebmPath, outMp4Path);
+          resolve(outMp4Path);
+        } catch {
+          reject(new Error(`ffmpeg falló: ${err.message}`));
+        }
+      } else {
+        resolve(outMp4Path);
+      }
     });
   });
 }
@@ -118,13 +136,21 @@ export async function gotoView(page, viewKey) {
   const entry = VIEW_MAP[viewKey];
   if (!entry) throw new Error(`Vista desconocida: ${viewKey}`);
   await page.evaluate((tab) => {
-    const bracket = document.querySelector('app-root')
-      ?.shadowRoot?.querySelector('bracket-view')
-      ?? document.querySelector('bracket-view');
-    const target = bracket?.shadowRoot?.querySelector('.view-container') ?? bracket;
+    window.location.hash = `#${tab}`;
+    const root = document.querySelector('app-root');
+    const bracket = root?.shadowRoot?.querySelector('bracket-view') ?? document.querySelector('bracket-view');
+    if (bracket && typeof bracket._selectTab === 'function') {
+      bracket._selectTab(tab);
+    }
+    const mobileApp = root?.shadowRoot?.querySelector('mobile-app') ?? document.querySelector('mobile-app');
+    if (mobileApp && typeof mobileApp._go === 'function') {
+      const mobView = tab === 'knockout' ? 'bracket' : tab === 'hero' ? 'home' : tab;
+      mobileApp._go(mobView);
+    }
+    const target = bracket?.shadowRoot?.querySelector('.view-container') ?? bracket ?? mobileApp;
     target?.dispatchEvent(new CustomEvent('navigate', { detail: tab, bubbles: true, composed: true }));
   }, entry.tab);
-  await sleep(1100);
+  await sleep(1500);
 }
 
 /** Scroll suave acumulando pequeños wheels para que se vea fluido en video. */

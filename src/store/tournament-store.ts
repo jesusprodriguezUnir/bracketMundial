@@ -251,6 +251,7 @@ interface TournamentState {
   setSelectedMatch: (matchId: string | null) => void;
   resetTournament: () => void;
   autoSimulateGroups: () => void;
+  autoSimulateMatchday: (matchDay: number) => void;
   autoSimulateKnockout: () => void;
   initializeKnockoutFromGroups: () => void;
   getBestThirds: () => TeamStats[];
@@ -618,6 +619,41 @@ export const useTournamentStore = createStore<TournamentState>()(
           if (Object.keys(feedMatches).length === 0) feedMatches = ODDS_SEED.matches;
 
           const matches = state.groupMatches.map(m => {
+            const odds = feedMatches[m.matchId];
+            const prob = odds ?? expectedProbabilities(
+              TEAM_STRENGTH[m.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,
+              TEAM_STRENGTH[m.teamB as keyof typeof TEAM_STRENGTH] ?? 1500,
+            );
+            const result = sampleResult(prob);
+            const goalScorers = [
+              ...generateGoalScorers(m.teamA, result.scoreA),
+              ...generateGoalScorers(m.teamB, result.scoreB),
+            ];
+            return { ...m, scoreA: result.scoreA, scoreB: result.scoreB, goalScorers };
+          });
+          const standings = recalculateStandings(matches);
+          return {
+            groupMatches: matches,
+            groupStandings: standings,
+            knockoutMatches: resolveKnockoutMatches(standings, state.knockoutMatches),
+          };
+        });
+      },
+
+      autoSimulateMatchday: (matchDay: number) => {
+        set(state => {
+          let feedMatches: Record<string, { home: number; draw: number; away: number }> = {};
+          try {
+            const raw = localStorage.getItem('odds:feed:v2');
+            if (raw) {
+              const entry = JSON.parse(raw) as { data: { matches: Record<string, { home: number; draw: number; away: number }> }; ts: number };
+              if (Date.now() - entry.ts < 6 * 60 * 60 * 1000) feedMatches = entry.data.matches;
+            }
+          } catch { /* ignore */ }
+          if (Object.keys(feedMatches).length === 0) feedMatches = ODDS_SEED.matches;
+
+          const matches = state.groupMatches.map(m => {
+            if (m.matchDay !== matchDay || !state.isMatchEditable(m.matchId)) return m;
             const odds = feedMatches[m.matchId];
             const prob = odds ?? expectedProbabilities(
               TEAM_STRENGTH[m.teamA as keyof typeof TEAM_STRENGTH] ?? 1500,

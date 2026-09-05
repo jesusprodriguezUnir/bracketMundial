@@ -111,7 +111,9 @@ export class MobileApp extends LitElement {
   };
 
   private _restoreView() {
-    const hash = window.location.hash.replace('#', '');
+    let hash = window.location.hash.replace('#', '');
+    if (hash === 'knockout') hash = 'bracket';
+    if (hash === 'hero') hash = 'home';
     if (validView(hash) && hash !== this._view) {
       void this._go(hash as MobileView, false);
     } else {

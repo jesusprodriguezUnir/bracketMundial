@@ -1,0 +1,1977 @@
+{
+  "meta": {
+    "competition": "UEFA Champions League 2026/27",
+    "generatedAt": "2026-09-05T17:51:14.642Z",
+    "seed": 42
+  },
+  "table": [
+    {
+      "pos": 1,
+      "teamId": "BAR",
+      "name": "FC Barcelona",
+      "played": 8,
+      "won": 7,
+      "drawn": 0,
+      "lost": 1,
+      "goalsFor": 8,
+      "goalsAgainst": 1,
+      "goalDiff": 7,
+      "awayGoals": 4,
+      "awayWins": 4,
+      "points": 21,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 2,
+      "teamId": "RMA",
+      "name": "Real Madrid CF",
+      "played": 8,
+      "won": 6,
+      "drawn": 2,
+      "lost": 0,
+      "goalsFor": 15,
+      "goalsAgainst": 2,
+      "goalDiff": 13,
+      "awayGoals": 8,
+      "awayWins": 3,
+      "points": 20,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 3,
+      "teamId": "BAY",
+      "name": "FC Bayern München",
+      "played": 8,
+      "won": 6,
+      "drawn": 1,
+      "lost": 1,
+      "goalsFor": 10,
+      "goalsAgainst": 2,
+      "goalDiff": 8,
+      "awayGoals": 6,
+      "awayWins": 3,
+      "points": 19,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 4,
+      "teamId": "LIV",
+      "name": "Liverpool FC",
+      "played": 8,
+      "won": 6,
+      "drawn": 0,
+      "lost": 2,
+      "goalsFor": 12,
+      "goalsAgainst": 7,
+      "goalDiff": 5,
+      "awayGoals": 5,
+      "awayWins": 3,
+      "points": 18,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 5,
+      "teamId": "FEY",
+      "name": "Feyenoord Rotterdam",
+      "played": 8,
+      "won": 5,
+      "drawn": 1,
+      "lost": 2,
+      "goalsFor": 13,
+      "goalsAgainst": 3,
+      "goalDiff": 10,
+      "awayGoals": 5,
+      "awayWins": 3,
+      "points": 16,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 6,
+      "teamId": "MCI",
+      "name": "Manchester City FC",
+      "played": 8,
+      "won": 4,
+      "drawn": 4,
+      "lost": 0,
+      "goalsFor": 14,
+      "goalsAgainst": 6,
+      "goalDiff": 8,
+      "awayGoals": 7,
+      "awayWins": 2,
+      "points": 16,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 7,
+      "teamId": "FCP",
+      "name": "FC Porto",
+      "played": 8,
+      "won": 5,
+      "drawn": 1,
+      "lost": 2,
+      "goalsFor": 10,
+      "goalsAgainst": 7,
+      "goalDiff": 3,
+      "awayGoals": 6,
+      "awayWins": 3,
+      "points": 16,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 8,
+      "teamId": "RBL",
+      "name": "RB Leipzig",
+      "played": 8,
+      "won": 5,
+      "drawn": 1,
+      "lost": 2,
+      "goalsFor": 9,
+      "goalsAgainst": 7,
+      "goalDiff": 2,
+      "awayGoals": 2,
+      "awayWins": 2,
+      "points": 16,
+      "zone": "direct_r16"
+    },
+    {
+      "pos": 9,
+      "teamId": "PSG",
+      "name": "Paris Saint-Germain FC",
+      "played": 8,
+      "won": 4,
+      "drawn": 3,
+      "lost": 1,
+      "goalsFor": 12,
+      "goalsAgainst": 5,
+      "goalDiff": 7,
+      "awayGoals": 7,
+      "awayWins": 1,
+      "points": 15,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 10,
+      "teamId": "VFB",
+      "name": "VfB Stuttgart",
+      "played": 8,
+      "won": 5,
+      "drawn": 0,
+      "lost": 3,
+      "goalsFor": 12,
+      "goalsAgainst": 5,
+      "goalDiff": 7,
+      "awayGoals": 4,
+      "awayWins": 2,
+      "points": 15,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 11,
+      "teamId": "INT",
+      "name": "FC Internazionale Milano",
+      "played": 8,
+      "won": 4,
+      "drawn": 3,
+      "lost": 1,
+      "goalsFor": 8,
+      "goalsAgainst": 7,
+      "goalDiff": 1,
+      "awayGoals": 2,
+      "awayWins": 2,
+      "points": 15,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 12,
+      "teamId": "ARS",
+      "name": "Arsenal FC",
+      "played": 8,
+      "won": 4,
+      "drawn": 2,
+      "lost": 2,
+      "goalsFor": 16,
+      "goalsAgainst": 10,
+      "goalDiff": 6,
+      "awayGoals": 7,
+      "awayWins": 2,
+      "points": 14,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 13,
+      "teamId": "MUN",
+      "name": "Manchester United FC",
+      "played": 8,
+      "won": 4,
+      "drawn": 1,
+      "lost": 3,
+      "goalsFor": 13,
+      "goalsAgainst": 9,
+      "goalDiff": 4,
+      "awayGoals": 6,
+      "awayWins": 1,
+      "points": 13,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 14,
+      "teamId": "SPO",
+      "name": "Sporting Clube de Portugal",
+      "played": 8,
+      "won": 4,
+      "drawn": 1,
+      "lost": 3,
+      "goalsFor": 8,
+      "goalsAgainst": 5,
+      "goalDiff": 3,
+      "awayGoals": 3,
+      "awayWins": 1,
+      "points": 13,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 15,
+      "teamId": "ATL",
+      "name": "Club Atlético de Madrid",
+      "played": 8,
+      "won": 4,
+      "drawn": 1,
+      "lost": 3,
+      "goalsFor": 13,
+      "goalsAgainst": 12,
+      "goalDiff": 1,
+      "awayGoals": 6,
+      "awayWins": 2,
+      "points": 13,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 16,
+      "teamId": "SLO",
+      "name": "ŠK Slovan Bratislava",
+      "played": 8,
+      "won": 4,
+      "drawn": 0,
+      "lost": 4,
+      "goalsFor": 10,
+      "goalsAgainst": 8,
+      "goalDiff": 2,
+      "awayGoals": 7,
+      "awayWins": 2,
+      "points": 12,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 17,
+      "teamId": "PSV",
+      "name": "PSV",
+      "played": 8,
+      "won": 4,
+      "drawn": 0,
+      "lost": 4,
+      "goalsFor": 5,
+      "goalsAgainst": 8,
+      "goalDiff": -3,
+      "awayGoals": 2,
+      "awayWins": 1,
+      "points": 12,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 18,
+      "teamId": "FEN",
+      "name": "Fenerbahçe SK",
+      "played": 8,
+      "won": 3,
+      "drawn": 2,
+      "lost": 3,
+      "goalsFor": 9,
+      "goalsAgainst": 9,
+      "goalDiff": 0,
+      "awayGoals": 6,
+      "awayWins": 2,
+      "points": 11,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 19,
+      "teamId": "VIL",
+      "name": "Villarreal CF",
+      "played": 8,
+      "won": 3,
+      "drawn": 2,
+      "lost": 3,
+      "goalsFor": 8,
+      "goalsAgainst": 10,
+      "goalDiff": -2,
+      "awayGoals": 6,
+      "awayWins": 2,
+      "points": 11,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 20,
+      "teamId": "SLP",
+      "name": "SK Slavia Praha",
+      "played": 8,
+      "won": 3,
+      "drawn": 1,
+      "lost": 4,
+      "goalsFor": 6,
+      "goalsAgainst": 5,
+      "goalDiff": 1,
+      "awayGoals": 4,
+      "awayWins": 2,
+      "points": 10,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 21,
+      "teamId": "BOD",
+      "name": "FK Bodø/Glimt",
+      "played": 8,
+      "won": 3,
+      "drawn": 1,
+      "lost": 4,
+      "goalsFor": 13,
+      "goalsAgainst": 13,
+      "goalDiff": 0,
+      "awayGoals": 5,
+      "awayWins": 1,
+      "points": 10,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 22,
+      "teamId": "AVL",
+      "name": "Aston Villa FC",
+      "played": 8,
+      "won": 2,
+      "drawn": 4,
+      "lost": 2,
+      "goalsFor": 11,
+      "goalsAgainst": 11,
+      "goalDiff": 0,
+      "awayGoals": 4,
+      "awayWins": 1,
+      "points": 10,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 23,
+      "teamId": "LIL",
+      "name": "Lille OSC",
+      "played": 8,
+      "won": 2,
+      "drawn": 4,
+      "lost": 2,
+      "goalsFor": 9,
+      "goalsAgainst": 10,
+      "goalDiff": -1,
+      "awayGoals": 6,
+      "awayWins": 1,
+      "points": 10,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 24,
+      "teamId": "RCL",
+      "name": "Racing Club de Lens",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 8,
+      "goalsAgainst": 10,
+      "goalDiff": -2,
+      "awayGoals": 5,
+      "awayWins": 2,
+      "points": 8,
+      "zone": "playoffs"
+    },
+    {
+      "pos": 25,
+      "teamId": "COM",
+      "name": "Como 1907",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 10,
+      "goalsAgainst": 13,
+      "goalDiff": -3,
+      "awayGoals": 5,
+      "awayWins": 1,
+      "points": 8,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 26,
+      "teamId": "BVB",
+      "name": "Borussia Dortmund",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 10,
+      "goalsAgainst": 14,
+      "goalDiff": -4,
+      "awayGoals": 5,
+      "awayWins": 1,
+      "points": 8,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 27,
+      "teamId": "AEK",
+      "name": "PAE AEK",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 4,
+      "goalsAgainst": 8,
+      "goalDiff": -4,
+      "awayGoals": 1,
+      "awayWins": 1,
+      "points": 8,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 28,
+      "teamId": "NAP",
+      "name": "SSC Napoli",
+      "played": 8,
+      "won": 2,
+      "drawn": 2,
+      "lost": 4,
+      "goalsFor": 11,
+      "goalsAgainst": 17,
+      "goalDiff": -6,
+      "awayGoals": 4,
+      "awayWins": 1,
+      "points": 8,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 29,
+      "teamId": "ROM",
+      "name": "AS Roma",
+      "played": 8,
+      "won": 1,
+      "drawn": 4,
+      "lost": 3,
+      "goalsFor": 7,
+      "goalsAgainst": 9,
+      "goalDiff": -2,
+      "awayGoals": 3,
+      "awayWins": 0,
+      "points": 7,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 30,
+      "teamId": "SHK",
+      "name": "FK Shakhtar Donetsk",
+      "played": 8,
+      "won": 2,
+      "drawn": 1,
+      "lost": 5,
+      "goalsFor": 6,
+      "goalsAgainst": 9,
+      "goalDiff": -3,
+      "awayGoals": 4,
+      "awayWins": 1,
+      "points": 7,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 31,
+      "teamId": "BRU",
+      "name": "Club Brugge KV",
+      "played": 8,
+      "won": 1,
+      "drawn": 3,
+      "lost": 4,
+      "goalsFor": 8,
+      "goalsAgainst": 14,
+      "goalDiff": -6,
+      "awayGoals": 5,
+      "awayWins": 1,
+      "points": 6,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 32,
+      "teamId": "BET",
+      "name": "Real Betis Balompié",
+      "played": 8,
+      "won": 2,
+      "drawn": 0,
+      "lost": 6,
+      "goalsFor": 5,
+      "goalsAgainst": 15,
+      "goalDiff": -10,
+      "awayGoals": 4,
+      "awayWins": 2,
+      "points": 6,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 33,
+      "teamId": "VIK",
+      "name": "Viking FK",
+      "played": 8,
+      "won": 1,
+      "drawn": 1,
+      "lost": 6,
+      "goalsFor": 5,
+      "goalsAgainst": 14,
+      "goalDiff": -9,
+      "awayGoals": 3,
+      "awayWins": 0,
+      "points": 4,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 34,
+      "teamId": "LSK",
+      "name": "LASK Linz",
+      "played": 8,
+      "won": 1,
+      "drawn": 0,
+      "lost": 7,
+      "goalsFor": 4,
+      "goalsAgainst": 15,
+      "goalDiff": -11,
+      "awayGoals": 2,
+      "awayWins": 0,
+      "points": 3,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 35,
+      "teamId": "SAB",
+      "name": "Sabah FK",
+      "played": 8,
+      "won": 1,
+      "drawn": 0,
+      "lost": 7,
+      "goalsFor": 3,
+      "goalsAgainst": 15,
+      "goalDiff": -12,
+      "awayGoals": 3,
+      "awayWins": 1,
+      "points": 3,
+      "zone": "eliminated"
+    },
+    {
+      "pos": 36,
+      "teamId": "GAL",
+      "name": "Galatasaray SK",
+      "played": 8,
+      "won": 0,
+      "drawn": 2,
+      "lost": 6,
+      "goalsFor": 1,
+      "goalsAgainst": 11,
+      "goalDiff": -10,
+      "awayGoals": 0,
+      "awayWins": 0,
+      "points": 2,
+      "zone": "eliminated"
+    }
+  ],
+  "leaguePhaseMatches": [
+    {
+      "matchId": "M1",
+      "matchDay": 1,
+      "teamA": "AEK",
+      "teamB": "LSK",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M2",
+      "matchDay": 1,
+      "teamA": "BRU",
+      "teamB": "AVL",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M3",
+      "matchDay": 1,
+      "teamA": "BVB",
+      "teamB": "VIL",
+      "scoreA": 2,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M4",
+      "matchDay": 1,
+      "teamA": "FCP",
+      "teamB": "MCI",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M5",
+      "matchDay": 1,
+      "teamA": "LIL",
+      "teamB": "BET",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M6",
+      "matchDay": 1,
+      "teamA": "RMA",
+      "teamB": "INT",
+      "scoreA": 0,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M7",
+      "matchDay": 1,
+      "teamA": "BAR",
+      "teamB": "FEY",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M8",
+      "matchDay": 1,
+      "teamA": "VFB",
+      "teamB": "VIK",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M9",
+      "matchDay": 1,
+      "teamA": "LIV",
+      "teamB": "ATL",
+      "scoreA": 4,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M10",
+      "matchDay": 1,
+      "teamA": "NAP",
+      "teamB": "ARS",
+      "scoreA": 1,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M11",
+      "matchDay": 1,
+      "teamA": "PSG",
+      "teamB": "SLO",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M12",
+      "matchDay": 1,
+      "teamA": "SPO",
+      "teamB": "GAL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M13",
+      "matchDay": 1,
+      "teamA": "FEN",
+      "teamB": "ROM",
+      "scoreA": 0,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M14",
+      "matchDay": 1,
+      "teamA": "PSV",
+      "teamB": "SHK",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M15",
+      "matchDay": 1,
+      "teamA": "BAY",
+      "teamB": "BOD",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M16",
+      "matchDay": 1,
+      "teamA": "COM",
+      "teamB": "RBL",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M17",
+      "matchDay": 1,
+      "teamA": "MUN",
+      "teamB": "SAB",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M18",
+      "matchDay": 1,
+      "teamA": "SLP",
+      "teamB": "RCL",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M19",
+      "matchDay": 2,
+      "teamA": "RCL",
+      "teamB": "SPO",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M20",
+      "matchDay": 2,
+      "teamA": "SAB",
+      "teamB": "SLP",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M21",
+      "matchDay": 2,
+      "teamA": "ARS",
+      "teamB": "LIL",
+      "scoreA": 3,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M22",
+      "matchDay": 2,
+      "teamA": "ATL",
+      "teamB": "MUN",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M23",
+      "matchDay": 2,
+      "teamA": "GAL",
+      "teamB": "BAR",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M24",
+      "matchDay": 2,
+      "teamA": "INT",
+      "teamB": "BRU",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M25",
+      "matchDay": 2,
+      "teamA": "RBL",
+      "teamB": "PSV",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M26",
+      "matchDay": 2,
+      "teamA": "VIK",
+      "teamB": "BAY",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M27",
+      "matchDay": 2,
+      "teamA": "VIL",
+      "teamB": "NAP",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M28",
+      "matchDay": 2,
+      "teamA": "FEY",
+      "teamB": "COM",
+      "scoreA": 4,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M29",
+      "matchDay": 2,
+      "teamA": "LSK",
+      "teamB": "LIV",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M30",
+      "matchDay": 2,
+      "teamA": "AVL",
+      "teamB": "FEN",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M31",
+      "matchDay": 2,
+      "teamA": "BET",
+      "teamB": "FCP",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M32",
+      "matchDay": 2,
+      "teamA": "BOD",
+      "teamB": "BVB",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M33",
+      "matchDay": 2,
+      "teamA": "MCI",
+      "teamB": "PSG",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M34",
+      "matchDay": 2,
+      "teamA": "ROM",
+      "teamB": "RMA",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M35",
+      "matchDay": 2,
+      "teamA": "SHK",
+      "teamB": "AEK",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M36",
+      "matchDay": 2,
+      "teamA": "SLO",
+      "teamB": "VFB",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M37",
+      "matchDay": 3,
+      "teamA": "FEN",
+      "teamB": "SLP",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M38",
+      "matchDay": 3,
+      "teamA": "SAB",
+      "teamB": "BVB",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M39",
+      "matchDay": 3,
+      "teamA": "FCP",
+      "teamB": "PSV",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M40",
+      "matchDay": 3,
+      "teamA": "LIV",
+      "teamB": "VIL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M41",
+      "matchDay": 3,
+      "teamA": "MCI",
+      "teamB": "AEK",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M42",
+      "matchDay": 3,
+      "teamA": "NAP",
+      "teamB": "BOD",
+      "scoreA": 3,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M43",
+      "matchDay": 3,
+      "teamA": "PSG",
+      "teamB": "BAR",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M44",
+      "matchDay": 3,
+      "teamA": "ROM",
+      "teamB": "SLO",
+      "scoreA": 2,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M45",
+      "matchDay": 3,
+      "teamA": "VFB",
+      "teamB": "ATL",
+      "scoreA": 1,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M46",
+      "matchDay": 3,
+      "teamA": "COM",
+      "teamB": "MUN",
+      "scoreA": 2,
+      "scoreB": 4
+    },
+    {
+      "matchId": "M47",
+      "matchDay": 3,
+      "teamA": "LIL",
+      "teamB": "GAL",
+      "scoreA": 0,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M48",
+      "matchDay": 3,
+      "teamA": "AVL",
+      "teamB": "VIK",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M49",
+      "matchDay": 3,
+      "teamA": "BAY",
+      "teamB": "ARS",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M50",
+      "matchDay": 3,
+      "teamA": "BET",
+      "teamB": "FEY",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M51",
+      "matchDay": 3,
+      "teamA": "BRU",
+      "teamB": "RCL",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M52",
+      "matchDay": 3,
+      "teamA": "INT",
+      "teamB": "SHK",
+      "scoreA": 2,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M53",
+      "matchDay": 3,
+      "teamA": "RMA",
+      "teamB": "RBL",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M54",
+      "matchDay": 3,
+      "teamA": "SPO",
+      "teamB": "LSK",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M55",
+      "matchDay": 4,
+      "teamA": "GAL",
+      "teamB": "VFB",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M56",
+      "matchDay": 4,
+      "teamA": "SHK",
+      "teamB": "SPO",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M57",
+      "matchDay": 4,
+      "teamA": "ATL",
+      "teamB": "BAY",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M58",
+      "matchDay": 4,
+      "teamA": "BAR",
+      "teamB": "AVL",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M59",
+      "matchDay": 4,
+      "teamA": "BOD",
+      "teamB": "LIL",
+      "scoreA": 2,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M60",
+      "matchDay": 4,
+      "teamA": "FEY",
+      "teamB": "INT",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M61",
+      "matchDay": 4,
+      "teamA": "LSK",
+      "teamB": "SLO",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M62",
+      "matchDay": 4,
+      "teamA": "MUN",
+      "teamB": "ROM",
+      "scoreA": 3,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M63",
+      "matchDay": 4,
+      "teamA": "VIL",
+      "teamB": "PSG",
+      "scoreA": 0,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M64",
+      "matchDay": 4,
+      "teamA": "AEK",
+      "teamB": "RMA",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M65",
+      "matchDay": 4,
+      "teamA": "FEN",
+      "teamB": "LIV",
+      "scoreA": 1,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M66",
+      "matchDay": 4,
+      "teamA": "BVB",
+      "teamB": "BET",
+      "scoreA": 2,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M67",
+      "matchDay": 4,
+      "teamA": "FCP",
+      "teamB": "NAP",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M68",
+      "matchDay": 4,
+      "teamA": "PSV",
+      "teamB": "BRU",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M69",
+      "matchDay": 4,
+      "teamA": "RBL",
+      "teamB": "MCI",
+      "scoreA": 3,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M70",
+      "matchDay": 4,
+      "teamA": "RCL",
+      "teamB": "COM",
+      "scoreA": 2,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M71",
+      "matchDay": 4,
+      "teamA": "SLP",
+      "teamB": "ARS",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M72",
+      "matchDay": 4,
+      "teamA": "VIK",
+      "teamB": "SAB",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M73",
+      "matchDay": 5,
+      "teamA": "BOD",
+      "teamB": "LSK",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M74",
+      "matchDay": 5,
+      "teamA": "GAL",
+      "teamB": "AVL",
+      "scoreA": 1,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M75",
+      "matchDay": 5,
+      "teamA": "ARS",
+      "teamB": "BVB",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M76",
+      "matchDay": 5,
+      "teamA": "COM",
+      "teamB": "AEK",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M77",
+      "matchDay": 5,
+      "teamA": "FEY",
+      "teamB": "FCP",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M78",
+      "matchDay": 5,
+      "teamA": "MCI",
+      "teamB": "NAP",
+      "scoreA": 4,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M79",
+      "matchDay": 5,
+      "teamA": "RBL",
+      "teamB": "RCL",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M80",
+      "matchDay": 5,
+      "teamA": "RMA",
+      "teamB": "PSV",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M81",
+      "matchDay": 5,
+      "teamA": "SLO",
+      "teamB": "BET",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M82",
+      "matchDay": 5,
+      "teamA": "SAB",
+      "teamB": "BAR",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M83",
+      "matchDay": 5,
+      "teamA": "SLP",
+      "teamB": "VIL",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M84",
+      "matchDay": 5,
+      "teamA": "ATL",
+      "teamB": "VIK",
+      "scoreA": 3,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M85",
+      "matchDay": 5,
+      "teamA": "BRU",
+      "teamB": "LIV",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M86",
+      "matchDay": 5,
+      "teamA": "INT",
+      "teamB": "VFB",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M87",
+      "matchDay": 5,
+      "teamA": "LIL",
+      "teamB": "BAY",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M88",
+      "matchDay": 5,
+      "teamA": "PSG",
+      "teamB": "ROM",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M89",
+      "matchDay": 5,
+      "teamA": "SHK",
+      "teamB": "FEN",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M90",
+      "matchDay": 5,
+      "teamA": "SPO",
+      "teamB": "MUN",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M91",
+      "matchDay": 6,
+      "teamA": "VIK",
+      "teamB": "FEY",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M92",
+      "matchDay": 6,
+      "teamA": "VIL",
+      "teamB": "SAB",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M93",
+      "matchDay": 6,
+      "teamA": "AEK",
+      "teamB": "GAL",
+      "scoreA": 0,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M94",
+      "matchDay": 6,
+      "teamA": "AVL",
+      "teamB": "PSG",
+      "scoreA": 2,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M95",
+      "matchDay": 6,
+      "teamA": "BAR",
+      "teamB": "MCI",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M96",
+      "matchDay": 6,
+      "teamA": "BAY",
+      "teamB": "SLP",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M97",
+      "matchDay": 6,
+      "teamA": "MUN",
+      "teamB": "RBL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M98",
+      "matchDay": 6,
+      "teamA": "NAP",
+      "teamB": "BRU",
+      "scoreA": 2,
+      "scoreB": 4
+    },
+    {
+      "matchId": "M99",
+      "matchDay": 6,
+      "teamA": "ROM",
+      "teamB": "SPO",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M100",
+      "matchDay": 6,
+      "teamA": "BET",
+      "teamB": "COM",
+      "scoreA": 0,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M101",
+      "matchDay": 6,
+      "teamA": "SLO",
+      "teamB": "SHK",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M102",
+      "matchDay": 6,
+      "teamA": "ARS",
+      "teamB": "RMA",
+      "scoreA": 0,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M103",
+      "matchDay": 6,
+      "teamA": "BVB",
+      "teamB": "INT",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M104",
+      "matchDay": 6,
+      "teamA": "LIV",
+      "teamB": "FCP",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M105",
+      "matchDay": 6,
+      "teamA": "LSK",
+      "teamB": "FEN",
+      "scoreA": 0,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M106",
+      "matchDay": 6,
+      "teamA": "PSV",
+      "teamB": "ATL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M107",
+      "matchDay": 6,
+      "teamA": "RCL",
+      "teamB": "BOD",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M108",
+      "matchDay": 6,
+      "teamA": "VFB",
+      "teamB": "LIL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M109",
+      "matchDay": 7,
+      "teamA": "BOD",
+      "teamB": "ATL",
+      "scoreA": 1,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M110",
+      "matchDay": 7,
+      "teamA": "GAL",
+      "teamB": "FEY",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M111",
+      "matchDay": 7,
+      "teamA": "AEK",
+      "teamB": "ROM",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M112",
+      "matchDay": 7,
+      "teamA": "AVL",
+      "teamB": "BVB",
+      "scoreA": 3,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M113",
+      "matchDay": 7,
+      "teamA": "FCP",
+      "teamB": "SLP",
+      "scoreA": 0,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M114",
+      "matchDay": 7,
+      "teamA": "INT",
+      "teamB": "LIV",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M115",
+      "matchDay": 7,
+      "teamA": "LIL",
+      "teamB": "SLO",
+      "scoreA": 1,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M116",
+      "matchDay": 7,
+      "teamA": "RMA",
+      "teamB": "LSK",
+      "scoreA": 2,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M117",
+      "matchDay": 7,
+      "teamA": "VFB",
+      "teamB": "BRU",
+      "scoreA": 4,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M118",
+      "matchDay": 7,
+      "teamA": "FEN",
+      "teamB": "VIL",
+      "scoreA": 1,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M119",
+      "matchDay": 7,
+      "teamA": "SAB",
+      "teamB": "NAP",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M120",
+      "matchDay": 7,
+      "teamA": "BET",
+      "teamB": "ARS",
+      "scoreA": 1,
+      "scoreB": 3
+    },
+    {
+      "matchId": "M121",
+      "matchDay": 7,
+      "teamA": "COM",
+      "teamB": "PSG",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M122",
+      "matchDay": 7,
+      "teamA": "MUN",
+      "teamB": "BAY",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M123",
+      "matchDay": 7,
+      "teamA": "RBL",
+      "teamB": "SHK",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M124",
+      "matchDay": 7,
+      "teamA": "RCL",
+      "teamB": "MCI",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M125",
+      "matchDay": 7,
+      "teamA": "SPO",
+      "teamB": "BAR",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M126",
+      "matchDay": 7,
+      "teamA": "VIK",
+      "teamB": "PSV",
+      "scoreA": 0,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M127",
+      "matchDay": 8,
+      "teamA": "ARS",
+      "teamB": "SAB",
+      "scoreA": 4,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M128",
+      "matchDay": 8,
+      "teamA": "ATL",
+      "teamB": "FEN",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M129",
+      "matchDay": 8,
+      "teamA": "BAR",
+      "teamB": "COM",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M130",
+      "matchDay": 8,
+      "teamA": "BAY",
+      "teamB": "BET",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M131",
+      "matchDay": 8,
+      "teamA": "BRU",
+      "teamB": "BOD",
+      "scoreA": 2,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M132",
+      "matchDay": 8,
+      "teamA": "BVB",
+      "teamB": "AEK",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M133",
+      "matchDay": 8,
+      "teamA": "FEY",
+      "teamB": "RBL",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M134",
+      "matchDay": 8,
+      "teamA": "LIV",
+      "teamB": "RCL",
+      "scoreA": 2,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M135",
+      "matchDay": 8,
+      "teamA": "LSK",
+      "teamB": "FCP",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M136",
+      "matchDay": 8,
+      "teamA": "MCI",
+      "teamB": "SPO",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M137",
+      "matchDay": 8,
+      "teamA": "NAP",
+      "teamB": "VIK",
+      "scoreA": 1,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M138",
+      "matchDay": 8,
+      "teamA": "PSG",
+      "teamB": "GAL",
+      "scoreA": 3,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M139",
+      "matchDay": 8,
+      "teamA": "PSV",
+      "teamB": "VFB",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M140",
+      "matchDay": 8,
+      "teamA": "ROM",
+      "teamB": "LIL",
+      "scoreA": 0,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M141",
+      "matchDay": 8,
+      "teamA": "SHK",
+      "teamB": "RMA",
+      "scoreA": 1,
+      "scoreB": 2
+    },
+    {
+      "matchId": "M142",
+      "matchDay": 8,
+      "teamA": "SLO",
+      "teamB": "INT",
+      "scoreA": 0,
+      "scoreB": 1
+    },
+    {
+      "matchId": "M143",
+      "matchDay": 8,
+      "teamA": "SLP",
+      "teamB": "AVL",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "matchId": "M144",
+      "matchDay": 8,
+      "teamA": "VIL",
+      "teamB": "MUN",
+      "scoreA": 1,
+      "scoreB": 0
+    }
+  ],
+  "playOffs": [
+    {
+      "label": "PO-01: #9 PSG vs #24 RCL",
+      "teamA": "PSG",
+      "teamB": "RCL",
+      "aggA": 6,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "PSG"
+    },
+    {
+      "label": "PO-02: #10 VFB vs #23 LIL",
+      "teamA": "VFB",
+      "teamB": "LIL",
+      "aggA": 4,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "VFB"
+    },
+    {
+      "label": "PO-03: #11 INT vs #22 AVL",
+      "teamA": "INT",
+      "teamB": "AVL",
+      "aggA": 4,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "INT"
+    },
+    {
+      "label": "PO-04: #12 ARS vs #21 BOD",
+      "teamA": "ARS",
+      "teamB": "BOD",
+      "aggA": 6,
+      "aggB": 0,
+      "penA": null,
+      "penB": null,
+      "winner": "ARS"
+    },
+    {
+      "label": "PO-05: #13 MUN vs #20 SLP",
+      "teamA": "MUN",
+      "teamB": "SLP",
+      "aggA": 6,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "MUN"
+    },
+    {
+      "label": "PO-06: #14 SPO vs #19 VIL",
+      "teamA": "SPO",
+      "teamB": "VIL",
+      "aggA": 3,
+      "aggB": 2,
+      "penA": null,
+      "penB": null,
+      "winner": "SPO"
+    },
+    {
+      "label": "PO-07: #15 ATL vs #18 FEN",
+      "teamA": "ATL",
+      "teamB": "FEN",
+      "aggA": 4,
+      "aggB": 1,
+      "penA": null,
+      "penB": null,
+      "winner": "ATL"
+    },
+    {
+      "label": "PO-08: #16 SLO vs #17 PSV",
+      "teamA": "SLO",
+      "teamB": "PSV",
+      "aggA": 0,
+      "aggB": 6,
+      "penA": null,
+      "penB": null,
+      "winner": "PSV"
+    }
+  ],
+  "roundOf16": [
+    {
+      "label": "R16-01: BAR vs PSV",
+      "teamA": "BAR",
+      "teamB": "PSV",
+      "aggA": 4,
+      "aggB": 1,
+      "penA": null,
+      "penB": null,
+      "winner": "BAR"
+    },
+    {
+      "label": "R16-02: RBL vs PSG",
+      "teamA": "RBL",
+      "teamB": "PSG",
+      "aggA": 2,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "PSG"
+    },
+    {
+      "label": "R16-03: LIV vs MUN",
+      "teamA": "LIV",
+      "teamB": "MUN",
+      "aggA": 5,
+      "aggB": 2,
+      "penA": null,
+      "penB": null,
+      "winner": "LIV"
+    },
+    {
+      "label": "R16-04: FEY vs ARS",
+      "teamA": "FEY",
+      "teamB": "ARS",
+      "aggA": 2,
+      "aggB": 4,
+      "penA": null,
+      "penB": null,
+      "winner": "ARS"
+    },
+    {
+      "label": "R16-05: RMA vs ATL",
+      "teamA": "RMA",
+      "teamB": "ATL",
+      "aggA": 3,
+      "aggB": 0,
+      "penA": null,
+      "penB": null,
+      "winner": "RMA"
+    },
+    {
+      "label": "R16-06: FCP vs VFB",
+      "teamA": "FCP",
+      "teamB": "VFB",
+      "aggA": 7,
+      "aggB": 1,
+      "penA": null,
+      "penB": null,
+      "winner": "FCP"
+    },
+    {
+      "label": "R16-07: BAY vs SPO",
+      "teamA": "BAY",
+      "teamB": "SPO",
+      "aggA": 2,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "SPO"
+    },
+    {
+      "label": "R16-08: MCI vs INT",
+      "teamA": "MCI",
+      "teamB": "INT",
+      "aggA": 0,
+      "aggB": 0,
+      "penA": 5,
+      "penB": 4,
+      "winner": "MCI"
+    }
+  ],
+  "quarterfinals": [
+    {
+      "label": "QF-01: BAR vs PSG",
+      "teamA": "BAR",
+      "teamB": "PSG",
+      "aggA": 4,
+      "aggB": 1,
+      "penA": null,
+      "penB": null,
+      "winner": "BAR"
+    },
+    {
+      "label": "QF-02: LIV vs ARS",
+      "teamA": "LIV",
+      "teamB": "ARS",
+      "aggA": 2,
+      "aggB": 2,
+      "penA": 4,
+      "penB": 5,
+      "winner": "ARS"
+    },
+    {
+      "label": "QF-03: RMA vs FCP",
+      "teamA": "RMA",
+      "teamB": "FCP",
+      "aggA": 1,
+      "aggB": 1,
+      "penA": 5,
+      "penB": 4,
+      "winner": "RMA"
+    },
+    {
+      "label": "QF-04: SPO vs MCI",
+      "teamA": "SPO",
+      "teamB": "MCI",
+      "aggA": 4,
+      "aggB": 3,
+      "penA": null,
+      "penB": null,
+      "winner": "SPO"
+    }
+  ],
+  "semifinals": [
+    {
+      "label": "SF-01: BAR vs ARS",
+      "teamA": "BAR",
+      "teamB": "ARS",
+      "aggA": 0,
+      "aggB": 2,
+      "penA": null,
+      "penB": null,
+      "winner": "ARS"
+    },
+    {
+      "label": "SF-02: RMA vs SPO",
+      "teamA": "RMA",
+      "teamB": "SPO",
+      "aggA": 3,
+      "aggB": 2,
+      "penA": null,
+      "penB": null,
+      "winner": "RMA"
+    }
+  ],
+  "final": {
+    "teamA": "ARS",
+    "teamB": "RMA",
+    "scoreA": 0,
+    "scoreB": 0,
+    "penA": 4,
+    "penB": 5,
+    "champion": "RMA",
+    "runnerUp": "ARS"
+  }
+}
