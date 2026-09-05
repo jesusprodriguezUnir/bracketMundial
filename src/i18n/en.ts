@@ -228,7 +228,7 @@ export const en: Record<TranslationKey, string> = {
   'squads.matches.pending': '{n} pending',
   'squads.matches.empty': 'No pending fixtures remaining.',
   'squads.news.loading': 'Loading news…',
-  'squads.news.empty': 'No recent news for this national team.',
+  'squads.news.empty': 'No recent news for this club.',
   'squads.news.source': 'Source:',
 
   'calendar.empty': 'No matches for the active filters.',

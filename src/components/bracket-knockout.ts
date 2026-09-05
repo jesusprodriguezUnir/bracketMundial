@@ -280,11 +280,11 @@ export class BracketKnockout extends LitElement {
     }
     .mode-badge.real {
       background: var(--retro-green);
-      color: var(--paper);
+      color: #ffffff;
     }
     .mode-badge.prediction {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .team-row {
@@ -294,7 +294,7 @@ export class BracketKnockout extends LitElement {
       padding: 3px 6px;
       min-height: 30px;
     }
-    .team-row.winner-row { color: var(--paper); }
+    .team-row.winner-row { color: #ffffff; font-weight: 800; }
     .team-row.loser-row  { opacity: 0.5; }
     .team-separator { height: 1px; background: var(--ink); margin: 0 5px; }
 

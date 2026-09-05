@@ -235,7 +235,7 @@ export const es = {
   'squads.matches.pending': '{n} pendientes',
   'squads.matches.empty': 'No quedan partidos pendientes de jugar.',
   'squads.news.loading': 'Cargando noticias…',
-  'squads.news.empty': 'Sin noticias recientes para esta selección.',
+  'squads.news.empty': 'Sin noticias recientes para este club.',
   'squads.news.source': 'Fuente:',
 
   // Calendar

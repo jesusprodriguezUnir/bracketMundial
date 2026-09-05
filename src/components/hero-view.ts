@@ -47,31 +47,20 @@ export class HeroView extends LitElement {
       grid-template-columns: 1.1fr 1fr;
       gap: 28px;
       padding: 36px 40px 28px;
-      background: linear-gradient(145deg, rgba(16, 26, 68, 0.90) 0%, rgba(8, 12, 36, 0.94) 100%);
+      background: var(--hero-grad);
       border: 1px solid var(--hairline-strong);
       border-radius: var(--radius-xl);
-      box-shadow: 0 16px 48px rgba(0, 4, 25, 0.6), 0 0 0 1px rgba(77, 163, 255, 0.12);
+      box-shadow: var(--hero-shadow);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
 
-    /* Champions League stadium glow & starfield atmosphere */
+    /* Champions League stadium glow & atmosphere (dinámico día/noche) */
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
-      background-image:
-        /* Foco de estadio desde el ángulo superior derecho */
-        radial-gradient(ellipse 950px 500px at 80% -60px, rgba(61, 149, 255, 0.28), transparent 70%),
-        /* Resplandor violeta en esquina opuesta */
-        radial-gradient(ellipse 700px 420px at -10% 115%, rgba(120, 50, 255, 0.18), transparent 70%),
-        /* Foco ambiental central suave */
-        radial-gradient(ellipse 800px 300px at 50% 50%, rgba(0, 229, 255, 0.05), transparent 75%),
-        /* Constelación de estrellas / Starfield dots */
-        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.35) 1px, transparent 1.5px),
-        radial-gradient(circle at 74% 28%, rgba(255,255,255,0.25) 1px, transparent 1.5px),
-        radial-gradient(circle at 35% 82%, rgba(255,255,255,0.20) 1px, transparent 1.5px),
-        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1.6px);
+      background-image: var(--hero-aura);
       background-size: auto, auto, auto, 280px 280px, 320px 320px, 240px 240px, 24px 24px;
       pointer-events: none;
       z-index: 0;
@@ -316,10 +305,7 @@ export class HeroView extends LitElement {
       position: absolute;
       width: 420px;
       height: 420px;
-      background: repeating-conic-gradient(
-        rgba(77,163,255,0.22) 0deg 6deg,
-        transparent 6deg 18deg
-      );
+      background: var(--sunburst);
       border-radius: 50%;
       animation: spin 90s linear infinite;
       pointer-events: none;
@@ -329,7 +315,7 @@ export class HeroView extends LitElement {
 
     .crest-wrapper {
       position: relative;
-      filter: drop-shadow(0 20px 48px rgba(77,163,255,0.35));
+      filter: var(--crest-shadow);
     }
 
     .sticker-new {

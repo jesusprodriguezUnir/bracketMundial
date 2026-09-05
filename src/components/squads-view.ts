@@ -162,9 +162,9 @@ export class SquadsView extends LitElement {
       display: flex;
       flex-direction: column;
       border-radius: var(--radius-md);
-      background: linear-gradient(145deg, rgba(16, 24, 58, 0.85) 0%, rgba(8, 12, 34, 0.92) 100%);
+      background: var(--card-grad);
       border: 1px solid var(--hairline);
-      box-shadow: 0 4px 16px rgba(0, 4, 20, 0.35);
+      box-shadow: var(--shadow-sm);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       overflow: hidden;
@@ -177,7 +177,7 @@ export class SquadsView extends LitElement {
     }
     @media (hover: hover) {
       .team-card:hover {
-        box-shadow: 0 8px 24px rgba(61, 149, 255, 0.22);
+        box-shadow: var(--shadow-md);
         border-color: var(--accent);
         transform: translateY(-2px);
       }
@@ -197,7 +197,7 @@ export class SquadsView extends LitElement {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--fill);
       border: 1px solid var(--hairline-soft);
       display: flex;
       align-items: center;

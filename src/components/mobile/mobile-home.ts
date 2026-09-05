@@ -318,6 +318,47 @@ export class MobileHome extends LitElement {
         letter-spacing: 0.08em;
         text-align: center;
       }
+
+      /* ── Mobile footer WebDespega ── */
+      .mobile-footer {
+        padding: 24px 16px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+      }
+      .mobile-wd-credit {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--hairline-strong);
+        background: var(--fill-soft);
+        color: var(--ink-soft);
+        font-family: var(--font-body);
+        font-size: 11px;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mobile-wd-credit:active {
+        background: var(--fill);
+        border-color: var(--accent);
+      }
+      .mobile-wd-credit strong {
+        font-family: var(--font-display);
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .mobile-footer-copy {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--ink-muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
     `,
   ];
 
@@ -425,6 +466,19 @@ export class MobileHome extends LitElement {
           <div class="qc-desc">${locale === 'es' ? '18 partidos · Jornada 1' : '18 matches · Matchday 1'}</div>
         </button>
       </div>
+
+      <!-- Footer móvil con autoría de WebDespega -->
+      <footer class="mobile-footer">
+        <a class="mobile-wd-credit" href="https://webdespega.com" target="_blank" rel="noopener noreferrer" title="Web Despega · Diseño web profesional">
+          <svg viewBox="0 0 64 64" width="16" height="16" aria-hidden="true">
+            <polygon points="56,8 22,24 37,32" fill="#0C447C"></polygon>
+            <polygon points="56,8 37,32 31,45" fill="#4C7BA8"></polygon>
+            <rect x="9" y="50" width="46" height="8" rx="4" fill="#EF9F27"></rect>
+          </svg>
+          <span>Web creada por <strong>webdespega</strong></span>
+        </a>
+        <div class="mobile-footer-copy">© BRACKET CHAMPIONS 26/27</div>
+      </footer>
     `;
   }
 }

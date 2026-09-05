@@ -75,15 +75,15 @@ export class AppRoot extends LitElement {
       position: relative;
     }
 
-    /* ── Topbar oscura Champions ── */
+    /* ── Topbar Champions (sigue el tema activo) ── */
     .topbar {
       display: flex;
       flex-direction: column;
-      background: linear-gradient(180deg, rgba(9, 15, 42, 0.92) 0%, rgba(5, 8, 22, 0.88) 100%);
+      background: var(--shell-grad);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(61, 149, 255, 0.20);
-      box-shadow: 0 6px 24px rgba(0, 2, 16, 0.45);
+      border-bottom: 1px solid var(--shell-border);
+      box-shadow: var(--shell-shadow);
       position: sticky;
       top: 0;
       z-index: 110;
@@ -115,7 +115,7 @@ export class AppRoot extends LitElement {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 6px 18px rgba(77,163,255,0.35);
+      box-shadow: var(--glow-accent-sm);
     }
     .logo-diamond {
       width: 14px;
@@ -280,7 +280,7 @@ export class AppRoot extends LitElement {
     .dropdown-section {
       display: flex;
       flex-direction: column;
-      border-bottom: 1px solid rgba(236,223,192,0.1);
+      border-bottom: 1px solid var(--hairline);
     }
     .dropdown-section:last-child {
       border-bottom: none;
@@ -301,7 +301,7 @@ export class AppRoot extends LitElement {
       padding: 10px 14px;
       font-family: var(--font-body);
       font-size: 13px;
-      color: rgba(255,255,255,0.75);
+      color: var(--shell-ink);
       text-align: left;
       transition: background 0.1s;
       text-decoration: none;
@@ -311,8 +311,8 @@ export class AppRoot extends LitElement {
     @media (hover: hover) {
       .more-dropdown button:hover,
       .more-dropdown a:hover {
-        background: rgba(255,255,255,0.08);
-        color: #FFFFFF;
+        background: var(--shell-fill-hover);
+        color: var(--shell-ink-hover);
       }
     }
 
@@ -391,16 +391,16 @@ export class AppRoot extends LitElement {
       height: 100%;
       background: var(--accent);
       transition: width 0.4s ease;
-      box-shadow: 0 0 10px rgba(77,163,255,0.55);
+      box-shadow: var(--glow-dot);
     }
 
     /* ── Footer ── */
     .site-footer {
-      border-top: 1px solid rgba(61, 149, 255, 0.18);
-      background: linear-gradient(180deg, rgba(10, 16, 42, 0.85) 0%, rgba(5, 8, 22, 0.95) 100%);
+      border-top: 1px solid var(--shell-border);
+      background: var(--shell-grad-up);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 -8px 24px rgba(0, 2, 16, 0.35);
+      box-shadow: var(--shell-shadow-up);
       display: flex;
       align-items: center;
       flex-wrap: wrap;
@@ -464,6 +464,39 @@ export class AppRoot extends LitElement {
       color: var(--ink-muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+    .footer-webdespega {
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      color: var(--ink-soft);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      background: var(--fill-soft);
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+    }
+    .footer-webdespega strong {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+    .footer-webdespega .wd-logo-icon {
+      flex-shrink: 0;
+    }
+    @media (hover: hover) {
+      .footer-webdespega:hover {
+        background: var(--fill);
+        border-color: var(--accent);
+        color: var(--ink);
+        transform: translateY(-1px);
+      }
     }
 
     /* ── Ad strips ── */
@@ -818,7 +851,14 @@ export class AppRoot extends LitElement {
     }
     localStorage.setItem('bm-theme', next);
     const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.content = next === 'dark' ? '#231d3e' : '#1A1933';
+    if (metaTheme) {
+      // Se lee del token en lugar de fijarlo aqui: antes ambas ramas
+      // devolvian un azul oscuro (la "clara" era incluso mas oscura),
+      // asi que la barra del navegador nunca seguia al tema.
+      const shellColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--shell-theme-color').trim();
+      if (shellColor) metaTheme.content = shellColor;
+    }
     this.requestUpdate();
   }
 
@@ -1066,12 +1106,23 @@ export class AppRoot extends LitElement {
             </div>
           </div>
 
-          <span class="footer-sep">·</span>
-
           <div class="footer-section">
             <span class="footer-label">${t('footer.contact')}</span>
             <a class="footer-email" href="mailto:bracketmundial@gmail.com" aria-label="Email bracketmundial@gmail.com">
               ✉ bracketmundial@gmail.com
+            </a>
+          </div>
+
+          <span class="footer-sep">·</span>
+
+          <div class="footer-section">
+            <a class="footer-webdespega" href="https://webdespega.com" target="_blank" rel="noopener noreferrer" title="Web Despega · Diseño web profesional">
+              <svg viewBox="0 0 64 64" width="16" height="16" aria-hidden="true" class="wd-logo-icon">
+                <polygon points="56,8 22,24 37,32" fill="#0C447C"></polygon>
+                <polygon points="56,8 37,32 31,45" fill="#4C7BA8"></polygon>
+                <rect x="9" y="50" width="46" height="8" rx="4" fill="#EF9F27"></rect>
+              </svg>
+              <span>Web creada por <strong>webdespega</strong></span>
             </a>
           </div>
 

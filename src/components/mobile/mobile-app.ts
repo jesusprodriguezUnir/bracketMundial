@@ -280,11 +280,11 @@ export class MobileApp extends LitElement {
     .app-header {
       flex-shrink: 0;
       height: 56px;
-      background: linear-gradient(180deg, rgba(9, 15, 42, 0.94) 0%, rgba(5, 8, 22, 0.90) 100%);
+      background: var(--shell-grad);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(61, 149, 255, 0.20);
-      box-shadow: 0 4px 18px rgba(0, 2, 16, 0.45);
+      border-bottom: 1px solid var(--shell-border);
+      box-shadow: var(--shell-shadow);
       display: flex;
       align-items: center;
       padding: 0 8px 0 14px;
@@ -321,7 +321,7 @@ export class MobileApp extends LitElement {
       font-family: var(--font-var);
       font-size: 19px;
       font-weight: 800;
-      color: var(--on-dark);
+      color: var(--ink);
       letter-spacing: -0.02em;
     }
     .logo-sub {
@@ -337,7 +337,7 @@ export class MobileApp extends LitElement {
       width: 44px; height: 44px;
       display: grid;
       place-items: center;
-      color: var(--on-dark-soft);
+      color: var(--ink-soft);
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
@@ -398,11 +398,11 @@ export class MobileApp extends LitElement {
       flex-shrink: 0;
       height: calc(64px + env(safe-area-inset-bottom, 0px));
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      background: linear-gradient(0deg, rgba(7, 12, 34, 0.96) 0%, rgba(5, 8, 22, 0.92) 100%);
+      background: var(--shell-grad-up);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(61, 149, 255, 0.20);
-      box-shadow: 0 -8px 26px rgba(0, 2, 16, 0.55);
+      border-top: 1px solid var(--shell-border);
+      box-shadow: var(--shell-shadow-up);
       display: flex;
       align-items: stretch;
       z-index: 50;
@@ -418,7 +418,7 @@ export class MobileApp extends LitElement {
       align-items: center;
       justify-content: center;
       gap: 3px;
-      color: var(--on-dark-soft);
+      color: var(--ink-muted);
       position: relative;
       transition: color 0.1s;
       touch-action: manipulation;
@@ -438,7 +438,7 @@ export class MobileApp extends LitElement {
       height: 3px;
       border-radius: var(--radius-pill);
       background: var(--accent);
-      box-shadow: 0 0 10px rgba(77,163,255,0.6);
+      box-shadow: 0 0 10px rgba(12,68,124,0.4);
     }
     /* Botón central (Bracket) */
     .nav-item.center { color: var(--on-accent); }
@@ -450,12 +450,12 @@ export class MobileApp extends LitElement {
       border: 3px solid var(--paper);
       display: grid;
       place-items: center;
-      box-shadow: 0 8px 20px rgba(77,163,255,0.4);
+      box-shadow: 0 8px 20px rgba(12,68,124,0.3);
     }
     .nav-item.center.active::before { display: none; }
     .nav-item.center.active .nav-icon-wrap { background: linear-gradient(150deg, var(--accent-hover), var(--accent)); }
     .nav-item.center.active .nav-label { color: var(--accent); }
-    .nav-item.center .nav-label { color: var(--on-dark-soft); }
+    .nav-item.center .nav-label { color: var(--ink-muted); }
 
     /* ── Scrim ── */
     .scrim {
@@ -712,6 +712,22 @@ export class MobileApp extends LitElement {
                     <span class="si-sub">${locale === 'es' ? 'Sincroniza tu bracket' : 'Sync your bracket'}</span>
                   </span>
                 </button>`}
+
+            <div class="sheet-section-label">${locale === 'es' ? 'Créditos' : 'Credits'}</div>
+            <a class="sheet-item" href="https://webdespega.com" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+              <span class="si-glyph" style="background: var(--fill);">
+                <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+                  <polygon points="56,8 22,24 37,32" fill="#0C447C"></polygon>
+                  <polygon points="56,8 37,32 31,45" fill="#4C7BA8"></polygon>
+                  <rect x="9" y="50" width="46" height="8" rx="4" fill="#EF9F27"></rect>
+                </svg>
+              </span>
+              <span class="si-text">
+                <span>Web creada por <strong style="color: var(--accent);">webdespega</strong></span>
+                <span class="si-sub">webdespega.com · Diseño y desarrollo web</span>
+              </span>
+              <span class="si-arrow">↗</span>
+            </a>
           `;
         })()}
       </div>
