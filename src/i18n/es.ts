@@ -19,7 +19,6 @@ export const es = {
   'header.nightTitle': 'Modo noche',
   'header.dayTitle': 'Modo día',
   'header.langToggle': 'EN',
-  'header.shopTitle': 'Comprar álbum y camisetas',
 
   // Header — auth
   'header.account': 'CUENTA',
@@ -50,7 +49,7 @@ export const es = {
   'hero.titleLine2': 'BRACKET CHAMPIONS',
   'hero.titleLine3': 'SIMULADOR GRATIS',
   'hero.titleSlogan': 'Predice la Champions League — 36 clubes, 8 jornadas',
-  'hero.description': 'Crea tu porra con amigos para la Champions League. Tabla única de 36 clubes, 144 partidos y ligas privadas.',
+  'hero.description': 'Crea tu porra para la Champions League y comparte tus predicciones con amigos. Tabla única de 36 clubes y 144 partidos de fase liga.',
   'hero.descriptionHighlight': '36 clubes, 8 jornadas, una tabla.',
   'hero.ctaPrimary': '▶ CREAR MI PORRA',
   'hero.ctaSecondary': 'SIMULADOR DE CRUCES',
@@ -558,7 +557,7 @@ export const es = {
 
   // SEO Info
   'seo.aboutTitle': '¿Cómo funciona Bracket Champions?',
-  'seo.aboutText': 'Predice cada jornada de la fase liga europea: 36 clubes en una sola tabla, 8 jornadas y 144 partidos. Crea una liga privada con amigos, publica tus marcadores y sigue la clasificación en vivo.',
+  'seo.aboutText': 'Predice cada jornada de la fase liga europea: 36 clubes en una sola tabla, 8 jornadas y 144 partidos. Rellena tus marcadores, comparte tu tarjeta de predicción con amigos y sigue la clasificación en vivo.',
   'seo.formatTitle': 'Fase liga: 36 clubes',
   'seo.formatText': '36 clubes, una tabla, 8 partidos por club (4 en casa y 4 fuera). Los puestos 1-8 entran en octavos, 9-24 juegan playoff y 25-36 quedan fuera. La porra de jornada es el corazón del producto.',
   // SEO FAQ
@@ -572,9 +571,9 @@ export const es = {
   'seo.faqQ4': '¿Predigo ida y vuelta por separado?',
   'seo.faqA4': 'En esta edición predices el global de cada eliminatoria como un solo nodo. La fase liga se pronostica partido a partido.',
   'seo.faqQ5': '¿Cómo hacer una porra con amigos?',
-  'seo.faqA5': 'Crea una liga privada, invita con el código o el enlace y rellena los 18 partidos de cada jornada. Los puntos: 5 exacto, 3 diferencia, 2 signo.',
-  'seo.faqQ6': '¿Es gratis participar en la porra?',
-  'seo.faqA6': 'Sí, es 100% gratuita y sin descargas. Puedes pronosticar todos los partidos y crear tantas ligas privadas con amigos como quieras.',
+  'seo.faqA5': 'Rellena tus pronósticos para los 18 partidos de cada jornada y compártelos con tus amigos directamente por WhatsApp, Instagram o X. Los puntos: 5 exacto, 3 diferencia, 2 signo.',
+  'seo.faqQ6': '¿Es gratis participar?',
+  'seo.faqA6': 'Sí, es 100% gratuita y sin descargas. Puedes pronosticar todos los partidos, seguir las jornadas en tiempo real y compartir tus predicciones con amigos.',
   'seo.linksTitle': 'Explora más',
   'seo.linkPorra': 'Porra con amigos',
   'seo.linkPlantilla': 'Plantilla para imprimir y PDF',
@@ -899,11 +898,6 @@ export const es = {
   'modal.discard': 'Descartar',
 
   // Nuevas claves para completar traducciones
-  'header.shop': 'Tienda',
-  'shop.panini': '🛒 Álbum Panini',
-  'shop.poster': '🖼 Póster Champions 2026/27',
-  'shop.book': '📖 Guía Champions 2026/27',
-  'shop.fifa': '📕 Balón Oficial UCL',
   'footer.legal': 'Legal',
   'footer.about': 'ℹ️ Quiénes Somos',
   'footer.legalNotice': '⚖️ Aviso Legal',

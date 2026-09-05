@@ -1,21 +1,19 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, type ActiveContext, type ViewMode } from './store/tournament-store';
+import { useTournamentStore, type ViewMode } from './store/tournament-store';
 import { subscribeSlice } from './store/store-utils';
 // Hero y match-modal se cargan síncronos (above-the-fold / modal global)
 import './components/hero-view';
 import './components/match-modal';
 import './components/ad-block';
-import { publishNow, subscribeUnpublished, getUnpublished } from './lib/prediction-sync';
-import { useAuthStore } from './store/auth-store';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
-import { useLeaguesStore } from './store/leagues-store';
+import { COMPETITION } from './data/competition';
 
-type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'guide-print';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type LazyView = 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'guide-print';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   groups:     () => import('./components/league-table-view'),
@@ -27,7 +25,6 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
   tv:         () => import('./components/broadcasting-view'),
   coaches:    () => import('./components/coaches-view'),
   guide:      () => import('./components/guide-view'),
-  league: () => import('./components/leagues-view'),
   'guide-print': () => import('./components/guide-print-view'),
 };
 
@@ -42,7 +39,6 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'stadiums') return 'stadiums';
   if (tab === 'coaches') return 'coaches';
   if (tab === 'guide') return 'guide';
-  if (tab === 'league') return 'league';
   if (tab === 'guide-print') return 'guide-print';
   return null;
 }
@@ -57,14 +53,24 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   stadiums:  'tabs.stadiums',
   coaches:   'tabs.coaches',
   guide:     'tabs.guide',
-  league: 'tabs.league',
   'guide-print': 'tabs.guide',
 };
 
-const MORE_TABS: PhaseTab[] = ['squads', 'calendar', 'coaches'];
+/**
+ * Una tab esta oculta cuando la competicion activa aun no contempla esa
+ * superficie (COMPETITION.hiddenViews). Filtra la barra inferior, el swipe
+ * y la restauracion por hash de una sola vez.
+ */
+function isHiddenTab(tab: PhaseTab): boolean {
+  return (COMPETITION.hiddenViews as readonly string[]).includes(tab);
+}
+
+const MORE_TABS: PhaseTab[] = (['squads', 'calendar', 'coaches'] as PhaseTab[])
+  .filter(tab => !isHiddenTab(tab));
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'matchday', 'league'];
+const TAB_ORDER: PhaseTab[] = (['hero', 'groups', 'matchday', 'knockout'] as PhaseTab[])
+  .filter(tab => !isHiddenTab(tab));
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -72,11 +78,6 @@ export class BracketView extends LitElement {
   @state() private _loadedViews = new Set<LazyView>();
   @state() private _loadingView: LazyView | null = null;
   @state() private _moreOpen = false;
-  @state() private _activeContext: ActiveContext = { kind: 'personal' };
-  @state() private _contextLeagueName = '';
-  @state() private _publishing = false;
-  @state() private _publishFeedback: string | null = null;
-  @state() private _hasUnpublished = false;
   @state() private _viewMode: ViewMode = 'predictions';
 
   private _swipeStartX = 0;
@@ -84,8 +85,6 @@ export class BracketView extends LitElement {
   private _isSwiping = false;
   private _swipeBlocked = false;
   private _tabHistory: PhaseTab[] = ['hero'];
-  private _unsubContext?: () => void;
-  private _unsubUnpublished?: () => void;
   private _unsubViewMode?: () => void;
 
 
@@ -104,62 +103,47 @@ export class BracketView extends LitElement {
       touch-action: auto;
     }
 
-    /* ─── Context indicator bar ─── */
-    .context-bar {
+    /* ─── View Mode Bar (predictions vs real + share) ─── */
+    .view-mode-bar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 12px;
+      margin: 14px auto 10px;
       flex-wrap: wrap;
-      gap: 10px;
-      background: color-mix(in srgb, var(--accent) 12%, var(--paper-2));
-      border: 1px solid var(--hairline-strong);
-      border-radius: var(--radius-md);
-      padding: 7px 13px;
-      margin-bottom: 10px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.04em;
     }
-    .context-label {
-      color: var(--ink-soft);
-    }
-    .context-label strong {
-      font-family: var(--font-var);
-      font-size: 14px;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-    .context-return-btn {
-      all: unset;
-      cursor: pointer;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 7px 13px;
-      border: 1px solid var(--hairline-strong);
-      border-radius: var(--radius-sm);
-      background: var(--fill);
-      color: var(--ink-soft);
-    }
-    .context-return-btn:hover {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: var(--on-accent);
-    }
-
-    /* ─── View Mode Toggle (predictions vs real) ─── */
     .view-mode-toggle {
       display: flex;
       gap: 3px;
-      margin: 12px auto;
+      margin: 0;
       max-width: 360px;
       border: 1px solid var(--hairline);
       border-radius: var(--radius-pill);
       overflow: hidden;
       padding: 3px;
       background: var(--fill);
+    }
+    .share-trigger-btn {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--on-accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-sm);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .share-trigger-btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
     }
     .view-mode-btn {
       flex: 1;
@@ -655,18 +639,12 @@ export class BracketView extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
-    this._updateContext();
-    this._unsubContext = useTournamentStore.subscribe(() => this._updateContext());
     this._viewMode = useTournamentStore.getState().viewMode;
     this._unsubViewMode = subscribeSlice(
       useTournamentStore,
       s => s.viewMode,
       (mode) => { this._viewMode = mode; }
     );
-    this._hasUnpublished = getUnpublished();
-    this._unsubUnpublished = subscribeUnpublished((dirty) => {
-      this._hasUnpublished = dirty;
-    });
     this._ensureView('groups');
 
     this._restoreFromHash();
@@ -681,8 +659,6 @@ export class BracketView extends LitElement {
 
   disconnectedCallback() {
     this.unsubscribeLocale?.();
-    this._unsubContext?.();
-    this._unsubUnpublished?.();
     this._unsubViewMode?.();
     if (this._hashChangeHandler) {
       window.removeEventListener('hashchange', this._hashChangeHandler);
@@ -693,56 +669,17 @@ export class BracketView extends LitElement {
     this.removeEventListener('touchend', this._onSwipeEnd);
   }
 
-  private _updateContext() {
-    const ctx = useTournamentStore.getState().activeContext;
-    if (ctx.kind !== this._activeContext.kind
-        || (ctx.kind === 'league' && (ctx as { kind: 'league'; leagueId: string }).leagueId !== (this._activeContext as { kind: 'league'; leagueId: string }).leagueId)
-        || (ctx.kind === 'personal' && this._activeContext.kind === 'personal')) {
-      // Only update if changed or initial
-      const prevKind = this._activeContext.kind;
-      this._activeContext = ctx;
-      if (ctx.kind === 'league') {
-        const league = useLeaguesStore.getState().leagues.find(l => l.id === ctx.leagueId);
-        this._contextLeagueName = league?.name ?? ctx.leagueId;
-      } else {
-        this._contextLeagueName = '';
-      }
-      if (prevKind !== ctx.kind || (ctx.kind === 'league' && prevKind === 'league')) {
-        this.requestUpdate();
-      }
-    }
-  }
-
-  private async _handlePublish() {
-    const session = useAuthStore.getState().session;
-    if (!session) return;
-
-    this._publishing = true;
-    this._publishFeedback = null;
-    this.requestUpdate();
-
-    const ok = await publishNow();
-    this._publishFeedback = ok ? 'Publicado ✓' : 'Error ✗';
-    this._publishing = false;
-
-    setTimeout(() => {
-      if (this._publishFeedback === 'Publicado ✓' || this._publishFeedback === 'Error ✗') {
-        this._publishFeedback = null;
-        this.requestUpdate();
-      }
-    }, 3000);
-    this.requestUpdate();
-  }
-
-  private _switchToPersonal() {
-    void useTournamentStore.getState().switchContext({ kind: 'personal' });
+  private async _handleShare() {
+    const { openShareModal } = await import('./components/share-modal');
+    openShareModal();
   }
 
   /** Sincroniza la pestaña activa con location.hash */
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
+    const validTabs: PhaseTab[] = (['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'guide-print'] as PhaseTab[])
+      .filter(tab => !isHiddenTab(tab));
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
       requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
@@ -784,6 +721,9 @@ export class BracketView extends LitElement {
   }
 
   private async _selectTab(tab: PhaseTab) {
+    // Guarda unica: ninguna ruta (hash, swipe, evento navigate o click)
+    // puede abrir una vista que la competicion activa aun no contempla.
+    if (isHiddenTab(tab)) return;
     this._activeTab = tab;
     this._moreOpen = false;
     this._updateHash(tab);
@@ -829,7 +769,6 @@ export class BracketView extends LitElement {
       if (tab === 'coaches') targetId = 'section-coaches';
       if (tab === 'guide') targetId = 'section-guide';
       if (tab === 'guide-print') targetId = 'section-guide-print';
-      if (tab === 'league') targetId = 'section-league';
 
       const el = this.shadowRoot?.getElementById(targetId);
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -920,12 +859,13 @@ export class BracketView extends LitElement {
   }
 
   render() {
-    const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
-      { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
+    const allMainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
+      { tab: 'hero',   icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
       { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.table') },
       { tab: 'matchday', icon: '📅', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`, label: t('tabs.matchday') },
-      { tab: 'league',   icon: '👥', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>`, label: t('tabs.league') },
+      { tab: 'knockout', icon: '🏆', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`, label: t('tabs.knockout') },
     ];
+    const mainTabs = allMainTabs.filter(item => !isHiddenTab(item.tab));
     const at = this._activeTab;
     const loaded = this._loadedViews;
     const isKnockoutTab = at === 'knockout';
@@ -933,48 +873,26 @@ export class BracketView extends LitElement {
 
     return html`
       <div class="view-container" @navigate="${(e: CustomEvent) => this._selectTab(e.detail === 'awards' ? 'knockout' : e.detail as PhaseTab)}">
-        ${(() => {
-          const isLeague = this._activeContext.kind === 'league';
-          const hasSession = !!useAuthStore.getState().session;
-          const contextLabel = isLeague
-            ? this._contextLeagueName
-            : 'Mi bracket personal';
-          const publishLabel = isLeague ? 'Publicar a la liga' : 'Publicar';
-          return html`
-          <div class="context-bar">
-            <span class="context-label">Editando: <strong>${contextLabel}</strong></span>
-            <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              ${this._publishFeedback
-                ? html`<span style="font-family:var(--font-mono);font-size:11px;">${this._publishFeedback}</span>`
-                : this._hasUnpublished && hasSession
-                  ? html`<span style="font-family:var(--font-mono);font-size:11px;color:var(--retro-orange);">● Sin publicar</span>`
-                  : ''}
-              ${hasSession ? html`
-                <button
-                  class="context-return-btn"
-                  style="background:var(--accent);border-color:var(--accent);color:var(--on-accent);"
-                  @click="${this._handlePublish}"
-                  ?disabled="${this._publishing}"
-                >${this._publishing ? 'Publicando…' : publishLabel}</button>
-              ` : ''}
-              ${isLeague ? html`
-                <button class="context-return-btn" @click="${this._switchToPersonal}">Volver a mi bracket personal</button>
-              ` : ''}
-            </span>
-          </div>
-        `;
-        })()}
         ${(at === 'groups' || at === 'matchday') ? html`
-          <div class="view-mode-toggle">
-            <button 
-              class="view-mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
-              @click=${() => useTournamentStore.getState().setViewMode('predictions')}>
-              Mis Predicciones
-            </button>
-            <button 
-              class="view-mode-btn real ${this._viewMode === 'real' ? 'active' : ''}"
-              @click=${() => useTournamentStore.getState().setViewMode('real')}>
-              Resultados Reales
+          <div class="view-mode-bar">
+            <div class="view-mode-toggle">
+              <button 
+                class="view-mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
+                @click=${() => useTournamentStore.getState().setViewMode('predictions')}>
+                Mis Predicciones
+              </button>
+              <button 
+                class="view-mode-btn real ${this._viewMode === 'real' ? 'active' : ''}"
+                @click=${() => useTournamentStore.getState().setViewMode('real')}>
+                Resultados Reales
+              </button>
+            </div>
+            <button class="share-trigger-btn" @click="${this._handleShare}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              ${t('header.share')}
             </button>
           </div>
         ` : ''}
@@ -1206,14 +1124,6 @@ export class BracketView extends LitElement {
           ` : at === 'guide-print' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
-        <!-- Liga (lazy) -->
-        <div
-          id="section-league"
-          class="section-league ${at === 'league' ? 'visible' : ''}">
-          ${at === 'league' && loaded.has('league') ? html`
-            <leagues-view></leagues-view>
-          ` : at === 'league' ? html`<div class="loading-spinner"></div>` : ''}
-        </div>
 
       </div>
     `;

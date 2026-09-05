@@ -20,7 +20,6 @@ export const en: Record<TranslationKey, string> = {
   'header.nightTitle': 'Night mode',
   'header.dayTitle': 'Day mode',
   'header.langToggle': 'ES',
-  'header.shopTitle': 'Buy album and jerseys',
 
   // Header — auth
   'header.account': 'ACCOUNT',
@@ -49,7 +48,7 @@ export const en: Record<TranslationKey, string> = {
   'hero.titleLine2': 'BRACKET CHAMPIONS',
   'hero.titleLine3': 'FREE SIMULATOR',
   'hero.titleSlogan': 'Predict the Champions League — 36 clubs, 8 matchdays',
-  'hero.description': 'Create a matchday pool with friends for the Champions League. One 36-club table, 144 matches and private leagues.',
+  'hero.description': 'Predict the Champions League and share your predictions with friends. Single 36-club table and 144 league phase matches.',
   'hero.descriptionHighlight': '36 clubs, 8 matchdays, one table.',
   'hero.ctaPrimary': '▶ CREATE MY POOL',
   'hero.ctaSecondary': 'KNOCKOUT SIMULATOR',
@@ -550,7 +549,7 @@ export const en: Record<TranslationKey, string> = {
 
   // SEO Info
   'seo.aboutTitle': 'How does Bracket Champions work?',
-  'seo.aboutText': 'Predict every Champions League matchday: 36 clubs in one table, 8 matchdays and 144 matches. Create a private league with friends, publish scores and follow the ranking live.',
+  'seo.aboutText': 'Predict every Champions League matchday: 36 clubs in one table, 8 matchdays and 144 matches. Fill your scores, share your prediction card with friends and follow the standings live.',
   'seo.formatTitle': 'League phase: 36 clubs',
   'seo.formatText': '36 clubs, one table, 8 matches per club (4 home and 4 away). Places 1-8 go to the round of 16, 9-24 play a playoff and 25-36 are out. The matchday pool is the product.',
   // SEO FAQ
@@ -564,9 +563,9 @@ export const en: Record<TranslationKey, string> = {
   'seo.faqQ4': 'Do I predict two-leg ties separately?',
   'seo.faqA4': 'This edition predicts each knockout tie as one aggregate node. League-phase matches are predicted one by one.',
   'seo.faqQ5': 'How do I run a pool with friends?',
-  'seo.faqA5': 'Create a private league, invite with the code or link and fill the 18 matches of each matchday. Scoring: 5 exact, 3 goal difference, 2 sign.',
+  'seo.faqA5': 'Fill the 18 matches of each matchday and share your prediction card with friends on WhatsApp, Instagram or X. Scoring: 5 exact, 3 goal difference, 2 sign.',
   'seo.faqQ6': 'Is it free to participate?',
-  'seo.faqA6': 'Yes, it is 100% free with no downloads required. You can predict all matches and create private leagues with friends.',
+  'seo.faqA6': 'Yes, it is 100% free with no downloads required. You can predict all matches, follow every matchday live and share your predictions.',
   'seo.linksTitle': 'Explore more',
   'seo.linkPorra': 'Pool with friends',
   'seo.linkPlantilla': 'Printable bracket and PDF template',
@@ -891,11 +890,6 @@ export const en: Record<TranslationKey, string> = {
   'modal.discard': 'Discard',
 
   // New keys for completing translations
-  'header.shop': 'Shop',
-  'shop.panini': '🛒 Panini Album',
-  'shop.poster': '🖼 Champions 2026/27 Poster',
-  'shop.book': '📖 Champions 2026/27 Guide',
-  'shop.fifa': '📕 Official UCL Ball',
   'footer.legal': 'Legal',
   'footer.about': 'ℹ️ About Us',
   'footer.legalNotice': '⚖️ Legal Notice',

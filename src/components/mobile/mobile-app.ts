@@ -5,6 +5,7 @@ import { onToast, type ToastEventDetail } from '../../lib/interaction';
 import { useTournamentStore } from '../../store/tournament-store';
 import { useAuthStore } from '../../store/auth-store';
 import { subscribeUnpublished, getUnpublished, publishNow } from '../../lib/prediction-sync';
+import { COMPETITION } from '../../data/competition';
 
 // Vistas de bottom-nav (siempre disponibles)
 import './mobile-home';
@@ -13,18 +14,28 @@ import '../matchday-view';
 
 type MobileView =
   | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads'
-  | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+  | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
 
-const MAIN_VIEWS: MobileView[] = ['home', 'groups', 'matchday'];
-const SHEET_VIEWS: MobileView[] = ['calendar', 'squads', 'coaches'];
-const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket', 'league'];
+/** El shell movil llama 'bracket' a la vista que el resto de la app llama 'knockout'. */
+const VIEW_ALIASES: Partial<Record<MobileView, string>> = { bracket: 'knockout' };
+
+/** Una vista esta oculta cuando la competicion activa aun no la contempla. */
+function isHiddenView(v: MobileView): boolean {
+  return (COMPETITION.hiddenViews as readonly string[]).includes(VIEW_ALIASES[v] ?? v);
+}
+
+const MAIN_VIEWS: MobileView[] = (['home', 'groups', 'matchday'] as MobileView[])
+  .filter(v => !isHiddenView(v));
+const SHEET_VIEWS: MobileView[] = (['calendar', 'squads', 'coaches'] as MobileView[])
+  .filter(v => !isHiddenView(v));
+const ALL_VIEWS: MobileView[] = ([...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'] as MobileView[])
+  .filter(v => !isHiddenView(v));
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   calendar: () => import('./mobile-calendar'),
   squads:   () => import('../squads-view'),
   coaches:  () => import('../coaches-view'),
   bracket:  () => import('../bracket-knockout'),
-  league:   () => import('../leagues-view'),
 };
 
 function validView(v: string): v is MobileView {
@@ -250,10 +261,6 @@ export class MobileApp extends LitElement {
         </div>
         <bracket-knockout></bracket-knockout>
       </div>`;
-    if (v === 'league') return html`
-      <div class="secondary-view">
-        <leagues-view></leagues-view>
-      </div>`;
 
     return html``;
   }
@@ -264,19 +271,20 @@ export class MobileApp extends LitElement {
       flex-direction: column;
       height: 100vh;
       height: 100dvh;
-      background: var(--paper);
+      background: transparent;
       overflow: hidden;
       position: relative;
     }
 
-    /* ── Header slim ── */
+    /* ── Header slim Champions ── */
     .app-header {
       flex-shrink: 0;
       height: 56px;
-      background: var(--chrome-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--hairline);
+      background: linear-gradient(180deg, rgba(9, 15, 42, 0.94) 0%, rgba(5, 8, 22, 0.90) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(61, 149, 255, 0.20);
+      box-shadow: 0 4px 18px rgba(0, 2, 16, 0.45);
       display: flex;
       align-items: center;
       padding: 0 8px 0 14px;
@@ -385,16 +393,16 @@ export class MobileApp extends LitElement {
       animation: spin 0.7s linear infinite;
     }
 
-    /* ── Bottom nav ── */
+    /* ── Bottom nav Champions ── */
     .bottom-nav {
       flex-shrink: 0;
       height: calc(64px + env(safe-area-inset-bottom, 0px));
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      background: var(--chrome-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-top: 1px solid var(--hairline);
-      box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+      background: linear-gradient(0deg, rgba(7, 12, 34, 0.96) 0%, rgba(5, 8, 22, 0.92) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(61, 149, 255, 0.20);
+      box-shadow: 0 -8px 26px rgba(0, 2, 16, 0.55);
       display: flex;
       align-items: stretch;
       z-index: 50;
@@ -585,11 +593,12 @@ export class MobileApp extends LitElement {
           </div>
           <span class="nav-label">${t('tabs.matchday')}</span>
         </button>
-        <button class="nav-item ${this._navActive('league') ? 'active' : ''}" @click="${() => this._go('league')}">
+        <button class="nav-item" @click="${this._handleShare}" aria-label="${t('header.share')}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
           </svg>
-          <span class="nav-label">${t('tabs.league')}</span>
+          <span class="nav-label">${t('header.share')}</span>
         </button>
         <button class="nav-item ${this._navActive('more') ? 'active' : ''}" @click="${() => { this._sheetOpen = true; }}">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -633,21 +642,12 @@ export class MobileApp extends LitElement {
               </span>
               <span class="si-arrow">›</span>
             </button>
-            <button class="sheet-item" @click="${() => this._go('league')}">
-              <span class="si-glyph">📊</span>
-              <span class="si-text">
-                <span>${t('tabs.league')}</span>
-                <span class="si-sub">${locale === 'es' ? 'Ligas y competiciones' : 'Leagues and competitions'}</span>
-              </span>
-              <span class="si-arrow">›</span>
-            </button>
-
             <div class="sheet-section-label">${locale === 'es' ? 'Tu predicción' : 'Your prediction'}</div>
             <button class="sheet-item" @click="${() => this._go('awards')}">
               <span class="si-glyph">🏅</span>
               <span class="si-text">
                 <span>${locale === 'es' ? 'Premios individuales' : 'Individual awards'}</span>
-                <span class="si-sub">${locale === 'es' ? 'Goleador y MVP · +15 pts en ligas' : 'Top scorer and MVP · +15 pts in leagues'}</span>
+                <span class="si-sub">${locale === 'es' ? 'Goleador y MVP del torneo' : 'Top scorer & tournament MVP'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>

@@ -9,6 +9,7 @@ import { useAuthStore, waitForAuthReady, popPendingInviteHash } from './store/au
 import { onToast, showToast, type ToastEventDetail } from './lib/interaction';
 import { refreshOfficialResults, subscribeOfficialResults, startOfficialResultsPolling, stopOfficialResultsPolling } from './lib/official-results';
 import { hasMatchDatePassed } from './lib/league-fixture';
+import { COMPETITION } from './data/competition';
 import './components/ad-block';
 
 /** Media query para conmutación desktop ↔ móvil */
@@ -20,12 +21,22 @@ async function ensureMobileApp() {
   await import('./components/mobile/mobile-app');
 }
 
-type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
 
-const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'squads', 'calendar', 'coaches', 'league'];
+const ALL_PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'coaches'];
+
+/**
+ * Tabs realmente navegables. La competicion activa decide que superficies
+ * existen: COMPETITION.hiddenViews las retira de la barra y, al filtrar
+ * tambien hashToTab, deja de resolver el deep link correspondiente.
+ */
+const PHASE_TABS: PhaseTab[] = ALL_PHASE_TABS.filter(
+  tab => !(COMPETITION.hiddenViews as readonly string[]).includes(tab),
+);
 
 function hashToTab(hash: string): PhaseTab | null {
   const clean = hash.replace('#', '');
+  if (clean === 'league') return 'groups';
   if (PHASE_TABS.includes(clean as PhaseTab)) return clean as PhaseTab;
   return null;
 }
@@ -45,7 +56,6 @@ export class AppRoot extends LitElement {
   @state() private _isOffline = !navigator.onLine;
   @state() private _toastMessage = '';
   @state() private _calendarMenuOpen = false;
-  @state() private _shopMenuOpen = false;
   @state() private _moreMenuOpen = false;
   @state() private _activeTab: PhaseTab = 'hero';
   @state() private _authEmail: string | null = null;
@@ -65,14 +75,15 @@ export class AppRoot extends LitElement {
       position: relative;
     }
 
-    /* ── Topbar oscura ── */
+    /* ── Topbar oscura Champions ── */
     .topbar {
       display: flex;
       flex-direction: column;
-      background: var(--chrome-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--hairline);
+      background: linear-gradient(180deg, rgba(9, 15, 42, 0.92) 0%, rgba(5, 8, 22, 0.88) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(61, 149, 255, 0.20);
+      box-shadow: 0 6px 24px rgba(0, 2, 16, 0.45);
       position: sticky;
       top: 0;
       z-index: 110;
@@ -385,13 +396,16 @@ export class AppRoot extends LitElement {
 
     /* ── Footer ── */
     .site-footer {
-      border-top: 1px solid var(--hairline);
-      background: var(--paper-2);
+      border-top: 1px solid rgba(61, 149, 255, 0.18);
+      background: linear-gradient(180deg, rgba(10, 16, 42, 0.85) 0%, rgba(5, 8, 22, 0.95) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 -8px 24px rgba(0, 2, 16, 0.35);
       display: flex;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      padding: 14px 32px;
+      padding: 16px 32px;
       margin-top: 40px;
     }
     .footer-section {
@@ -664,8 +678,8 @@ export class AppRoot extends LitElement {
       const { useLeaguesStore } = await import('./store/leagues-store');
       useLeaguesStore.getState().joinLeagueFromInvite(leagueId, leagueName, name.trim());
       await refreshLeagueMembers(leagueId);
-      this._activeTab = 'league';
-      window.location.hash = '#league';
+      this._activeTab = 'groups';
+      window.location.hash = '#groups';
     } else {
       showToast(
         locale === 'es'
@@ -714,8 +728,8 @@ export class AppRoot extends LitElement {
               share.leagueId, share.participantName, share.groupScores, share.knockoutScores, share.topScorer, share.mvp,
             );
             if (result.created || result.participantId) {
-              this._activeTab = 'league';
-              window.location.hash = '#league';
+              this._activeTab = 'groups';
+              window.location.hash = '#groups';
             }
           }
         }
@@ -765,13 +779,12 @@ export class AppRoot extends LitElement {
   private _onOnline = () => { this._isOffline = false; this.requestUpdate(); };
   private _onOffline = () => { this._isOffline = true; this.requestUpdate(); };
   private _closeMenusOnOutsideClick = (e: MouseEvent) => {
-    if (!this._calendarMenuOpen && !this._shopMenuOpen && !this._moreMenuOpen) return;
+    if (!this._calendarMenuOpen && !this._moreMenuOpen) return;
     const dropdowns = this.shadowRoot?.querySelectorAll('.dropdown-wrap');
     const clickedInside = dropdowns ? [...dropdowns].some(d => e.composedPath().includes(d)) : false;
     if (!clickedInside) {
       this._moreMenuOpen = false;
       this._calendarMenuOpen = false;
-      this._shopMenuOpen = false;
       this.requestUpdate();
     }
   };
@@ -817,7 +830,6 @@ export class AppRoot extends LitElement {
     e.stopPropagation();
     this._moreMenuOpen = !this._moreMenuOpen;
     this._calendarMenuOpen = false;
-    this._shopMenuOpen = false;
   }
 
   private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
@@ -953,13 +965,6 @@ export class AppRoot extends LitElement {
                       <button @click="${() => this._exportCalendar('all', 'excel')}">${t('calendar.exportAllExcel')}</button>
                       <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
                     </div>
-                    <div class="dropdown-section">
-                      <span>${t('header.shop')}</span>
-                      <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer">${t('shop.panini')}</a>
-                      <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer">${t('shop.poster')}</a>
-                      <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer">${t('shop.book')}</a>
-                      <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer">${t('shop.fifa')}</a>
-                    </div>
                   </div>
                 ` : ''}
               </div>
@@ -982,7 +987,6 @@ export class AppRoot extends LitElement {
                 ${tab === 'stadiums' ? '🏟' : ''}
                 ${tab === 'coaches' ? '👔' : ''}
                 ${tab === 'guide' ? '📖' : ''}
-                ${tab === 'league' ? '📊' : ''}
                 ${tab === 'hero' ? t('tabs.hero')
                   : tab === 'groups' ? t('tabs.table')
                   : tab === 'matchday' ? t('tabs.matchday')
@@ -991,8 +995,7 @@ export class AppRoot extends LitElement {
                   : tab === 'calendar' ? t('tabs.calendar')
                   : tab === 'stadiums' ? t('tabs.stadiums')
                   : tab === 'coaches' ? t('tabs.coaches')
-                  : tab === 'guide' ? t('tabs.guide')
-                  : t('tabs.league')}
+                  : t('tabs.guide')}
               </button>
             `)}
           </nav>
@@ -1025,26 +1028,6 @@ export class AppRoot extends LitElement {
         </div>
 
         <footer class="site-footer">
-          <div class="footer-section">
-            <span class="footer-label">${t('header.shop')}</span>
-            <div class="footer-social">
-              <a href="https://amzn.to/4tS2QrW" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
-                ${t('shop.panini')}
-              </a>
-              <a href="https://amzn.to/4nQq3JI" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
-                ${t('shop.poster')}
-              </a>
-              <a href="https://amzn.to/4tPCjvi" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
-                ${t('shop.book')}
-              </a>
-              <a href="https://amzn.to/3Ro0Wlf" target="_blank" rel="noopener noreferrer" aria-label="${t('header.shopTitle')}">
-                ${t('shop.fifa')}
-              </a>
-            </div>
-          </div>
-
-          <span class="footer-sep">·</span>
-
           <div class="footer-section">
             <span class="footer-label">${t('footer.follow')}</span>
             <div class="footer-social">

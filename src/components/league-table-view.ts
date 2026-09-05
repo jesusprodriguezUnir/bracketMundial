@@ -21,9 +21,11 @@ export class LeagueTableView extends LitElement {
     :host { display: block; }
     .wrap {
       background: var(--card-grad);
-      border: 1px solid var(--hairline);
+      border: 1px solid var(--hairline-strong);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
+      box-shadow: 0 16px 44px rgba(0, 4, 25, 0.55), 0 0 0 1px rgba(77, 163, 255, 0.10);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       overflow: hidden;
     }
     .head {
@@ -73,6 +75,20 @@ export class LeagueTableView extends LitElement {
     tr.band-out { background: color-mix(in srgb, var(--band-grey) 12%, transparent); }
     tr.band-automatic td.pos { color: var(--band-gold); }
     tr.band-playoff td.pos { color: var(--band-amber); }
+    tbody tr {
+      transition: background 0.15s ease;
+    }
+    @media (hover: hover) {
+      tbody tr:hover {
+        background: rgba(61, 149, 255, 0.08);
+      }
+      tbody tr.band-automatic:hover {
+        background: color-mix(in srgb, var(--band-gold) 24%, transparent);
+      }
+      tbody tr.band-playoff:hover {
+        background: color-mix(in srgb, var(--band-amber) 18%, transparent);
+      }
+    }
     .pts { font-weight: 800; color: var(--ink); }
     .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     @media (max-width: 768px) {

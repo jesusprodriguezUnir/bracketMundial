@@ -47,21 +47,32 @@ export class HeroView extends LitElement {
       grid-template-columns: 1.1fr 1fr;
       gap: 28px;
       padding: 36px 40px 28px;
-      background: var(--card-grad);
-      border: 1px solid var(--hairline);
+      background: linear-gradient(145deg, rgba(16, 26, 68, 0.90) 0%, rgba(8, 12, 36, 0.94) 100%);
+      border: 1px solid var(--hairline-strong);
       border-radius: var(--radius-xl);
+      box-shadow: 0 16px 48px rgba(0, 4, 25, 0.6), 0 0 0 1px rgba(77, 163, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
-    /* Night-sky glow background */
+    /* Champions League stadium glow & starfield atmosphere */
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
       background-image:
-        radial-gradient(ellipse 900px 420px at 78% -120px, rgba(77,163,255,0.20), transparent 70%),
-        radial-gradient(ellipse 600px 340px at 0% 110%, rgba(120,90,255,0.12), transparent 70%),
-        radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px);
-      background-size: auto, auto, 22px 22px;
+        /* Foco de estadio desde el ángulo superior derecho */
+        radial-gradient(ellipse 950px 500px at 80% -60px, rgba(61, 149, 255, 0.28), transparent 70%),
+        /* Resplandor violeta en esquina opuesta */
+        radial-gradient(ellipse 700px 420px at -10% 115%, rgba(120, 50, 255, 0.18), transparent 70%),
+        /* Foco ambiental central suave */
+        radial-gradient(ellipse 800px 300px at 50% 50%, rgba(0, 229, 255, 0.05), transparent 75%),
+        /* Constelación de estrellas / Starfield dots */
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.35) 1px, transparent 1.5px),
+        radial-gradient(circle at 74% 28%, rgba(255,255,255,0.25) 1px, transparent 1.5px),
+        radial-gradient(circle at 35% 82%, rgba(255,255,255,0.20) 1px, transparent 1.5px),
+        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1.6px);
+      background-size: auto, auto, auto, 280px 280px, 320px 320px, 240px 240px, 24px 24px;
       pointer-events: none;
       z-index: 0;
     }

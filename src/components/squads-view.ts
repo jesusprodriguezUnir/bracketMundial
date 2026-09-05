@@ -153,7 +153,7 @@ export class SquadsView extends LitElement {
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
       padding: 14px;
-      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 48%), var(--fill);
+      background: var(--fill-soft);
     }
 
     .team-card {
@@ -161,21 +161,24 @@ export class SquadsView extends LitElement {
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      border-radius: 8px;
-      background: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, rgba(16, 24, 58, 0.85) 0%, rgba(8, 12, 34, 0.92) 100%);
+      border: 1px solid var(--hairline);
+      box-shadow: 0 4px 16px rgba(0, 4, 20, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       min-height: 92px;
       touch-action: manipulation;
-      border: none;
     }
     .team-card:active {
       transform: scale(0.98);
     }
     @media (hover: hover) {
       .team-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+        box-shadow: 0 8px 24px rgba(61, 149, 255, 0.22);
+        border-color: var(--accent);
         transform: translateY(-2px);
       }
     }
@@ -194,7 +197,8 @@ export class SquadsView extends LitElement {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #F5F5F5;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--hairline-soft);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -220,7 +224,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-display);
       font-size: 14px;
       font-weight: 700;
-      color: #1A1933;
+      color: var(--ink);
       line-height: 1.2;
     }
 
@@ -233,14 +237,14 @@ export class SquadsView extends LitElement {
     }
     .tc-group {
       font-size: 11px;
-      color: #888888;
+      color: var(--ink-muted);
       text-transform: uppercase;
       letter-spacing: 0.4px;
       font-family: var(--font-mono);
     }
     .tc-players {
       font-size: 11px;
-      color: #888888;
+      color: var(--ink-muted);
       font-family: var(--font-mono);
     }
 
