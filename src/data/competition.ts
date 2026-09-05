@@ -27,7 +27,7 @@ export function compareUefaLeagueRows(a: UefaStandingRow, b: UefaStandingRow): n
 
 export const COMPETITION = {
   id: 'ucl-2027',
-  productName: 'Bracket Nights',
+  productName: 'Bracket Champions',
   groups: [COMPETITION_GROUP] as readonly string[],
   teamsPerGroup: 36,
   matchdays: 8,

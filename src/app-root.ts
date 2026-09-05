@@ -878,11 +878,11 @@ export class AppRoot extends LitElement {
         <header class="topbar" role="banner">
           <!-- Fila principal: logo + stats + acciones -->
           <div class="topbar-main">
-            <a href="/" class="logo-lockup" aria-label="Bracket Nights">
+            <a href="/" class="logo-lockup" aria-label="Bracket Champions">
               <div class="logo-icon"><span class="logo-diamond"></span></div>
               <div class="logo-text">
                 <span class="logo-main">BRACKET</span>
-                <span class="logo-sub">NIGHTS 26/27</span>
+                <span class="logo-sub">CHAMPIONS 26/27</span>
               </div>
             </a>
 
@@ -1092,7 +1092,7 @@ export class AppRoot extends LitElement {
             </a>
           </div>
 
-          <span class="footer-copy">© BRACKET NIGHTS 26/27</span>
+          <span class="footer-copy">© BRACKET CHAMPIONS 26/27</span>
         </footer>
 
         ${this._toastMessage ? html`<div class="toast-bar" role="status" aria-live="polite" aria-atomic="true">${this._toastMessage}</div>` : ''}

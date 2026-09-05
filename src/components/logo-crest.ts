@@ -27,7 +27,7 @@ export class LogoCrest extends LitElement {
         height="${s}"
         style="display:block"
         role="img"
-        aria-label="Bracket Nights"
+        aria-label="Bracket Champions"
       >
         <defs>
           <linearGradient id="lc-grad" x1="0" y1="0" x2="1" y2="1"

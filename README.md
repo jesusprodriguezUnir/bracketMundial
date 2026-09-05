@@ -1,4 +1,4 @@
-# 🏆 Bracket Nights 26/27 — Porra de las Noches Europeas
+# 🏆 Bracket Champions 26/27 — Porra de la UEFA Champions League
 
 Una Progressive Web App (PWA) de alto rendimiento diseñada para seguir y predecir los resultados de la UEFA Champions League 2026/27 (formato fase liga de 36 clubes). Construida con enfoque mobile-first, soporte offline completo y estética retro Panini de alta gama.
 

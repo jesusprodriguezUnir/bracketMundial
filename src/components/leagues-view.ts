@@ -18,9 +18,10 @@ import { getCurrentMatchday, filterRealByDate, hasMatchDatePassed, getLeagueLock
 import type { RealScores } from '../lib/league-projection';
 import { SQUADS, type Player } from '../data/squads';
 import { refreshOfficialResults, subscribeOfficialResults } from '../lib/official-results';
+import { COMPETITION } from '../data/competition';
 import './league-rules-modal';
 
-const TOTAL_MATCHES = 104;
+const TOTAL_MATCHES = COMPETITION.leaguePhaseMatches;
 
 const groupMatchById = new Map(GROUP_MATCHES.map(m => [m.matchId, m]));
 const teamById = new Map<string, (typeof TEAMS_2026)[number]>(TEAMS_2026.map(t => [t.id as string, t]));
@@ -2701,17 +2702,19 @@ export class LeaguesView extends LitElement {
     // No abrir editor si la liga está congelada (el bloqueo por partido lo gestiona el store)
     if (league?.frozen) return;
     await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
-    this.dispatchEvent(new CustomEvent('navigate', { detail: 'groups', bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('navigate', { detail: 'matchday', bubbles: true, composed: true }));
   }
 
-  /** Como _editPredictionForLeague, pero abre directamente el predictor de premios (goleador/MVP). */
+  /** Abre directamente el selector modal de premios individuales (goleador/MVP). */
   private async _editAwardsForLeague() {
     if (!this._activeLeagueId) return;
     const league = this._leagues.find(l => l.id === this._activeLeagueId);
-    if (league?.frozen) return;
-    await useTournamentStore.getState().switchContext({ kind: 'league', leagueId: this._activeLeagueId });
-    // En móvil abre la vista 'awards'; en desktop bracket-view lo mapea a 'knockout' (donde vive el panel)
-    this.dispatchEvent(new CustomEvent('navigate', { detail: 'awards', bubbles: true, composed: true }));
+    if (!league || league.frozen) return;
+    const session = useAuthStore.getState().session;
+    const me = findMyParticipant(league, session?.user?.id) ?? league.participants[0];
+    if (me) {
+      this._openAwardsSelector('topScorer', me);
+    }
   }
 
   // ── v2 design helpers ──
@@ -3636,7 +3639,17 @@ export class LeaguesView extends LitElement {
             @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this._submitJoinCode(); }}
             autofocus
           />
-          ${this._joinError ? html`<div class="modal-error">${this._joinError}</div>` : ''}
+          ${this._joinError ? html`
+            <div class="modal-error" style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+              <span>${this._joinError}</span>
+              ${!useAuthStore.getState().session ? html`
+                <button class="lg-btn-sm" style="margin-top:4px;" @click=${async () => {
+                  const { openAuthModal } = await import('./auth-modal');
+                  openAuthModal();
+                }}>${t('account.signIn')}</button>
+              ` : ''}
+            </div>
+          ` : ''}
           <div class="modal-actions">
             <button ?disabled=${this._joinLoading} @click=${this._closeJoinModal}>${t('league.confirmNo')}</button>
             <button class="primary" ?disabled=${this._joinLoading} @click=${this._submitJoinCode}>
@@ -4032,7 +4045,7 @@ export class LeaguesView extends LitElement {
             </div>
           </div>
           <div class="lg-v2-detail-stats">
-            <div class="row"><span>${t('league.matchday')}</span><span class="v">${played} / ${TOTAL_MATCHES}</span></div>
+            <div class="row"><span>${t('league.matches')}</span><span class="v">${played} / ${TOTAL_MATCHES}</span></div>
             <div class="row"><span>${t('league.participants', { n: '' }).trim() || 'Miembros'}</span><span class="v">${league.participants.length}</span></div>
             <div class="row"><span>${t('league.changesToday')}</span><span class="v">${this._scores.length > 0 ? '—' : '0'}</span></div>
             <div class="row"><span>${t('league.createdOn')}</span><span class="v">${createdLabel}</span></div>
@@ -4141,7 +4154,7 @@ export class LeaguesView extends LitElement {
             <span class="lg-v2-btn-ic">✎</span>
             <span>
               Editar mi predicción en esta liga<br/>
-              <span class="lg-v2-btn-sub">${league.frozen ? t('league.cfgFrozenBanner') : 'Grupos, eliminatorias, MVP y goleador independientes'}</span>
+              <span class="lg-v2-btn-sub">${league.frozen ? t('league.cfgFrozenBanner') : 'Fase de liga, MVP y goleador independientes'}</span>
             </span>
             <span class="lg-v2-btn-arrow">→</span>
           </button>

@@ -28,9 +28,9 @@ export default defineConfig({
         enabled: false
       },
       manifest: {
-        name: 'Bracket Nights',
-        short_name: 'Nights',
-        description: 'Porra de las noches europeas 26/27',
+        name: 'Bracket Champions',
+        short_name: 'Champions',
+        description: 'Porra de la Champions League 26/27',
         theme_color: '#1a1933',
         background_color: '#ecdfc0',
         display: 'standalone',

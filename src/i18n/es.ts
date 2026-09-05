@@ -45,12 +45,12 @@ export const es = {
   'tabs.league': 'Liga',
 
   // Hero
-  'hero.eyebrow': '★ ★ ★ NOCHES EUROPEAS 26/27 ★ ★ ★',
+  'hero.eyebrow': '★ ★ ★ CHAMPIONS LEAGUE 26/27 ★ ★ ★',
   'hero.titleLine1': 'PORRA DE JORNADA',
-  'hero.titleLine2': 'BRACKET NIGHTS',
+  'hero.titleLine2': 'BRACKET CHAMPIONS',
   'hero.titleLine3': 'SIMULADOR GRATIS',
-  'hero.titleSlogan': 'Predice la fase liga — 36 clubes, 8 jornadas',
-  'hero.description': 'Crea tu porra con amigos para cada jornada europea. Tabla única de 36, 144 partidos y ligas privadas.',
+  'hero.titleSlogan': 'Predice la Champions League — 36 clubes, 8 jornadas',
+  'hero.description': 'Crea tu porra con amigos para la Champions League. Tabla única de 36 clubes, 144 partidos y ligas privadas.',
   'hero.descriptionHighlight': '36 clubes, 8 jornadas, una tabla.',
   'hero.ctaPrimary': '▶ CREAR MI PORRA',
   'hero.ctaSecondary': 'SIMULADOR DE CRUCES',
@@ -314,7 +314,7 @@ export const es = {
   'share.networksLabel': 'COMPARTIR IMAGEN EN REDES',
 
   // Share card
-  'card.title': 'BRACKET NIGHTS',
+  'card.title': 'BRACKET CHAMPIONS',
   'card.subtitle': 'UEFA CHAMPIONS LEAGUE · 2026/27',
   'card.hosts': '36 CLUBES · 144 PARTIDOS',
   'card.champion': '🏆 CAMPEÓN',
@@ -414,7 +414,7 @@ export const es = {
   'guide.thirdPlace': 'Tercer lugar',
   'guide.generatedBy': 'Generado por bracketmundial.com',
   'guide.page': 'Página',
-  'guide.brandFooter': 'BRACKET NIGHTS · bracketmundial.com',
+  'guide.brandFooter': 'BRACKET CHAMPIONS · bracketmundial.com',
   'guide.captainBadge': 'CAP',
   'guide.vs': 'vs',
   'guide.matchdayShort': 'J{n}',
@@ -557,12 +557,12 @@ export const es = {
   'gw.kbClose': 'cerrar',
 
   // SEO Info
-  'seo.aboutTitle': '¿Cómo funciona Bracket Nights?',
+  'seo.aboutTitle': '¿Cómo funciona Bracket Champions?',
   'seo.aboutText': 'Predice cada jornada de la fase liga europea: 36 clubes en una sola tabla, 8 jornadas y 144 partidos. Crea una liga privada con amigos, publica tus marcadores y sigue la clasificación en vivo.',
   'seo.formatTitle': 'Fase liga: 36 clubes',
   'seo.formatText': '36 clubes, una tabla, 8 partidos por club (4 en casa y 4 fuera). Los puestos 1-8 entran en octavos, 9-24 juegan playoff y 25-36 quedan fuera. La porra de jornada es el corazón del producto.',
   // SEO FAQ
-  'seo.faqTitle': 'Preguntas frecuentes sobre Bracket Nights',
+  'seo.faqTitle': 'Preguntas frecuentes sobre Bracket Champions',
   'seo.faqQ1': '¿Cuántos clubes hay en la fase liga?',
   'seo.faqA1': '36 clubes en una sola tabla. Cada uno juega 8 partidos (4 en casa y 4 fuera), 144 en total a lo largo de 8 jornadas.',
   'seo.faqQ2': '¿Cuándo empieza la temporada 26/27?',
@@ -739,7 +739,7 @@ export const es = {
   'league.refresh': '⟳ REFRESCAR',
   'league.syncing': 'Sincronizando...',
   // Rediseño "retro-editorial" (Ligas - Diseño.html)
-  'league.heroEyebrow': 'Bracket Nights · Ligas privadas',
+  'league.heroEyebrow': 'Bracket Champions · Ligas privadas',
   'league.heroTitleA': 'TUS LIGAS',
   'league.heroTitleB': 'PRIVADAS',
   'league.heroTagline': 'Clasificación en tiempo real según los pronósticos de cada miembro. Crea una liga, invita a tu gente y compite con tus amigos durante todo el torneo.',
@@ -781,12 +781,13 @@ export const es = {
   'league.boardFootSchedule': 'Hora España (CEST) · próximo recálculo {time}',
   'league.ctaSettings': 'Ajustes liga',
   'league.ctaSettingsSub': 'Salir o renombrar',
-  'league.ctaShareSub': 'Invitar amigos',
+  'league.ctaShareSub': 'Comparte código o enlace',
   'league.ctaSharePredictionsSub': '{exact} aciertos exactos · {pts} puntos',
   'league.inviteCode': 'Código de invitación',
   'league.copyInvite': 'Copiar enlace',
   'league.footNote': '★ Las ligas se actualizan tras cada partido ★',
   'league.matchday': 'Jornada',
+  'league.matches': 'Partidos',
   'league.changesToday': 'Cambios hoy',
   'league.createdOn': 'Creada',
   'league.backToLeagues': '← Volver a Tus Ligas',

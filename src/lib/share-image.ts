@@ -79,20 +79,20 @@ export function buildShareText(
     return text;
   }
 
-  let text = `🏆 Mi porra Bracket Nights:\n🥇 Campeón: ${champion}`;
+  let text = `🏆 Mi porra Bracket Champions:\n🥇 Campeón: ${champion}`;
   if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
   if (third)    text += `\n🥉 3º: ${third}`;
   if (topScorer) text += `\n⚽ Máx. Goleador: ${topScorer.playerName} (${getTeamName(topScorer.teamId)})`;
   if (mvp) text += `\n🌟 MVP: ${mvp.playerName} (${getTeamName(mvp.teamId)})`;
-  text += '\n#BracketNights #PorraEuropea';
+  text += '\n#BracketChampions #ChampionsLeague';
   return text;
 }
 
 export async function shareImageNative(blob: Blob, text: string): Promise<'shared' | 'cancelled' | 'unsupported'> {
-  const file = new File([blob], 'bracket-nights.png', { type: 'image/png' });
+  const file = new File([blob], 'bracket-champions.png', { type: 'image/png' });
   if (!navigator.canShare?.({ files: [file] })) return 'unsupported';
   try {
-    await navigator.share({ title: 'Mi porra Bracket Nights', text, files: [file] });
+    await navigator.share({ title: 'Mi porra Bracket Champions', text, files: [file] });
     return 'shared';
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';

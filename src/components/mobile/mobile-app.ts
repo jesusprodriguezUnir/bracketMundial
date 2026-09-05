@@ -16,8 +16,8 @@ type MobileView =
   | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
 const MAIN_VIEWS: MobileView[] = ['home', 'groups', 'matchday'];
-const SHEET_VIEWS: MobileView[] = ['calendar', 'squads', 'coaches', 'league'];
-const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'];
+const SHEET_VIEWS: MobileView[] = ['calendar', 'squads', 'coaches'];
+const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket', 'league'];
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   calendar: () => import('./mobile-calendar'),
@@ -533,11 +533,11 @@ export class MobileApp extends LitElement {
     return html`
       <!-- Header -->
       <header class="app-header">
-        <a class="logo-lockup" href="/" aria-label="Bracket Nights">
+        <a class="logo-lockup" href="/" aria-label="Bracket Champions">
           <div class="logo-crest"></div>
           <div class="logo-text">
             <span class="logo-main">BRACKET</span>
-            <span class="logo-sub">★ NIGHTS · 26/27 ★</span>
+            <span class="logo-sub">★ CHAMPIONS · 26/27 ★</span>
           </div>
         </a>
         <button class="header-btn" aria-label="${t('header.share')}" @click="${this._handleShare}">

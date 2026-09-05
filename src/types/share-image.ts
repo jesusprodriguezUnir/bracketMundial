@@ -77,15 +77,15 @@ export function buildShareText(
   let text = `🏆 Mi bracket de Champions League 26/27:\n🥇 Campeón: ${champion}`;
   if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
   if (third)    text += `\n🥉 3º: ${third}`;
-  text += '\n#ChampionsLeague #UCL #BracketNights';
+  text += '\n#ChampionsLeague #UCL #BracketChampions';
   return text;
 }
 
 export async function shareImageNative(blob: Blob, text: string): Promise<'shared' | 'cancelled' | 'unsupported'> {
-  const file = new File([blob], 'bracket-nights-2026-27.png', { type: 'image/png' });
+  const file = new File([blob], 'bracket-champions-2026-27.png', { type: 'image/png' });
   if (!navigator.canShare?.({ files: [file] })) return 'unsupported';
   try {
-    await navigator.share({ title: 'Mi Bracket Nights 26/27', text, files: [file] });
+    await navigator.share({ title: 'Mi Bracket Champions 26/27', text, files: [file] });
     return 'shared';
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
