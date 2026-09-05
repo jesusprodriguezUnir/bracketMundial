@@ -104,6 +104,7 @@ export function generateGroupMatches() {
     timeSpain: m.timeSpain,
     venue: m.venue,
     city: m.city,
+    venueId: m.venueId,
     scoreA: null as number | null,
     scoreB: null as number | null,
   }));

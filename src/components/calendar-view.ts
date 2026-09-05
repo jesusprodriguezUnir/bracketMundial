@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { STADIUMS } from '../data/stadiums';
+import { COMPETITION } from '../data/competition';
 import { renderFlag } from '../lib/render-flag';
 import { formatFullDate } from '../lib/date-utils';
 import { openMatchModal } from '../lib/match-modal-service';
@@ -18,6 +19,7 @@ interface CalendarRow {
   kind: 'group' | 'knockout';
   phaseKey: string;
   phaseLabel: string;
+  matchDay?: number;
   date: string;
   timeSpain: string;
   venue: string;
@@ -333,6 +335,13 @@ export class CalendarView extends LitElement {
       font-family: var(--font-display);
       font-size: 15px;
       color: var(--ink);
+    }
+
+    .team-line img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
     }
 
     .team-line span:last-child {
@@ -733,19 +742,22 @@ export class CalendarView extends LitElement {
 
   private getRows(): CalendarRow[] {
     const store = useTournamentStore.getState();
+    const locale = useLocaleStore.getState().locale;
 
-    const groupRows = store.groupMatches.map(match => {
-      const stadium = STADIUMS.find(item => item.name === match.venue);
+    const groupRows: CalendarRow[] = store.groupMatches.map(match => {
+      const matchDay = match.matchDay ?? 1;
+      const phaseLabel = locale === 'en' ? `Matchday ${matchDay}` : `Jornada ${matchDay}`;
       return {
         id: match.matchId,
         kind: 'group' as const,
-        phaseKey: match.group,
-        phaseLabel: t('groups.group', { letter: match.group }),
+        phaseKey: `MD${matchDay}`,
+        phaseLabel,
+        matchDay,
         date: match.date ?? '',
         timeSpain: match.timeSpain ?? '',
         venue: match.venue ?? 'TBD',
-        city: match.city ?? 'TBD',
-        venueId: stadium?.id ?? '',
+        city: match.city ?? '',
+        venueId: match.venueId ?? '',
         teamA: match.teamA,
         teamB: match.teamB,
         scoreA: match.scoreA,
@@ -756,30 +768,30 @@ export class CalendarView extends LitElement {
       };
     });
 
-    const knockoutRows = Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
-      const match = store.knockoutMatches[matchId];
-      const phaseKey = this.getKnockoutPhaseKey(matchId);
-      return {
-        id: matchId,
-        kind: 'knockout' as const,
-        phaseKey,
-        phaseLabel: this.getKnockoutPhaseLabel(phaseKey),
-        date: match?.date ?? scheduled.date,
-        timeSpain: match?.timeSpain ?? scheduled.timeSpain,
-        venue: match?.venue ?? scheduled.venue,
-        city: match?.city ?? scheduled.city,
-        venueId: scheduled.venueId,
-        // Mostrar los equipos en cuanto el cruce está definido por la clasificación,
-        // aunque el partido aún no se haya jugado (como hace el match-centre de FIFA).
-        teamA: match?.teamA ?? null,
-        teamB: match?.teamB ?? null,
-        scoreA: match?.scoreA ?? null,
-        scoreB: match?.scoreB ?? null,
-        penaltyScoreA: match?.penaltyScoreA ?? null,
-        penaltyScoreB: match?.penaltyScoreB ?? null,
-        goalScorers: match?.goalScorers,
-      };
-    });
+    const knockoutRows: CalendarRow[] = COMPETITION.knockoutEnabled
+      ? Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
+          const match = store.knockoutMatches[matchId];
+          const phaseKey = this.getKnockoutPhaseKey(matchId);
+          return {
+            id: matchId,
+            kind: 'knockout' as const,
+            phaseKey,
+            phaseLabel: this.getKnockoutPhaseLabel(phaseKey),
+            date: match?.date ?? scheduled.date,
+            timeSpain: match?.timeSpain ?? scheduled.timeSpain,
+            venue: match?.venue ?? scheduled.venue,
+            city: match?.city ?? scheduled.city,
+            venueId: scheduled.venueId,
+            teamA: match?.teamA ?? null,
+            teamB: match?.teamB ?? null,
+            scoreA: match?.scoreA ?? null,
+            scoreB: match?.scoreB ?? null,
+            penaltyScoreA: match?.penaltyScoreA ?? null,
+            penaltyScoreB: match?.penaltyScoreB ?? null,
+            goalScorers: match?.goalScorers,
+          };
+        })
+      : [];
 
     return [...groupRows, ...knockoutRows].sort((left, right) => {
       const leftKey = `${left.date}T${left.timeSpain}`;
@@ -809,7 +821,7 @@ export class CalendarView extends LitElement {
   private getFilteredRows() {
     return this.getRows().filter(row => {
       if (this.selectedDate !== 'all' && row.date !== this.selectedDate) return false;
-      if (this.selectedVenue !== 'all' && row.venueId !== this.selectedVenue) return false;
+      if (this.selectedVenue !== 'all' && row.city !== this.selectedVenue && row.venue !== this.selectedVenue && row.venueId !== this.selectedVenue) return false;
       if (this.selectedPhase !== 'all' && row.phaseKey !== this.selectedPhase) return false;
       return true;
     });
@@ -926,7 +938,9 @@ export class CalendarView extends LitElement {
   render() {
     const rows = this.getFilteredRows();
     const groupedRows = this.getGroupedRows(rows);
-    const availableDates = [...new Set(this.getRows().map(row => row.date))];
+    const availableDates = [...new Set(this.getRows().map(row => row.date))].sort();
+    const availableCities = [...new Set(this.getRows().map(row => row.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const matchDays = Array.from({ length: COMPETITION.matchdays }, (_, i) => i + 1);
     const locale = useLocaleStore.getState().locale;
     const todayKey = this.getTodayKey();
     const hasToday = availableDates.includes(todayKey);
@@ -949,7 +963,7 @@ export class CalendarView extends LitElement {
         <div class="export-grid">
           <!-- Calendario Completo -->
           <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Full Tournament' : 'Torneo Completo'}</div>
+            <div class="export-card-title">${locale === 'en' ? 'Full Tournament (144 matches)' : 'Torneo Completo (144 partidos)'}</div>
             <div class="export-btn-group">
               <button 
                 class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
@@ -966,9 +980,9 @@ export class CalendarView extends LitElement {
             </div>
           </div>
 
-          <!-- Fase de Grupos -->
+          <!-- Fase de Grupos / Liga -->
           <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Group Stage' : 'Fase de Grupos'}</div>
+            <div class="export-card-title">${locale === 'en' ? 'League Phase (144 matches)' : 'Fase Liga (144 partidos)'}</div>
             <div class="export-btn-group">
               <button 
                 class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
@@ -985,32 +999,36 @@ export class CalendarView extends LitElement {
             </div>
           </div>
 
-          <!-- Eliminatorias -->
-          <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
-            <div class="export-btn-group">
-              <button 
-                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('knockout', 'excel')}>
-                ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
-              </button>
-              <button 
-                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('knockout', 'pdf')}>
-                ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
-              </button>
+          ${COMPETITION.knockoutEnabled ? html`
+            <!-- Eliminatorias -->
+            <div class="export-card">
+              <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
+              <div class="export-btn-group">
+                <button 
+                  class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
+                  ?disabled=${this.exporting !== null}
+                  @click=${() => this._exportCalendar('knockout', 'excel')}>
+                  ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
+                </button>
+                <button 
+                  class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
+                  ?disabled=${this.exporting !== null}
+                  @click=${() => this._exportCalendar('knockout', 'pdf')}>
+                  ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
+                </button>
+              </div>
             </div>
-          </div>
+          ` : ''}
         </div>
       </div>
 
       <div class="filters">
         <div class="filter-block">
-          <div class="filter-label">Día</div>
+          <div class="filter-label">${locale === 'en' ? 'Day' : 'Día'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedDate === 'all' ? 'active' : ''}" @click=${() => { this.selectedDate = 'all'; }}>Todos</button>
+            <button class="chip ${this.selectedDate === 'all' ? 'active' : ''}" @click=${() => { this.selectedDate = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todos'}
+            </button>
             ${hasToday ? html`
               <button class="chip chip-today ${this.selectedDate === todayKey ? 'active' : ''}"
                       @click=${() => { this.selectedDate = todayKey; }}>
@@ -1026,31 +1044,35 @@ export class CalendarView extends LitElement {
         </div>
 
         <div class="filter-block">
-          <div class="filter-label">Sede</div>
+          <div class="filter-label">${locale === 'en' ? 'Host city' : 'Ciudad sede'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedVenue === 'all' ? 'active' : ''}" @click=${() => { this.selectedVenue = 'all'; }}>Todas</button>
-            ${STADIUMS.map(stadium => html`
-              <button class="chip ${this.selectedVenue === stadium.id ? 'active' : ''}" @click=${() => { this.selectedVenue = stadium.id; }}>
-                ${stadium.city}
+            <button class="chip ${this.selectedVenue === 'all' ? 'active' : ''}" @click=${() => { this.selectedVenue = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todas'}
+            </button>
+            ${availableCities.map(city => html`
+              <button class="chip ${this.selectedVenue === city ? 'active' : ''}" @click=${() => { this.selectedVenue = city; }}>
+                ${city}
               </button>
             `)}
           </div>
         </div>
 
         <div class="filter-block">
-          <div class="filter-label">Grupo o ronda</div>
+          <div class="filter-label">${locale === 'en' ? 'Matchday or round' : 'Jornada o ronda'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedPhase === 'all' ? 'active' : ''}" @click=${() => { this.selectedPhase = 'all'; }}>Todo</button>
-            ${'ABCDEFGHIJKL'.split('').map(group => html`
-              <button class="chip ${this.selectedPhase === group ? 'active' : ''}" @click=${() => { this.selectedPhase = group; }}>
-                Grupo ${group}
+            <button class="chip ${this.selectedPhase === 'all' ? 'active' : ''}" @click=${() => { this.selectedPhase = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todo'}
+            </button>
+            ${matchDays.map(md => html`
+              <button class="chip ${this.selectedPhase === `MD${md}` ? 'active' : ''}" @click=${() => { this.selectedPhase = `MD${md}`; }}>
+                ${locale === 'en' ? `Matchday ${md}` : `Jornada ${md}`}
               </button>
             `)}
-            ${KNOCKOUT_LABEL_KEYS.map(phase => html`
+            ${COMPETITION.knockoutEnabled ? KNOCKOUT_LABEL_KEYS.map(phase => html`
               <button class="chip ${this.selectedPhase === phase.key ? 'active' : ''}" @click=${() => { this.selectedPhase = phase.key; }}>
                 ${t(phase.i18nKey)}
               </button>
-            `)}
+            `) : ''}
           </div>
         </div>
       </div>

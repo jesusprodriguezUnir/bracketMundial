@@ -201,6 +201,7 @@ export interface GroupMatchResult {
   timeSpain?: string;
   venue?: string;
   city?: string;
+  venueId?: string;
 }
 
 export interface KnockoutMatchResult {
