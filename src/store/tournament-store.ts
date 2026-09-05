@@ -821,7 +821,7 @@ export const useTournamentStore = createStore<TournamentState>()(
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `bracket-mundial-2026-${new Date().toISOString().slice(0,10)}.xlsx`;
+        a.download = `bracket-nights-2026-2027-${new Date().toISOString().slice(0,10)}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
       },

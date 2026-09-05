@@ -872,7 +872,7 @@ export class CalendarView extends LitElement {
     const endUtc = new Date(startUtc.getTime() + 2 * 60 * 60 * 1000);
     const teamAName = this.getTeam(row.teamA)?.name ?? 'Por decidir';
     const teamBName = this.getTeam(row.teamB)?.name ?? 'Por decidir';
-    const text = encodeURIComponent(`${teamAName} vs ${teamBName} · FIFA Mundial 2026`);
+    const text = encodeURIComponent(`${teamAName} vs ${teamBName} · Champions League 26/27`);
     const dates = `${formatGoogleCalendarLocal(startUtc, calendarTimeZone)}/${formatGoogleCalendarLocal(endUtc, calendarTimeZone)}`;
     const details = encodeURIComponent(`${row.phaseLabel} · ${row.venue}, ${row.city}`);
     const location = encodeURIComponent(`${row.venue}, ${row.city}`);

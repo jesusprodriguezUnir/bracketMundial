@@ -1572,7 +1572,7 @@ export class GuidePrintView extends LitElement {
             <div class="team-sheet-meta">
               ${t('guide.group', { letter: team.group })} · FIFA Rank: #${team.meta.fifaRank}
               ${formation ? '· ' + t('guide.formation') + ' ' + formation : ''}
-              · ${team.meta.worldCups} ${locale === 'es' ? 'Mundiales' : 'World Cups'}
+              · ${team.meta.worldCups} ${locale === 'es' ? 'Títulos' : 'Titles'}
             </div>
           </div>
         </div>

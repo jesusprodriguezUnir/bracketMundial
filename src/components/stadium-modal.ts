@@ -248,7 +248,7 @@ export class StadiumModal extends LitElement {
             <div class="info-right">
               <div class="stadium-stats">
                 <div class="stat-item">
-                  <span class="stat-label">Capacidad Mundial</span>
+                  <span class="stat-label">Capacidad</span>
                   <span class="stat-value">${this.stadium.capacity.toLocaleString()} espectadores</span>
                 </div>
                 <div class="stat-item">

@@ -479,7 +479,7 @@ export class MobileAwards extends LitElement {
 
     return html`
       <div class="awards-heading">
-        <div class="awards-eyebrow">★ ${locale === 'es' ? 'PREDICCIONES · MUNDIAL 2026' : 'PREDICTIONS · WORLD CUP 2026'} ★</div>
+        <div class="awards-eyebrow">★ ${locale === 'es' ? 'PREDICCIONES · CHAMPIONS 26/27' : 'PREDICTIONS · CHAMPIONS 26/27'} ★</div>
         <h1 class="awards-h1">${locale === 'es' ? 'PREMIOS INDIVIDUALES' : 'INDIVIDUAL AWARDS'}</h1>
       </div>
 
@@ -494,8 +494,8 @@ export class MobileAwards extends LitElement {
 
       <div class="awards-hint" style="margin-top: 12px;">
         ${locale === 'es'
-          ? html`Elige quién será el <b>Máximo Goleador</b> 👟 y el <b>MVP</b> ⭐ del torneo. En las ligas, cada acierto suma <b>+15 puntos</b> al final del Mundial.`
-          : html`Pick the tournament's <b>Top Scorer</b> 👟 and <b>MVP</b> ⭐. In leagues, each correct pick earns <b>+15 points</b> at the end of the World Cup.`}
+          ? html`Elige quién será el <b>Máximo Goleador</b> 👟 y el <b>MVP</b> ⭐ del torneo. En las ligas, cada acierto suma <b>+15 puntos</b> al final de la temporada.`
+          : html`Pick the tournament's <b>Top Scorer</b> 👟 and <b>MVP</b> ⭐. In leagues, each correct pick earns <b>+15 points</b> at the end of the season.`}
       </div>
 
       ${this._renderPanel()}

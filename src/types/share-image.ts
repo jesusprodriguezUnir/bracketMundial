@@ -71,21 +71,21 @@ export function buildShareText(
   const third     = tp?.winnerId ? getTeamName(tp.winnerId) : null;
 
   if (!champion) {
-    return '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
+    return '🗓️ Mi predicción para las noches europeas 26/27 — ¿quién ganará? ¡Mira mi bracket!';
   }
 
-  let text = `🏆 Mi bracket del Mundial 2026:\n🥇 Campeón: ${champion}`;
+  let text = `🏆 Mi bracket de Champions League 26/27:\n🥇 Campeón: ${champion}`;
   if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
   if (third)    text += `\n🥉 3º: ${third}`;
-  text += '\n#Mundial2026 #FIFAWorldCup';
+  text += '\n#ChampionsLeague #UCL #BracketNights';
   return text;
 }
 
 export async function shareImageNative(blob: Blob, text: string): Promise<'shared' | 'cancelled' | 'unsupported'> {
-  const file = new File([blob], 'bracket-mundial-2026.png', { type: 'image/png' });
+  const file = new File([blob], 'bracket-nights-2026-27.png', { type: 'image/png' });
   if (!navigator.canShare?.({ files: [file] })) return 'unsupported';
   try {
-    await navigator.share({ title: 'Mi Bracket Mundial 2026', text, files: [file] });
+    await navigator.share({ title: 'Mi Bracket Nights 26/27', text, files: [file] });
     return 'shared';
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
@@ -96,7 +96,7 @@ export async function shareImageNative(blob: Blob, text: string): Promise<'share
 export async function shareToInstagram(blob: Blob, text: string): Promise<'shared' | 'downloaded'> {
   const result = await shareImageNative(blob, text);
   if (result === 'shared') return 'shared';
-  downloadBlob(blob, 'bracket-mundial-2026.png');
+  downloadBlob(blob, 'bracket-nights-2026-27.png');
   return 'downloaded';
 }
 

@@ -2514,7 +2514,7 @@ export class BracketKnockout extends LitElement {
         <!-- Cabecera cromo -->
         <div class="mob-header">
           <div class="mob-header-top">
-            <div class="mob-header-eyebrow">★ MUNDIAL 26 ★</div>
+            <div class="mob-header-eyebrow">★ CHAMPIONS 26/27 ★</div>
             ${headerAction}
           </div>
           <div class="mob-header-title">${t('knockout.mobileTitle')}</div>

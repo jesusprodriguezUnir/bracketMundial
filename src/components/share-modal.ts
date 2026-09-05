@@ -285,7 +285,7 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
 
   private async _download() {
     if (!this._blob) return;
-    downloadBlob(this._blob, 'bracket-mundial-2026.png');
+    downloadBlob(this._blob, 'bracket-nights-2026-27.png');
   }
 
   private async _shareImage() {

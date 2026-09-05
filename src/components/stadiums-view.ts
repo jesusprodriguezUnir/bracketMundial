@@ -761,7 +761,7 @@ export class StadiumsView extends LitElement {
 
             <div class="detail-info-col">
               <div class="detail-name-block">
-                <div class="detail-stadium-label">Estadio Mundialista</div>
+                <div class="detail-stadium-label">Estadio</div>
                 <div class="detail-stadium-name">${stadium.name}</div>
               </div>
 

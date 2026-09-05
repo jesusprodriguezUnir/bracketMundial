@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { useTournamentStore } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026 } from '../data/ucl-2027';
 import { t } from '../i18n';
 import { getCountdownValues, getTournamentPhase, type TournamentPhase } from '../lib/tournament-phase';
 import './logo-crest';
@@ -438,19 +438,23 @@ export class HeroView extends LitElement {
         };
       });
     }
-    // No matches played — show day 1 fixture
-    const day1 = store.groupMatches.filter(m => m.date === '2026-06-11');
+    // No matches played — show matchday 1 fixtures
+    const day1 = store.groupMatches.filter(m => m.matchDay === 1 || m.date?.startsWith('2026-09'));
     if (day1.length > 0) {
-      return day1.map(m => {
+      return day1.slice(0, 10).map(m => {
         const a = TEAMS_2026.find(t => t.id === m.teamA);
         const b = TEAMS_2026.find(t => t.id === m.teamB);
-        return { label: `${a?.id ?? '??'} vs ${b?.id ?? '??'}`, score: m.timeSpain ?? '' };
+        return {
+          label: `${a?.shortName ?? m.teamA} vs ${b?.shortName ?? m.teamB}`,
+          score: m.timeSpain ? `${m.timeSpain} CET` : '8 SEP',
+        };
       });
     }
     return [
-      { label: 'MEX vs RSA', score: '11 JUN' },
-      { label: 'KOR vs CZE', score: '12 JUN' },
-      { label: 'CAN vs BIH', score: '12 JUN' },
+      { label: 'RMA vs PSG', score: '8 SEP' },
+      { label: 'MCI vs INT', score: '8 SEP' },
+      { label: 'BAY vs ARS', score: '9 SEP' },
+      { label: 'BAR vs LIV', score: '9 SEP' },
     ];
   }
 

@@ -270,7 +270,7 @@ export class MobileCalendar extends LitElement {
     const endUtc = new Date(startUtc.getTime() + 2 * 60 * 60 * 1000);
     const teamAName = this._getTeam(row.teamA)?.name ?? 'Por decidir';
     const teamBName = this._getTeam(row.teamB)?.name ?? 'Por decidir';
-    const text = encodeURIComponent(`${teamAName} vs ${teamBName} · FIFA Mundial 2026`);
+    const text = encodeURIComponent(`${teamAName} vs ${teamBName} · Champions League 26/27`);
     const dates = `${formatGoogleCalendarLocal(startUtc, tz)}/${formatGoogleCalendarLocal(endUtc, tz)}`;
     const details = encodeURIComponent(`${row.phaseLabel} · ${row.venue}, ${row.city}`);
     const location = encodeURIComponent(`${row.venue}, ${row.city}`);

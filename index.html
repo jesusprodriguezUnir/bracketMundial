@@ -8,6 +8,20 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-NL5BC7FG');</script>
     <!-- End Google Tag Manager -->
+    <!-- Umami Analytics -->
+    <script>
+      (function() {
+        var id = "%VITE_UMAMI_WEBSITE_ID%";
+        var src = "%VITE_UMAMI_SCRIPT_URL%";
+        if (id && id.indexOf('%') !== 0) {
+          var s = document.createElement('script');
+          s.defer = true;
+          s.src = (src && src.indexOf('%') !== 0) ? src : 'https://cloud.umami.is/script.js';
+          s.setAttribute('data-website-id', id);
+          document.head.appendChild(s);
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -134,10 +148,10 @@
               },
               {
                 "@type": "Question",
-                "name": "¿Dónde está el Mundial 2026?",
+                "name": "¿Es gratis participar en la porra?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "La edición archivada del Mundial 2026 sigue en /mundial-2026/ como consulta de solo lectura."
+                  "text": "Sí, es 100% gratuita y sin descargas. Puedes pronosticar todos los partidos y crear tantas ligas privadas con amigos como quieras."
                 }
               }
             ]
@@ -167,7 +181,7 @@
       <!-- Contenido estático de alto valor SEO y AdSense (reemplazado por Lit cuando inicia) -->
       <div id="seo-landing" style="max-width: 980px; margin: 0 auto; padding: 2rem 1rem; font-family: system-ui, -apple-system, sans-serif; color: #1a1933; line-height: 1.6;">
         <h1>Bracket Nights — Porra de las noches europeas 26/27</h1>
-        <p>Predice cada jornada de la fase liga europea: <strong>36 clubes</strong> en una sola tabla, <strong>8 jornadas</strong> y <strong>144 partidos</strong>. Crea una liga privada con amigos, publica tus marcadores y sigue la clasificación en vivo. El archivo del Mundial 2026 sigue disponible en <a href="/mundial-2026/">/mundial-2026/</a>.</p>
+        <p>Predice cada jornada de la fase liga europea: <strong>36 clubes</strong> en una sola tabla, <strong>8 jornadas</strong> y <strong>144 partidos</strong>. Crea una liga privada con amigos, publica tus marcadores y sigue la clasificación en vivo.</p>
 
         <h2>¿Cómo funciona la porra?</h2>
         <p>No hace falta descargar nada. Sigue estos pasos:</p>
@@ -184,7 +198,7 @@
         <ul>
           <li><strong><a href="/calendario/">Calendario</a>:</strong> Fechas y horarios de las 8 jornadas de la fase liga.</li>
           <li><strong><a href="/grupos/">Tabla</a>:</strong> Clasificación única de 36 clubes con cortes 1-8, 9-24 y 25-36.</li>
-          <li><strong><a href="/mundial-2026/">Archivo Mundial 2026</a>:</strong> Edición de solo lectura del torneo anterior.</li>
+          <li><strong><a href="/plantillas/">Clubes y Plantillas</a>:</strong> Plantillas oficiales, jugadores y estadísticas de los 36 participantes.</li>
         </ul>
         <p><small>Aviso: Este sitio web es de carácter recreativo e independiente y no guarda relación oficial con ninguna competición, club o federación. Todas las predicciones y recursos son gratuitos.</small></p>
       </div>

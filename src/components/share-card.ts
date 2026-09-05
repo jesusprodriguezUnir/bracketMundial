@@ -573,7 +573,7 @@ export class ShareCard extends LitElement {
               </div>`
             : ''}
         </div>
-        <div class="footer-watermark">#MUNDIAL2026 · #FIFAWORLDCUP</div>
+        <div class="footer-watermark">#CHAMPIONSLEAGUE · #UCL · #BRACKETNIGHTS</div>
       </div>
     `;
   }
