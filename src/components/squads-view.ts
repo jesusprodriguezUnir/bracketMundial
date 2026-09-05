@@ -59,6 +59,7 @@ export class SquadsView extends LitElement {
   @state() private _newsKey: string | null = null;
   @state() private _openMatchId: string | null = null;
   @state() private _matchOddsCache: Map<string, MatchOdds> = new Map();
+  @state() private _kitVariant: 'home' | 'away' = 'home';
 
   private unsubscribeStore?: () => void;
   private _swipeStartX = 0;
@@ -71,6 +72,7 @@ export class SquadsView extends LitElement {
       const tid = this.targetTeamId;
       this.selectedTeamId = tid;
       this.activeTab = 'squad';
+      this._kitVariant = 'home';
       this.targetTeamId = null;
       this._loadNewsForTeam(tid, useLocaleStore.getState().locale);
     }
@@ -436,6 +438,14 @@ export class SquadsView extends LitElement {
           color-mix(in srgb, var(--kit) 14%, var(--paper-3)) 0%,
           var(--paper-3) 78%
         );
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .jersey-display:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg, 0 8px 20px rgba(26, 25, 51, 0.14));
     }
 
     .jersey-tag {
@@ -450,6 +460,13 @@ export class SquadsView extends LitElement {
       font-weight: 700;
       letter-spacing: 0.14em;
       padding: 3px 7px;
+      border-radius: var(--radius-xs, 2px);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .jersey-display:hover .jersey-tag {
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .jersey-display img {
@@ -1826,6 +1843,7 @@ export class SquadsView extends LitElement {
   private selectTeam(id: string) {
     this.selectedTeamId = id;
     this.activeTab = 'squad';
+    this._kitVariant = 'home';
     this._loadNewsForTeam(id, useLocaleStore.getState().locale);
   }
 
@@ -2294,12 +2312,28 @@ export class SquadsView extends LitElement {
             ` : ''}
           </div>
 
-          <!-- Expositor de camiseta titular -->
-          <div class="jersey-display">
-            <span class="jersey-tag">TITULAR</span>
+          <!-- Expositor de camiseta titular / visitante con toggle interactivo -->
+          <div
+            class="jersey-display"
+            role="button"
+            tabindex="0"
+            @click=${() => { this._kitVariant = this._kitVariant === 'home' ? 'away' : 'home'; }}
+            @keydown=${(e: KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this._kitVariant = this._kitVariant === 'home' ? 'away' : 'home';
+              }
+            }}
+            title="${locale === 'en' ? 'Click to toggle Home / Away kit' : 'Clic para alternar camiseta Titular / Visitante'}"
+          >
+            <span class="jersey-tag">
+              ${this._kitVariant === 'home'
+                ? (locale === 'en' ? 'HOME ⇄' : 'TITULAR ⇄')
+                : (locale === 'en' ? 'AWAY ⇄' : 'VISITANTE ⇄')}
+            </span>
             <img
-              src="${kitSrc(id)}"
-              alt="Camiseta titular ${team.name}"
+              src="${kitSrc(id, this._kitVariant)}"
+              alt="${this._kitVariant === 'home' ? (locale === 'en' ? 'Home kit' : 'Camiseta titular') : (locale === 'en' ? 'Away kit' : 'Camiseta visitante')} ${team.name}"
               loading="lazy"
               decoding="async"
               @error=${(e: Event) => { (e.target as HTMLElement).style.opacity = '0'; }}
