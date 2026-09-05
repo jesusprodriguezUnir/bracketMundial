@@ -1,113 +1,157 @@
 :root {
-  /* ── Paleta Panini retro 80s/90s ── */
-  --paper:         #ecdfc0;
-  --paper-2:       #e6d6b1;
-  --paper-3:       #fff9ec;
-  --ink:           #1a1933;
-  --retro-orange:  #e8541f;
-  --retro-red:     #c41e2c;
-  --retro-green:   #1f6b3a;
-  --retro-blue:    #22418c;
-  --retro-yellow:  #f0b021;
-  --dim:           #7a6f54;
-  --focus-ring:    3px solid var(--retro-yellow);
+  /* ══ Bracket Champions — "noche europea" 26/27 ══
+     Sustituye la identidad Panini retro. El tema oscuro es el
+     primario (main.ts arranca en data-theme="dark"); este bloque
+     :root es la variante DIURNA que activa el toggle "claro".
+     Los nombres --paper / --ink / --retro-* se conservan para no
+     romper componentes; sus valores son ahora de la paleta noche. */
 
-  /* Superficies que siempre son oscuras (chrome, navs, badges) */
-  --surface-dark:   #1a1933;
-  --surface-dark-2: #231d3e;
-  --surface-dark-3: #2e2750;
-  --on-dark:        rgba(255,255,255,0.88);
-  --on-dark-soft:   rgba(255,255,255,0.55);
-  --on-dark-muted:  rgba(255,255,255,0.35);
+  /* ── Tokens agnósticos de tema (no se redefinen en dark) ── */
+  --accent:          #4da3ff;
+  --accent-hover:    #7cbcff;
+  --accent-deep:     #1e4fa8;
+  --on-accent:       #04122b;
+  --live:            #4de39a;
+  --band-gold:       #e4c15f;   /* puestos 1–8   (octavos directos) */
+  --band-amber:      #d9944a;   /* puestos 9–24  (playoff) */
+  --band-grey:       #5a6275;   /* puestos 25–36 (eliminados) */
+  --trophy-gold:     #e4c15f;
+  --electric:        #4da3ff;
 
-  /* Texto adaptativo sobre superficies claras */
-  --ink-soft:  rgba(26,25,51,0.75);
-  --ink-muted: rgba(26,25,51,0.6);
+  --glow-accent:     0 10px 26px rgba(77,163,255,0.28);
+  --glow-accent-sm:  0 6px 16px rgba(77,163,255,0.30);
 
-  /* ── Design tokens ampliados (bracketmundial_design_spec v1.0) ── */
-  --color-navy:    #1A1933;
-  --color-orange:  #E84B1A;
-  --color-beige:   #F2DBA8;
-  --color-gold:    #F5D84A;
-  --color-success: #27AE60;
-  --color-error:   #C0392B;
-  --text-primary:    #1A1933;
-  --text-secondary:  rgba(26,25,51,0.55);
-  --text-on-dark:    rgba(255,255,255,0.88);
-  --text-on-dark-soft: rgba(255,255,255,0.75);
-  --text-muted:      rgba(255,255,255,0.5);
-  --text-dim:        rgba(255,255,255,0.2);
-  --font-display: 'Oswald', 'Bowlby One', 'Anton', Impact, sans-serif;
-  --font-ui:       'Open Sans', 'Archivo', 'Space Grotesk', system-ui, sans-serif;
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.16);
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --font-display: 'Barlow Condensed', 'Archivo', system-ui, sans-serif;
+  --font-ui:      'Archivo', system-ui, sans-serif;
+  --font-var:  'Barlow Condensed', 'Archivo', system-ui, sans-serif;
+  --font-head: 'Barlow Condensed', 'Archivo', system-ui, sans-serif;
+  --font-body: 'Archivo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+
+  --radius-sm:   9px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
   --radius-pill: 999px;
   --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
   --space-4: 16px; --space-6: 24px; --space-8: 32px;
   --transition-fast: all 0.15s ease;
   --transition-base: all 0.2s ease;
 
-  /* Sin redondeos — todo es impresión dura */
-  --radius-lg: 0;
-  --radius-md: 0;
+  --color-navy:    #070a18;
+  --color-orange:  #4da3ff;
+  --color-beige:   #e4c15f;
+  --color-gold:    #e4c15f;
+  --color-success: #4de39a;
+  --color-error:   #ef5f6b;
 
-  /* Tipografías */
-  --font-var:  'Bowlby One', 'Anton', Impact, sans-serif;
-  --font-head: 'Archivo Black', 'Anton', Impact, sans-serif;
-  --font-body: 'Archivo', 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+  /* ── Variante diurna (toggle "claro") ── */
+  --paper:         #f4f6fb;
+  --paper-2:       #ffffff;
+  --paper-3:       #eef1f8;
+  --ink:           #0d1526;
+  --retro-orange:  #2f7ff0;
+  --retro-red:     #d83a4a;
+  --retro-green:   #1f9d63;
+  --retro-blue:    #2f7ff0;
+  --retro-yellow:  #c9962f;
+  --dim:           rgba(13,21,38,0.55);
+  --focus-ring:    2px solid var(--accent);
 
-  /* Sombras duras offset (estilo sello impreso) */
-  --shadow-hard-sm: 2px 2px 0 0 var(--ink);
-  --shadow-hard-md: 3px 3px 0 0 var(--ink);
-  --shadow-hard-lg: 4px 4px 0 0 var(--ink);
-  --shadow-hard-xl: 6px 6px 0 0 var(--ink);
+  --surface-dark:   #0b1020;
+  --surface-dark-2: #141d42;
+  --surface-dark-3: #1c2757;
+  --on-dark:        rgba(237,241,250,0.88);
+  --on-dark-soft:   rgba(237,241,250,0.55);
+  --on-dark-muted:  rgba(237,241,250,0.35);
 
-  /* Halftone patterns */
-  --halftone:      radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-  --halftone-soft: radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
+  --ink-soft:  rgba(13,21,38,0.72);
+  --ink-muted: rgba(13,21,38,0.55);
 
-  /* Paper texture Panini v2: confetti + halftone + rayas diagonales + viñetas */
+  --hairline:        rgba(13,21,38,0.12);
+  --hairline-soft:   rgba(13,21,38,0.07);
+  --hairline-strong: rgba(13,21,38,0.22);
+  --fill-soft:       rgba(13,21,38,0.03);
+  --fill:            rgba(13,21,38,0.05);
+
+  --chrome-bg:  rgba(244,246,251,0.88);
+  --card-grad:  linear-gradient(140deg, #ffffff, #eef1f8);
+  --inset-bg:   #eef1f8;
+
+  --text-primary:      #0d1526;
+  --text-secondary:    rgba(13,21,38,0.55);
+  --text-on-dark:      rgba(237,241,250,0.88);
+  --text-on-dark-soft: rgba(237,241,250,0.75);
+  --text-muted:        rgba(13,21,38,0.5);
+  --text-dim:          rgba(13,21,38,0.25);
+
+  --shadow-sm:  0 2px 10px rgba(20,29,66,0.10);
+  --shadow-md:  0 8px 24px rgba(20,29,66,0.14);
+  --shadow-lg:  0 18px 44px rgba(20,29,66,0.18);
+  --shadow-hard-sm: 0 2px 10px rgba(20,29,66,0.12);
+  --shadow-hard-md: 0 6px 18px rgba(20,29,66,0.16);
+  --shadow-hard-lg: 0 12px 30px rgba(20,29,66,0.20);
+  --shadow-hard-xl: 0 20px 48px rgba(20,29,66,0.24);
+
+  --halftone:      radial-gradient(circle at 50% 0%, rgba(47,127,240,0.08), transparent 60%);
+  --halftone-soft: radial-gradient(circle at 50% 0%, rgba(47,127,240,0.05), transparent 60%);
   --paper-texture:
-    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.45'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3Ccircle cx='95' cy='180' r='3' fill='%23e8541f'/%3E%3Ccircle cx='215' cy='195' r='2' fill='%2322418c'/%3E%3Ccircle cx='20' cy='220' r='2.5' fill='%23f0b021'/%3E%3Crect x='180' y='100' width='4' height='10' fill='%23c41e2c' transform='rotate(25 182 105)'/%3E%3Crect x='40' y='150' width='3' height='8' fill='%231f6b3a' transform='rotate(-20 41 154)'/%3E%3Crect x='130' y='75' width='3' height='8' fill='%23e8541f' transform='rotate(45 131 79)'/%3E%3Cpolygon points='75,55 78,62 71,62' fill='%23c41e2c'/%3E%3Cpolygon points='175,205 178,212 171,212' fill='%2322418c'/%3E%3Cpolygon points='100,135 103,142 96,142' fill='%23f0b021'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px,
-    radial-gradient(ellipse 800px 600px at 0% 0%, rgba(232,84,31,0.07), transparent 70%),
-    radial-gradient(ellipse 800px 600px at 100% 100%, rgba(34,65,140,0.07), transparent 70%),
-    repeating-linear-gradient(45deg, rgba(26,25,51,0.04) 0 2px, transparent 2px 32px);
-  --paper-texture-size: 240px 240px, 5px 5px, auto, auto, auto;
+    radial-gradient(ellipse 1100px 520px at 50% -200px, rgba(47,127,240,0.10), transparent 70%),
+    radial-gradient(ellipse 700px 400px at 100% 100%, rgba(120,90,255,0.05), transparent 70%);
+  --paper-texture-size: auto, auto;
 }
 
-/* Tema oscuro — papel de noche, identidad Panini retro conservada */
+/* Tema oscuro — "noche europea", experiencia PRIMARIA (default en main.ts) */
 :root[data-theme="dark"] {
-  --paper:         #1a1933;
-  --paper-2:       #231d3e;
-  --paper-3:       #2e2750;
-  --ink:           #ecdfc0;
-  --retro-orange:  #f0713d;
-  --retro-red:     #e83345;
-  --retro-green:   #2d9c56;
-  --retro-blue:    #4570d4;
-  --retro-yellow:  #f5c040;
-  --dim:           #b8b0a0;
+  --paper:         #070a18;
+  --paper-2:       #10182f;
+  --paper-3:       #1a2547;
+  --ink:           #edf1fa;
+  --retro-orange:  #4da3ff;   /* acento primario (azul eléctrico) */
+  --retro-red:     #ef5f6b;   /* peligro / marcador negativo */
+  --retro-green:   #4de39a;   /* live / positivo */
+  --retro-blue:    #4da3ff;   /* acento */
+  --retro-yellow:  #e4c15f;   /* oro / CTA destacada */
+  --dim:           rgba(237,241,250,0.55);
 
-  /* Texto adaptativo — invertido para dark */
-  --ink-soft:  rgba(236,223,192,0.75);
-  --ink-muted: rgba(236,223,192,0.6);
+  --on-dark:        rgba(237,241,250,0.88);
+  --on-dark-soft:   rgba(237,241,250,0.55);
+  --on-dark-muted:  rgba(237,241,250,0.35);
 
-  --halftone:      radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-  --halftone-soft: radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px;
+  --ink-soft:  rgba(237,241,250,0.72);
+  --ink-muted: rgba(237,241,250,0.55);
 
+  --hairline:        rgba(255,255,255,0.10);
+  --hairline-soft:   rgba(255,255,255,0.06);
+  --hairline-strong: rgba(255,255,255,0.18);
+  --fill-soft:       rgba(255,255,255,0.04);
+  --fill:            rgba(255,255,255,0.06);
+
+  --chrome-bg:  rgba(7,10,24,0.88);
+  --card-grad:  linear-gradient(140deg, rgba(20,29,66,0.95), rgba(9,13,32,0.95));
+  --inset-bg:   rgba(7,10,24,0.55);
+
+  --text-primary:      #edf1fa;
+  --text-secondary:    rgba(237,241,250,0.55);
+  --text-on-dark:      rgba(237,241,250,0.88);
+  --text-on-dark-soft: rgba(237,241,250,0.75);
+  --text-muted:        rgba(237,241,250,0.5);
+  --text-dim:          rgba(237,241,250,0.2);
+
+  --shadow-sm:  0 2px 10px rgba(0,0,0,0.35);
+  --shadow-md:  0 8px 24px rgba(0,0,0,0.40);
+  --shadow-lg:  0 18px 44px rgba(0,0,0,0.50);
+  --shadow-hard-sm: 0 2px 10px rgba(0,0,0,0.35);
+  --shadow-hard-md: 0 6px 18px rgba(0,0,0,0.40);
+  --shadow-hard-lg: 0 12px 30px rgba(0,0,0,0.45);
+  --shadow-hard-xl: 0 20px 48px rgba(0,0,0,0.55);
+
+  --halftone:      radial-gradient(circle at 50% 0%, rgba(77,163,255,0.12), transparent 60%);
+  --halftone-soft: radial-gradient(circle at 50% 0%, rgba(77,163,255,0.06), transparent 60%);
   --paper-texture:
-    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.3'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23f0713d'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%234570d4'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f5c040'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23e83345'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%232d9c56'/%3E%3Ccircle cx='95' cy='180' r='3' fill='%23f0713d'/%3E%3Ccircle cx='215' cy='195' r='2' fill='%234570d4'/%3E%3Cpolygon points='75,55 78,62 71,62' fill='%23e83345'/%3E%3Cpolygon points='100,135 103,142 96,142' fill='%23f5c040'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(circle, rgba(236,223,192,0.06) 1px, transparent 1.2px) 0 0 / 5px 5px,
-    radial-gradient(ellipse 800px 600px at 0% 0%, rgba(240,113,61,0.06), transparent 70%),
-    radial-gradient(ellipse 800px 600px at 100% 100%, rgba(69,112,212,0.06), transparent 70%),
-    repeating-linear-gradient(45deg, rgba(236,223,192,0.04) 0 2px, transparent 2px 32px);
-  --paper-texture-size: 240px 240px, 5px 5px, auto, auto, auto;
+    radial-gradient(ellipse 1100px 520px at 50% -200px, rgba(77,163,255,0.18), transparent 70%),
+    radial-gradient(ellipse 700px 400px at 100% 100%, rgba(120,90,255,0.10), transparent 70%);
+  --paper-texture-size: auto, auto;
 }
 
 * {
@@ -153,69 +197,77 @@ button, a, input, select, textarea, nav, .btn {
 
 h1, h2, h3 {
   font-family: var(--font-var);
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
-/* Botón retro: borde sólido grueso + sombra hard offset */
+/* Botón noche europea: esquinas redondeadas, relleno translúcido */
 .btn {
-  background: var(--paper-2);
-  border: 3px solid var(--ink);
+  background: var(--fill);
+  border: 1px solid var(--hairline-strong);
   color: var(--ink);
-  padding: 8px 16px;
+  padding: 10px 18px;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-var);
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  border-radius: 0;
-  box-shadow: var(--shadow-hard-md);
-  transition: transform 0.1s, box-shadow 0.1s;
+  border-radius: var(--radius-sm);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease, border-color 0.2s ease;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
 @media (hover: hover) {
   .btn:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 0 var(--ink);
+    transform: translateY(-1px);
+    border-color: var(--accent);
   }
 }
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 0 var(--ink);
+  transform: translateY(0);
 }
 
 .btn-primary {
-  background: var(--retro-yellow);
-  border-color: var(--ink);
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  box-shadow: var(--glow-accent-sm);
 }
 @media (hover: hover) {
   .btn-primary:hover {
-    background: var(--retro-yellow);
+    background: var(--accent-hover);
+    border-color: transparent;
   }
 }
 
 .btn-secondary {
-  background: var(--paper-3);
+  background: var(--fill-soft);
+  border-color: var(--hairline);
   color: var(--ink);
 }
 @media (hover: hover) {
   .btn-secondary:hover {
-    background: var(--paper);
+    background: var(--fill);
   }
 }
 
 .btn-danger {
   background: var(--retro-red);
-  color: var(--paper);
+  border-color: transparent;
+  color: #fff;
 }
 @media (hover: hover) {
   .btn-danger:hover {
-    background: var(--retro-orange);
-    color: var(--paper);
+    background: #ff7480;
+    border-color: transparent;
+    color: #1a0406;
   }
 }
 
@@ -298,21 +350,24 @@ h1, h2, h3 {
 .splash-emblem {
   width: 80px;
   height: 80px;
-  background: var(--ink);
-  border: 3px solid var(--retro-yellow);
-  box-shadow: 4px 4px 0 0 var(--retro-orange);
+  border-radius: 22px;
+  background: linear-gradient(150deg, var(--accent), var(--accent-deep));
+  box-shadow: 0 14px 36px rgba(77,163,255,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
 }
 .splash-emblem span {
-  font-size: 36px;
+  font-size: 34px;
 }
 .splash-label {
+  font-family: var(--font-var);
+  font-weight: 800;
   font-size: 14px;
-  letter-spacing: 0.12em;
-  color: var(--dim);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 /* ─── Toast notifications ─── */

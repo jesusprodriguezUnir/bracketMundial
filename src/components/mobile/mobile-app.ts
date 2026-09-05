@@ -8,25 +8,23 @@ import { subscribeUnpublished, getUnpublished, publishNow } from '../../lib/pred
 
 // Vistas de bottom-nav (siempre disponibles)
 import './mobile-home';
-import './mobile-groups';
-import './mobile-bracket';
-import './mobile-squads';
-import './mobile-awards';
+import '../league-table-view';
+import '../matchday-view';
 
 type MobileView =
-  | 'home' | 'groups' | 'bracket' | 'squads'
+  | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads'
   | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
-const MAIN_VIEWS: MobileView[] = ['home', 'groups', 'bracket', 'squads'];
-const SHEET_VIEWS: MobileView[] = ['awards', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
-const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS];
+const MAIN_VIEWS: MobileView[] = ['home', 'groups', 'matchday'];
+const SHEET_VIEWS: MobileView[] = ['calendar', 'squads', 'coaches', 'league'];
+const ALL_VIEWS: MobileView[] = [...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'];
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   calendar: () => import('./mobile-calendar'),
-  stadiums: () => import('../../components/stadiums-view'),
-  coaches:  () => import('../../components/coaches-view'),
-  guide:    () => import('../../components/guide-view'),
-  league:   () => import('../../components/leagues-view'),
+  squads:   () => import('../squads-view'),
+  coaches:  () => import('../coaches-view'),
+  bracket:  () => import('../bracket-knockout'),
+  league:   () => import('../leagues-view'),
 };
 
 function validView(v: string): v is MobileView {
@@ -185,7 +183,7 @@ export class MobileApp extends LitElement {
     else delete document.documentElement.dataset.theme;
     localStorage.setItem('bm-theme', next);
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    if (meta) meta.content = next === 'dark' ? '#231d3e' : '#1A1933';
+    if (meta) meta.content = next === 'dark' ? '#070a18' : '#f4f2ec';
     this.requestUpdate();
   }
 
@@ -211,10 +209,8 @@ export class MobileApp extends LitElement {
 
     // Vistas nativas móviles (siempre cargadas)
     if (v === 'home')   return html`<mobile-home class="view-slot active"></mobile-home>`;
-    if (v === 'groups') return html`<mobile-groups class="view-slot active"></mobile-groups>`;
-    if (v === 'bracket') return html`<mobile-bracket class="view-slot active"></mobile-bracket>`;
-    if (v === 'squads') return html`<mobile-squads class="view-slot active"></mobile-squads>`;
-    if (v === 'awards') return html`<mobile-awards class="view-slot active"></mobile-awards>`;
+    if (v === 'groups') return html`<league-table-view class="view-slot active"></league-table-view>`;
+    if (v === 'matchday') return html`<matchday-view class="view-slot active"></matchday-view>`;
 
     // Vistas secundarias (reusan los componentes existentes)
     if (!loaded.has(v)) {
@@ -223,30 +219,34 @@ export class MobileApp extends LitElement {
     if (v === 'calendar') return html`
       <div class="secondary-view">
         <div class="section-heading">
-          <div class="section-eyebrow">104 PARTIDOS · 11 JUN – 19 JUL</div>
-          <div class="section-title">${t('tabs.calendar')}</div>
+          <div class="section-eyebrow">${t('section.calendar.eyebrow')}</div>
+          <div class="section-title">${t('section.calendar.title')}</div>
         </div>
         <mobile-calendar></mobile-calendar>
       </div>`;
-    if (v === 'stadiums') return html`
+    if (v === 'squads') return html`
       <div class="secondary-view">
         <div class="section-heading">
-          <div class="section-eyebrow">16 SEDES · 3 PAÍSES</div>
-          <div class="section-title">${t('tabs.stadiums')}</div>
+          <div class="section-eyebrow">${t('section.squads.eyebrow')}</div>
+          <div class="section-title">${t('section.squads.title')}</div>
         </div>
-        <stadiums-view></stadiums-view>
+        <squads-view></squads-view>
       </div>`;
     if (v === 'coaches') return html`
       <div class="secondary-view">
         <div class="section-heading">
-          <div class="section-eyebrow">48 SELECCIONADORES</div>
-          <div class="section-title">${t('tabs.coaches')}</div>
+          <div class="section-eyebrow">${t('section.coaches.eyebrow')}</div>
+          <div class="section-title">${t('section.coaches.title')}</div>
         </div>
         <coaches-view></coaches-view>
       </div>`;
-    if (v === 'guide') return html`
+    if (v === 'bracket') return html`
       <div class="secondary-view">
-        <guide-view></guide-view>
+        <div class="section-heading">
+          <div class="section-eyebrow">${t('section.knockout.eyebrow')}</div>
+          <div class="section-title">${t('section.knockout.title')}</div>
+        </div>
+        <bracket-knockout></bracket-knockout>
       </div>`;
     if (v === 'league') return html`
       <div class="secondary-view">
@@ -271,8 +271,10 @@ export class MobileApp extends LitElement {
     .app-header {
       flex-shrink: 0;
       height: 56px;
-      background: var(--ink);
-      border-bottom: 3px solid var(--ink);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--hairline);
       display: flex;
       align-items: center;
       padding: 0 8px 0 14px;
@@ -291,28 +293,31 @@ export class MobileApp extends LitElement {
     .logo-crest {
       width: 34px; height: 34px;
       flex-shrink: 0;
-      background: var(--retro-yellow);
-      border: 2px solid var(--paper);
+      border-radius: var(--radius-sm);
+      background: linear-gradient(150deg, var(--accent), var(--accent-deep));
+      border: 1px solid var(--hairline-strong);
       display: grid;
       place-items: center;
     }
     .logo-crest::after {
-      content: "★";
-      color: var(--ink);
-      font-size: 17px;
-      line-height: 1;
+      content: "";
+      width: 13px; height: 13px;
+      border-radius: 3px;
+      background: var(--paper);
+      transform: rotate(45deg);
     }
     .logo-text { display: flex; flex-direction: column; line-height: 0.82; min-width: 0; }
     .logo-main {
       font-family: var(--font-var);
       font-size: 19px;
-      color: var(--paper);
+      font-weight: 800;
+      color: var(--on-dark);
       letter-spacing: -0.02em;
     }
     .logo-sub {
       font-family: var(--font-mono);
       font-size: 8px;
-      color: var(--retro-yellow);
+      color: var(--accent);
       letter-spacing: 0.18em;
       margin-top: 3px;
     }
@@ -322,12 +327,12 @@ export class MobileApp extends LitElement {
       width: 44px; height: 44px;
       display: grid;
       place-items: center;
-      color: var(--paper);
+      color: var(--on-dark-soft);
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    .header-btn:active { background: rgba(240,176,33,0.2); }
+    .header-btn:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
     .header-btn svg { width: 22px; height: 22px; }
 
     /* ── Main scroll ── */
@@ -349,17 +354,18 @@ export class MobileApp extends LitElement {
     .secondary-view { padding: 0 0 32px; }
     .section-heading {
       padding: 18px 16px 14px;
-      border-bottom: 3px dashed var(--ink);
+      border-bottom: 1px solid var(--hairline);
       margin-bottom: 16px;
     }
     .section-eyebrow {
       font-family: var(--font-mono);
-      font-size: 9px; color: var(--dim);
+      font-size: 9px; color: var(--accent);
       letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 5px;
     }
     .section-title {
       font-family: var(--font-var);
-      font-size: 30px; line-height: 0.95; color: var(--ink);
+      font-size: 30px; font-weight: 800; text-transform: uppercase;
+      line-height: 0.95; color: var(--ink);
     }
 
     /* ── Spinner ── */
@@ -371,8 +377,9 @@ export class MobileApp extends LitElement {
     .loading-spinner::after {
       content: '';
       width: 32px; height: 32px;
-      border: 3px solid var(--paper-2);
-      border-top-color: var(--retro-yellow);
+      border-radius: 50%;
+      border: 3px solid var(--hairline-strong);
+      border-top-color: var(--accent);
       animation: spin 0.7s linear infinite;
     }
 
@@ -381,8 +388,11 @@ export class MobileApp extends LitElement {
       flex-shrink: 0;
       height: calc(64px + env(safe-area-inset-bottom, 0px));
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      background: var(--ink);
-      border-top: 3px solid var(--ink);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--hairline);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
       display: flex;
       align-items: stretch;
       z-index: 50;
@@ -398,7 +408,7 @@ export class MobileApp extends LitElement {
       align-items: center;
       justify-content: center;
       gap: 3px;
-      color: rgba(236,223,192,0.55);
+      color: var(--on-dark-soft);
       position: relative;
       transition: color 0.1s;
       touch-action: manipulation;
@@ -410,34 +420,39 @@ export class MobileApp extends LitElement {
       font-size: 8.5px; letter-spacing: 0.08em;
       text-transform: uppercase; font-weight: 700;
     }
-    .nav-item.active { color: var(--retro-yellow); }
+    .nav-item.active { color: var(--accent); }
     .nav-item.active::before {
       content: "";
       position: absolute;
-      top: 0; left: 22%; right: 22%;
+      top: -1px; left: 22%; right: 22%;
       height: 3px;
-      background: var(--retro-yellow);
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(77,163,255,0.6);
     }
     /* Botón central (Bracket) */
-    .nav-item.center { color: var(--ink); }
+    .nav-item.center { color: var(--on-accent); }
     .nav-icon-wrap {
       width: 50px; height: 50px;
       margin-top: -16px;
-      background: var(--retro-yellow);
+      border-radius: 16px;
+      background: linear-gradient(150deg, var(--accent), var(--accent-deep));
       border: 3px solid var(--paper);
       display: grid;
       place-items: center;
-      box-shadow: 2px 2px 0 0 var(--ink);
+      box-shadow: 0 8px 20px rgba(77,163,255,0.4);
     }
     .nav-item.center.active::before { display: none; }
-    .nav-item.center.active .nav-icon-wrap { background: var(--retro-orange); }
-    .nav-item.center.active .nav-label { color: var(--retro-yellow); }
-    .nav-item.center .nav-label { color: rgba(236,223,192,0.7); }
+    .nav-item.center.active .nav-icon-wrap { background: linear-gradient(150deg, var(--accent-hover), var(--accent)); }
+    .nav-item.center.active .nav-label { color: var(--accent); }
+    .nav-item.center .nav-label { color: var(--on-dark-soft); }
 
     /* ── Scrim ── */
     .scrim {
       position: fixed; inset: 0;
-      background: rgba(15,14,28,0.6);
+      background: rgba(3,6,16,0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       z-index: 80;
       display: none; opacity: 0;
       transition: opacity 0.2s;
@@ -448,9 +463,10 @@ export class MobileApp extends LitElement {
     .sheet {
       position: fixed;
       left: 0; right: 0; bottom: 0;
-      background: var(--paper);
-      background-image: radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px;
-      border-top: 4px solid var(--ink);
+      background: var(--paper-2);
+      border-top: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      box-shadow: 0 -16px 40px rgba(0,0,0,0.45);
       z-index: 85;
       transform: translateY(100%);
       transition: transform 0.25s cubic-bezier(0.2,0.8,0.2,1);
@@ -459,32 +475,33 @@ export class MobileApp extends LitElement {
       overflow-y: auto;
     }
     .sheet.open { transform: translateY(0); }
-    .sheet-handle { width: 44px; height: 5px; background: var(--ink); margin: 12px auto 4px; opacity: 0.4; }
-    .sheet-title { font-family: var(--font-var); font-size: 20px; padding: 8px 18px 4px; color: var(--ink); }
+    .sheet-handle { width: 44px; height: 5px; border-radius: var(--radius-pill); background: var(--ink-muted); margin: 12px auto 4px; opacity: 0.5; }
+    .sheet-title { font-family: var(--font-var); font-size: 20px; font-weight: 800; text-transform: uppercase; padding: 8px 18px 4px; color: var(--ink); }
     .sheet-section-label {
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em;
-      color: var(--dim); text-transform: uppercase; padding: 14px 18px 6px;
+      color: var(--accent); text-transform: uppercase; padding: 14px 18px 6px;
     }
     .sheet-item {
       all: unset; cursor: pointer; box-sizing: border-box;
       display: flex; align-items: center; gap: 13px;
       padding: 14px 18px; width: 100%;
-      border-top: 2px solid rgba(26,25,51,0.12);
-      font-family: var(--font-body); font-weight: 700; font-size: 15px; color: var(--ink);
+      border-top: 1px solid var(--hairline);
+      font-family: var(--font-body); font-weight: 700; font-size: 15px; color: var(--ink-soft);
       min-height: 52px;
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
-    .sheet-item:active { background: var(--paper-2); }
+    .sheet-item:active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink); }
     .si-glyph {
       width: 36px; height: 36px; flex-shrink: 0;
       display: grid; place-items: center;
-      border: 2px solid var(--ink); background: var(--paper-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--hairline); background: var(--fill);
       font-size: 17px;
     }
-    .si-arrow { margin-left: auto; color: var(--dim); font-family: var(--font-mono); }
+    .si-arrow { margin-left: auto; color: var(--ink-muted); font-family: var(--font-mono); }
     .si-sub {
       font-family: var(--font-mono); font-size: 9px;
-      color: var(--dim); font-weight: 400; margin-top: 2px; letter-spacing: 0.04em;
+      color: var(--ink-muted); font-weight: 400; margin-top: 2px; letter-spacing: 0.04em;
     }
     .si-text { display: flex; flex-direction: column; min-width: 0; }
 
@@ -493,8 +510,12 @@ export class MobileApp extends LitElement {
       position: fixed;
       left: 50%; bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 16px);
       transform: translateX(-50%) translateY(12px);
-      background: var(--ink); color: var(--paper);
-      border: 2px solid var(--retro-yellow);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--on-dark);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
       padding: 11px 18px; z-index: 95;
       opacity: 0; pointer-events: none;
@@ -512,11 +533,11 @@ export class MobileApp extends LitElement {
     return html`
       <!-- Header -->
       <header class="app-header">
-        <a class="logo-lockup" href="/" aria-label="Bracket Mundial 2026">
+        <a class="logo-lockup" href="/" aria-label="Bracket Nights">
           <div class="logo-crest"></div>
           <div class="logo-text">
             <span class="logo-main">BRACKET</span>
-            <span class="logo-sub">★ MUNDIAL · 2026 ★</span>
+            <span class="logo-sub">★ NIGHTS · 26/27 ★</span>
           </div>
         </a>
         <button class="header-btn" aria-label="${t('header.share')}" @click="${this._handleShare}">
@@ -552,21 +573,21 @@ export class MobileApp extends LitElement {
             <rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/>
             <rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/>
           </svg>
-          <span class="nav-label">${t('tabs.groups')}</span>
+          <span class="nav-label">${t('tabs.table')}</span>
         </button>
-        <button class="nav-item center ${this._navActive('bracket') ? 'active' : ''}" @click="${() => this._go('bracket')}">
+        <button class="nav-item center ${this._navActive('matchday') ? 'active' : ''}" @click="${() => this._go('matchday')}">
           <div class="nav-icon-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-              <path d="M7 4h4v6h3"/><path d="M7 20h4v-6h3"/><path d="M14 12h3"/><path d="M17 7v10"/>
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <span class="nav-label">${t('knockout.mobileTitle')}</span>
+          <span class="nav-label">${t('tabs.matchday')}</span>
         </button>
-        <button class="nav-item ${this._navActive('squads') ? 'active' : ''}" @click="${() => this._go('squads')}">
+        <button class="nav-item ${this._navActive('league') ? 'active' : ''}" @click="${() => this._go('league')}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 4l-4 3 2 3 2-1.5V20h8V8.5L18 10l2-3-4-3-1.5 2h-5z"/>
+            <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
           </svg>
-          <span class="nav-label">${t('tabs.squads')}</span>
+          <span class="nav-label">${t('tabs.league')}</span>
         </button>
         <button class="nav-item ${this._navActive('more') ? 'active' : ''}" @click="${() => { this._sheetOpen = true; }}">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -590,15 +611,15 @@ export class MobileApp extends LitElement {
               <span class="si-glyph">🗓️</span>
               <span class="si-text">
                 <span>${t('tabs.calendar')}</span>
-                <span class="si-sub">${locale === 'es' ? '104 partidos · jornadas' : '104 matches · matchdays'}</span>
+                <span class="si-sub">${locale === 'es' ? '144 partidos · 8 jornadas' : '144 matches · 8 matchdays'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>
-            <button class="sheet-item" @click="${() => this._go('stadiums')}">
-              <span class="si-glyph">◍</span>
+            <button class="sheet-item" @click="${() => this._go('squads')}">
+              <span class="si-glyph">👥</span>
               <span class="si-text">
-                <span>${t('tabs.stadiums')}</span>
-                <span class="si-sub">${locale === 'es' ? '16 sedes · 3 países' : '16 venues · 3 countries'}</span>
+                <span>${t('tabs.squads')}</span>
+                <span class="si-sub">${locale === 'es' ? '36 clubes y plantillas' : '36 clubs & squads'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>
@@ -606,15 +627,7 @@ export class MobileApp extends LitElement {
               <span class="si-glyph">👔</span>
               <span class="si-text">
                 <span>${t('tabs.coaches')}</span>
-                <span class="si-sub">${locale === 'es' ? '48 seleccionadores' : '48 head coaches'}</span>
-              </span>
-              <span class="si-arrow">›</span>
-            </button>
-            <button class="sheet-item" @click="${() => this._go('guide')}">
-              <span class="si-glyph">📖</span>
-              <span class="si-text">
-                <span>${t('tabs.guide')}</span>
-                <span class="si-sub">${locale === 'es' ? 'Reglamento y formato' : 'Rules and format'}</span>
+                <span class="si-sub">${locale === 'es' ? '36 entrenadores' : '36 coaches'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>
@@ -679,7 +692,7 @@ export class MobileApp extends LitElement {
               <span class="si-glyph">${isDark ? '☀️' : '🌙'}</span>
               <span class="si-text">
                 <span>${isDark ? t('header.dayTitle') : t('header.nightTitle')}</span>
-                <span class="si-sub">${locale === 'es' ? `Tema ${isDark ? 'claro' : 'oscuro'} Panini` : `Panini ${isDark ? 'light' : 'dark'} theme`}</span>
+                <span class="si-sub">${locale === 'es' ? `Tema ${isDark ? 'claro' : 'oscuro'}` : `${isDark ? 'Light' : 'Dark'} theme`}</span>
               </span>
             </button>
             ${this._authEmail

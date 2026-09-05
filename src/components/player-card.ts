@@ -86,7 +86,9 @@ export class PlayerCard extends LitElement {
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(26, 25, 51, 0.7);
+      background: rgba(3,6,16,0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -95,9 +97,10 @@ export class PlayerCard extends LitElement {
     }
 
     .card {
-      background: var(--paper);
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-xl);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       width: 100%;
       max-width: 480px;
       max-height: 90vh;
@@ -115,9 +118,9 @@ export class PlayerCard extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 10px 14px;
-      background: var(--retro-blue);
-      color: var(--paper);
-      border-bottom: 4px solid var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .close-btn {
@@ -127,8 +130,9 @@ export class PlayerCard extends LitElement {
       font-size: 11px;
       letter-spacing: 0.08em;
       padding: 5px 12px;
-      border: 2px solid var(--paper);
-      color: var(--paper);
+      border: 1px solid var(--on-accent);
+      border-radius: var(--radius-sm);
+      color: var(--on-accent);
     }
     .close-btn:hover { background: rgba(255, 255, 255, 0.18); }
 
@@ -147,7 +151,7 @@ export class PlayerCard extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.12em;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .card-body {
@@ -165,9 +169,10 @@ export class PlayerCard extends LitElement {
       width: 108px;
       min-width: 108px;
       height: 128px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      background: var(--fill);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -200,7 +205,7 @@ export class PlayerCard extends LitElement {
       gap: 7px;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       margin-bottom: 8px;
@@ -209,22 +214,23 @@ export class PlayerCard extends LitElement {
     .player-club {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.05em;
     }
 
     .data-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      border: 2px solid var(--ink);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
       margin-bottom: 14px;
     }
 
     .data-cell {
       padding: 8px 10px;
-      border-right: 2px solid var(--ink);
-      border-bottom: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .data-cell:nth-child(even) { border-right: none; }
@@ -235,7 +241,7 @@ export class PlayerCard extends LitElement {
       font-size: 9px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 2px;
     }
 
@@ -248,7 +254,7 @@ export class PlayerCard extends LitElement {
 
     .divider {
       border: none;
-      border-top: 2px solid var(--ink);
+      border-top: 1px solid var(--hairline);
       margin: 14px 0;
     }
 
@@ -274,9 +280,10 @@ export class PlayerCard extends LitElement {
       align-items: center;
       gap: 5px;
       padding: 6px 12px;
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.05em;
@@ -285,9 +292,10 @@ export class PlayerCard extends LitElement {
     }
 
     .social-link:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
     }
 
     @media (max-width: 480px) {

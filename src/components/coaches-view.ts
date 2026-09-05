@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { COACHES } from '../data/coaches/index';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026 } from '../data/ucl-2027';
 import { renderFlag } from '../lib/render-flag';
 import { coachAge, formatFullDate } from '../lib/date-utils';
 import { t, useLocaleStore } from '../i18n';
@@ -468,7 +468,7 @@ export class CoachesView extends LitElement {
   }
 
   private renderGroupsList() {
-    const groups = 'ABCDEFGHIJKL'.split('');
+    const groups = Array.from(new Set(TEAMS_2026.map(t => t.group)));
     const q = this.searchQuery.trim();
     const isFiltering = q.length >= 2;
 
@@ -495,11 +495,14 @@ export class CoachesView extends LitElement {
       <div class="groups-stack">
         ${groupsWithMatch.map(group => {
           const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
+          const locale = useLocaleStore.getState().locale;
+          const groupTitle = group === 'LP' ? (locale === 'en' ? 'League Phase' : 'Fase Liga') : t('coaches.groupTitle', { letter: group });
+          const groupSub = group === 'LP' ? (locale === 'en' ? `${teamsInGroup.length} Coaches` : `${teamsInGroup.length} Entrenadores`) : t('coaches.groups', { n: teamsInGroup.length });
           return html`
             <section class="group-block">
               <div class="group-header">
-                <div class="group-title">${t('coaches.groupTitle', { letter: group })}</div>
-                <div class="group-sub">${t('coaches.groups', { n: teamsInGroup.length })}</div>
+                <div class="group-title">${groupTitle}</div>
+                <div class="group-sub">${groupSub}</div>
               </div>
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {

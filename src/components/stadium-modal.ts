@@ -19,8 +19,9 @@ export class StadiumModal extends LitElement {
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(4px);
+      background: rgba(3,6,16,0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       z-index: 1000;
       display: flex;
       align-items: center;
@@ -36,12 +37,13 @@ export class StadiumModal extends LitElement {
     }
 
     .modal-content {
-      background: var(--paper, #fdfdfd);
+      background: var(--card-grad);
       width: 90%;
       max-width: 800px;
       max-height: 90vh;
-      border: 4px solid var(--ink, #1a1933);
-      box-shadow: 20px 20px 0 0 var(--ink, #1a1933);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       position: relative;
       overflow-y: auto;
       display: flex;
@@ -58,9 +60,10 @@ export class StadiumModal extends LitElement {
       position: absolute;
       top: 15px;
       right: 15px;
-      background: var(--retro-red, #e63946);
-      color: white;
-      border: 3px solid var(--ink, #1a1933);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
+      color: var(--ink);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-sm);
       width: 40px;
       height: 40px;
       cursor: pointer;
@@ -70,41 +73,42 @@ export class StadiumModal extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 4px 4px 0 0 var(--ink, #1a1933);
+      box-shadow: var(--shadow-sm);
       z-index: 10;
     }
 
     .close-btn:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 var(--ink, #1a1933);
+      box-shadow: var(--shadow-md);
     }
 
     .hero-image {
       width: 100%;
       height: 300px;
       object-fit: cover;
-      border-bottom: 4px solid var(--ink, #1a1933);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .stadium-header {
       padding: 30px;
       background-image: var(--halftone);
-      border-bottom: 2px dashed var(--ink, #1a1933);
+      border-bottom: 1px dashed var(--hairline);
     }
 
     .stadium-name {
       font-family: var(--font-var);
       font-size: 3rem;
       margin: 0;
-      color: var(--retro-orange);
+      color: var(--accent);
       line-height: 0.9;
       text-transform: uppercase;
+      font-weight: 800;
     }
 
     .stadium-location {
       font-family: var(--font-mono);
       font-size: 1.2rem;
-      color: var(--retro-blue);
+      color: var(--accent);
       margin-top: 10px;
     }
 
@@ -120,8 +124,10 @@ export class StadiumModal extends LitElement {
       font-size: 1.5rem;
       color: var(--ink);
       margin-bottom: 15px;
-      border-bottom: 3px solid var(--retro-yellow);
+      border-bottom: 1px solid var(--accent);
       display: inline-block;
+      text-transform: uppercase;
+      font-weight: 800;
     }
 
     .stadium-description {
@@ -132,10 +138,11 @@ export class StadiumModal extends LitElement {
     }
 
     .stadium-stats {
-      background: var(--paper-2);
-      border: 3px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 20px;
-      box-shadow: 6px 6px 0 0 var(--ink);
+      box-shadow: var(--shadow-md);
     }
 
     .stat-item {
@@ -146,7 +153,7 @@ export class StadiumModal extends LitElement {
       font-family: var(--font-mono);
       font-size: 0.8rem;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       display: block;
     }
 
@@ -171,15 +178,17 @@ export class StadiumModal extends LitElement {
       display: flex;
       align-items: center;
       padding: 12px;
-      background: white;
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 0.9rem;
     }
 
     .match-id {
-      background: var(--ink);
-      color: white;
+      background: var(--card-grad);
+      color: var(--on-dark);
+      border-radius: var(--radius-sm);
       padding: 2px 8px;
       margin-right: 15px;
       font-size: 0.8rem;
@@ -191,7 +200,7 @@ export class StadiumModal extends LitElement {
     }
 
     .match-date {
-      color: var(--dim);
+      color: var(--ink-muted);
       font-size: 0.8rem;
     }
 

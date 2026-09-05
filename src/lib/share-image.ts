@@ -73,26 +73,26 @@ export function buildShareText(
   const third     = tp?.winnerId ? getTeamName(tp.winnerId) : null;
 
   if (!champion) {
-    let text = '🗓️ Mi predicción para el Mundial 2026 — ¿quién ganará? ¡Mira mi bracket!';
+    let text = '🗓️ Mi porra de las noches europeas 26/27 — ¿quién gana la jornada?';
     if (topScorer) text += `\n⚽ Goleador: ${topScorer.playerName} (${getTeamName(topScorer.teamId)})`;
     if (mvp) text += `\n🌟 MVP: ${mvp.playerName} (${getTeamName(mvp.teamId)})`;
     return text;
   }
 
-  let text = `🏆 Mi bracket del Mundial 2026:\n🥇 Campeón: ${champion}`;
+  let text = `🏆 Mi porra Bracket Nights:\n🥇 Campeón: ${champion}`;
   if (runnerUp) text += `\n🥈 2º: ${runnerUp}`;
   if (third)    text += `\n🥉 3º: ${third}`;
   if (topScorer) text += `\n⚽ Máx. Goleador: ${topScorer.playerName} (${getTeamName(topScorer.teamId)})`;
   if (mvp) text += `\n🌟 MVP: ${mvp.playerName} (${getTeamName(mvp.teamId)})`;
-  text += '\n#Mundial2026 #FIFAWorldCup';
+  text += '\n#BracketNights #PorraEuropea';
   return text;
 }
 
 export async function shareImageNative(blob: Blob, text: string): Promise<'shared' | 'cancelled' | 'unsupported'> {
-  const file = new File([blob], 'bracket-mundial-2026.png', { type: 'image/png' });
+  const file = new File([blob], 'bracket-nights.png', { type: 'image/png' });
   if (!navigator.canShare?.({ files: [file] })) return 'unsupported';
   try {
-    await navigator.share({ title: 'Mi Bracket Mundial 2026', text, files: [file] });
+    await navigator.share({ title: 'Mi porra Bracket Nights', text, files: [file] });
     return 'shared';
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled';
@@ -103,7 +103,7 @@ export async function shareImageNative(blob: Blob, text: string): Promise<'share
 export async function shareToInstagram(blob: Blob, text: string): Promise<'shared' | 'downloaded'> {
   const result = await shareImageNative(blob, text);
   if (result === 'shared') return 'shared';
-  downloadBlob(blob, 'bracket-mundial-2026.png');
+  downloadBlob(blob, 'bracket-nights.png');
   return 'downloaded';
 }
 

@@ -30,42 +30,46 @@ const CAPTIONS = {
     en: '⚽ Live World Cup 2026 match by match. Countdown, news and more.',
   },
   groups: {
-    es: '📊 Edita marcadores y sigue la fase de grupos del Mundial 2026 en tiempo real.',
-    en: '📊 Edit scores and follow the World Cup 2026 group stage in real time.',
+    es: '📊 Sigue la clasificación y pronostica cada resultado en tiempo real.',
+    en: '📊 Follow the table and predict every scoreline in real time.',
+  },
+  matchday: {
+    es: '⚽ Sigue las jornadas de la Champions League y pronostica los partidos en directo.',
+    en: '⚽ Follow Champions League matchdays and predict live fixtures.',
   },
   knockout: {
-    es: '🏆 Arma tu bracket de eliminatorias y predice al campeón del Mundial 2026.',
-    en: '🏆 Build your knockout bracket and predict the World Cup 2026 champion.',
+    es: '🏆 Arma tu bracket de eliminatorias y predice al campeón.',
+    en: '🏆 Build your knockout bracket and predict the champion.',
   },
   squads: {
-    es: '👥 Explora las plantillas de las 48 selecciones del Mundial 2026.',
-    en: '👥 Explore the squads of all 48 teams at the World Cup 2026.',
+    es: '👥 Explora las plantillas y convocatorias oficiales de cada equipo.',
+    en: '👥 Explore official squads and rosters for every team.',
   },
   calendar: {
-    es: '📅 Los 104 partidos del Mundial 2026 con horarios y sedes.',
-    en: '📅 All 104 World Cup 2026 matches with kickoff times and venues.',
+    es: '📅 Calendario completo con horarios, sedes y fixtures actualizados.',
+    en: '📅 Full match schedule with kickoff times, venues and fixtures.',
   },
   stadiums: {
-    es: '🏟️ Conoce los 16 estadios del Mundial 2026 en EE.UU., México y Canadá.',
-    en: '🏟️ Discover the 16 stadiums of the World Cup 2026 across the USA, Mexico and Canada.',
+    es: '🏟️ Conoce todos los estadios y sedes del torneo.',
+    en: '🏟️ Discover all stadiums and host venues.',
   },
   coaches: {
-    es: '🎯 Los entrenadores de las 48 selecciones del Mundial 2026.',
-    en: '🎯 The coaches of all 48 teams at the World Cup 2026.',
+    es: '🎯 Los directores técnicos y estrategas de cada club y selección.',
+    en: '🎯 The head coaches and tacticians of every club and team.',
   },
   guide: {
-    es: '📋 La guía oficial con los onces de cada selección del Mundial 2026.',
-    en: '📋 The official guide with the lineups of every World Cup 2026 team.',
+    es: '📋 La guía completa con los onces titulares y análisis táctico.',
+    en: '📋 The complete guide with starting lineups and tactical analysis.',
   },
   league: {
-    es: '🤝 Crea una mini-liga y compite con tus amigos en el Mundial 2026.',
-    en: '🤝 Create a mini-league and compete with your friends at the World Cup 2026.',
+    es: '🤝 Crea tu mini-liga privada y compite con amigos en la porra.',
+    en: '🤝 Create a private mini-league and challenge your friends in the prediction pool.',
   },
 };
 
 const HASHTAGS = {
-  es: '#Mundial2026 #WorldCup2026 #FIFAWorldCup #Futbol #Quiniela',
-  en: '#WorldCup2026 #FIFAWorldCup #Football #Soccer #Bracket',
+  es: '#ChampionsLeague #UCL #Mundial2026 #WorldCup2026 #Futbol #Porra #Quiniela #BracketNights',
+  en: '#ChampionsLeague #UCL #WorldCup2026 #Football #Soccer #Bracket #Predictions #BracketNights',
 };
 
 function parseArgs(argv) {

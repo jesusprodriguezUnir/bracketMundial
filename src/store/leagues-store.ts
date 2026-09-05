@@ -6,6 +6,7 @@ import { getKnockoutMatchOrder } from './tournament-store';
 import type { DecodedBracket } from '../lib/bracket-codec';
 import { useAuthStore } from './auth-store';
 import { registerLeagueGetter } from './league-context-bridge';
+import { COMPETITION } from '../data/competition';
 
 export interface LeagueParticipant {
   id: string;
@@ -409,7 +410,7 @@ export const useLeaguesStore = createStore<LeaguesState>()(
 
     }),
     {
-      name: 'mundial-2026-leagues',
+      name: COMPETITION.leaguesPersistKey,
       version: 2,
       migrate: (persisted: unknown, version: number) => {
         const p = persisted as { leagues?: League[] };

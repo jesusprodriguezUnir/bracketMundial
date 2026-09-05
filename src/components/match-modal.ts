@@ -297,7 +297,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(26, 25, 51, 0.75);
+      background: rgba(3, 6, 16, 0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       padding: 20px;
       overflow: auto;
       animation: mmFadeIn 0.2s ease both;
@@ -309,9 +311,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
     /* ─── Modal panel ─── */
     .modal {
-      background: var(--paper);
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-xl);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       max-width: 860px;
       width: 100%;
       display: flex;
@@ -325,9 +328,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: none;
       width: 40px;
       height: 5px;
-      background: var(--dim);
+      background: var(--ink-muted);
       opacity: 0.45;
-      border-radius: 0;
+      border-radius: var(--radius-pill);
       margin: 8px auto 4px;
       flex-shrink: 0;
     }
@@ -338,23 +341,24 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       align-items: center;
       gap: 14px;
       padding: 10px 16px;
-      background: var(--ink);
-      color: var(--paper);
-      border-bottom: 3px solid var(--ink);
-      box-shadow: 4px 4px 0 0 var(--retro-orange);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--on-dark);
+      border-bottom: 1px solid var(--hairline);
     }
     .ticket-label {
       font-family: var(--font-var);
       font-size: 14px;
       letter-spacing: 0.1em;
-      color: var(--retro-yellow);
+      color: var(--accent);
       flex-shrink: 0;
     }
     .ticket-info {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.08em;
-      color: var(--paper);
+      color: var(--on-dark);
       flex: 1;
       overflow: hidden;
       white-space: nowrap;
@@ -363,29 +367,31 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     .ticket-group {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--retro-yellow);
+      color: var(--accent);
       letter-spacing: 0.15em;
       flex-shrink: 0;
     }
     .ticket-broadcast {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       padding: 2px 8px;
       font-family: var(--font-var);
       font-size: 11px;
-      border: 1px solid var(--paper);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-pill);
       margin-left: 8px;
     }
     .ticket-broadcast.exclusive {
-      background: var(--ink);
-      color: var(--retro-yellow);
+      background: var(--card-grad);
+      color: var(--accent);
     }
     .ticket-close {
       all: unset;
       cursor: pointer;
       background: transparent;
-      border: 2px solid var(--paper);
-      color: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      color: var(--on-dark);
       font-family: var(--font-var);
       font-size: 20px;
       line-height: 1;
@@ -398,21 +404,18 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       justify-content: center;
       flex-shrink: 0;
       margin-left: 10px;
-      box-shadow: 2px 2px 0 0 rgba(255,255,255,0.3);
       transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
     }
     .ticket-close:hover {
-      background: var(--retro-red);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
       border-color: var(--retro-red);
       transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 0 rgba(0,0,0,0.4);
     }
     .ticket-close:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0 0 0 0 rgba(0,0,0,0.4);
+      opacity: 0.7;
     }
     .ticket-close:focus-visible {
-      outline: 3px solid var(--retro-yellow);
+      outline: 3px solid var(--accent);
       outline-offset: 2px;
     }
 
@@ -423,10 +426,11 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       gap: 24px;
       align-items: center;
       padding: 24px;
-      background: var(--paper-2);
-      border: 4px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       margin: 16px;
-      box-shadow: var(--shadow-hard-xl);
+      box-shadow: var(--shadow-md);
       position: relative;
     }
 
@@ -444,10 +448,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
-      background: var(--paper-3);
-      border: 4px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 12px 14px;
-      box-shadow: 4px 4px 0 0 var(--ink);
       min-width: 110px;
     }
     .sticker.left  { transform: rotate(-3deg); }
@@ -458,8 +462,8 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       width: 70px;
       height: 46px;
       object-fit: cover;
-      border: 3px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
     }
     .sticker-name {
       font-family: var(--font-head);
@@ -496,16 +500,17 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.3em;
-      color: var(--paper);
-      background: var(--retro-red);
+      color: var(--ink);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
       padding: 3px 10px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-pill);
       text-transform: uppercase;
     }
     .score-tbd {
       font-family: var(--font-var);
       font-size: 36px;
-      color: var(--dim);
+      color: var(--ink-muted);
       opacity: 0.5;
     }
 
@@ -513,13 +518,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     /* ─── Editor de marcador ─── */
     .editor-section {
       padding: 14px 16px 16px;
-      border-top: 2px solid var(--ink);
-      background: var(--paper-3);
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .editor-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       margin-bottom: 10px;
@@ -540,14 +545,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: grid;
       gap: 10px;
       padding-top: 12px;
-      border-top: 2px dashed var(--ink);
+      border-top: 1px solid var(--hairline);
       margin-top: 12px;
     }
 
     .penalties-title {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
@@ -563,9 +568,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.18em;
-      color: var(--paper);
-      background: var(--ink);
-      border: 2px solid var(--ink);
+      color: var(--on-dark);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       padding: 3px 8px;
       text-transform: uppercase;
     }
@@ -574,9 +580,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     .score-input {
       display: inline-flex;
       align-items: stretch;
-      border: 3px solid var(--ink);
-      background: var(--paper-2);
-      box-shadow: 3px 3px 0 0 var(--retro-orange);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
     }
     .score-input button {
       all: unset;
@@ -584,8 +590,8 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       padding: 5px 12px;
       font-family: var(--font-var);
       font-size: 18px;
-      color: var(--paper);
-      background: var(--ink);
+      color: var(--on-dark);
+      background: var(--card-grad);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -594,8 +600,8 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
-    .score-input button:hover { background: var(--retro-red); }
-    .score-input button:active { background: var(--retro-orange); }
+    .score-input button:hover { background: var(--accent); color: var(--on-accent); }
+    .score-input button:active { background: var(--accent); opacity: 0.7; }
     .score-display {
       font-family: var(--font-var);
       font-size: 28px;
@@ -618,16 +624,17 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     .vs-sep {
       font-family: var(--font-var);
       font-size: 22px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     /* Aviso empate en knockout */
     .warn {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--paper);
-      background: var(--retro-red);
-      border: 2px solid var(--ink);
+      color: var(--ink);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-sm);
       padding: 4px 10px;
       letter-spacing: 0.08em;
       margin-top: 10px;
@@ -641,7 +648,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: flex;
       gap: 10px;
       padding: 0 16px 16px;
-      background: var(--paper);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--hairline);
     }
     .modal-footer .btn { flex: 1; }
 
@@ -652,8 +662,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       gap: 8px;
       width: 100%;
       padding: 12px;
-      border: 2px solid var(--retro-yellow);
-      background: var(--paper-2);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-md);
+      background: var(--fill);
     }
     .confirm-msg {
       font-family: var(--font-var);
@@ -664,7 +675,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     .confirm-hint {
       font-family: var(--font-body);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       line-height: 1.4;
     }
     .confirm-actions {
@@ -685,7 +696,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       opacity: 0.35;
       cursor: not-allowed;
       transform: none;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
 
     /* Barra de probabilidad 1X2 */
@@ -697,7 +708,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-size: 8px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 4px;
       display: flex;
       align-items: center;
@@ -714,15 +725,16 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-size: 8px;
       font-weight: 700;
       letter-spacing: 0.06em;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 2px;
     }
-    .odds-legend .odds-home { color: var(--retro-blue); }
+    .odds-legend .odds-home { color: var(--accent); }
     .odds-legend .odds-away { color: var(--retro-red); }
     .odds-bar {
       display: flex;
       height: 8px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       overflow: hidden;
     }
     .odds-seg { height: 100%; }
@@ -732,16 +744,18 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       margin-top: 3px;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
-    .odds-figs .odds-home { color: var(--retro-blue); font-weight: 700; }
+    .odds-figs .odds-home { color: var(--accent); font-weight: 700; }
     .odds-figs .odds-away { color: var(--retro-red); font-weight: 700; }
 
     @media (max-width: 768px) {
       :host {
         align-items: flex-end;
         padding: 0;
-        background: rgba(26, 25, 51, 0.65);
+        background: rgba(3, 6, 16, 0.66);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
         animation: mmFadeIn 0.22s ease both;
       }
       @keyframes mmSlideUp {
@@ -751,7 +765,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .modal {
         max-height: calc(90dvh);
         max-width: 100%;
-        border-width: 3px;
+        border-width: 1px;
         border-bottom: none;
         animation: mmSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
         will-change: transform;
@@ -780,7 +794,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
         gap: 6px;
         margin: 0;
         padding: 14px 10px;
-        border-width: 3px;
+        border-width: 1px;
         border-left: none;
         border-right: none;
       }
@@ -795,15 +809,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .sticker {
         min-width: 0;
         padding: 8px 10px;
-        border-width: 2px;
-        box-shadow: 2px 2px 0 0 var(--ink);
+        border-width: 1px;
       }
       .sticker-flag { font-size: 32px; }
       .flag-img-big {
         width: 56px;
         height: 37px;
-        border-width: 2px;
-        box-shadow: 1px 1px 0 0 var(--ink);
+        border-width: 1px;
       }
       .sticker-name {
         font-size: 11px;
@@ -816,7 +828,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .score-final-badge { font-size: 9px; padding: 3px 8px; }
       .editor-section {
         padding: 14px 10px 12px;
-        border-top-width: 2px;
+        border-top-width: 1px;
       }
       .editor-label {
         margin-bottom: 8px;
@@ -907,9 +919,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       display: flex;
       gap: 4px;
       padding: 8px 10px;
-      border-top: 2px solid var(--ink);
-      border-bottom: 2px solid var(--ink);
-      background: var(--paper-2);
+      border-top: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .info-tab-btn {
       all: unset;
@@ -920,7 +932,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.06em;
-      color: var(--dim);
+      color: var(--ink-muted);
       border-bottom: 3px solid transparent;
       text-transform: uppercase;
       touch-action: manipulation;
@@ -931,9 +943,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     }
     .info-tab-btn.active {
       color: var(--ink);
-      border-bottom-color: var(--retro-orange);
+      border-bottom-color: var(--accent);
       font-weight: 700;
-      background: var(--paper);
+      background: var(--card-grad);
     }
     .info-tab-content {
       display: none;
@@ -953,10 +965,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-var);
       font-size: 11px;
       padding: 3px 7px;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       letter-spacing: 0.08em;
-      color: var(--paper-3);
+      color: var(--on-accent);
       flex-shrink: 0;
     }
     .section-title {
@@ -970,14 +982,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     .section-rule {
       flex: 1;
       height: 0;
-      border-top: 1.5px dashed rgba(26, 25, 51, 0.35);
+      border-top: 1px solid var(--hairline);
     }
 
     /* ─── V2-Cancha: Crónica ─── */
     .cronica-block {
       padding: 18px 20px 16px;
-      border-top: 2px solid var(--ink);
-      background: var(--paper-3);
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .cronica-text {
       font-family: var(--font-body);
@@ -992,21 +1004,21 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.14em;
-      color: var(--retro-blue);
+      color: var(--accent);
       font-weight: 700;
       text-decoration: underline;
     }
     .cronica-headline {
       font-family: var(--font-display);
       font-size: 12px;
-      color: var(--retro-blue);
+      color: var(--accent);
       margin-left: 6px;
       text-transform: uppercase;
     }
     .cronica-full {
       margin-top: 12px;
       padding-top: 12px;
-      border-top: 1px dashed var(--ink);
+      border-top: 1px solid var(--hairline);
       font-family: var(--font-body);
       font-size: 13px;
       line-height: 1.6;
@@ -1018,14 +1030,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     /* ─── V2-Cancha: Probabilidades expandidas ─── */
     .prob-block {
       padding: 14px 20px 16px;
-      border-top: 2px solid var(--ink);
-      background: var(--paper);
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .prob-bar-large {
       display: flex;
       height: 36px;
-      border: 2.5px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       margin-top: 10px;
       overflow: hidden;
     }
@@ -1036,7 +1048,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-head);
       font-size: 14px;
       color: var(--ink);
-      border-right: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
       min-width: 0;
       overflow: hidden;
     }
@@ -1046,7 +1058,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
       margin-top: 5px;
       font-weight: 700;
@@ -1055,14 +1067,14 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     /* ─── V2-Cancha: Cancha con formaciones ─── */
     .pitch-block {
       padding: 14px 20px 20px;
-      border-top: 2px solid var(--ink);
-      background: var(--paper);
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .pitch-field {
       position: relative;
       background: #1f6b3a;
-      border: 3px solid var(--ink);
-      box-shadow: 3px 3px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       height: 440px;
       overflow: hidden;
       margin-top: 10px;
@@ -1093,14 +1105,13 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      border: 2.5px solid var(--ink);
+      border: 1px solid var(--hairline);
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-var);
       font-size: 12px;
       line-height: 1;
-      box-shadow: 2px 2px 0 0 var(--ink);
       color: var(--ink);
       flex-shrink: 0;
     }
@@ -1118,10 +1129,11 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     }
     .pitch-dt {
       position: absolute;
-      background: var(--paper-3);
+      background: var(--fill);
       color: var(--ink);
       padding: 4px 7px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.07em;
@@ -1156,9 +1168,9 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       gap: 4px;
     }
     .scorer-name { font-weight: 700; }
-    .scorer-min { color: var(--dim); font-size: 10px; }
+    .scorer-min { color: var(--ink-muted); font-size: 10px; }
     .scorer-pen { color: var(--retro-red); font-size: 9px; font-weight: 700; }
-    .scorers-divider { width: 1px; background: rgba(26,25,51,0.15); }
+    .scorers-divider { width: 1px; background: var(--hairline); }
   `];
 
   // ─── V2-Cancha helpers ────────────────────────────────────────────

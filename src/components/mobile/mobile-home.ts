@@ -77,35 +77,47 @@ export class MobileHome extends LitElement {
 
       /* ── Hero ── */
       .hero {
-        background: var(--ink);
-        background-image: radial-gradient(circle, rgba(236,223,192,0.10) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-        color: var(--paper);
+        background: var(--card-grad);
+        color: var(--on-dark);
         padding: 26px 18px 24px;
-        border-bottom: 4px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         position: relative;
         overflow: hidden;
       }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 520px 300px at 82% -80px, rgba(77,163,255,0.22), transparent 70%),
+          radial-gradient(ellipse 360px 240px at 0% 120%, rgba(120,90,255,0.14), transparent 70%),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px);
+        background-size: auto, auto, 22px 22px;
+        pointer-events: none;
+      }
+      .hero > * { position: relative; }
       .hero-eyebrow {
         font-family: var(--font-mono);
         font-size: 10px;
         letter-spacing: 0.3em;
-        color: var(--retro-yellow);
+        color: var(--accent);
         font-weight: 700;
         margin-bottom: 10px;
       }
       .hero-title {
         font-family: var(--font-var);
         font-size: 46px;
+        font-weight: 800;
         line-height: 0.86;
         letter-spacing: -0.02em;
-        color: var(--paper);
+        color: var(--on-dark);
       }
-      .hero-title .accent { color: var(--retro-yellow); display: block; }
+      .hero-title .accent { color: var(--accent); display: block; }
       .hero-sub {
         font-family: var(--font-body);
         font-size: 13.5px;
         line-height: 1.45;
-        color: rgba(236,223,192,0.82);
+        color: var(--on-dark-soft);
         margin-top: 14px;
         max-width: 30ch;
       }
@@ -122,18 +134,19 @@ export class MobileHome extends LitElement {
       .hero-stats {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        border-top: 3px solid var(--ink);
+        border-top: 1px solid var(--hairline);
       }
       .hstat {
         padding: 12px 6px;
         text-align: center;
-        background: var(--paper-2);
-        border-right: 2px solid var(--ink);
+        background: var(--fill);
+        border-right: 1px solid var(--hairline);
       }
       .hstat:last-child { border-right: none; }
       .hstat .num {
         font-family: var(--font-var);
         font-size: 24px;
+        font-weight: 800;
         line-height: 1;
         color: var(--ink);
       }
@@ -141,7 +154,7 @@ export class MobileHome extends LitElement {
         font-family: var(--font-mono);
         font-size: 8px;
         letter-spacing: 0.12em;
-        color: var(--dim);
+        color: var(--ink-muted);
         margin-top: 4px;
         text-transform: uppercase;
       }
@@ -149,9 +162,10 @@ export class MobileHome extends LitElement {
       /* ── Countdown ── */
       .countdown {
         margin: 16px 16px 16px;
-        background: var(--retro-yellow);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-md);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
         padding: 14px 16px;
         display: flex;
         align-items: center;
@@ -161,19 +175,20 @@ export class MobileHome extends LitElement {
         font-family: var(--font-mono);
         font-size: 9px;
         letter-spacing: 0.18em;
-        color: var(--ink);
+        color: var(--ink-muted);
         text-transform: uppercase;
       }
       .cd-days {
         font-family: var(--font-var);
         font-size: 34px;
+        font-weight: 800;
         line-height: 1;
-        color: var(--ink);
+        color: var(--accent);
       }
       .cd-date {
         font-family: var(--font-mono);
         font-size: 10px;
-        color: var(--ink);
+        color: var(--ink-soft);
         text-align: right;
       }
       .cd-live,
@@ -182,20 +197,24 @@ export class MobileHome extends LitElement {
         flex-direction: column;
         gap: 4px;
         padding: 10px 18px;
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-md);
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
         font-family: var(--font-var);
+        font-weight: 800;
         font-size: 16px;
         letter-spacing: 0.08em;
         margin: 16px 16px 16px;
       }
       .cd-live {
-        background: var(--retro-red);
-        color: var(--paper-3);
+        background: color-mix(in srgb, var(--retro-red) 20%, var(--paper-2));
+        border-color: var(--retro-red);
+        color: var(--ink);
         animation: pulse-live 2s ease-in-out infinite;
       }
       .cd-archive {
-        background: var(--retro-yellow);
+        background: color-mix(in srgb, var(--band-gold) 22%, var(--paper-2));
+        border-color: var(--band-gold);
         color: var(--ink);
       }
       .cd-archive-hint {
@@ -204,6 +223,7 @@ export class MobileHome extends LitElement {
         letter-spacing: 0;
         font-weight: 500;
         line-height: 1.35;
+        color: var(--ink-soft);
       }
       @keyframes pulse-live {
         0%, 100% { opacity: 1; }
@@ -214,14 +234,17 @@ export class MobileHome extends LitElement {
       /* ── Simulación Rápida ── */
       .sim-card {
         margin: 0 16px 16px;
-        background: var(--paper-2);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-md);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
         padding: 14px 16px;
       }
       .sim-title {
         font-family: var(--font-var);
         font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
         color: var(--ink);
         margin-bottom: 4px;
         letter-spacing: 0.02em;
@@ -229,7 +252,7 @@ export class MobileHome extends LitElement {
       .sim-desc {
         font-family: var(--font-body);
         font-size: 11px;
-        color: var(--dim);
+        color: var(--ink-muted);
         line-height: 1.45;
         margin-bottom: 12px;
       }
@@ -251,31 +274,33 @@ export class MobileHome extends LitElement {
       .quick-card {
         all: unset;
         cursor: pointer;
-        background: var(--paper-3);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-md);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
         padding: 16px 14px;
         display: flex;
         flex-direction: column;
         gap: 8px;
         min-height: 104px;
-        transition: transform 0.08s, box-shadow 0.08s;
+        transition: transform 0.1s, border-color 0.12s;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
-      .quick-card:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 0 var(--ink); }
+      .quick-card:active { opacity: 0.7; border-color: var(--accent); }
       .qc-glyph {
         width: 34px; height: 34px;
         display: grid; place-items: center;
-        border: 2px solid var(--ink);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--hairline);
         font-size: 18px;
-        color: var(--paper);
+        color: var(--on-accent);
       }
-      .qc-title { font-family: var(--font-var); font-size: 16px; line-height: 1; color: var(--ink); }
+      .qc-title { font-family: var(--font-var); font-size: 16px; font-weight: 800; text-transform: uppercase; line-height: 1; color: var(--ink); }
       .qc-desc {
         font-family: var(--font-mono);
         font-size: 9px;
-        color: var(--dim);
+        color: var(--ink-muted);
         letter-spacing: 0.05em;
         margin-top: auto;
       }
@@ -284,12 +309,12 @@ export class MobileHome extends LitElement {
       .played-banner {
         margin: 16px 16px 0;
         padding: 10px 14px;
-        background: var(--retro-green);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
+        background: color-mix(in srgb, var(--retro-green) 18%, var(--paper-2));
+        border: 1px solid var(--retro-green);
+        border-radius: var(--radius-sm);
         font-family: var(--font-mono);
         font-size: 11px;
-        color: var(--paper);
+        color: var(--ink);
         letter-spacing: 0.08em;
         text-align: center;
       }
@@ -304,17 +329,17 @@ export class MobileHome extends LitElement {
     return html`
       <!-- Hero oscuro -->
       <section class="hero">
-        <div class="hero-eyebrow">★ FIFA WORLD CUP · 26 ★</div>
+        <div class="hero-eyebrow">★ UEFA CHAMPIONS LEAGUE · 26/27 ★</div>
         <h1 class="hero-title">
-          ${locale === 'es' ? html`PREDICE<span class="accent">EL MUNDIAL</span>` : html`PREDICT<span class="accent">THE WORLD CUP</span>`}
+          ${locale === 'es' ? html`PREDICE<span class="accent">LA CHAMPIONS</span>` : html`PREDICT<span class="accent">CHAMPIONS LEAGUE</span>`}
         </h1>
         <p class="hero-sub">
           ${locale === 'es'
-            ? 'Simula los 12 grupos, avanza por las eliminatorias de 48 selecciones y corona a tu campeón.'
-            : 'Simulate the 12 groups, advance through the 48-team knockout rounds and crown your champion.'}
+            ? 'Simula la fase liga, avanza por las eliminatorias de 36 clubes y corona a tu campeón de Europa.'
+            : 'Simulate the league phase, advance through the 36-club knockout rounds and crown your European champion.'}
         </p>
         <div class="hero-flags">
-          ${['🇪🇸','🇧🇷','🇦🇷','🇫🇷','🇩🇪','🇲🇽','🏴󠁧󠁢󠁥󠁮󠁧󠁿','🇵🇹'].map(f => html`<span>${f}</span>`)}
+          ${['🇪🇸','🏴󠁧󠁢󠁥󠁮󠁧󠁿','🇩🇪','🇮🇹','🇫🇷','🇵🇹','🇳🇱','🇹🇷'].map(f => html`<span>${f}</span>`)}
         </div>
         <div class="hero-cta">
           <button class="btn btn-primary btn-block" @click="${() => this._navigate('groups')}">
@@ -325,15 +350,15 @@ export class MobileHome extends LitElement {
 
       <!-- Stats strip -->
       <div class="hero-stats">
-        <div class="hstat"><div class="num">48</div><div class="lbl">${t('hero.statTeams')}</div></div>
-        <div class="hstat"><div class="num">12</div><div class="lbl">${t('hero.statGroups')}</div></div>
-        <div class="hstat"><div class="num">104</div><div class="lbl">${t('hero.statMatches')}</div></div>
-        <div class="hstat"><div class="num">16</div><div class="lbl">${t('hero.statVenues')}</div></div>
+        <div class="hstat"><div class="num">36</div><div class="lbl">${t('hero.statTeams')}</div></div>
+        <div class="hstat"><div class="num">8</div><div class="lbl">${t('hero.statGroups')}</div></div>
+        <div class="hstat"><div class="num">144</div><div class="lbl">${t('hero.statMatches')}</div></div>
+        <div class="hstat"><div class="num">1</div><div class="lbl">${t('hero.statVenues')}</div></div>
       </div>
 
       <!-- Jugados (si hay resultados) -->
       ${played > 0 ? html`
-        <div class="played-banner">⚽ ${locale === 'es' ? `${played}/104 partidos disputados` : `${played}/104 matches played`}</div>
+        <div class="played-banner">⚽ ${locale === 'es' ? `${played}/144 partidos disputados` : `${played}/144 matches played`}</div>
       ` : ''}
 
       ${this._phase === 'archive'
@@ -352,9 +377,9 @@ export class MobileHome extends LitElement {
                 <div class="cd-days">${cd.days} ${locale === 'es' ? 'días' : 'days'}</div>
               </div>
               <div class="cd-date">
-                11 JUN 2026<br>
-                ${locale === 'es' ? 'México vs Sudáfrica' : 'Mexico vs South Africa'}<br>
-                ${locale === 'es' ? 'Estadio Azteca' : 'Azteca Stadium'}
+                8 SEP 2026<br>
+                ${locale === 'es' ? 'Jornada 1 · Fase Liga' : 'Matchday 1 · League Phase'}<br>
+                ${locale === 'es' ? 'Fútbol Europeo' : 'European Football'}
               </div>
             </div>
           `}
@@ -364,8 +389,8 @@ export class MobileHome extends LitElement {
         <div class="sim-title">⚡ ${locale === 'es' ? 'SIMULACIÓN DEL TORNEO' : 'TOURNAMENT SIMULATION'}</div>
         <div class="sim-desc">
           ${locale === 'es'
-            ? '¿Quieres rellenar todo el torneo al instante? Simula los 104 partidos (tanto en grupos como en la fase eliminatoria) de una sola vez desde aquí.'
-            : 'Want to fill the entire tournament instantly? Simulate all 104 matches (both group stage and knockout rounds) at once from here.'}
+            ? '¿Quieres rellenar todo el torneo al instante? Simula los 144 partidos de la fase liga y los cruces de una sola vez desde aquí.'
+            : 'Want to fill the entire tournament instantly? Simulate all 144 league phase matches and knockout rounds at once from here.'}
         </div>
         <div class="sim-actions">
           <button class="btn btn-primary" @click="${this._simulateAll}">
@@ -380,24 +405,24 @@ export class MobileHome extends LitElement {
       <!-- Quick grid -->
       <div class="quick-grid">
         <button class="quick-card" @click="${() => this._navigate('groups')}">
-          <div class="qc-glyph" style="background:var(--retro-orange)">▦</div>
+          <div class="qc-glyph" style="background:var(--accent)">▦</div>
           <div class="qc-title">${t('tabs.groups').toUpperCase()}</div>
-          <div class="qc-desc">${locale === 'es' ? '12 grupos · clasificación' : '12 groups · standings'}</div>
+          <div class="qc-desc">${locale === 'es' ? '36 clubes · tabla única' : '36 clubs · single table'}</div>
         </button>
         <button class="quick-card" @click="${() => this._navigate('bracket')}">
           <div class="qc-glyph" style="background:var(--retro-green)">🏆</div>
           <div class="qc-title">${t('knockout.mobileTitle').toUpperCase()}</div>
-          <div class="qc-desc">${locale === 'es' ? 'De 1/16 a la Final' : 'From R32 to the Final'}</div>
+          <div class="qc-desc">${locale === 'es' ? 'Playoffs a la Final' : 'Playoffs to the Final'}</div>
         </button>
         <button class="quick-card" @click="${() => this._navigate('squads')}">
-          <div class="qc-glyph" style="background:var(--retro-blue)">★</div>
+          <div class="qc-glyph" style="background:var(--accent)">★</div>
           <div class="qc-title">${t('tabs.squads').toUpperCase()}</div>
-          <div class="qc-desc">${locale === 'es' ? '48 convocatorias' : '48 squads'}</div>
+          <div class="qc-desc">${locale === 'es' ? '36 plantillas oficiales' : '36 official squads'}</div>
         </button>
-        <button class="quick-card" @click="${() => this._navigate('stadiums')}">
-          <div class="qc-glyph" style="background:var(--retro-red)">◍</div>
-          <div class="qc-title">${t('tabs.stadiums').toUpperCase()}</div>
-          <div class="qc-desc">${locale === 'es' ? '16 sedes · 3 países' : '16 venues · 3 countries'}</div>
+        <button class="quick-card" @click="${() => this._navigate('matchday')}">
+          <div class="qc-glyph" style="background:var(--retro-red)">🗓️</div>
+          <div class="qc-title">${t('tabs.matchday').toUpperCase()}</div>
+          <div class="qc-desc">${locale === 'es' ? '18 partidos · Jornada 1' : '18 matches · Matchday 1'}</div>
         </button>
       </div>
     `;

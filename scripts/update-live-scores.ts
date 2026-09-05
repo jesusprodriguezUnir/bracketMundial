@@ -8,7 +8,9 @@ const ROOT = join(__dirname, '..');
 
 // Importar datos y lógica del torneo
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../src/data/fifa-2026';
-import { KNOCKOUT_SCHEDULE, GROUP_MATCHES } from '../src/data/match-schedule';
+import { KNOCKOUT_SCHEDULE } from '../src/data/match-schedule';
+import { GROUP_MATCHES } from '../src/data/league-schedule';
+import { UCL_API_TEAMS } from '../src/data/ucl-2027';
 import { decodeBracket, encodeBracket } from '../src/lib/bracket-codec';
 import { syncKnockoutBracket } from '../src/lib/bracket-logic';
 import { recalculateStandings, getWinnerId, getKnockoutMatchOrder, initialGroupMatches } from '../src/store/tournament-store';
@@ -120,7 +122,54 @@ const TEAM_NAME_ALIASES: Record<string, string> = {
   'portugal': 'POR', 'colombia': 'COL', 'uzbekistan': 'UZB',
   'congo dr': 'COD', 'dr congo': 'COD',
   'england': 'ENG', 'croatia': 'CRO', 'ghana': 'GHA', 'panama': 'PAN',
+  // ── Clubes UCL 2026/27 ──────────────────────────────────────────────────────
+  'real madrid': 'RMA', 'real madrid cf': 'RMA',
+  'barcelona': 'BAR', 'fc barcelona': 'BAR',
+  'bayern munich': 'BAY', 'fc bayern munchen': 'BAY', 'bayern': 'BAY',
+  'borussia dortmund': 'BVB', 'bvb': 'BVB',
+  'manchester city': 'MCI', 'manchester city fc': 'MCI', 'man city': 'MCI',
+  'liverpool': 'LIV', 'liverpool fc': 'LIV',
+  'arsenal': 'ARS', 'arsenal fc': 'ARS',
+  'aston villa': 'AVL', 'aston villa fc': 'AVL',
+  'manchester united': 'MUN', 'manchester united fc': 'MUN', 'man utd': 'MUN',
+  'atletico madrid': 'ATL', 'club atletico de madrid': 'ATL', 'atleti': 'ATL',
+  'inter': 'INT', 'inter milan': 'INT', 'fc internazionale milano': 'INT',
+  'roma': 'ROM', 'as roma': 'ROM',
+  'napoli': 'NAP', 'ssc napoli': 'NAP',
+  'psg': 'PSG', 'paris saintgermain': 'PSG', 'paris saint germain': 'PSG', 'paris saintgermain fc': 'PSG',
+  'lille': 'LIL', 'lille osc': 'LIL',
+  'lens': 'RCL', 'racing club de lens': 'RCL', 'rc lens': 'RCL',
+  'villarreal': 'VIL', 'villarreal cf': 'VIL',
+  'real betis': 'BET', 'real betis balompie': 'BET', 'betis': 'BET',
+  'sporting cp': 'SPO', 'sporting clube de portugal': 'SPO', 'sporting': 'SPO',
+  'porto': 'FCP', 'fc porto': 'FCP',
+  'galatasaray': 'GAL', 'galatasaray sk': 'GAL',
+  'fenerbahce': 'FEN', 'fenerbahce sk': 'FEN',
+  'psv': 'PSV', 'psv eindhoven': 'PSV',
+  'feyenoord': 'FEY', 'feyenoord rotterdam': 'FEY',
+  'rb leipzig': 'RBL', 'leipzig': 'RBL',
+  'stuttgart': 'VFB', 'vfb stuttgart': 'VFB',
+  'club brugge': 'BRU', 'club brugge kv': 'BRU', 'brugge': 'BRU',
+  'slavia prague': 'SLP', 'sk slavia praha': 'SLP', 'slavia praha': 'SLP',
+  'shakhtar donetsk': 'SHK', 'fk shakhtar donetsk': 'SHK', 'shakhtar': 'SHK',
+  'aek athens': 'AEK', 'pae aek': 'AEK', 'aek': 'AEK',
+  'lask': 'LSK', 'lask linz': 'LSK',
+  'viking': 'VIK', 'viking fk': 'VIK',
+  'bodo glimt': 'BOD', 'fk bodo glimt': 'BOD', 'bodoglimt': 'BOD',
+  'como': 'COM', 'como 1907': 'COM',
+  'slovan bratislava': 'SLO', 'sk slovan bratislava': 'SLO',
+  'sabah': 'SAB', 'sabah fk': 'SAB',
 };
+
+const API_ID_TO_CLUB: Record<number, string> = Object.fromEntries(
+  Object.entries(UCL_API_TEAMS).map(([code, id]) => [id, code])
+);
+
+function getTeamIdFromApi(team: { id?: number; name?: string }): string | null {
+  if (team.id && API_ID_TO_CLUB[team.id]) return API_ID_TO_CLUB[team.id];
+  if (team.name) return getTeamIdByApiName(team.name);
+  return null;
+}
 
 function getTeamIdByApiName(apiName: string): string | null {
   const key = normalizeStr(apiName);
@@ -145,7 +194,7 @@ interface ApiFetchResult {
 const SKIP_STATUSES = new Set(['SCHEDULED', 'TIMED', 'POSTPONED', 'CANCELLED', 'SUSPENDED']);
 
 async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
-  const url = 'https://api.football-data.org/v4/competitions/WC/matches';
+  const url = 'https://api.football-data.org/v4/competitions/CL/matches?season=2026';
   let lastError = '';
   let lastStatus = 0;
 
@@ -228,8 +277,8 @@ async function shouldSkip(sb: SupabaseClient): Promise<{ skip: boolean; reason: 
 }
 
 // ── Guard de fechas del torneo (belt-and-braces; el workflow ya filtra) ─────
-const TOURNAMENT_START = '2026-06-11';
-const TOURNAMENT_END = '2026-07-20'; // día después de la final, margen para correcciones
+const TOURNAMENT_START = '2026-09-08';
+const TOURNAMENT_END = '2027-06-06';
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function run() {
@@ -354,8 +403,8 @@ async function run() {
       if (processedFixtures.has(f.id.toString())) continue;
       if (SKIP_STATUSES.has(f.status)) continue;
 
-      const teamA_id = getTeamIdByApiName(f.homeTeam.name);
-      const teamB_id = getTeamIdByApiName(f.awayTeam.name);
+      const teamA_id = getTeamIdFromApi(f.homeTeam);
+      const teamB_id = getTeamIdFromApi(f.awayTeam);
       if (!teamA_id || !teamB_id) continue;
 
       // fullTime contiene el marcador final (o actual si IN_PLAY)

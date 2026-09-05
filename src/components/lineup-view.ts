@@ -24,8 +24,9 @@ export class LineupView extends LitElement {
     .pitch {
       position: relative;
       background: var(--retro-green);
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       aspect-ratio: 2 / 3;
       margin: 0 auto;
       max-width: 440px;
@@ -116,8 +117,9 @@ export class LineupView extends LitElement {
       position: relative;
       width: 52px;
       height: 52px;
-      background-color: var(--paper);
-      border: 2.5px solid var(--ink);
+      background-color: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -125,14 +127,14 @@ export class LineupView extends LitElement {
       font-size: 12px;
       font-weight: 700;
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       overflow: visible;
     }
 
     .player-token .photo-frame {
       position: absolute;
       inset: 0;
-      background-color: var(--paper);
+      background-color: var(--fill);
       background-size: cover;
       background-position: top center;
       overflow: hidden;
@@ -143,16 +145,17 @@ export class LineupView extends LitElement {
 
     /* GK sin foto */
     .row-0 .player-token:not(.has-photo) .photo-frame {
-      background-color: var(--retro-yellow);
+      background-color: var(--accent);
     }
 
     .number-sticker {
       position: absolute;
       bottom: -6px;
       right: -6px;
-      background: var(--retro-yellow);
-      color: var(--ink);
-      border: 2px solid var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
       padding: 1px 4px;
       font-family: var(--font-var);
       font-size: 11px;
@@ -163,9 +166,10 @@ export class LineupView extends LitElement {
       position: absolute;
       top: -6px;
       left: -6px;
-      background: var(--retro-red);
-      color: var(--paper);
-      border: 2px solid var(--ink);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
+      color: var(--ink);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-sm);
       padding: 1px 4px;
       font-family: var(--font-mono);
       font-size: 8px;
@@ -179,8 +183,9 @@ export class LineupView extends LitElement {
       font-size: 9px;
       font-weight: 700;
       text-transform: uppercase;
-      color: var(--paper);
-      background: var(--ink);
+      color: var(--on-dark);
+      background: var(--card-grad);
+      border-radius: var(--radius-sm);
       padding: 2px 5px;
       letter-spacing: 0.05em;
       white-space: nowrap;

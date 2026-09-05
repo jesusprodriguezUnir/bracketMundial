@@ -115,9 +115,10 @@ export class CalendarView extends LitElement {
       gap: 18px;
       margin-bottom: 22px;
       padding: 18px;
-      background: var(--paper-2);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
     }
 
     .filter-block {
@@ -128,7 +129,7 @@ export class CalendarView extends LitElement {
     .filter-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
@@ -143,34 +144,36 @@ export class CalendarView extends LitElement {
       all: unset;
       cursor: pointer;
       padding: 8px 12px;
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--ink);
     }
 
     .chip.active {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .summary {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 12px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .day-group {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       margin-bottom: 18px;
       overflow: hidden;
-      background: var(--paper);
+      background: var(--card-grad);
     }
 
     .day-strip {
@@ -181,9 +184,9 @@ export class CalendarView extends LitElement {
       gap: 12px;
       align-items: center;
       padding: 12px 16px;
-      background: var(--retro-blue);
+      background: var(--accent);
       color: var(--paper);
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline-strong);
       cursor: pointer;
     }
 
@@ -196,7 +199,7 @@ export class CalendarView extends LitElement {
     }
 
     .day-strip:focus-visible {
-      outline: 3px solid var(--retro-yellow);
+      outline: 3px solid var(--accent);
       outline-offset: -3px;
     }
 
@@ -221,9 +224,10 @@ export class CalendarView extends LitElement {
       font-weight: 700;
       letter-spacing: 0.12em;
       padding: 3px 7px;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--retro-red);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
     }
 
     .day-count {
@@ -254,8 +258,8 @@ export class CalendarView extends LitElement {
       gap: 16px;
       align-items: center;
       padding: 14px 16px;
-      border-bottom: 2px solid var(--ink);
-      background: var(--paper);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
 
     .match-row:nth-child(even) {
@@ -286,8 +290,10 @@ export class CalendarView extends LitElement {
     .phase-badge {
       width: fit-content;
       padding: 4px 8px;
-      border: 2px solid var(--ink);
-      background: var(--retro-yellow);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
@@ -302,7 +308,8 @@ export class CalendarView extends LitElement {
 
     .badge-tv {
       padding: 2px 6px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       font-family: var(--font-mono);
       font-size: 9px;
       font-weight: bold;
@@ -310,7 +317,7 @@ export class CalendarView extends LitElement {
     }
 
     .badge-rtve { background: var(--retro-red); color: var(--paper); }
-    .badge-dazn { background: var(--ink); color: var(--retro-yellow); }
+    .badge-dazn { background: var(--ink); color: var(--accent); }
 
     .teams-block {
       display: grid;
@@ -339,9 +346,10 @@ export class CalendarView extends LitElement {
       justify-content: center;
       align-items: center;
       min-height: 64px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-var);
       font-size: 28px;
       color: var(--ink);
@@ -362,14 +370,15 @@ export class CalendarView extends LitElement {
     .city {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.05em;
     }
 
     .empty {
       padding: 28px 20px;
-      border: 3px dashed var(--ink);
-      background: var(--paper-2);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       font-family: var(--font-display);
       color: var(--ink);
       text-align: center;
@@ -381,9 +390,10 @@ export class CalendarView extends LitElement {
       gap: 5px;
       margin-top: 8px;
       padding: 4px 8px;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.06em;
@@ -394,7 +404,7 @@ export class CalendarView extends LitElement {
     }
 
     .gcal-btn:hover {
-      background: var(--retro-blue);
+      background: var(--accent);
       color: var(--paper);
     }
 
@@ -444,7 +454,7 @@ export class CalendarView extends LitElement {
         gap: 8px 12px;
         padding: 12px;
         align-items: center;
-        border-bottom: 2px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
 
       .time-block {
@@ -463,7 +473,7 @@ export class CalendarView extends LitElement {
       .phase-badge {
         font-size: 9px;
         padding: 2px 6px;
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--hairline);
       }
 
       .broadcast-badge {
@@ -495,9 +505,9 @@ export class CalendarView extends LitElement {
         min-height: 38px;
         font-size: 14px;
         font-weight: 800;
-        border: 2px solid var(--ink);
-        box-shadow: 2px 2px 0 var(--ink);
-        background: var(--paper);
+        border: 1px solid var(--hairline);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -535,9 +545,10 @@ export class CalendarView extends LitElement {
     }
 
     .export-section {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 18px;
       margin-bottom: 22px;
       display: flex;
@@ -560,7 +571,7 @@ export class CalendarView extends LitElement {
     .export-subtitle {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-top: -4px;
@@ -573,13 +584,14 @@ export class CalendarView extends LitElement {
     }
 
     .export-card {
-      border: 2px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
 
     .export-card-title {
@@ -603,20 +615,21 @@ export class CalendarView extends LitElement {
       justify-content: center;
       gap: 6px;
       padding: 8px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 10px;
       text-transform: uppercase;
       font-weight: bold;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       transition: all 0.1s ease;
     }
 
     .export-btn:hover:not(.disabled) {
       transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 var(--ink);
+      box-shadow: var(--shadow-md);
     }
 
     .export-btn.excel {
@@ -633,7 +646,7 @@ export class CalendarView extends LitElement {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
-      box-shadow: var(--shadow-hard-sm) !important;
+      box-shadow: var(--shadow-sm) !important;
     }
 
     @media (max-width: 768px) {

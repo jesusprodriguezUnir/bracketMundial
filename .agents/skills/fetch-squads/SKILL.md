@@ -1,67 +1,62 @@
 ---
 name: fetch-squads
 description: >
-  Descarga jugadores Y entrenadores a la vez en bracketMundial.
+  Descarga jugadores Y entrenadores a la vez en bracketMundial para los 36 clubes
+  de la Champions League 2026/27 desde la web oficial de UEFA.com.
   Úsala cuando el usuario quiera completar AMBOS tipos de fotos de un equipo en un
-  solo paso, o hacer una pasada masiva de varios equipos. Para solo jugadores usa
+  solo paso, o hacer una pasada masiva de varios clubes. Para solo jugadores usa
   /player-photos; para solo entrenadores usa /coach-photos.
 license: MIT
 metadata:
   author: bracketMundial
-  version: "1.0"
+  version: "2.0"
 ---
 
-# Skill: fetch-squads
+# Skill: fetch-squads (Champions League 2026/27)
 
-Automatiza la descarga de fotos de jugadores y entrenadores desde múltiples APIs,
-y genera informes de lo que falta para pedirlo poco a poco.
+Automatiza la descarga y sincronización de fotos de jugadores y entrenadores de los
+**36 clubes de la fase liga de la Champions League 2026/27** desde la fuente oficial de **UEFA.com**,
+generando informes de activos faltantes y actualizando los manifiestos de la aplicación.
 
 ## Flujo de trabajo
 
 ### 1. Ver qué falta (siempre empieza aquí)
 
 ```bash
-npm run assets:report
-# equivale a: node scripts/fetch-squad-assets.mjs --report
+npm run ucl:report
+# o: npm run assets:report
 ```
 
-Esto genera/actualiza `docs/missing-assets.md` con la lista completa de fotos faltantes
-agrupadas por equipo, sin descargar nada.
+Esto genera y actualiza `docs/missing-assets.md` con la lista completa de fotos faltantes
+agrupadas por club de los 36 participantes, sin descargar nada.
 
-Muéstrale al usuario un resumen de los equipos con más huecos para que elija por dónde empezar.
+Muestra al usuario un resumen de los clubes con más huecos para decidir por cuál empezar.
 
-### 2. Descargar fotos de un equipo
+### 2. Descargar fotos de un club
 
 ```bash
-# Jugadores de un equipo:
-npm run photos -- JOR
-npm run photos -- JOR --type player    # explícito
+# Jugadores + entrenador de un club desde UEFA.com:
+npm run ucl:photos -- RMA
 
-# Entrenador de un equipo:
-npm run photos -- CPV --type coach
+# Varios clubes a la vez:
+npm run ucl:photos -- BAR MCI PSG BAY
 
-# Jugadores + entrenador:
-npm run photos -- HAI                  # --type all por defecto
-
-# Varios equipos a la vez:
-npm run photos -- JOR HAI CUW
-
-# Re-descargar aunque ya exista:
-npm run photos -- JOR --force
+# Re-descargar y forzar optimización:
+node scripts/fetch-ucl-squads.mjs RMA --photos --force
 ```
 
 Tras la descarga el script regenera automáticamente:
 - `src/data/player-photos.ts`
 - `src/data/coach-photos.ts`
 
-### 3. Verificar calidad de datos (opcional, requiere API key)
+### 3. Actualizar datos de plantilla (.ts) si hubo fichajes o cambios
 
 ```bash
-npm run photos -- ARG --verify-data
+# Actualizar datos de plantilla desde UEFA.com:
+npm run ucl:data -- RMA
 ```
 
-Genera `docs/data-discrepancies.md` con nombres de jugadores que no coinciden bien con
-la API. **No modifica ningún archivo de squad**; revisa manualmente antes de editar.
+Actualiza `src/data/squads/{club}.ts`, `src/data/squads/index.ts` y `src/data/coaches/index.ts`.
 
 ### 4. Confirmar y construir
 
@@ -69,64 +64,29 @@ la API. **No modifica ningún archivo de squad**; revisa manualmente antes de ed
 npm run build
 ```
 
-El build incluye `tsc` estricto; si el manifiesto no tiene el formato correcto fallará.
+El build incluye `tsc` estricto; valida que los manifiestos y tipos compilen sin errores.
 
 ---
 
-## Configuración de API keys (.env)
+## Fuente Oficial y CDN
 
-El script funciona sin keys (TheSportsDB + Wikipedia como fallback), pero con keys
-la cobertura mejora notablemente, especialmente para selecciones menores:
-
-```env
-# .env (en la raíz del proyecto — nunca commitear)
-API_FOOTBALL_KEY=tu_rapidapi_key_aqui       # https://rapidapi.com/api-sports/api/api-football
-FOOTBALL_DATA_KEY=tu_football_data_key_aqui # https://www.football-data.org/client/register
-```
-
-**Límites API-Football free:** 100 req/día. Usar por equipos, no para todos los 1172
-jugadores de golpe (usa TeamFilter: `npm run photos -- JOR HAI`).
+- **Fuente Primaria**: Web oficial de UEFA Champions League (`https://www.uefa.com/uefachampionsleague/clubs/{ID}--{SLUG}/squad/`)
+- **Fotos Jugadores**: CDN Oficial de UEFA (`https://img.uefa.com/imgml/TP/players/1/2027/324x324/{id}.jpg`)
+- **Fotos Entrenadores**: CDN Oficial de UEFA (`https://img.uefa.com/imgml/TP/players/1/2027/324x324/{coachId}.jpg`)
+- **Escudos**: CDN Oficial de UEFA (`https://img.uefa.com/imgml/TP/teams/logos/240x240/{teamId}.png`)
+- **Optimización Local**: Sharp procesa a WebP (300px ancho, calidad 80).
 
 ---
 
-## Prioridad de fuentes para fotos
-
-1. **API-Football** (RapidAPI, key) — mejor cobertura, fotos oficiales
-2. **TheSportsDB** (free) — buena para equipos europeos/grandes
-3. **Wikipedia** (free) — fallback para selecciones menores y entrenadores
-
-Si una fuente no devuelve resultado, pasa a la siguiente automáticamente.
-
----
-
-## Fotos de entrenador
-
-- Se descargan a `public/coaches/{TEAM}.webp`
-- El componente usa cascada: **local → `photoUrl` remoto → iniciales**
-- 3 entrenadores sin foto local al inicio: CPV, HAI, KSA
-
----
-
-## Archivos clave
+## Archivos Clave
 
 | Archivo | Propósito |
-|---------|-----------|
-| `scripts/fetch-squad-assets.mjs` | Script principal |
+|---|---|
+| `scripts/fetch-ucl-squads.mjs` | Script principal de ingesta, fotos y escudos |
 | `src/data/player-photos.ts` | Manifiesto autogenerado de fotos de jugador |
 | `src/data/coach-photos.ts` | Manifiesto autogenerado de fotos de entrenador |
 | `src/lib/player-photo.ts` | Helper `hasPlayerPhoto`, `playerPhotoSrc` |
 | `src/lib/coach-photo.ts` | Helper `hasCoachPhoto`, `coachPhotoSrc` |
-| `docs/missing-assets.md` | Lista de fotos faltantes (regenerar con --report) |
-| `docs/data-discrepancies.md` | Discrepancias de nombres (generado con --verify-data) |
-| `public/players/{TEAM}/{n}.webp` | Fotos de jugadores |
-| `public/coaches/{TEAM}.webp` | Fotos de entrenadores |
-
----
-
-## Presentar la lista al usuario
-
-Al ejecutar `--report`, muestra el resumen consola y ofrece:
-
-> "¿Por qué equipo quieres empezar? Los peores son JOR (20 fotos), HAI (12), CUW/EGY/IRQ (11)."
-
-Luego el usuario puede pedir: "empieza por JOR" → ejecuta `npm run photos -- JOR`.
+| `docs/missing-assets.md` | Lista de fotos faltantes (regenerar con `npm run ucl:report`) |
+| `public/players/{CLUB}/{n}.webp` | Fotos de jugadores optimizadas |
+| `public/coaches/{CLUB}.webp` | Fotos de entrenadores |

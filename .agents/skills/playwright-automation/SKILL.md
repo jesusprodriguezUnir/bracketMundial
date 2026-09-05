@@ -1,102 +1,122 @@
 ---
 name: playwright-automation
 description: >
-  Automatización de navegador con Playwright para grabar demos,
-  tomar screenshots y ejecutar flujos E2E en bracketMundial.
-  Úsala cuando el usuario pida: grabar video, record demo,
-  screenshot, automatizar navegador, playwright, generar video
-  para redes sociales.
+  Automatización de navegador con Playwright para grabar videos demo,
+  tomar screenshots y ejecutar flujos interactivos en bracketMundial.
+  Úsala cuando el usuario pida: automatizar navegador, grabar demo interactiva,
+  playwright, capturar pantallas de la app, video de simulación o ligas.
 license: MIT
 metadata:
   author: bracketMundial
-  version: "1.0"
+  version: "2.0"
 ---
 
 # Skill: playwright-automation
 
-Automatiza Chromium con Playwright para grabar videos demo de la app,
-tomar screenshots y ejecutar flujos de interacción.
+Automatiza Chromium con Playwright para grabar videos demo de la app, tomar screenshots de alta resolución y ejecutar flujos de interacción para redes sociales y marketing.
+
+---
 
 ## Comandos rápidos
 
 ```bash
-# Listar plataformas soportadas
+# Listar plataformas de video soportadas
 npm run video:list
 
 # Grabar video para una plataforma (default: instagram, 30s)
-npm run video                    # instagram 1080x1920
-npm run video -- tiktok          # tiktok 1080x1920
-npm run video -- facebook        # facebook 1080x1080
-npm run video -- twitter         # twitter 1920x1080
+npm run video                    # instagram 1080×1920
+npm run video -- tiktok          # tiktok 1080×1920
+npm run video -- facebook        # facebook 1080×1080
+npm run video -- twitter         # twitter 1920×1080
 npm run video -- tiktok 15       # duración personalizada (15s)
 
-# Grabar para TODAS las plataformas de una vez
+# Grabar para TODAS las plataformas en lote (un solo dev server)
 npm run video:all
 npm run video:all -- 15          # 15s por plataforma
+
+# Videos de flujos especializados
+npm run video:simulation         # Simulación de pronósticos y puntos (16:9)
+npm run video:leagues            # Creación de mini-ligas privadas con música (9:16)
+npm run record:session           # Grabación interactiva manual
+
+# Captura de imágenes y reels individuales
+npm run reel -- jornadas         # Reel 9:16 con banner Panini de la jornada
+npm run x:post -- tabla          # Post para X con imagen 16:9 o 1:1
 ```
 
-## Plataformas
+---
 
-| Plataforma | Resolución | Uso |
-|------------|-----------|-----|
-| `instagram` | 1080×1920 | Reels, Stories |
-| `tiktok` | 1080×1920 | TikTok vertical |
-| `facebook` | 1080×1080 | Post cuadrado |
-| `twitter` | 1920×1080 | Post horizontal |
+## Plataformas y formatos de video
 
-Los videos se guardan en `recordings/demo-{platform}.mp4` (H.264).
+| Plataforma | Resolución | Relación de aspecto | Formato | Redes de destino |
+|------------|------------|---------------------|---------|------------------|
+| `instagram` | 1080×1920 | 9:16 | MP4 H.264 | Instagram Reels, Stories |
+| `tiktok` | 1080×1920 | 9:16 | MP4 H.264 | TikTok, YouTube Shorts |
+| `facebook` | 1080×1080 | 1:1 | MP4 H.264 | Feed cuadrado de Facebook |
+| `twitter` | 1920×1080 | 16:9 | MP4 H.264 | X (Twitter) Timeline |
 
-## Arquitectura del script
+Los videos finales se guardan en `recordings/demo-{platform}.mp4`.
 
-### `scripts/record-video.mjs` — grabación individual
+---
 
-1. Arranca `vite dev` en background
-2. Espera a que el servidor responda en `localhost:5173`
-3. Lanza Chromium headless con `recordVideo` habilitado
-4. Navega por las 7 vistas de la app con scroll suave
-5. Cierra contexto, convierte WebM → MP4 con ffmpeg
-6. Limpia archivo temporal
+## Arquitectura de grabación
 
-### `scripts/record-video-all.mjs` — grabación masiva
+### Grabación general (`scripts/record-video.mjs`)
+1. Arranca `vite dev` en segundo plano y espera respuesta en `localhost:5173`.
+2. Lanza Chromium headless configurando viewport, device scale factor y `recordVideo`.
+3. Navega de forma limpia despachando eventos custom `navigate` en la app (agnóstico al idioma).
+4. Aplica *smooth scroll* en cada sección para registrar movimiento fluido.
+5. Cierra el contexto y convierte el stream crudo WebM a MP4 H.264 mediante `ffmpeg`.
+6. Limpia archivos temporales y notifica la ruta final.
 
-Itera sobre las 4 plataformas y ejecuta `record-video.mjs` para cada una.
-El servidor dev se arranca **una sola vez** al inicio.
+### Grabación masiva (`scripts/record-video-all.mjs`)
+Itera sobre las 4 plataformas principales (`instagram`, `tiktok`, `facebook`, `twitter`) reutilizando una única instancia del servidor de desarrollo.
 
-## Secuencia de navegación (30s)
+---
 
-| # | Vista | Acción | Tiempo |
-|---|-------|--------|--------|
-| 1 | Inicio (hero) | Scroll suave arriba/abajo | 0–5s |
-| 2 | Grupos | Nav → scroll | 5–9.5s |
-| 3 | Cruces | Nav → scroll | 9.5–14s |
-| 4 | Equipos | Nav → scroll | 14–18.5s |
-| 5 | Calendario | Más → item → scroll | 18.5–22s |
-| 6 | Estadios | Cerrar Más → Más → item | 22–25.5s |
-| 7 | Entrenadores | Cerrar Más → Más → item | 25.5–28.5s |
-| — | Cierre | Volver a Inicio | 28.5–30s |
+## Secuencia de navegación recomendada (30s)
 
-## Shadow DOM y selectores
+| # | Sección | Evento | Acción en pantalla | Tiempo |
+|---|---------|--------|---------------------|--------|
+| 1 | Inicio (Hero) | `hero` | Cuenta atrás, banner del torneo y scroll suave | 0–5s |
+| 2 | Clasificación (Tabla / Grupos) | `groups` | Recorrido por posiciones y puntos | 5–9.5s |
+| 3 | Jornadas / Cruces | `matchday` / `knockout` | Vista de partidos, marcadores y predicciones | 9.5–14s |
+| 4 | Plantillas | `squads` | Despliegue de fichas y cromos de jugadores | 14–18.5s |
+| 5 | Calendario | `calendar` | Fixture ordenado cronológicamente | 18.5–22s |
+| 6 | Ligas / Estadios | `league` / `stadiums` | Creación de porras sociales o sedes | 22–25.5s |
+| 7 | Entrenadores | `coaches` | Perfiles tácticos de los DTs | 25.5–28.5s |
+| — | Cierre | `hero` | Retorno suave a la portada | 28.5–30s |
 
-La app usa Lit con Shadow DOM abierto. Playwright cruza shadow roots
-automáticamente, así que los selectores CSS funcionan directamente:
+---
+
+## Shadow DOM y selectores clave
+
+La app está construida con Lit y utiliza Shadow DOM abierto. Playwright atraviesa las shadow roots sin necesidad de configuración adicional:
 
 ```js
-// Bottom nav buttons
-page.locator('.bottom-nav-btn').filter({ hasText: 'Grupos' })
+// Navegación vía evento custom (recomendado):
+await page.evaluate((tab) => {
+  const bracket = document.querySelector('app-root')
+    ?.shadowRoot?.querySelector('bracket-view')
+    ?? document.querySelector('bracket-view');
+  const target = bracket?.shadowRoot?.querySelector('.view-container') ?? bracket;
+  target?.dispatchEvent(new CustomEvent('navigate', { detail: tab, bubbles: true, composed: true }));
+}, 'matchday');
 
-// More overlay items
-page.locator('.more-overlay-item').filter({ hasText: 'Calendario' })
+// Botones de navegación inferior en móviles:
+page.locator('.bottom-nav-btn').filter({ hasText: 'Jornadas' });
 
-// Backdrop para cerrar overlays
-page.locator('.more-overlay-backdrop.open')
+// Botones de modo de vista (Predicciones vs Resultados Reales):
+page.locator('.view-mode-btn.real');
 ```
+
+---
 
 ## Patrones reutilizables
 
-### Smooth scroll
-
+### Smooth scroll fluido
 ```js
-async function smoothScroll(pixels, ms) {
+async function smoothScroll(page, pixels, ms) {
   const steps = Math.max(6, Math.min(20, Math.floor(ms / 60)));
   const delay = ms / steps;
   for (let i = 0; i < steps; i++) {
@@ -106,67 +126,18 @@ async function smoothScroll(pixels, ms) {
 }
 ```
 
-### Tap nav button
-
+### Configuración de idioma y tema visual
 ```js
-async function tapNav(label) {
-  await page.locator('.bottom-nav-btn').filter({ hasText: label }).click();
-  await sleep(900);
-}
+await page.evaluate(({ lang, theme }) => {
+  localStorage.setItem('bm-locale', lang);
+  localStorage.setItem('bm-theme', theme);
+}, { lang: 'es', theme: 'dark' });
+await page.reload({ waitUntil: 'networkidle' });
 ```
 
-### Tap More menu item
+---
 
-```js
-async function tapMoreItem(label) {
-  await page.locator('.bottom-nav-btn').filter({ hasText: 'Más' }).click();
-  await sleep(400);
-  await page.locator('.more-overlay-item').filter({ hasText: label }).click();
-  await sleep(900);
-}
-```
+## Dependencias requeridas
 
-### Screenshot de una vista
-
-```js
-await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
-await tapNav('Grupos');
-await sleep(2000);
-await page.screenshot({ path: 'recordings/grupos.png', fullPage: true });
-```
-
-### Grabar video personalizado
-
-```js
-const ctx = await browser.newContext({
-  viewport: { width: 1080, height: 1920 },
-  deviceScaleFactor: 2,
-  recordVideo: { dir: 'recordings', size: { width: 1080, height: 1920 } },
-});
-const page = await ctx.newPage();
-await page.goto('http://localhost:5173');
-// ... interacciones ...
-const rawPath = await page.video().path();
-```
-
-## Dependencias
-
-- `playwright` — ya instalado en devDependencies
-- `ffmpeg` — necesario para conversión WebM → MP4 H.264
-  - Windows: `winget install ffmpeg` o descargar de ffmpeg.org
-  - Verificar: `ffmpeg -version`
-
-## Archivos clave
-
-| Archivo | Propósito |
-|---------|-----------|
-| `scripts/record-video.mjs` | Grabación individual por plataforma |
-| `scripts/record-video-all.mjs` | Grabación masiva (todas las plataformas) |
-| `recordings/` | Output de videos y screenshots |
-
-## Notas
-
-- El servidor dev se mata automáticamente al finalizar (incluso con error)
-- Los videos raw WebM se eliminan tras la conversión exitosa
-- Para debug, cambiar `headless: true` → `headless: false` en el script
-- La vista "Dónde ver" (broadcasting) no tiene tab de navegación y no se incluye
+- `playwright` (en devDependencies de `package.json`).
+- `ffmpeg` en el `PATH` del sistema para transcodificación de video a MP4.

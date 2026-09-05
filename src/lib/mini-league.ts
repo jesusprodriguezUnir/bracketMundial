@@ -2,7 +2,19 @@ import type { DecodedBracket } from './bracket-codec';
 import { buildResolvedKnockout } from './bracket-logic';
 import { KNOCKOUT_BRACKET } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
+import { COMPETITION } from '../data/competition';
 import { initialGroupMatches, recalculateStandings, getWinnerId, getKnockoutMatchOrder } from '../store/tournament-store';
+
+export const UCL_POINTS = {
+  groupExact: 5,
+  groupDiff: 3,
+  groupSign: 2,
+  groupMiss: 0,
+  exact: 5,
+  diff: 3,
+  sign: 2,
+  miss: 0,
+} as const;
 
 export const MUNDIAL_POINTS = {
   // Puntos por partido en grupos
@@ -97,19 +109,19 @@ export function scoreMatch(
     return { points: 0, kind: 'miss' };
   }
   if (predA === realA && predB === realB) {
-    return { points: MUNDIAL_POINTS.groupExact, kind: 'exact' };
+    return { points: UCL_POINTS.groupExact, kind: 'exact' };
   }
   const predDiff = predA - predB;
   const realDiff = realA - realB;
   if (predDiff === realDiff) {
-    return { points: MUNDIAL_POINTS.groupDiff, kind: 'diff' };
+    return { points: UCL_POINTS.groupDiff, kind: 'diff' };
   }
   const predSign = Math.sign(predDiff);
   const realSign = Math.sign(realDiff);
   if (predSign === realSign) {
-    return { points: MUNDIAL_POINTS.groupSign, kind: 'sign' };
+    return { points: UCL_POINTS.groupSign, kind: 'sign' };
   }
-  return { points: MUNDIAL_POINTS.groupMiss, kind: 'miss' };
+  return { points: UCL_POINTS.groupMiss, kind: 'miss' };
 }
 
 interface RealScores {
@@ -154,12 +166,9 @@ export function scoreParticipant(
     else if (kind === 'sign') signCount++;
   }
 
-  // Es la simulación real si contiene los partidos de grupos del Mundial (72 partidos) y al menos uno se ha jugado
   const playedGroupCount = realGroupScores.filter(r => r.scoreA !== null && r.scoreB !== null).length;
-  const isRealBracket = realGroupScores.length >= 72 && playedGroupCount > 0;
-  // Los clasificados reales al knockout solo se conocen con TODOS los grupos completos:
-  // los mejores terceros dependen de los 72 partidos. Hasta entonces no se otorgan puntos KO.
-  const groupsComplete = realGroupScores.length >= 72 && playedGroupCount === realGroupScores.length;
+  const isRealBracket = realGroupScores.length >= COMPETITION.leaguePhaseMatches && playedGroupCount > 0;
+  const groupsComplete = realGroupScores.length >= COMPETITION.leaguePhaseMatches && playedGroupCount === realGroupScores.length;
 
   let knockoutTotal = 0;
   const koCorrectTeams = {
@@ -171,7 +180,7 @@ export function scoreParticipant(
     winner: [] as string[],
   };
 
-  if (isRealBracket && groupsComplete) {
+  if (COMPETITION.knockoutEnabled && isRealBracket && groupsComplete) {
     // 2. Fase Eliminatoria: puntuación por Progresión de Equipos
     const participantDecoded = {
       groupScores: participant.groupScores,

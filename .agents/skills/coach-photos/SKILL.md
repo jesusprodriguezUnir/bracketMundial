@@ -1,49 +1,47 @@
 ---
 name: coach-photos
 description: >
-  Descarga y completa fotos de entrenadores del Mundial 2026.
+  Descarga y completa fotos de directores técnicos de la Champions League 2026/27.
   Úsala cuando el usuario pregunte por: foto del entrenador faltante,
-  avatar del DT de un equipo, coach photo missing, technical director photo,
+  avatar del DT de un club, coach photo missing, technical director photo,
   public/coaches/, entrenadores sin foto.
 license: MIT
 metadata:
   author: bracketMundial
-  version: "1.0"
+  version: "2.0"
 ---
 
-# Skill: coach-photos
+# Skill: coach-photos (Champions League 2026/27)
 
-Descarga la foto del entrenador de uno o varios equipos y regenera el
-manifiesto `coach-photos.ts` para reflejar el cambio en `<squads-view>`.
+Descarga la foto del director técnico de uno o varios clubes de Champions League desde la web
+oficial de **UEFA.com** y regenera el manifiesto `coach-photos.ts` para reflejar el cambio en `<squads-view>`.
 
 ## Flujo de trabajo
 
 ### 1. Ver qué falta (siempre empieza aquí)
 
 ```bash
-npm run assets:report
+npm run ucl:report
 ```
 
-Genera/actualiza `docs/missing-assets.md`. Localiza la sección de entrenadores
-y muestra al usuario los equipos sin foto local.
-
-Faltantes conocidos al inicio del proyecto: **CPV, HAI, KSA**.
+Genera y actualiza `docs/missing-assets.md`. Localiza la columna de entrenadores (DT)
+y muestra al usuario los clubes sin foto local.
 
 ### 2. Descargar foto del entrenador
 
 ```bash
-# Un equipo:
-npm run photos -- CPV --type coach
+# Descargar fotos de un club (incluye DT):
+npm run ucl:photos -- RMA
 
-# Varios a la vez:
-npm run photos -- CPV HAI KSA --type coach
+# Varios clubes a la vez:
+npm run ucl:photos -- BAR MCI PSG BAY
 
-# Re-descargar aunque ya exista:
-npm run photos -- CPV --type coach --force
+# Re-descargar forzando actualización:
+node scripts/fetch-ucl-squads.mjs RMA --photos --force
 ```
 
 Tras la descarga el script regenera automáticamente `src/data/coach-photos.ts`
-y guarda la imagen en `public/coaches/{TEAM}.webp`.
+y guarda la imagen en `public/coaches/{CLUB}.webp`.
 
 ### 3. Validar y construir
 
@@ -58,33 +56,19 @@ El build incluye `tsc` estricto. Reportar el resultado al usuario.
 ## Archivos clave
 
 | Archivo | Propósito |
-|---------|-----------|
-| `scripts/fetch-squad-assets.mjs` | Script principal de descarga |
+|---|---|
+| `scripts/fetch-ucl-squads.mjs` | Script principal de descarga |
 | `src/data/coach-photos.ts` | Manifiesto autogenerado (no editar a mano) |
+| `src/data/coaches/index.ts` | Registro central `COACHES` con bio y nacionalidad |
 | `src/lib/coach-photo.ts` | Helpers `hasCoachPhoto`, `coachPhotoSrc` |
-| `public/coaches/{TEAM}.webp` | Fotos de entrenadores descargadas |
-| `docs/missing-assets.md` | Reporte de huecos (regenerar con `--report`) |
-
----
-
-## Configuración de API keys (.env)
-
-El script funciona sin keys, pero con keys mejora la cobertura especialmente
-para selecciones menores y entrenadores poco conocidos:
-
-```env
-API_FOOTBALL_KEY=tu_rapidapi_key_aqui       # https://rapidapi.com/api-sports/api/api-football
-FOOTBALL_DATA_KEY=tu_football_data_key_aqui # https://www.football-data.org/client/register
-```
+| `public/coaches/{CLUB}.webp` | Fotos de entrenadores descargadas y optimizadas |
+| `docs/missing-assets.md` | Reporte de huecos (regenerar con `npm run ucl:report`) |
 
 ---
 
 ## Notas
 
-- Esta skill cubre **solo entrenadores** (`--type coach`). Para jugadores usa
-  `/player-photos`. Para descargar ambos a la vez usa `/fetch-squads`.
 - El avatar del entrenador usa cascada en render:
-  **foto local → `coach.photoUrl` remoto → iniciales**. Una foto en
-  `public/coaches/{TEAM}.webp` siempre tiene prioridad.
+  **foto local (`public/coaches/{CLUB}.webp`) → `coach.photoUrl` remoto → iniciales**.
 - Tras la descarga, el manifiesto se regenera solo; no editar
   `src/data/coach-photos.ts` a mano.

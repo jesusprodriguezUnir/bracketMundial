@@ -6,21 +6,20 @@ import { subscribeSlice } from './store/store-utils';
 import './components/hero-view';
 import './components/match-modal';
 import './components/ad-block';
-import { STADIUMS } from './data/stadiums';
-import { openMatchModal } from './lib/match-modal-service';
 import { publishNow, subscribeUnpublished, getUnpublished } from './lib/prediction-sync';
 import { useAuthStore } from './store/auth-store';
 import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { useLeaguesStore } from './store/leagues-store';
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 // Mapa de vista → módulo lazy
-type LazyView = 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
+type LazyView = 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'league' | 'guide-print';
 
 const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
-  groups:     () => import('./components/groups-view'),
+  groups:     () => import('./components/league-table-view'),
+  matchday:   () => import('./components/matchday-view'),
   knockout:   () => import('./components/bracket-knockout'),
   squads:     () => import('./components/squads-view'),
   calendar:   () => import('./components/calendar-view'),
@@ -36,6 +35,7 @@ const VIEW_IMPORTS: Record<LazyView, () => Promise<unknown>> = {
 function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'hero') return null;
   if (tab === 'groups') return 'groups';
+  if (tab === 'matchday') return 'matchday';
   if (tab === 'knockout') return 'knockout';
   if (tab === 'squads') return 'squads';
   if (tab === 'calendar') return 'calendar';
@@ -49,7 +49,8 @@ function tabToView(tab: PhaseTab): LazyView | null {
 
 const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   hero:      'tabs.hero',
-  groups:    'tabs.groups',
+  groups:    'tabs.table',
+  matchday:  'tabs.matchday',
   knockout:  'tabs.knockout',
   squads:    'tabs.squads',
   calendar:  'tabs.calendar',
@@ -60,10 +61,10 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   'guide-print': 'tabs.guide',
 };
 
-const MORE_TABS: PhaseTab[] = ['calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const MORE_TABS: PhaseTab[] = ['squads', 'calendar', 'coaches'];
 
 /** Orden de tabs para swipe */
-const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const TAB_ORDER: PhaseTab[] = ['hero', 'groups', 'matchday', 'league'];
 
 @customElement('bracket-view')
 export class BracketView extends LitElement {
@@ -110,21 +111,24 @@ export class BracketView extends LitElement {
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 10px;
-      background: color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3));
-      border: 2px solid var(--retro-orange);
-      padding: 6px 12px;
-      margin-bottom: 8px;
+      background: color-mix(in srgb, var(--accent) 12%, var(--paper-2));
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-md);
+      padding: 7px 13px;
+      margin-bottom: 10px;
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.04em;
     }
     .context-label {
-      color: var(--ink);
+      color: var(--ink-soft);
     }
     .context-label strong {
       font-family: var(--font-var);
       font-size: 14px;
-      color: var(--retro-orange);
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--accent);
     }
     .context-return-btn {
       all: unset;
@@ -133,52 +137,57 @@ export class BracketView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 6px 12px;
-      border: 2px solid var(--ink);
-      background: var(--paper);
-      color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      padding: 7px 13px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
+      color: var(--ink-soft);
     }
     .context-return-btn:hover {
-      background: var(--ink);
-      color: var(--retro-yellow);
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--on-accent);
     }
 
     /* ─── View Mode Toggle (predictions vs real) ─── */
     .view-mode-toggle {
       display: flex;
-      gap: 0;
+      gap: 3px;
       margin: 12px auto;
       max-width: 360px;
-      border: 2px solid var(--ink);
-      border-radius: 0;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       overflow: hidden;
-      background: var(--paper-2);
+      padding: 3px;
+      background: var(--fill);
     }
     .view-mode-btn {
       flex: 1;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border: none;
+      border-radius: var(--radius-pill);
       background: transparent;
       font-family: var(--font-mono);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
-      color: var(--ink);
+      color: var(--ink-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
     .view-mode-btn.active {
-      background: var(--retro-yellow);
-      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+      background: var(--accent);
+      color: var(--on-accent);
+      box-shadow: var(--glow-accent-sm);
     }
     .view-mode-btn:not(.active):hover {
-      background: var(--paper-3);
+      background: var(--fill-soft);
+      color: var(--ink);
     }
     .view-mode-btn.real.active {
       background: var(--retro-green);
-      color: var(--paper);
+      color: #04121c;
     }
 
     /* ─── Bottom Navigation (mobile) ─── */
@@ -189,13 +198,15 @@ export class BracketView extends LitElement {
       left: 0;
       right: 0;
       z-index: 200;
-      background: var(--surface-dark);
-      border-top: 4px solid var(--retro-yellow);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--hairline);
       padding: 4px 0;
       padding-bottom: calc(4px + env(safe-area-inset-bottom));
       justify-content: space-around;
       align-items: stretch;
-      box-shadow: 0 -4px 0 0 rgba(0,0,0,0.25);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
     }
     .bottom-nav-btn {
       all: unset;
@@ -209,7 +220,7 @@ export class BracketView extends LitElement {
       padding: 8px 4px;
       min-width: 0;
       min-height: 52px;
-      color: var(--on-dark);
+      color: var(--ink-soft);
       font-family: var(--font-var);
       font-size: 10px;
       position: relative;
@@ -221,12 +232,12 @@ export class BracketView extends LitElement {
       opacity: 0.7;
     }
     .bottom-nav-btn.active {
-      background: rgba(240, 176, 33, 0.10);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
     }
     .bottom-nav-btn .nav-icon {
       font-size: 22px;
       line-height: 1;
-      color: var(--on-dark-soft);
+      color: var(--ink-muted);
       transition: color 0.15s;
       display: flex;
       align-items: center;
@@ -241,24 +252,25 @@ export class BracketView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.06em;
-      color: var(--on-dark-soft);
+      color: var(--ink-muted);
       text-transform: uppercase;
       transition: color 0.15s;
     }
     .bottom-nav-btn.active .nav-icon,
     .bottom-nav-btn.active .nav-label {
-      color: var(--retro-yellow);
+      color: var(--accent);
     }
     .bottom-nav-btn.active::after {
       content: '';
       position: absolute;
-      top: -4px;
+      top: -1px;
       left: 50%;
       transform: translateX(-50%);
-      width: 32px;
-      height: 4px;
-      background: var(--retro-yellow);
-      border-radius: 0;
+      width: 28px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 10px rgba(77,163,255,0.6);
     }
 
     /* ─── Botón central destacado (Bracket) — diseño pr-movil ─── */
@@ -267,18 +279,19 @@ export class BracketView extends LitElement {
       width: 48px;
       height: 48px;
       margin-top: -18px;
-      background: var(--retro-yellow);
+      border-radius: 14px;
+      background: linear-gradient(150deg, var(--accent), var(--accent-deep));
       border: 3px solid var(--paper);
-      box-shadow: 2px 2px 0 0 var(--ink);
-      color: var(--ink);
+      box-shadow: 0 8px 20px rgba(77,163,255,0.4);
+      color: var(--on-accent);
       display: grid;
       place-items: center;
     }
-    .bottom-nav-btn.center .nav-icon svg { color: var(--ink); }
-    .bottom-nav-btn.center.active .nav-icon { background: var(--retro-orange); color: var(--paper); }
-    .bottom-nav-btn.center.active .nav-icon svg { color: var(--paper); }
-    .bottom-nav-btn.center .nav-label { color: var(--on-dark-soft); }
-    .bottom-nav-btn.center.active .nav-label { color: var(--retro-yellow); }
+    .bottom-nav-btn.center .nav-icon svg { color: var(--on-accent); }
+    .bottom-nav-btn.center.active .nav-icon { background: linear-gradient(150deg, var(--accent-hover), var(--accent)); }
+    .bottom-nav-btn.center.active .nav-icon svg { color: var(--on-accent); }
+    .bottom-nav-btn.center .nav-label { color: var(--ink-muted); }
+    .bottom-nav-btn.center.active .nav-label { color: var(--accent); }
     /* El medallón ya indica el activo — sin barra superior adicional */
     .bottom-nav-btn.center.active::after { display: none; }
 
@@ -288,7 +301,9 @@ export class BracketView extends LitElement {
       position: fixed;
       inset: 0;
       z-index: 290;
-      background: rgba(26,25,51,0.55);
+      background: rgba(3,6,16,0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
     }
     .more-sheet-backdrop.open {
       display: block;
@@ -300,9 +315,10 @@ export class BracketView extends LitElement {
       left: 0;
       right: 0;
       z-index: 300;
-      background: var(--paper-3);
-      border-top: 4px solid var(--ink);
-      box-shadow: 0 -6px 0 0 var(--retro-orange);
+      background: var(--paper-2);
+      border-top: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      box-shadow: 0 -16px 40px rgba(0,0,0,0.45);
       padding-bottom: calc(24px + env(safe-area-inset-bottom));
       max-height: 75vh;
       overflow-y: auto;
@@ -319,7 +335,7 @@ export class BracketView extends LitElement {
     }
     .more-sheet-header {
       padding: 14px 18px;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -327,15 +343,19 @@ export class BracketView extends LitElement {
     .more-sheet-title {
       font-family: var(--font-var);
       font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
       color: var(--ink);
       letter-spacing: 0.04em;
     }
     .more-sheet-close {
       all: unset;
       cursor: pointer;
-      padding: 6px 12px;
-      background: var(--surface-dark);
-      color: var(--retro-yellow);
+      padding: 7px 13px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
+      color: var(--ink-soft);
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.1em;
@@ -359,20 +379,22 @@ export class BracketView extends LitElement {
       padding: 16px 12px;
       font-family: var(--font-var);
       font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
       letter-spacing: 0.04em;
-      color: var(--ink);
-      background: var(--paper-2);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      color: var(--ink-soft);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       min-height: 70px;
       box-sizing: border-box;
-      transition: background 0.1s, transform 0.1s;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
       text-align: center;
     }
     .more-sheet-item:active {
-      background: var(--retro-yellow);
-      transform: translate(2px, 2px);
-      box-shadow: 0 0 0 0 var(--ink);
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border-color: var(--accent);
+      color: var(--ink);
     }
     .more-sheet-item .ms-icon {
       width: 24px;
@@ -396,7 +418,7 @@ export class BracketView extends LitElement {
     /* Títulos de sección */
     .section-heading {
       padding: 22px 0 18px;
-      border-bottom: 3px dashed var(--ink);
+      border-bottom: 1px solid var(--hairline);
       margin-bottom: 24px;
     }
     .section-heading.knockout {
@@ -405,7 +427,7 @@ export class BracketView extends LitElement {
     .section-eyebrow {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--accent);
       letter-spacing: 0.25em;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -413,11 +435,14 @@ export class BracketView extends LitElement {
     .section-title {
       font-family: var(--font-var);
       font-size: 34px;
+      font-weight: 800;
+      text-transform: uppercase;
       line-height: 1;
       color: var(--ink);
     }
 
     .section-groups,
+    .section-matchday,
     .knockout-sections,
     .section-stadiums,
     .section-squads,
@@ -431,6 +456,7 @@ export class BracketView extends LitElement {
       scroll-margin-top: 110px;
     }
     .section-groups.visible,
+    .section-matchday.visible,
     .knockout-sections.visible,
     .section-stadiums.visible,
     .section-squads.visible,
@@ -453,9 +479,10 @@ export class BracketView extends LitElement {
       max-width: 1200px;
       margin: 60px auto 0;
       padding: 40px;
-      background: var(--paper);
-      border: 3px solid var(--ink);
-      box-shadow: 8px 8px 0 var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 40px;
@@ -463,40 +490,46 @@ export class BracketView extends LitElement {
     .seo-card h2 {
       font-family: var(--font-var);
       font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
       color: var(--ink);
       margin-bottom: 12px;
-      border-bottom: 2px solid var(--retro-orange);
+      border-bottom: 2px solid var(--accent);
       display: inline-block;
     }
     .seo-card p {
       font-family: var(--font-body);
       font-size: 15px;
       line-height: 1.6;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .seo-faq {
       grid-column: 1 / -1;
-      border-top: 3px dashed var(--ink);
+      border-top: 1px dashed var(--hairline);
       padding-top: 32px;
     }
     .seo-faq h2 {
       font-family: var(--font-var);
       font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
       color: var(--ink);
       margin-bottom: 20px;
-      border-bottom: 2px solid var(--retro-orange);
+      border-bottom: 2px solid var(--accent);
       display: inline-block;
     }
     .seo-faq details {
-      border: 2px solid var(--ink);
-      box-shadow: 3px 3px 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
       margin-bottom: 10px;
-      background: var(--paper-3);
+      background: var(--fill);
     }
     .seo-faq summary {
       font-family: var(--font-var);
       font-size: 15px;
+      text-transform: uppercase;
       letter-spacing: 0.03em;
       padding: 14px 18px;
       cursor: pointer;
@@ -507,26 +540,26 @@ export class BracketView extends LitElement {
     .seo-faq summary::-webkit-details-marker { display: none; }
     .seo-faq summary::before {
       content: '▶ ';
-      color: var(--retro-orange);
+      color: var(--accent);
       font-size: 11px;
     }
     .seo-faq details[open] summary::before {
       content: '▼ ';
     }
     .seo-faq details[open] summary {
-      background: var(--retro-yellow);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
     }
     .seo-faq .faq-answer {
       padding: 0 18px 16px;
       font-family: var(--font-body);
       font-size: 14px;
       line-height: 1.6;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .seo-links {
       grid-column: 1 / -1;
-      border-top: 3px dashed var(--ink);
+      border-top: 1px dashed var(--hairline);
       padding-top: 24px;
       display: flex;
       flex-wrap: wrap;
@@ -540,7 +573,7 @@ export class BracketView extends LitElement {
       text-underline-offset: 4px;
     }
     .seo-links a:hover {
-      color: var(--retro-orange);
+      color: var(--accent);
     }
 
     /* Franja de anuncio entre secciones */
@@ -551,6 +584,7 @@ export class BracketView extends LitElement {
 
     @media (max-width: 768px) {
       .section-groups,
+      .section-matchday,
       .knockout-section,
       .knockout-sections,
       .section-stadiums,
@@ -564,6 +598,7 @@ export class BracketView extends LitElement {
         display: none;
       }
       .section-groups.visible,
+      .section-matchday.visible,
       .knockout-section.visible,
       .knockout-sections.visible,
       .section-stadiums.visible,
@@ -707,7 +742,7 @@ export class BracketView extends LitElement {
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
+    const validTabs: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league', 'guide-print'];
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
       requestAnimationFrame(() => this._selectTab(hash as PhaseTab));
@@ -787,6 +822,7 @@ export class BracketView extends LitElement {
     this.updateComplete.then(() => {
       let targetId = `section-knockout-${tab}`;
       if (tab === 'groups') targetId = 'section-groups';
+      if (tab === 'matchday') targetId = 'section-matchday';
       if (tab === 'stadiums') targetId = 'section-stadiums';
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
@@ -883,38 +919,12 @@ export class BracketView extends LitElement {
     this._selectTab(TAB_ORDER[nextIdx]);
   }
 
-  private openMatchFromGroups(e: CustomEvent) {
-    const { matchId } = e.detail;
-    const store = useTournamentStore.getState();
-    const match = store.groupMatches.find((m: { matchId: string }) => m.matchId === matchId);
-    if (!match) return;
-
-    const s = STADIUMS.find(st => st.name === match.venue);
-
-    openMatchModal({
-      matchId: match.matchId,
-      teamA: match.teamA,
-      teamB: match.teamB,
-      initialScoreA: match.scoreA,
-      initialScoreB: match.scoreB,
-      phase: 'group',
-      goalScorers: match.goalScorers,
-      venue: match.venue,
-      city: match.city,
-      timeSpain: match.timeSpain,
-      stadiumImage: s?.image,
-      onSave: ({ scoreA, scoreB }) => {
-      store.setGroupMatchResult(matchId, scoreA, scoreB);
-      },
-    });
-  }
-
   render() {
     const mainTabs: Array<{ tab: PhaseTab; icon: string; svg: unknown; label: string }> = [
       { tab: 'hero',     icon: '🏠', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/><rect x="9" y="14" width="2" height="6"/><rect x="13" y="14" width="2" height="6"/></svg>`, label: t('tabs.hero') },
-      { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.groups') },
-      { tab: 'knockout', icon: '🏆', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2Z"/></svg>`, label: t('tabs.knockout') },
-      { tab: 'squads',   icon: '👥', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>`, label: t('tabs.squads') },
+      { tab: 'groups',   icon: '⚽', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>`, label: t('tabs.table') },
+      { tab: 'matchday', icon: '📅', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`, label: t('tabs.matchday') },
+      { tab: 'league',   icon: '👥', svg: html`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="17" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>`, label: t('tabs.league') },
     ];
     const at = this._activeTab;
     const loaded = this._loadedViews;
@@ -942,7 +952,7 @@ export class BracketView extends LitElement {
               ${hasSession ? html`
                 <button
                   class="context-return-btn"
-                  style="background:var(--retro-yellow);"
+                  style="background:var(--accent);border-color:var(--accent);color:var(--on-accent);"
                   @click="${this._handlePublish}"
                   ?disabled="${this._publishing}"
                 >${this._publishing ? 'Publicando…' : publishLabel}</button>
@@ -954,7 +964,7 @@ export class BracketView extends LitElement {
           </div>
         `;
         })()}
-        ${(at === 'groups' || at === 'knockout') ? html`
+        ${(at === 'groups' || at === 'matchday') ? html`
           <div class="view-mode-toggle">
             <button 
               class="view-mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
@@ -1012,15 +1022,17 @@ export class BracketView extends LitElement {
                 role="menuitem"
                 @click="${() => this._selectTab(tab)}">
                 <span class="ms-icon">${
-                  tab === 'calendar'
-                    ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-                    : tab === 'stadiums'
-                      ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="7"/><ellipse cx="12" cy="12" rx="6" ry="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>`
-                      : tab === 'coaches'
-                        ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/><circle cx="7.5" cy="7.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M7.5 16.5l3-3 6 3.5"/></svg>`
-                        : tab === 'guide'
-                          ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`
-                          : html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6M3 20h18"/></svg>`
+                  tab === 'squads'
+                    ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+                    : tab === 'calendar'
+                      ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+                      : tab === 'stadiums'
+                        ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="7"/><ellipse cx="12" cy="12" rx="6" ry="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>`
+                        : tab === 'coaches'
+                          ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/><circle cx="7.5" cy="7.5" r="1.5"/><circle cx="16.5" cy="16.5" r="1.5"/><path d="M7.5 16.5l3-3 6 3.5"/></svg>`
+                          : tab === 'guide'
+                            ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`
+                            : html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6M3 20h18"/></svg>`
                 }</span>
                 ${t(PHASE_TAB_KEYS[tab])}
               </button>
@@ -1088,11 +1100,23 @@ export class BracketView extends LitElement {
               <div class="section-eyebrow">${t('section.groups.eyebrow')}</div>
               <div class="section-title">${t('section.groups.title')}</div>
             </div>
-            <groups-view @open-match="${this.openMatchFromGroups}"></groups-view>
+            <league-table-view></league-table-view>
             <div class="ad-inline">
               <ad-block></ad-block>
             </div>
           ` : at === 'groups' ? html`<div class="loading-spinner"></div>` : ''}
+        </div>
+
+        <div
+          id="section-matchday"
+          class="section-matchday ${at === 'matchday' ? 'visible' : ''}">
+          ${at === 'matchday' && loaded.has('matchday') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.matchday.eyebrow')}</div>
+              <div class="section-title">${t('section.matchday.title')}</div>
+            </div>
+            <matchday-view></matchday-view>
+          ` : at === 'matchday' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Equipos (lazy) -->
@@ -1164,7 +1188,7 @@ export class BracketView extends LitElement {
           ` : at === 'coaches' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
-        <!-- Guía del Mundial (lazy) -->
+        <!-- Guía (lazy) -->
         <div
           id="section-guide"
           class="section-guide ${at === 'guide' ? 'visible' : ''}">

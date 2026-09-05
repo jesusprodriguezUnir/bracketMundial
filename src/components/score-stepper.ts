@@ -19,8 +19,10 @@ export class ScoreStepper extends LitElement {
     .stepper {
       display: inline-flex;
       align-items: center;
-      background: var(--paper-2);
+      background: var(--fill);
       color: var(--ink);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
       flex-shrink: 0;
     }
 
@@ -31,14 +33,16 @@ export class ScoreStepper extends LitElement {
       align-items: center;
       justify-content: center;
       font-family: var(--font-var);
-      color: var(--paper);
-      background: var(--ink);
+      font-weight: 800;
+      color: var(--on-accent);
+      background: var(--accent);
       text-align: center;
       touch-action: manipulation;
+      transition: background 0.12s;
     }
 
     button:hover {
-      background: var(--retro-red);
+      background: var(--accent-hover);
     }
 
     button:active {
@@ -47,13 +51,13 @@ export class ScoreStepper extends LitElement {
 
     .value {
       font-family: var(--font-var);
+      font-weight: 800;
       text-align: center;
       color: var(--ink);
     }
 
     .stepper.inline {
-      border: 3px solid var(--ink);
-      box-shadow: 3px 3px 0 0 var(--retro-orange);
+      border: 1px solid var(--hairline-strong);
     }
 
     .stepper.inline button {
@@ -70,8 +74,7 @@ export class ScoreStepper extends LitElement {
     }
 
     .stepper.compact {
-      border: 1.5px solid var(--ink);
-      box-shadow: 1px 1px 0 0 var(--retro-orange);
+      border: 1px solid var(--hairline);
     }
 
     .stepper.compact button {
@@ -87,8 +90,7 @@ export class ScoreStepper extends LitElement {
     }
 
     .stepper.mobile {
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      border: 1px solid var(--hairline-strong);
     }
 
     .stepper.mobile button {

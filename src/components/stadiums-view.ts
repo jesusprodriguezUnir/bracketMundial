@@ -76,8 +76,9 @@ export class StadiumsView extends LitElement {
       color: var(--paper);
       padding: 28px 32px;
       margin-bottom: 18px;
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-xl);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
       background-image: var(--halftone);
       display: flex;
       justify-content: space-between;
@@ -91,7 +92,7 @@ export class StadiumsView extends LitElement {
     .hero-eyebrow {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--retro-yellow);
+      color: var(--accent);
       letter-spacing: 0.3em;
       font-weight: 700;
     }
@@ -110,7 +111,8 @@ export class StadiumsView extends LitElement {
     }
     .hero-stats b {
       display: inline-block;
-      background: var(--retro-yellow); color: var(--ink);
+      background: var(--accent); color: var(--on-accent);
+      border-radius: var(--radius-pill);
       padding: 1px 7px; margin-right: 5px;
       font-family: var(--font-var); font-size: 14px;
       letter-spacing: 0;
@@ -123,16 +125,17 @@ export class StadiumsView extends LitElement {
       gap: 14px;
       align-items: center;
       padding: 12px 14px;
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       margin-bottom: 14px;
     }
     .filters-label {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.2em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
     }
     .filter-group {
@@ -147,7 +150,8 @@ export class StadiumsView extends LitElement {
       padding: 5px 10px;
       background: transparent;
       color: var(--ink);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
@@ -157,25 +161,26 @@ export class StadiumsView extends LitElement {
     }
     .filter-btn:hover {
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
     .filter-btn.active {
       background: var(--ink);
       color: var(--paper);
     }
-    .filter-btn.active.phase-g    { background: var(--retro-blue);   color: #fff; }
-    .filter-btn.active.phase-r16  { background: var(--retro-orange); color: #fff; }
+    .filter-btn.active.phase-g    { background: var(--accent);   color: #fff; }
+    .filter-btn.active.phase-r16  { background: var(--accent); color: #fff; }
     .filter-btn.active.phase-qf   { background: var(--retro-green);  color: #fff; }
     .filter-btn.active.phase-sf   { background: var(--retro-red);    color: #fff; }
-    .filter-btn.active.phase-f    { background: var(--retro-yellow); color: var(--ink); }
+    .filter-btn.active.phase-f    { background: var(--accent); color: var(--on-accent); }
 
     /* ── Mapa schematic ── */
     .map-strip {
       position: relative;
       height: 110px;
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       margin-bottom: 14px;
       overflow: hidden;
       background-image:
@@ -189,15 +194,16 @@ export class StadiumsView extends LitElement {
       font-family: var(--font-var);
       font-size: 14px;
       color: var(--ink);
-      background: var(--paper);
+      background: var(--fill);
       padding: 2px 8px;
-      border: 1.5px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
     }
     .map-dot {
       position: absolute;
       width: 14px;
       height: 14px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
       transform: translate(-50%, -50%);
       cursor: pointer;
       transition: transform 0.1s;
@@ -211,7 +217,7 @@ export class StadiumsView extends LitElement {
       right: 10px;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.12em;
     }
 
@@ -220,7 +226,7 @@ export class StadiumsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.12em;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 10px;
     }
 
@@ -234,16 +240,17 @@ export class StadiumsView extends LitElement {
       grid-template-columns: 180px 80px 1fr 110px 1fr;
       align-items: stretch;
       gap: 0;
-      background: var(--paper-3);
-      border: 2.5px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
       cursor: pointer;
       transition: transform 0.1s, box-shadow 0.1s;
     }
     .stadium-row:hover {
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
     }
 
     .row-img {
@@ -251,7 +258,7 @@ export class StadiumsView extends LitElement {
       min-height: 100px;
       object-fit: cover;
       width: 100%;
-      border-right: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
       display: block;
     }
     .row-flag {
@@ -260,8 +267,8 @@ export class StadiumsView extends LitElement {
       align-items: center;
       justify-content: center;
       gap: 4px;
-      border-right: 2px solid var(--ink);
-      background: var(--paper-2);
+      border-right: 1px solid var(--hairline);
+      background: var(--fill);
       padding: 8px 4px;
     }
     .row-flag .emoji {
@@ -272,7 +279,7 @@ export class StadiumsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.1em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
     }
 
@@ -282,7 +289,7 @@ export class StadiumsView extends LitElement {
       flex-direction: column;
       justify-content: center;
       gap: 3px;
-      border-right: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
       min-width: 0;
     }
     .row-name {
@@ -294,7 +301,7 @@ export class StadiumsView extends LitElement {
     .row-city {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -303,7 +310,7 @@ export class StadiumsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.1em;
-      color: var(--retro-orange);
+      color: var(--accent);
       font-weight: 700;
       text-transform: uppercase;
     }
@@ -315,8 +322,8 @@ export class StadiumsView extends LitElement {
       justify-content: center;
       align-items: center;
       gap: 2px;
-      border-right: 2px solid var(--ink);
-      background: var(--paper-2);
+      border-right: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .row-meta .big {
       font-family: var(--font-var);
@@ -328,13 +335,13 @@ export class StadiumsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.12em;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .row-meta .cap {
       margin-top: 4px;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
     }
 
@@ -351,27 +358,29 @@ export class StadiumsView extends LitElement {
       letter-spacing: 0.08em;
       font-weight: 700;
       padding: 2px 6px;
-      border: 1.5px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       color: #fff;
     }
-    .phase-chip.G    { background: var(--retro-blue); }
-    .phase-chip.R32  { background: var(--retro-blue); }
-    .phase-chip.R16  { background: var(--retro-orange); }
+    .phase-chip.G    { background: var(--accent); }
+    .phase-chip.R32  { background: var(--accent); }
+    .phase-chip.R16  { background: var(--accent); }
     .phase-chip.QF   { background: var(--retro-green); }
     .phase-chip.SF   { background: var(--retro-red); }
     .phase-chip.\\33 RD,
     .phase-chip[data-phase="3RD"] {
       background: var(--dim);
     }
-    .phase-chip.F    { background: var(--retro-yellow); color: var(--ink); }
+    .phase-chip.F    { background: var(--accent); color: var(--on-accent); }
 
     .empty {
       padding: 28px;
       text-align: center;
-      border: 3px dashed var(--ink);
-      background: var(--paper-2);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       font-family: var(--font-mono);
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
     }
 
@@ -384,9 +393,10 @@ export class StadiumsView extends LitElement {
       gap: 8px;
       padding: 10px 16px;
       margin-bottom: 16px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.08em;
@@ -395,13 +405,15 @@ export class StadiumsView extends LitElement {
     }
 
     .back-btn:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .detail-panel {
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      background: var(--card-grad);
       overflow: hidden;
     }
 
@@ -410,7 +422,7 @@ export class StadiumsView extends LitElement {
       gap: 16px;
       align-items: center;
       padding: 18px 22px;
-      border-bottom: 4px solid var(--ink);
+      border-bottom: 1px solid var(--hairline-strong);
       background: var(--retro-green);
       color: var(--paper);
     }
@@ -440,7 +452,7 @@ export class StadiumsView extends LitElement {
     }
 
     .detail-photo-col {
-      border-right: 4px solid var(--ink);
+      border-right: 1px solid var(--hairline);
       background: var(--ink);
       display: flex;
       flex-direction: column;
@@ -472,8 +484,8 @@ export class StadiumsView extends LitElement {
 
     .detail-name-block {
       padding: 18px 20px 14px;
-      border-bottom: 3px solid var(--ink);
-      background: var(--paper-2);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
 
     .detail-stadium-label {
@@ -481,7 +493,7 @@ export class StadiumsView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 6px;
     }
 
@@ -495,7 +507,7 @@ export class StadiumsView extends LitElement {
     .detail-stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .stat-cell {
@@ -513,7 +525,7 @@ export class StadiumsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 4px;
     }
 
@@ -534,7 +546,7 @@ export class StadiumsView extends LitElement {
     .detail-description-block {
       padding: 20px;
       flex: 1;
-      background: var(--paper);
+      background: var(--fill);
     }
 
     .detail-description-label {
@@ -542,7 +554,7 @@ export class StadiumsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 10px;
     }
 
@@ -555,7 +567,7 @@ export class StadiumsView extends LitElement {
 
     .detail-matches-block {
       padding: 0 20px 20px;
-      background: var(--paper);
+      background: var(--fill);
     }
 
     .detail-matches-label {
@@ -563,7 +575,7 @@ export class StadiumsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 12px;
     }
 
@@ -578,14 +590,15 @@ export class StadiumsView extends LitElement {
       align-items: center;
       padding: 10px 14px;
       background: white;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 0.85rem;
       gap: 12px;
     }
 
     .match-row.knockout {
-      background: var(--paper-3);
+      background: var(--fill);
     }
 
     .match-id {
@@ -597,7 +610,7 @@ export class StadiumsView extends LitElement {
     }
 
     .match-row.knockout .match-id {
-      background: var(--retro-orange);
+      background: var(--accent);
     }
 
     .match-teams {
@@ -606,13 +619,13 @@ export class StadiumsView extends LitElement {
     }
 
     .match-date {
-      color: var(--dim);
+      color: var(--ink-muted);
       font-size: 0.75rem;
       flex-shrink: 0;
     }
 
     .match-time {
-      color: var(--dim);
+      color: var(--ink-muted);
       font-size: 0.75rem;
       flex-shrink: 0;
     }
@@ -644,11 +657,11 @@ export class StadiumsView extends LitElement {
       .stadium-row {
         grid-template-columns: 1fr;
       }
-      .row-img { grid-column: 1; grid-row: 1; min-height: 140px; border-right: none; border-bottom: 2px solid var(--ink); }
+      .row-img { grid-column: 1; grid-row: 1; min-height: 140px; border-right: none; border-bottom: 1px solid var(--hairline); }
       .row-flag { display: none; }
       .row-info { grid-column: 1; grid-row: 2; border-right: none; }
-      .row-meta { grid-column: 1; grid-row: 3; flex-direction: row; justify-content: space-between; border-right: none; border-top: 2px solid var(--ink); padding: 6px 12px; }
-      .row-phases { grid-column: 1; grid-row: 4; border-top: 2px solid var(--ink); padding: 6px 10px; }
+      .row-meta { grid-column: 1; grid-row: 3; flex-direction: row; justify-content: space-between; border-right: none; border-top: 1px solid var(--hairline); padding: 6px 12px; }
+      .row-phases { grid-column: 1; grid-row: 4; border-top: 1px solid var(--hairline); padding: 6px 10px; }
 
       .detail-title {
         font-size: 26px;
@@ -658,7 +671,7 @@ export class StadiumsView extends LitElement {
       }
       .detail-photo-col {
         border-right: none;
-        border-bottom: 4px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
       .detail-photo-wrap {
         aspect-ratio: 2 / 1;
@@ -938,7 +951,7 @@ export class StadiumsView extends LitElement {
 
         <div class="row-phases">
           ${phases.length === 0
-            ? html`<span style="font-family: var(--font-mono); font-size: 10px; color: var(--dim);">Fases por confirmar</span>`
+            ? html`<span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted);">Fases por confirmar</span>`
             : phases.map(p => html`
                 <span class="phase-chip ${p}" data-phase="${p}">${PHASE_LABEL[p]}</span>
               `)}

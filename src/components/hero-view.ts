@@ -47,18 +47,21 @@ export class HeroView extends LitElement {
       grid-template-columns: 1.1fr 1fr;
       gap: 28px;
       padding: 36px 40px 28px;
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-xl);
     }
 
-    /* Panini confetti background */
+    /* Night-sky glow background */
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
       background-image:
-        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg opacity='0.55'%3E%3Ccircle cx='30' cy='40' r='3' fill='%23e8541f'/%3E%3Ccircle cx='120' cy='15' r='2' fill='%2322418c'/%3E%3Ccircle cx='200' cy='55' r='3.5' fill='%23f0b021'/%3E%3Ccircle cx='60' cy='110' r='2' fill='%23c41e2c'/%3E%3Ccircle cx='160' cy='130' r='2.5' fill='%231f6b3a'/%3E%3Ccircle cx='95' cy='180' r='3' fill='%23e8541f'/%3E%3Ccircle cx='215' cy='195' r='2' fill='%2322418c'/%3E%3Ccircle cx='20' cy='220' r='2.5' fill='%23f0b021'/%3E%3Crect x='180' y='100' width='4' height='10' fill='%23c41e2c' transform='rotate(25 182 105)'/%3E%3Crect x='40' y='150' width='3' height='8' fill='%231f6b3a' transform='rotate(-20 41 154)'/%3E%3Crect x='130' y='75' width='3' height='8' fill='%23e8541f' transform='rotate(45 131 79)'/%3E%3Cpolygon points='75,55 78,62 71,62' fill='%23c41e2c'/%3E%3Cpolygon points='175,205 178,212 171,212' fill='%2322418c'/%3E%3Cpolygon points='100,135 103,142 96,142' fill='%23f0b021'/%3E%3C/g%3E%3C/svg%3E"),
-        radial-gradient(circle, rgba(26,25,51,0.08) 1px, transparent 1.2px) 0 0 / 5px 5px,
-        repeating-linear-gradient(45deg, rgba(26,25,51,0.04) 0 2px, transparent 2px 32px);
-      background-size: 240px 240px, 5px 5px, auto;
+        radial-gradient(ellipse 900px 420px at 78% -120px, rgba(77,163,255,0.20), transparent 70%),
+        radial-gradient(ellipse 600px 340px at 0% 110%, rgba(120,90,255,0.12), transparent 70%),
+        radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px);
+      background-size: auto, auto, 22px 22px;
       pointer-events: none;
       z-index: 0;
     }
@@ -80,20 +83,23 @@ export class HeroView extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.3em;
-      color: var(--retro-red);
+      text-transform: uppercase;
+      color: var(--accent);
       margin-bottom: 14px;
     }
 
     h1 {
       font-family: var(--font-var);
       font-size: clamp(52px, 7vw, 88px);
-      line-height: 0.82;
-      letter-spacing: -0.03em;
+      font-weight: 800;
+      text-transform: uppercase;
+      line-height: 0.86;
+      letter-spacing: -0.02em;
       margin: 0 0 18px;
       color: var(--ink);
     }
     h1 .line-accent {
-      color: var(--retro-orange);
+      color: var(--accent);
     }
     h1 .line-highlight {
       position: relative;
@@ -103,8 +109,10 @@ export class HeroView extends LitElement {
       content: '';
       position: absolute;
       left: 0; right: 0;
-      top: 52%; height: 8px;
-      background: var(--retro-yellow);
+      bottom: 4%; height: 6px;
+      background: var(--accent);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 0 14px rgba(77,163,255,0.6);
       z-index: -1;
     }
 
@@ -112,9 +120,9 @@ export class HeroView extends LitElement {
       font-family: var(--font-body);
       font-size: 15px;
       line-height: 1.4;
-      color: var(--retro-red);
+      color: var(--ink-soft);
       max-width: 460px;
-      font-weight: 700;
+      font-weight: 600;
       letter-spacing: 0.02em;
       margin: -10px 0 20px;
     }
@@ -123,7 +131,7 @@ export class HeroView extends LitElement {
       font-family: var(--font-body);
       font-size: 16px;
       line-height: 1.45;
-      color: var(--ink-soft);
+      color: var(--ink-muted);
       max-width: 460px;
       font-weight: 500;
       margin-bottom: 22px;
@@ -140,36 +148,41 @@ export class HeroView extends LitElement {
     .btn-cta-primary {
       all: unset;
       cursor: pointer;
-      background: var(--retro-orange);
-      color: var(--paper-3);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-var);
       font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
       letter-spacing: 0.06em;
       padding: 14px 24px;
-      border: 3px solid var(--ink);
-      box-shadow: 4px 4px 0 0 var(--ink);
-      transition: transform 0.1s, box-shadow 0.1s;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--glow-accent-sm);
+      transition: transform 0.12s, background 0.12s, box-shadow 0.12s;
     }
     .btn-cta-primary:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 var(--ink);
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--glow-accent);
     }
     .btn-cta-secondary {
       all: unset;
       cursor: pointer;
-      background: var(--paper-3);
+      background: var(--fill);
       color: var(--ink);
       font-family: var(--font-var);
       font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
       letter-spacing: 0.06em;
       padding: 14px 24px;
-      border: 3px solid var(--ink);
-      box-shadow: 4px 4px 0 0 var(--retro-yellow);
-      transition: transform 0.1s, box-shadow 0.1s;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      transition: transform 0.12s, border-color 0.12s;
     }
     .btn-cta-secondary:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 var(--retro-yellow);
+      transform: translateY(-1px);
+      border-color: var(--accent);
     }
 
     /* Countdown */
@@ -184,28 +197,29 @@ export class HeroView extends LitElement {
       align-items: center;
       min-width: 56px;
       padding: 10px 8px 8px;
-      background: var(--surface-dark);
-      border: 3px solid var(--surface-dark);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--inset-bg);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
     }
     .cd-num {
       font-family: var(--font-var);
       font-size: 32px;
+      font-weight: 800;
       line-height: 1;
-      color: var(--retro-yellow);
+      color: var(--accent);
       letter-spacing: 0.04em;
     }
     .cd-label {
       font-family: var(--font-mono);
       font-size: 8px;
       letter-spacing: 0.2em;
-      color: var(--on-dark-soft);
+      color: var(--ink-muted);
       margin-top: 4px;
     }
     .cd-sep {
       font-family: var(--font-var);
       font-size: 28px;
-      color: var(--dim);
+      color: var(--ink-muted);
       align-self: flex-start;
       padding-top: 10px;
     }
@@ -215,21 +229,25 @@ export class HeroView extends LitElement {
       flex-direction: column;
       align-items: flex-start;
       gap: 4px;
-      padding: 10px 18px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      padding: 11px 18px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-md);
       font-family: var(--font-var);
       font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 22px;
     }
     .cd-live {
       background: var(--retro-red);
-      color: var(--paper-3);
+      border-color: var(--retro-red);
+      color: #fff;
       animation: pulse-live 2s ease-in-out infinite;
     }
     .cd-archive {
-      background: var(--retro-yellow);
+      background: color-mix(in srgb, var(--band-gold) 22%, var(--paper-2));
+      border-color: var(--band-gold);
       color: var(--ink);
     }
     .cd-archive-hint {
@@ -248,20 +266,22 @@ export class HeroView extends LitElement {
     /* Stats strip */
     .stats-strip {
       display: flex;
-      border: 3px solid var(--ink);
-      box-shadow: 4px 4px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      overflow: hidden;
     }
     .stat-cell {
       flex: 1;
       padding: 10px 14px;
-      border-right: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
     }
     .stat-cell:last-child { border-right: none; }
-    .stat-cell:nth-child(odd)  { background: var(--paper-2); }
-    .stat-cell:nth-child(even) { background: var(--paper-3); }
+    .stat-cell:nth-child(odd)  { background: var(--fill); }
+    .stat-cell:nth-child(even) { background: var(--fill-soft); }
     .stat-num {
       font-family: var(--font-var);
       font-size: 30px;
+      font-weight: 800;
       line-height: 1;
       color: var(--ink);
     }
@@ -269,6 +289,7 @@ export class HeroView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.18em;
+      text-transform: uppercase;
       color: var(--ink-muted);
       margin-top: 4px;
     }
@@ -285,45 +306,45 @@ export class HeroView extends LitElement {
       width: 420px;
       height: 420px;
       background: repeating-conic-gradient(
-        rgba(240,176,33,0.35) 0deg 6deg,
+        rgba(77,163,255,0.22) 0deg 6deg,
         transparent 6deg 18deg
       );
       border-radius: 50%;
       animation: spin 90s linear infinite;
       pointer-events: none;
+      filter: blur(0.4px);
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .crest-wrapper {
       position: relative;
-      transform: rotate(-5deg);
-      filter: drop-shadow(8px 8px 0 var(--ink));
+      filter: drop-shadow(0 20px 48px rgba(77,163,255,0.35));
     }
 
     .sticker-new {
       position: absolute;
       top: 24px; right: 8px;
-      background: var(--retro-red);
-      color: var(--paper-3);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-var);
       font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
       padding: 6px 12px;
-      transform: rotate(8deg);
-      border: 3px solid var(--ink);
-      box-shadow: 3px 3px 0 0 var(--ink);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--glow-accent-sm);
       letter-spacing: 0.06em;
     }
     .sticker-free {
       position: absolute;
       bottom: 32px; left: 8px;
-      background: var(--paper-3);
-      color: var(--ink);
+      background: var(--fill);
+      color: var(--ink-soft);
       font-family: var(--font-mono);
       font-size: 11px;
       padding: 6px 12px;
-      transform: rotate(-6deg);
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--retro-orange);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
       letter-spacing: 0.12em;
     }
 
@@ -331,12 +352,16 @@ export class HeroView extends LitElement {
     .ticker {
       position: relative;
       z-index: 1;
-      background: var(--surface-dark);
-      color: var(--on-dark);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--ink-soft);
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.14em;
-      border-top: 3px solid var(--retro-orange);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      margin-top: 14px;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -345,10 +370,12 @@ export class HeroView extends LitElement {
     .ticker-label {
       flex-shrink: 0;
       padding: 0 14px;
-      color: var(--retro-yellow);
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
       z-index: 1;
-      background: var(--surface-dark);
-      border-right: 2px solid var(--retro-orange);
+      background: var(--chrome-bg);
+      border-right: 1px solid var(--hairline);
       height: 100%;
       display: flex;
       align-items: center;
@@ -366,7 +393,7 @@ export class HeroView extends LitElement {
       padding: 0 24px;
     }
     .ticker-score {
-      color: var(--retro-yellow);
+      color: var(--accent);
       font-weight: 700;
     }
     @keyframes marquee {
@@ -484,10 +511,10 @@ export class HeroView extends LitElement {
             </div>
             <!-- Stats strip -->
             <div class="stats-strip">
-              <div class="stat-cell"><div class="stat-num">48</div><div class="stat-label">${t('hero.statTeams')}</div></div>
-              <div class="stat-cell"><div class="stat-num">12</div><div class="stat-label">${t('hero.statGroups')}</div></div>
-              <div class="stat-cell"><div class="stat-num">16</div><div class="stat-label">${t('hero.statVenues')}</div></div>
-              <div class="stat-cell"><div class="stat-num">104</div><div class="stat-label">${t('hero.statMatches')}</div></div>
+              <div class="stat-cell"><div class="stat-num">36</div><div class="stat-label">${t('hero.statTeams')}</div></div>
+              <div class="stat-cell"><div class="stat-num">8</div><div class="stat-label">${t('hero.statGroups')}</div></div>
+              <div class="stat-cell"><div class="stat-num">1</div><div class="stat-label">${t('hero.statVenues')}</div></div>
+              <div class="stat-cell"><div class="stat-num">144</div><div class="stat-label">${t('hero.statMatches')}</div></div>
               <div class="stat-cell"><div class="stat-num">1</div><div class="stat-label">${t('hero.statChampion')}</div></div>
             </div>
           </div>

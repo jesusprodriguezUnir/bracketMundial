@@ -32,15 +32,18 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(26, 25, 51, 0.8);
+      background: rgba(3,6,16,0.66);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       padding: 20px;
       overflow: auto;
     }
 
     .modal {
-      background: var(--paper);
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-xl);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       max-width: 760px;
       width: 100%;
       display: flex;
@@ -54,22 +57,26 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       display: flex;
       align-items: center;
       padding: 12px 18px;
-      background: var(--ink);
-      color: var(--paper);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--hairline);
+      color: var(--ink);
       gap: 12px;
-      box-shadow: 4px 4px 0 0 var(--retro-orange);
     }
     .modal-title {
       font-family: var(--font-var);
       font-size: 16px;
       letter-spacing: 0.08em;
-      color: var(--retro-yellow);
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--accent);
       flex: 1;
     }
     .modal-close {
       all: unset;
       cursor: pointer;
-      color: var(--paper);
+      color: var(--ink);
       font-family: var(--font-var);
       font-size: 20px;
       opacity: 0.7;
@@ -88,9 +95,10 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
 
     /* Preview */
     .preview-wrap {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
-      background: var(--paper-3);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      background: var(--fill);
       min-height: 140px;
       display: flex;
       align-items: center;
@@ -112,8 +120,8 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
     .spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid var(--ink);
-      border-top-color: var(--retro-orange);
+      border: 3px solid var(--hairline-strong);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
@@ -122,7 +130,7 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.2em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .error-wrap {
@@ -138,14 +146,15 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
 
     /* Share text block */
     .share-text-block {
-      border: 2px solid var(--ink);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
       padding: 10px 14px;
     }
     .share-text-label {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -172,9 +181,10 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       font-family: var(--font-var);
       font-size: 13px;
       letter-spacing: 0.06em;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       color: var(--ink);
       display: flex;
       align-items: center;
@@ -183,22 +193,22 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
     }
     .btn-share:hover {
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
     }
     .btn-share:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 0 var(--ink);
+      opacity: 0.7;
     }
     .btn-share.primary {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
+      box-shadow: var(--glow-accent-sm);
     }
     .btn-share.twitter    { background: #1da1f2; color: #fff; }
     .btn-share.whatsapp   { background: #25d366; color: #fff; }
     .btn-share.facebook   { background: #1877f2; color: #fff; }
     .btn-share.instagram  { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); color: #fff; }
     .btn-share.tiktok     { background: #000000; color: #fff; }
-    .btn-share.copied   { background: var(--retro-green); color: var(--paper); }
+    .btn-share.copied   { background: color-mix(in srgb, var(--retro-green) 18%, var(--paper-2)); border-color: var(--retro-green); color: var(--ink); }
     .btn-share:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* Instagram hint */
@@ -206,7 +216,7 @@ export class ShareModal extends DragToDismissMixin(LitElement) {
       padding: 0 20px 16px;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
     }
 

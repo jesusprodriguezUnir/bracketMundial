@@ -240,37 +240,40 @@ export class MobileGroups extends LitElement {
         font-family: var(--font-var);
         font-size: 17px;
         color: var(--ink);
-        border: 2.5px solid var(--ink);
-        background: var(--paper-3);
-        box-shadow: var(--shadow-hard-sm);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
+        background: var(--fill);
+        box-shadow: var(--shadow-sm);
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      .gchip.active { background: var(--retro-orange); color: var(--paper); }
+      .gchip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
       /* ── Group card ── */
       .group-card {
         margin: 0 16px 16px;
-        background: var(--paper-2);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-lg);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
         overflow: hidden;
       }
       .group-header {
         padding: 9px 14px;
-        border-bottom: 3px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: var(--paper);
-        background-image: radial-gradient(circle, rgba(236,223,192,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
+        color: var(--on-dark);
+        background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px) 0 0 / 6px 6px;
       }
-      .group-header-title { font-family: var(--font-var); font-size: 22px; line-height: 1; }
+      .group-header-title { font-family: var(--font-var); font-size: 22px; line-height: 1; text-transform: uppercase; font-weight: 800; }
       .group-header-badge {
         font-family: var(--font-mono);
         font-size: 9px;
-        background: var(--paper);
+        background: var(--paper-2);
         color: var(--ink);
+        border-radius: var(--radius-pill);
         padding: 3px 7px;
         letter-spacing: 0.1em;
       }
@@ -285,82 +288,84 @@ export class MobileGroups extends LitElement {
         padding: 7px 0;
         min-height: 40px;
       }
-      .standing-row + .standing-row { border-top: 1px dotted rgba(26,25,51,0.22); }
+      .standing-row + .standing-row { border-top: 1px solid var(--hairline); }
       .standing-row.muted { opacity: 0.55; }
       .rank-badge {
         width: 20px; height: 20px;
         display: grid; place-items: center;
-        font-family: var(--font-var); font-size: 12px; color: var(--dim);
+        font-family: var(--font-var); font-size: 12px; color: var(--ink-muted);
       }
-      .rank-badge.qualify { border: 2px solid var(--retro-red); color: var(--retro-red); font-size: 11px; }
+      .rank-badge.qualify { border: 1px solid var(--retro-red); border-radius: var(--radius-pill); color: var(--retro-red); font-size: 11px; }
       .pos-badge {
         font-family: var(--font-mono); font-size: 8px;
-        background: var(--retro-yellow); color: var(--ink);
-        padding: 1px 4px; border: 1px solid var(--ink); margin-left: auto;
+        background: var(--accent); color: var(--on-accent);
+        padding: 1px 4px; border: 1px solid var(--accent); border-radius: var(--radius-pill); margin-left: auto;
         white-space: nowrap;
       }
-      .gd { font-family: var(--font-mono); font-size: 10px; color: var(--dim); white-space: nowrap; min-width: 22px; text-align: right; }
-      .wdl { font-family: var(--font-mono); font-size: 11px; color: var(--dim); white-space: nowrap; }
+      .gd { font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted); white-space: nowrap; min-width: 22px; text-align: right; }
+      .wdl { font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
       .pts { font-family: var(--font-var); font-size: 19px; color: var(--ink); min-width: 20px; text-align: right; }
-      .pts.muted { color: var(--dim); }
+      .pts.muted { color: var(--ink-muted); }
 
       /* ── Matches list ── */
       .matches-header {
-        font-family: var(--font-mono); font-size: 9px; color: var(--dim);
+        font-family: var(--font-mono); font-size: 9px; color: var(--ink-muted);
         letter-spacing: 0.12em; padding: 8px 10px 4px;
-        border-top: 2px solid var(--ink);
-        background: rgba(26,25,51,0.04);
+        border-top: 1px solid var(--hairline);
+        background: var(--fill-soft);
       }
       .matches-list {
         padding: 10px;
-        background: rgba(26,25,51,0.05);
+        background: var(--fill);
         display: grid; gap: 8px;
       }
       .match-item {
         padding: 10px 11px;
-        border: 2px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-3);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
       }
-      .match-item.is-played { background: var(--paper); }
+      .match-item.is-played { background: var(--fill-soft); }
 
       /* ── Match meta ── */
       .match-meta {
         font-family: var(--font-mono); font-size: 9.5px;
-        color: var(--dim); display: flex; gap: 7px;
+        color: var(--ink-muted); display: flex; gap: 7px;
         flex-wrap: wrap; align-items: center;
       }
       .match-meta .jornada { color: var(--retro-red); font-weight: 700; }
-      .match-time { color: var(--retro-yellow); font-weight: 700; }
-      .badge { font-family: var(--font-mono); font-size: 8px; padding: 1px 5px; border: 1px solid var(--ink); text-transform: uppercase; letter-spacing: 0.06em; }
-      .badge-played { background: var(--retro-yellow); color: var(--ink); }
-      .badge-upcoming { background: var(--paper-2); color: var(--dim); }
+      .match-time { color: var(--accent); font-weight: 700; }
+      .badge { font-family: var(--font-mono); font-size: 8px; padding: 1px 5px; border: 1px solid var(--hairline); border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: 0.06em; }
+      .badge-played { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+      .badge-upcoming { background: var(--fill); color: var(--ink-muted); }
       .meta-clear {
         margin-left: auto; width: 22px; height: 22px; flex-shrink: 0;
-        border: 1.5px solid var(--ink); background: var(--paper-2); color: var(--ink);
+        border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: var(--fill); color: var(--ink);
         font-family: var(--font-mono); font-size: 10px; line-height: 1; cursor: pointer;
         display: grid; place-items: center;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      .meta-clear:active { background: var(--ink); color: var(--paper); }
+      .meta-clear:active { opacity: 0.7; border-color: var(--accent); }
 
       /* ── Marcador XL de solo lectura (resultado oficial) ── */
       .score-final {
         display: grid; grid-template-columns: 1fr auto 1fr;
         align-items: center; gap: 8px; margin-top: 9px;
-        background: var(--retro-yellow);
-        border: 3px solid var(--ink);
-        box-shadow: 3px 3px 0 0 var(--ink);
+        background: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
         padding: 10px 8px;
       }
       .sf-side {
         display: flex; align-items: center; justify-content: center; gap: 6px;
-        font-family: var(--font-body); font-weight: 800; font-size: 14px; color: var(--ink);
+        font-family: var(--font-body); font-weight: 800; font-size: 14px; color: var(--on-accent);
         min-width: 0;
       }
       .sf-score {
         display: flex; align-items: baseline; gap: 8px;
-        font-family: var(--font-var); font-size: 30px; line-height: 1; color: var(--ink);
+        font-family: var(--font-var); font-size: 30px; line-height: 1; color: var(--on-accent);
       }
       .sf-dash { font-size: 18px; }
       .sf-side.lose, .sf-num.lose { opacity: 0.5; }
@@ -375,42 +380,43 @@ export class MobileGroups extends LitElement {
         display: flex; align-items: center; gap: 6px;
         font-family: var(--font-body); font-weight: 800; font-size: 13px;
       }
-      .se-team.win .se-id { color: var(--retro-blue); }
+      .se-team.win .se-id { color: var(--accent); }
       .se-sep {
         align-self: center; font-family: var(--font-var);
-        font-size: 20px; color: var(--dim); padding-top: 22px;
+        font-size: 20px; color: var(--ink-muted); padding-top: 22px;
       }
 
       /* ── Stepper (compartido grupos y bracket) ── */
       .stepper {
         display: flex; align-items: center;
-        border: 2px solid var(--ink);
-        background: var(--paper);
-        box-shadow: 2px 2px 0 0 var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        background: var(--fill);
+        box-shadow: var(--shadow-sm);
       }
       .step {
-        width: 40px; height: 40px; border: none; background: var(--paper);
+        width: 40px; height: 40px; border: none; background: var(--fill);
         font-family: var(--font-var); font-size: 22px; line-height: 1; color: var(--ink);
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
-      .step.minus { border-right: 2px solid var(--ink); }
-      .step.plus  { border-left: 2px solid var(--ink); }
-      .step:active { background: var(--ink); color: var(--paper); }
+      .step.minus { border-right: 1px solid var(--hairline); }
+      .step.plus  { border-left: 1px solid var(--hairline); }
+      .step:active { opacity: 0.7; }
       .step-val {
         min-width: 38px; text-align: center;
         font-family: var(--font-var); font-size: 22px; font-weight: 700; color: var(--ink);
       }
-      .step-val.pending { color: var(--dim); opacity: 0.55; }
+      .step-val.pending { color: var(--ink-muted); opacity: 0.55; }
 
       /* ── Odds bar ── */
       .odds-row {
         display: flex; margin-top: 8px; overflow: hidden;
-        border: 1px solid var(--ink); height: 14px;
+        border: 1px solid var(--hairline); border-radius: var(--radius-pill); height: 14px;
       }
       .odds-seg {
-        font-family: var(--font-mono); font-size: 7px; color: var(--paper);
+        font-family: var(--font-mono); font-size: 7px; color: var(--on-dark);
         display: flex; align-items: center; justify-content: center;
         overflow: hidden; letter-spacing: 0.04em; flex-shrink: 0;
       }
@@ -418,18 +424,20 @@ export class MobileGroups extends LitElement {
       /* ── Thirds ── */
       .thirds {
         margin: 22px 16px 16px;
-        background: var(--paper-2);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-lg);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
         overflow: hidden;
       }
       .thirds-header {
-        background: var(--retro-red);
-        background-image: radial-gradient(circle, rgba(236,223,192,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-        color: var(--paper);
+        background: var(--card-grad);
+        background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px) 0 0 / 6px 6px;
+        color: var(--on-dark);
         padding: 9px 14px;
-        border-bottom: 3px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         font-family: var(--font-var); font-size: 16px;
+        text-transform: uppercase; font-weight: 800;
       }
       .thirds-row {
         display: grid;
@@ -437,15 +445,15 @@ export class MobileGroups extends LitElement {
         gap: 6px; align-items: center;
         padding: 8px 12px; font-size: 12px;
       }
-      .thirds-row + .thirds-row { border-top: 1px dotted rgba(26,25,51,0.22); }
+      .thirds-row + .thirds-row { border-top: 1px solid var(--hairline); }
       .thirds-row.head {
-        background: var(--paper);
-        font-family: var(--font-mono); font-size: 8px; color: var(--dim);
+        background: var(--fill);
+        font-family: var(--font-mono); font-size: 8px; color: var(--ink-muted);
         letter-spacing: 0.1em; text-transform: uppercase;
-        border-bottom: 2px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
       .t-rank { font-family: var(--font-var); color: var(--retro-red); text-align: center; }
-      .t-stat { text-align: center; font-family: var(--font-mono); color: var(--dim); }
+      .t-stat { text-align: center; font-family: var(--font-mono); color: var(--ink-muted); }
       .t-pts { text-align: center; font-family: var(--font-var); font-size: 15px; }
       .qualify-check { color: var(--retro-green); font-weight: 700; text-align: center; }
     `,

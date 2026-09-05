@@ -10,8 +10,10 @@ Este repositorio es una PWA de bracket para el Mundial 2026 construida con Lit, 
 - Vista previa: `npm run preview`
 - Tests: `npm test`
 - Test focalizado: `npm test -- src/lib/bracket-logic.test.ts`
-- Reporte de fotos faltantes: `npm run assets:report` → genera `docs/missing-assets.md`
-- Descargar fotos de equipo: `npm run photos -- JOR` (jugadores), `npm run photos -- JOR --type coach`
+- Reporte de fotos faltantes: `npm run ucl:report` (o `npm run assets:report`) → genera `docs/missing-assets.md`
+- Descargar fotos y datos UCL: `npm run ucl:photos -- RMA`, `npm run ucl:squads -- RMA BAR`, `npm run ucl:data`
+- Escudos oficiales UCL: `npm run ucl:crests`
+- Script principal UCL: [scripts/fetch-ucl-squads.mjs](scripts/fetch-ucl-squads.mjs) (fuente oficial UEFA.com para plantillas, fotos, DTs y escudos).
 
 ## Mapa rápido
 
@@ -20,12 +22,11 @@ Este repositorio es una PWA de bracket para el Mundial 2026 construida con Lit, 
 - [src/bracket-view.ts](src/bracket-view.ts) decide la vista activa y abre el modal de partido.
 - [src/components/](src/components/) contiene las vistas y modales UI.
 - [src/store/tournament-store.ts](src/store/tournament-store.ts) es la fuente de verdad del estado persistido y de las mutaciones.
-- [src/lib/bracket-logic.ts](src/lib/bracket-logic.ts) contiene la lógica pura reutilizable del bracket.
-- [src/data/fifa-2026.ts](src/data/fifa-2026.ts) define datos estáticos, fixtures base y la estructura del knockout.
-- [src/data/squads/](src/data/squads/) — un `.ts` por selección con `Player[]` y `Lineup`. Registro central en `index.ts`.
+- [src/data/ucl-2027.ts](src/data/ucl-2027.ts) define los 36 clubes UCL y fixtures base.
+- [src/data/squads/](src/data/squads/) — un `.ts` por club con `Player[]` y `Lineup`. Registro central en `index.ts`.
 - [src/data/coaches/index.ts](src/data/coaches/index.ts) — `COACHES: Record<string, Coach>` con name, born, bio y photoUrl.
 - [src/lib/player-photo.ts](src/lib/player-photo.ts) y [src/lib/coach-photo.ts](src/lib/coach-photo.ts) — helpers para resolver rutas locales de fotos contra sus manifiestos (`player-photos.ts` / `coach-photos.ts`).
-- [scripts/fetch-squad-assets.mjs](scripts/fetch-squad-assets.mjs) — descarga fotos desde API-Football → TheSportsDB → Wikipedia; genera ambos manifiestos. Modos: `--report`, `--type player|coach|all`, `--force`, `--verify-data`.
+- [scripts/fetch-ucl-squads.mjs](scripts/fetch-ucl-squads.mjs) — descarga plantillas, fotos oficiales, DTs y escudos desde UEFA.com. Modos: `--report`, `--photos`, `--data`, `--crests`, `--force`.
 
 ## Convenciones clave
 

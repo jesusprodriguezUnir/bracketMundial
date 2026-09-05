@@ -1,7 +1,8 @@
 import { LitElement, css, html } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { customElement, property, state } from 'lit/decorators.js';
+import { TEAMS_2026 } from '../data/ucl-2027';
+import { getClubProfile } from '../data/ucl-clubs';
 import { STADIUMS } from '../data/stadiums';
 import { GROUP_MATCHES } from '../data/match-schedule';
 import { getSquad, getLineup, SQUADS, isOfficialSquad } from '../data/squads';
@@ -114,9 +115,10 @@ export class SquadsView extends LitElement {
     }
 
     .group-block {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      background: var(--card-grad);
       overflow: hidden;
     }
 
@@ -126,8 +128,8 @@ export class SquadsView extends LitElement {
       gap: 12px;
       align-items: center;
       padding: 12px 16px;
-      border-bottom: 3px solid var(--ink);
-      background: var(--retro-blue);
+      border-bottom: 1px solid var(--hairline-strong);
+      background: var(--accent);
       color: var(--paper);
     }
 
@@ -149,7 +151,7 @@ export class SquadsView extends LitElement {
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
       padding: 14px;
-      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 48%), var(--paper-2);
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 48%), var(--fill);
     }
 
     .team-card {
@@ -208,8 +210,8 @@ export class SquadsView extends LitElement {
       width: 48px;
       height: 32px;
       object-fit: cover;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--shadow-sm);
     }
 
     .team-name {
@@ -223,7 +225,7 @@ export class SquadsView extends LitElement {
     .team-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -250,9 +252,10 @@ export class SquadsView extends LitElement {
       gap: 8px;
       padding: 10px 16px;
       margin-bottom: 14px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.08em;
@@ -261,29 +264,31 @@ export class SquadsView extends LitElement {
     }
 
     .back-btn:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .detail-panel {
-      border: 4px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      background: var(--card-grad);
       overflow: hidden;
     }
 
     /* ════ Cabecera ficha V1 — escudo + camiseta ════ */
     .detail-header {
-      --kit: var(--retro-blue);
+      --kit: var(--accent);
       --kit-trim: var(--ink);
-      --kit-num: var(--retro-yellow);
-      border-bottom: 4px solid var(--ink);
-      background: var(--paper);
+      --kit-num: var(--accent);
+      border-bottom: 1px solid var(--hairline-strong);
+      background: var(--card-grad);
     }
 
     .kit-stripe {
       height: 8px;
       background: var(--kit);
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .ficha-grid {
@@ -306,7 +311,7 @@ export class SquadsView extends LitElement {
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: var(--ink);
+      background: var(--hairline-strong);
       transform: translate(3px, 3px);
     }
 
@@ -319,7 +324,7 @@ export class SquadsView extends LitElement {
         color-mix(in srgb, var(--kit) 70%, #fff),
         var(--kit) 72%
       );
-      border: 3px solid var(--ink);
+      border: 1px solid var(--hairline);
       overflow: hidden;
     }
 
@@ -356,9 +361,10 @@ export class SquadsView extends LitElement {
       display: flex;
       gap: 2px;
       padding: 2px 7px;
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
       font-size: 11px;
       line-height: 1;
       color: var(--kit-num);
@@ -398,14 +404,16 @@ export class SquadsView extends LitElement {
       letter-spacing: 0.1em;
       text-transform: uppercase;
       padding: 4px 8px;
-      border: 2px solid var(--ink);
-      background: var(--paper-3);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      background: var(--fill);
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
 
     .ficha-chips .chip.solid {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .ficha-chips .chip.green {
@@ -419,8 +427,9 @@ export class SquadsView extends LitElement {
       justify-self: end;
       width: 168px;
       padding: 14px 14px 0;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       background: var(--halftone-soft),
         linear-gradient(
           180deg,
@@ -452,7 +461,7 @@ export class SquadsView extends LitElement {
 
     .jersey-plinth {
       height: 4px;
-      background: var(--ink);
+      background: var(--hairline-strong);
       margin-top: 2px;
     }
 
@@ -461,11 +470,63 @@ export class SquadsView extends LitElement {
       background: linear-gradient(180deg, rgba(26, 25, 51, 0.18), transparent);
     }
 
+    /* ── Ficha del Club: Estadio & Historia ── */
+    .club-meta-box {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .club-stadium-row,
+    .club-history-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .club-meta-icon {
+      font-size: 14px;
+    }
+
+    .club-meta-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+    }
+
+    .club-meta-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    .club-history-desc {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.45;
+      margin-top: 2px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.15);
+      padding-top: 6px;
+    }
+
     /* ── Mobile tabs (hidden on desktop) ── */
 
     .tabs {
       display: none;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -483,8 +544,8 @@ export class SquadsView extends LitElement {
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink);
-      border-right: 2px solid var(--ink);
-      background: var(--paper-2);
+      border-right: 1px solid var(--hairline);
+      background: var(--fill);
       white-space: nowrap;
       flex-shrink: 0;
       transition: background 0.15s, color 0.15s;
@@ -495,13 +556,13 @@ export class SquadsView extends LitElement {
     }
 
     .tabs button.active {
-      background: #1A1933;
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       font-weight: 700;
-      border-bottom: 3px solid #E84B1A;
+      border-bottom: 3px solid var(--accent);
     }
     .tabs button.active:last-child {
-      border-bottom: 3px solid #E84B1A;
+      border-bottom: 3px solid var(--accent);
     }
 
     /* ── Coach card ── */
@@ -511,22 +572,23 @@ export class SquadsView extends LitElement {
       gap: 14px;
       align-items: flex-start;
       padding: 14px 18px;
-      border-bottom: 4px solid var(--ink);
-      background: var(--paper-2);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
 
     .coach-avatar {
       flex-shrink: 0;
       width: 64px;
       height: 64px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 18px;
       font-weight: bold;
@@ -550,7 +612,7 @@ export class SquadsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .coach-name {
@@ -563,7 +625,7 @@ export class SquadsView extends LitElement {
     .coach-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
     }
 
@@ -614,7 +676,7 @@ export class SquadsView extends LitElement {
       justify-content: center;
       overflow: hidden;
       font-size: 24px;
-      color: var(--dim);
+      color: var(--ink-muted);
       flex-shrink: 0;
     }
 
@@ -639,7 +701,8 @@ export class SquadsView extends LitElement {
     }
 
     .news-link:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .news-headline {
@@ -657,7 +720,7 @@ export class SquadsView extends LitElement {
     .news-desc {
       margin-top: 4px;
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       line-height: 1.45;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -692,7 +755,7 @@ export class SquadsView extends LitElement {
       font-size: 12px;
       letter-spacing: 0.08em;
       text-align: center;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     /* ── Detail grid: 3 columns ── */
@@ -704,7 +767,7 @@ export class SquadsView extends LitElement {
 
     .panel-block {
       padding: 18px;
-      border-right: 3px solid var(--ink);
+      border-right: 1px solid var(--hairline);
       min-height: 0;
     }
 
@@ -727,9 +790,10 @@ export class SquadsView extends LitElement {
 
     .view-toggle {
       display: flex;
-      border: 2px solid var(--ink);
-      background: var(--paper-2);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
+      box-shadow: var(--shadow-sm);
     }
 
     .view-toggle button {
@@ -740,23 +804,24 @@ export class SquadsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .view-toggle button.active {
-      background: var(--retro-yellow);
-      color: var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
       font-weight: bold;
     }
 
     .view-toggle button:first-child {
-      border-right: 2px solid var(--ink);
+      border-right: 1px solid var(--hairline);
     }
 
     .table-wrap {
       overflow-x: auto;
-      border: 2px solid var(--ink);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
     }
 
     .mob-player-cards {
@@ -772,7 +837,7 @@ export class SquadsView extends LitElement {
     th,
     td {
       padding: 10px 12px;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       text-align: left;
     }
 
@@ -781,8 +846,8 @@ export class SquadsView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      background: var(--paper);
-      color: var(--dim);
+      background: var(--fill);
+      color: var(--ink-muted);
     }
 
     td {
@@ -808,16 +873,17 @@ export class SquadsView extends LitElement {
     }
 
     .player-row:hover td {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .player-avatar {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      border: 2px solid var(--ink);
-      background: var(--retro-blue);
-      color: var(--paper);
+      border: 1px solid var(--hairline);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 9px;
       font-weight: bold;
@@ -845,9 +911,10 @@ export class SquadsView extends LitElement {
 
     .match-card,
     .venue-card {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      background: var(--card-grad);
       overflow: hidden;
     }
 
@@ -862,7 +929,7 @@ export class SquadsView extends LitElement {
       margin-bottom: 8px;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -880,7 +947,7 @@ export class SquadsView extends LitElement {
       margin-top: 8px;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.05em;
     }
 
@@ -888,7 +955,7 @@ export class SquadsView extends LitElement {
       width: 100%;
       height: 120px;
       object-fit: cover;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
     }
 
     .venue-copy {
@@ -906,14 +973,15 @@ export class SquadsView extends LitElement {
     .venue-city {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.05em;
     }
 
     .empty {
       padding: 28px 20px;
-      border: 3px dashed var(--ink);
-      background: var(--paper-2);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       font-family: var(--font-display);
       text-align: center;
       color: var(--ink);
@@ -968,35 +1036,37 @@ export class SquadsView extends LitElement {
       align-items: center;
       gap: 10px;
       padding: 8px 12px;
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.04em;
       color: var(--ink);
     }
     .player-result-btn:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
     }
     .player-result-btn:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 0 var(--ink);
+      opacity: 0.7;
     }
     .player-number {
       font-family: var(--font-var);
       font-size: 14px;
       min-width: 20px;
       text-align: center;
-      color: var(--retro-orange);
+      color: var(--accent);
     }
     .player-pos {
       font-family: var(--font-mono);
       font-size: 10px;
       padding: 1px 5px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       background: var(--ink);
       color: var(--paper);
       letter-spacing: 0.08em;
@@ -1007,11 +1077,12 @@ export class SquadsView extends LitElement {
     }
     .no-results {
       padding: 20px;
-      border: 3px dashed var(--ink);
-      background: var(--paper-2);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-align: center;
       letter-spacing: 0.08em;
     }
@@ -1019,9 +1090,10 @@ export class SquadsView extends LitElement {
     /* ── Match expandable ── */
 
     .match-card-expand {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      background: var(--card-grad);
       overflow: hidden;
       transition: box-shadow 0.15s, transform 0.15s;
     }
@@ -1032,7 +1104,7 @@ export class SquadsView extends LitElement {
 
     .match-card-expand.collapsed:hover {
       transform: translate(-1px, -1px);
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
     }
 
     .match-card-header {
@@ -1041,8 +1113,8 @@ export class SquadsView extends LitElement {
     }
 
     .match-card-expand.open .match-card-header {
-      border-bottom: 3px solid var(--ink);
-      background: var(--paper);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
 
     .match-card-meta {
@@ -1051,7 +1123,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
       margin-bottom: 8px;
       text-transform: uppercase;
@@ -1074,7 +1146,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.1em;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .match-toggle-pill {
@@ -1082,18 +1154,18 @@ export class SquadsView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.12em;
       font-weight: 700;
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
       padding: 3px 8px;
       color: var(--ink);
     }
 
     .match-card-expand.open .match-toggle-pill {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       box-shadow: none;
-      transform: translate(2px, 2px);
     }
 
     /* ── Match detail (expanded) ── */
@@ -1113,18 +1185,19 @@ export class SquadsView extends LitElement {
     }
 
     .match-section-num {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 10px;
       padding: 3px 6px;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
       letter-spacing: 0.06em;
       font-weight: 700;
     }
 
-    .match-section-num.orange { background: var(--retro-orange); }
+    .match-section-num.orange { background: var(--accent); }
     .match-section-num.green  { background: var(--retro-green);  }
 
     .match-section-title {
@@ -1152,8 +1225,8 @@ export class SquadsView extends LitElement {
     .odds-bar {
       display: flex;
       height: 44px;
-      border: 2.5px solid var(--ink);
-      box-shadow: 3px 3px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
     }
 
@@ -1167,7 +1240,7 @@ export class SquadsView extends LitElement {
     }
 
     .odds-bar-seg + .odds-bar-seg {
-      border-left: 2px solid var(--ink);
+      border-left: 1px solid var(--hairline);
     }
 
     .odds-legend {
@@ -1175,7 +1248,7 @@ export class SquadsView extends LitElement {
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
       font-weight: 700;
       margin-top: 8px;
@@ -1186,7 +1259,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.2em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
       text-transform: uppercase;
       margin: 12px 0 8px;
@@ -1200,7 +1273,8 @@ export class SquadsView extends LitElement {
 
     .scorer-chip {
       padding: 5px 10px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       font-family: var(--font-mono);
       font-size: 12px;
       display: inline-flex;
@@ -1217,8 +1291,9 @@ export class SquadsView extends LitElement {
     .match-pitch-wrap {
       position: relative;
       background: linear-gradient(to bottom, var(--retro-green) 0%, #2a8048 50%, var(--retro-green) 100%);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       height: 640px;
       overflow: hidden;
     }
@@ -1230,10 +1305,11 @@ export class SquadsView extends LitElement {
 
     .pitch-tag {
       position: absolute;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
       padding: 4px 8px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.1em;
@@ -1259,8 +1335,8 @@ export class SquadsView extends LitElement {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      border: 2.5px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1282,9 +1358,10 @@ export class SquadsView extends LitElement {
     /* ── Venue detail (inline) ── */
 
     .venue-detail-wrap {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      background: var(--card-grad);
       overflow: hidden;
     }
 
@@ -1292,7 +1369,7 @@ export class SquadsView extends LitElement {
       height: 180px;
       background-size: cover;
       background-position: center;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       position: relative;
     }
 
@@ -1308,18 +1385,19 @@ export class SquadsView extends LitElement {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
       padding: 6px 10px;
-      border: 2.5px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.14em;
       font-weight: 700;
     }
 
-    .vd-back:hover { background: var(--retro-yellow); }
+    .vd-back:hover { background: var(--accent); color: var(--on-accent); }
 
     .vd-body {
       padding: 14px;
@@ -1329,7 +1407,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -1346,7 +1424,8 @@ export class SquadsView extends LitElement {
     .vd-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       margin-bottom: 12px;
     }
 
@@ -1356,7 +1435,7 @@ export class SquadsView extends LitElement {
     }
 
     .vd-stat + .vd-stat {
-      border-left: 2px solid var(--ink);
+      border-left: 1px solid var(--hairline);
     }
 
     .vd-stat b {
@@ -1370,7 +1449,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
     }
 
@@ -1386,7 +1465,7 @@ export class SquadsView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.2em;
-      color: var(--dim);
+      color: var(--ink-muted);
       font-weight: 700;
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -1397,8 +1476,9 @@ export class SquadsView extends LitElement {
       justify-content: space-between;
       align-items: center;
       padding: 7px 10px;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       margin-bottom: 5px;
       font-family: var(--font-mono);
       font-size: 11px;
@@ -1410,12 +1490,13 @@ export class SquadsView extends LitElement {
     }
 
     .vd-phase-badge {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
       padding: 2px 7px;
       font-size: 9px;
       letter-spacing: 0.1em;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       font-family: var(--font-mono);
       font-weight: 700;
     }
@@ -1428,10 +1509,11 @@ export class SquadsView extends LitElement {
       text-align: center;
       padding: 10px 12px;
       margin-top: 10px;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
-      border: 2.5px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.14em;
@@ -1439,7 +1521,7 @@ export class SquadsView extends LitElement {
       box-sizing: border-box;
     }
 
-    .vd-goto-btn:hover { background: var(--retro-yellow); }
+    .vd-goto-btn:hover { background: var(--accent); color: var(--on-accent); }
 
     @media (max-width: 768px) {
       /* Cabecera ficha V1 — mobile */
@@ -1469,7 +1551,7 @@ export class SquadsView extends LitElement {
 
       .panel-block {
         border-right: none;
-        border-bottom: 3px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
 
       .panel-block:last-child {
@@ -1493,7 +1575,7 @@ export class SquadsView extends LitElement {
         flex: 0 0 auto;
         white-space: nowrap;
         min-height: 44px;
-        border-bottom: 3px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         padding: 12px 16px;
       }
 
@@ -1528,26 +1610,26 @@ export class SquadsView extends LitElement {
         align-items: center;
         gap: 12px;
         padding: 10px 12px;
-        border: 2px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-2);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        background: var(--card-grad);
         cursor: pointer;
         min-height: 56px;
         transition: transform 0.1s, box-shadow 0.1s;
         touch-action: manipulation;
       }
       .mob-player-card:active {
-        transform: translate(1px, 1px);
-        box-shadow: 1px 1px 0 0 var(--ink);
+        opacity: 0.7;
       }
       .mob-player-avatar {
         width: 42px;
         height: 42px;
         flex-shrink: 0;
         border-radius: 50%;
-        border: 2px solid var(--ink);
-        background: var(--retro-blue);
-        color: var(--paper);
+        border: 1px solid var(--hairline);
+        background: var(--accent);
+        color: var(--on-accent);
         font-family: var(--font-mono);
         font-size: 11px;
         font-weight: bold;
@@ -1575,7 +1657,7 @@ export class SquadsView extends LitElement {
       .mob-player-number {
         font-family: var(--font-var);
         font-size: 16px;
-        color: var(--retro-orange);
+        color: var(--accent);
         min-width: 24px;
         text-align: center;
       }
@@ -1597,7 +1679,8 @@ export class SquadsView extends LitElement {
         font-family: var(--font-mono);
         font-size: 9px;
         padding: 1px 5px;
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
         background: var(--ink);
         color: var(--paper);
         letter-spacing: 0.06em;
@@ -1606,12 +1689,12 @@ export class SquadsView extends LitElement {
       .mob-player-age {
         font-family: var(--font-mono);
         font-size: 10px;
-        color: var(--dim);
+        color: var(--ink-muted);
       }
       .mob-player-club {
         font-family: var(--font-mono);
         font-size: 10px;
-        color: var(--dim);
+        color: var(--ink-muted);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -2145,15 +2228,18 @@ export class SquadsView extends LitElement {
     isOfficial: boolean,
   ) {
     const id = team.id;
-    const colors = TEAM_COLORS[id] ?? ['#22418c', '#f0b021'];
+    const club = getClubProfile(id);
+    const colors = club?.colors ?? TEAM_COLORS[id] ?? ['#22418c', '#f0b021'];
     // Si el color base es casi-blanco, intercambiar para que la franja sea visible
     let [base, accent] = colors;
     if (base.toUpperCase() === '#FFFFFF' || base.toUpperCase() === '#FFF') {
       [base, accent] = [accent, base];
     }
 
-    const titles = WORLD_TITLES[id] ?? 0;
+    const titles = club?.uclTitles ?? WORLD_TITLES[id] ?? 0;
     const stars = titles ? '★'.repeat(titles) : '';
+    const locale = useLocaleStore.getState().locale;
+    const groupLabel = team.group === 'LP' ? (locale === 'en' ? 'League Phase' : 'Fase Liga') : t('squads.list.groupTitle', { letter: team.group });
 
     return html`
       <div class="detail-header"
@@ -2174,7 +2260,7 @@ export class SquadsView extends LitElement {
               @error=${(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }}
             >
             ${titles ? html`
-              <div class="crest-stars" title="${titles} títulos mundiales">${stars}</div>
+              <div class="crest-stars" title="${titles} ${locale === 'en' ? 'Champions League titles' : 'títulos de Champions League'}">${stars}</div>
             ` : ''}
           </div>
 
@@ -2182,10 +2268,30 @@ export class SquadsView extends LitElement {
           <div class="ficha-identity">
             <div class="ficha-name">${team.name}</div>
             <div class="ficha-chips">
-              <span class="chip solid">★ ${t('squads.list.groupTitle', { letter: team.group })}</span>
+              <span class="chip solid">★ ${groupLabel}</span>
               ${isOfficial ? html`<span class="chip green">✓ ${t('squads.official')}</span>` : ''}
               <span class="chip">${t('squads.card.playersMany', { n: squad.length })}</span>
             </div>
+
+            <!-- Ficha del Club (Estadio e Historia) -->
+            ${club ? html`
+              <div class="club-meta-box">
+                <div class="club-stadium-row">
+                  <span class="club-meta-icon">🏟️</span>
+                  <span class="club-meta-label">${locale === 'en' ? 'Stadium:' : 'Estadio:'}</span>
+                  <strong>${club.stadium.name}</strong>
+                  <span class="club-meta-sub">(${club.stadium.capacity.toLocaleString()} ${locale === 'en' ? 'spectators' : 'espectadores'})</span>
+                </div>
+                <div class="club-history-row">
+                  <span class="club-meta-icon">🏆</span>
+                  <span class="club-meta-label">${locale === 'en' ? 'UCL Record:' : 'Champions:'}</span>
+                  <strong>${club.uclBest}</strong>
+                </div>
+                <div class="club-history-desc">
+                  ${locale === 'en' ? club.uclHistory.en : club.uclHistory.es}
+                </div>
+              </div>
+            ` : ''}
           </div>
 
           <!-- Expositor de camiseta titular -->
@@ -2268,7 +2374,7 @@ export class SquadsView extends LitElement {
   }
 
   private renderGroupsList() {
-    const groups = 'ABCDEFGHIJKL'.split('');
+    const groups = Array.from(new Set(TEAMS_2026.map(t => t.group)));
     const q = this.searchQuery.trim();
     const isFiltering = q.length >= 2;
     const playerResults = this._getPlayerResults();
@@ -2313,17 +2419,21 @@ export class SquadsView extends LitElement {
       <div class="groups-stack">
         ${groupsWithMatch.map(group => {
           const teamsInGroup = TEAMS_2026.filter(t => t.group === group);
+          const locale = useLocaleStore.getState().locale;
+          const groupTitle = group === 'LP' ? (locale === 'en' ? 'League Phase' : 'Fase Liga') : t('squads.list.groupTitle', { letter: group });
+          const groupSub = group === 'LP' ? (locale === 'en' ? `${teamsInGroup.length} Clubs` : `${teamsInGroup.length} Clubes`) : t('squads.list.groups', { n: teamsInGroup.length });
           return html`
             <section class="group-block">
               <div class="group-header">
-                <div class="group-title">${t('squads.list.groupTitle', { letter: group })}</div>
-                <div class="group-sub">${t('squads.list.groups', { n: 4 })}</div>
+                <div class="group-title">${groupTitle}</div>
+                <div class="group-sub">${groupSub}</div>
               </div>
               <div class="teams-grid">
                 ${teamsInGroup.map(team => {
                   const dimmed = isFiltering && !this._teamMatchesQuery(team.id);
                   const colors = TEAM_COLORS[team.id] ?? ['#ccc', '#999'];
                   const squadLen = getSquad(team.id).length;
+                  const cardGroup = team.group === 'LP' ? (locale === 'en' ? 'League Phase' : 'Fase Liga') : t('squads.list.groupTitle', { letter: team.group });
                   return html`
                     <button
                       class="team-card"
@@ -2337,7 +2447,7 @@ export class SquadsView extends LitElement {
                             : (team as any).flag ?? '?'}
                         </div>
                         <div class="team-name">${team.name}</div>
-                        <div class="tc-group">${t('squads.list.groupTitle', { letter: team.group })}</div>
+                        <div class="tc-group">${cardGroup}</div>
                         <div class="tc-players">
                           ${isOfficialSquad(team.id)
                             ? html`✓ ${squadLen} ${t('squads.card.playersMany', { n: squadLen })}`

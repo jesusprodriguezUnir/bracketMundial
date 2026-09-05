@@ -75,7 +75,7 @@ import { initAuth } from './store/auth-store';
 
 // Aplica el tema antes del primer paint para evitar flash
 const storedTheme = localStorage.getItem('bm-theme');
-if (storedTheme === 'dark') {
+if (storedTheme !== 'light') {
   document.documentElement.dataset.theme = 'dark';
 }
 

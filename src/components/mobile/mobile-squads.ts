@@ -160,34 +160,36 @@ export class MobileSquads extends LitElement {
 
       /* ── Coach banner ── */
       .coach-banner {
-        margin: 0 16px 16px; border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-lg); overflow: hidden; background: var(--paper-3);
+        margin: 0 16px 16px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg); overflow: hidden; background: var(--card-grad);
       }
       .coach-top {
         display: flex; gap: 12px; padding: 14px;
-        background: var(--retro-red);
-        background-image: radial-gradient(circle, rgba(236,223,192,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-        color: var(--paper); align-items: center;
+        background: var(--card-grad);
+        background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px) 0 0 / 6px 6px;
+        color: var(--on-dark); align-items: center;
       }
       .coach-photo {
-        width: 64px; height: 64px; border: 3px solid var(--paper);
-        background: var(--ink); flex-shrink: 0;
+        width: 64px; height: 64px; border: 1px solid var(--hairline-strong);
+        border-radius: var(--radius-sm);
+        background: var(--fill); flex-shrink: 0;
         display: grid; place-items: center; object-fit: cover;
       }
-      .coach-photo.initials { font-family: var(--font-var); font-size: 22px; color: var(--paper); }
-      .coach-name { font-family: var(--font-var); font-size: 21px; line-height: 0.95; }
+      .coach-photo.initials { font-family: var(--font-var); font-size: 22px; color: var(--on-dark); }
+      .coach-name { font-family: var(--font-var); font-size: 21px; line-height: 0.95; text-transform: uppercase; font-weight: 800; }
       .coach-role { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; margin-top: 6px; opacity: 0.85; }
-      .coach-meta { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-top: 2px solid var(--ink); }
+      .coach-meta { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-top: 1px solid var(--hairline); }
       .cmeta-chip {
         font-family: var(--font-mono); font-size: 9px;
-        border: 1.5px solid var(--ink); padding: 3px 7px;
-        background: var(--paper-2); letter-spacing: 0.04em;
+        border: 1px solid var(--hairline); border-radius: var(--radius-pill); padding: 3px 7px;
+        background: var(--fill); letter-spacing: 0.04em;
       }
 
       /* ── Toggle ── */
       .squad-toggle {
         display: flex; margin: 0 16px 14px;
-        border: 3px solid var(--ink); box-shadow: var(--shadow-hard-sm);
+        border: 1px solid var(--hairline); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
       }
       .squad-toggle button {
         all: unset; cursor: pointer; flex: 1; text-align: center;
@@ -195,8 +197,8 @@ export class MobileSquads extends LitElement {
         min-height: 44px; display: grid; place-items: center;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      .squad-toggle button.active { background: var(--ink); color: var(--retro-yellow); }
-      .squad-toggle button + button { border-left: 2px solid var(--ink); }
+      .squad-toggle button.active { background: var(--accent); color: var(--on-accent); }
+      .squad-toggle button + button { border-left: 1px solid var(--hairline); }
 
       /* ── Lista ── */
       .squad-list { padding-bottom: 16px; }
@@ -204,35 +206,39 @@ export class MobileSquads extends LitElement {
       .pos-label {
         font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em;
         text-transform: uppercase; padding: 5px 9px; display: inline-block;
-        color: var(--paper); margin-bottom: 8px;
+        border-radius: var(--radius-pill);
+        color: var(--ink); margin-bottom: 8px;
       }
-      .pos-label.POR { background: var(--retro-yellow); color: var(--ink); }
-      .pos-label.DEF { background: var(--retro-blue); }
-      .pos-label.MED { background: var(--retro-green); }
-      .pos-label.DEL { background: var(--retro-red); }
+      .pos-label.POR { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--ink); }
+      .pos-label.DEF { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+      .pos-label.MED { background: color-mix(in srgb, var(--retro-green) 18%, var(--paper-2)); }
+      .pos-label.DEL { background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2)); }
 
       .player-row {
         display: flex; align-items: center; gap: 11px;
-        padding: 8px 11px; border: 2px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm); background: var(--paper-3);
+        padding: 8px 11px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm); background: var(--fill);
         margin-bottom: 8px;
       }
       .player-num { font-family: var(--font-var); font-size: 17px; color: var(--ink); width: 26px; text-align: center; flex-shrink: 0; }
       .player-photo {
-        width: 42px; height: 42px; border: 2px solid var(--ink);
-        background: var(--paper-2); flex-shrink: 0;
+        width: 42px; height: 42px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        background: var(--fill); flex-shrink: 0;
         display: grid; place-items: center; object-fit: cover;
       }
-      .player-photo.initials { font-family: var(--font-var); font-size: 13px; color: var(--dim); }
+      .player-photo.initials { font-family: var(--font-var); font-size: 13px; color: var(--ink-muted); }
       .player-info { flex: 1; min-width: 0; }
       .player-name { font-family: var(--font-body); font-size: 14px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .player-club { font-family: var(--font-mono); font-size: 9px; color: var(--dim); letter-spacing: 0.04em; margin-top: 2px; }
-      .player-age { font-family: var(--font-mono); font-size: 11px; color: var(--dim); flex-shrink: 0; }
+      .player-club { font-family: var(--font-mono); font-size: 9px; color: var(--ink-muted); letter-spacing: 0.04em; margin-top: 2px; }
+      .player-age { font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
 
       /* ── Cancha ── */
       .pitch {
-        margin: 0 16px 16px; border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-lg);
+        margin: 0 16px 16px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
         background: repeating-linear-gradient(0deg, #1f6b3a 0 38px, #1c5f34 38px 76px);
         position: relative; aspect-ratio: 3 / 4; overflow: hidden; padding: 12px;
       }
@@ -244,21 +250,24 @@ export class MobileSquads extends LitElement {
       .pitch-line { display: flex; justify-content: space-evenly; align-items: center; }
       .chip { display: flex; flex-direction: column; align-items: center; gap: 3px; }
       .chip-disc {
-        width: 38px; height: 38px; background: var(--paper-3); border: 2px solid var(--ink);
+        width: 38px; height: 38px; background: var(--card-grad); border: 1px solid var(--hairline-strong);
+        border-radius: var(--radius-sm);
         display: grid; place-items: center; position: relative;
         font-family: var(--font-var); font-size: 14px; color: var(--ink);
-        box-shadow: var(--shadow-hard-sm); overflow: hidden;
+        box-shadow: var(--shadow-sm); overflow: hidden;
       }
       .chip-photo { width: 100%; height: 100%; object-fit: cover; }
       .num-sticker {
         position: absolute; top: -7px; right: -7px;
-        background: var(--retro-yellow); border: 1.5px solid var(--ink);
-        font-family: var(--font-var); font-size: 9px; color: var(--ink);
+        background: var(--accent); border: 1px solid var(--accent);
+        border-radius: var(--radius-pill);
+        font-family: var(--font-var); font-size: 9px; color: var(--on-accent);
         width: 18px; height: 18px; display: grid; place-items: center;
       }
       .chip-name {
         font-family: var(--font-mono); font-size: 8.5px; font-weight: 700;
-        color: var(--paper); background: var(--ink); padding: 1px 5px;
+        color: var(--on-dark); background: var(--card-grad); padding: 1px 5px;
+        border-radius: var(--radius-sm);
         letter-spacing: 0.04em; max-width: 64px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
       }
@@ -272,9 +281,10 @@ export class MobileSquads extends LitElement {
         gap: 8px;
         padding: 10px 16px;
         margin: 0 16px 14px;
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-2);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.08em;
@@ -285,8 +295,7 @@ export class MobileSquads extends LitElement {
         -webkit-tap-highlight-color: transparent;
       }
       .back-btn:active {
-        transform: translate(1px, 1px);
-        box-shadow: 1px 1px 0 0 var(--ink);
+        opacity: 0.7;
       }
 
       .search-bar {
@@ -298,7 +307,7 @@ export class MobileSquads extends LitElement {
         left: 14px;
         top: 50%;
         transform: translateY(-50%);
-        color: #E84B1A;
+        color: var(--accent);
         font-size: 16px;
         pointer-events: none;
         line-height: 1;
@@ -309,21 +318,21 @@ export class MobileSquads extends LitElement {
         padding: 10px 14px 10px 40px;
         font-family: var(--font-body);
         font-size: 14px;
-        color: #1A1933;
-        background: var(--paper-3);
-        border: 1px solid rgba(26,25,51,0.2);
-        border-radius: 8px;
+        color: var(--ink);
+        background: var(--fill);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
         outline: none;
         box-shadow: none;
         box-sizing: border-box;
         transition: border-color 0.15s, box-shadow 0.15s;
       }
       .search-input::placeholder {
-        color: rgba(26,25,51,0.4);
+        color: var(--ink-muted);
       }
       .search-input:focus {
-        border-color: #E84B1A;
-        box-shadow: 0 0 0 3px rgba(232,75,26,0.15);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
       }
 
       .player-results {
@@ -338,9 +347,10 @@ export class MobileSquads extends LitElement {
         align-items: center;
         gap: 10px;
         padding: 8px 12px;
-        border: 2px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-2);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
         font-family: var(--font-mono);
         font-size: 12px;
         letter-spacing: 0.04em;
@@ -350,23 +360,23 @@ export class MobileSquads extends LitElement {
         -webkit-tap-highlight-color: transparent;
       }
       .player-result-btn:active {
-        transform: translate(1px, 1px);
-        box-shadow: 1px 1px 0 0 var(--ink);
+        opacity: 0.7;
       }
       .player-number {
         font-family: var(--font-var);
         font-size: 14px;
         min-width: 20px;
         text-align: center;
-        color: var(--retro-orange);
+        color: var(--accent);
       }
       .player-pos {
         font-family: var(--font-mono);
         font-size: 9px;
         padding: 1px 5px;
-        border: 1px solid var(--ink);
-        background: var(--ink);
-        color: var(--paper);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-pill);
+        background: var(--accent);
+        color: var(--on-accent);
         letter-spacing: 0.08em;
       }
 
@@ -376,21 +386,24 @@ export class MobileSquads extends LitElement {
         padding: 0 16px 24px;
       }
       .group-block {
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-md);
-        background: var(--paper-2);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        background: var(--card-grad);
         overflow: hidden;
       }
       .group-header {
-        background: var(--retro-blue);
-        color: var(--paper);
+        background: var(--card-grad);
+        color: var(--on-dark);
         padding: 8px 12px;
-        border-bottom: 3px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
       .group-title {
         font-family: var(--font-var);
         font-size: 20px;
         line-height: 1;
+        text-transform: uppercase;
+        font-weight: 800;
       }
       .teams-grid {
         display: grid;
@@ -405,17 +418,18 @@ export class MobileSquads extends LitElement {
         align-items: center;
         gap: 8px;
         padding: 8px 10px;
-        border: 2px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-3);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
         box-sizing: border-box;
         min-height: 48px;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
       .team-card:active {
-        transform: translate(1px, 1px);
-        box-shadow: 1px 1px 0 0 var(--ink);
+        opacity: 0.7;
+        border-color: var(--accent);
       }
       .tc-flag {
         font-size: 24px;
@@ -438,7 +452,7 @@ export class MobileSquads extends LitElement {
       .tc-meta {
         font-family: var(--font-mono);
         font-size: 8px;
-        color: var(--dim);
+        color: var(--ink-muted);
       }
     `,
   ];
