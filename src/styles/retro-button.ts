@@ -2,8 +2,8 @@ import { css } from 'lit';
 
 export const retroButton = css`
   .btn {
-    background: var(--paper-2);
-    border: 3px solid var(--ink);
+    background: var(--fill);
+    border: 1px solid var(--hairline-strong);
     color: var(--ink);
     padding: 8px 16px;
     min-height: 44px;
@@ -12,51 +12,55 @@ export const retroButton = css`
     justify-content: center;
     font-family: var(--font-var);
     font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
     letter-spacing: 0.04em;
     cursor: pointer;
-    border-radius: 0;
-    box-shadow: var(--shadow-hard-md);
-    transition: transform 0.1s, box-shadow 0.1s;
+    border-radius: var(--radius-sm);
+    transition: transform 0.1s, background 0.12s, border-color 0.12s;
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
   }
   @media (hover: hover) {
     .btn:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 4px 4px 0 0 var(--ink);
+      border-color: var(--accent);
+      background: var(--fill-soft);
     }
   }
   .btn:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 0 var(--ink);
+    opacity: 0.7;
   }
   .btn-primary {
-    background: var(--retro-yellow);
-    border-color: var(--ink);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 800;
+    box-shadow: var(--glow-accent-sm);
   }
   @media (hover: hover) {
     .btn-primary:hover {
-      background: var(--retro-yellow);
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
     }
   }
   .btn-secondary {
-    background: var(--paper-3);
+    background: var(--fill);
     color: var(--ink);
   }
   @media (hover: hover) {
     .btn-secondary:hover {
-      background: var(--paper);
+      background: var(--fill-soft);
     }
   }
   .btn-danger {
     background: var(--retro-red);
-    color: var(--paper);
+    border-color: var(--retro-red);
+    color: #fff;
   }
   @media (hover: hover) {
     .btn-danger:hover {
-      background: var(--retro-orange);
-      color: var(--paper);
+      opacity: 0.85;
     }
   }
 `;

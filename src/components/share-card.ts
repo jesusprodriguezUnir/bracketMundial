@@ -139,7 +139,7 @@ export class ShareCard extends LitElement {
       font-family: var(--font-var);
       font-size: 9px;
       letter-spacing: 0.08em;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
       box-shadow: 2px 2px 0 0 var(--ink);
       color: var(--paper);
       background-image: var(--halftone);
@@ -172,7 +172,7 @@ export class ShareCard extends LitElement {
     /* ---- MATCH BOX ---- */
     .match-box {
       background: var(--paper-2);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
       border-left-width: 4px;
       box-shadow: 2px 2px 0 0 var(--ink);
       overflow: hidden;
@@ -193,7 +193,7 @@ export class ShareCard extends LitElement {
     .team-row.loser-row { opacity: 0.45; }
     .team-separator {
       height: 1px;
-      background: var(--ink);
+      background: var(--hairline-strong);
       margin: 0 6px;
     }
     .team-info {
@@ -209,7 +209,7 @@ export class ShareCard extends LitElement {
       width: 13px;
       height: 8px;
       object-fit: cover;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
       flex-shrink: 0;
     }
     .team-flag { font-size: 9px; flex-shrink: 0; }
@@ -223,20 +223,20 @@ export class ShareCard extends LitElement {
       font-size: 10px;
       flex-shrink: 0;
     }
-    .score.pending { color: var(--dim); opacity: 0.4; font-size: 8px; }
+    .score.pending { color: var(--ink-muted); opacity: 0.4; font-size: 8px; }
     .penalty-note {
       padding: 1px 6px;
-      border-top: 1px solid var(--ink);
+      border-top: 1px solid var(--hairline);
       background: rgba(0,0,0,0.05);
       font-family: var(--font-mono);
       font-size: 6px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     /* ---- CHAMPION BOX ---- */
     .champion-box {
       background: var(--retro-yellow);
-      border: 3px solid var(--ink);
+      border: 1px solid var(--hairline-strong);
       box-shadow: 3px 3px 0 0 var(--ink);
       padding: 10px 8px;
       text-align: center;
@@ -266,12 +266,12 @@ export class ShareCard extends LitElement {
       width: 20px;
       height: 13px;
       object-fit: cover;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
     }
     .third-place-label {
       font-family: var(--font-mono);
       font-size: 7px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.18em;
       text-align: center;
       margin-top: 8px;
@@ -306,7 +306,7 @@ export class ShareCard extends LitElement {
     }
     .podium-label {
       font-size: 7px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.15em;
       text-transform: uppercase;
       display: block;
@@ -317,18 +317,18 @@ export class ShareCard extends LitElement {
       color: var(--paper);
       display: block;
     }
-    .podium-name.tbd { color: var(--dim); font-size: 10px; }
+    .podium-name.tbd { color: var(--ink-muted); font-size: 10px; }
     .footer-flag-img {
       width: 18px;
       height: 11px;
       object-fit: cover;
-      border: 1px solid var(--dim);
+      border: 1px solid var(--hairline);
     }
     .footer-watermark {
       margin-left: auto;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
     }
   `;

@@ -23,6 +23,7 @@ import { expectedProbabilities } from '../src/lib/odds-model.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const FEED_PATH = join(ROOT, 'odds-feed.json');
+const UCL_FEED_PATH = join(ROOT, 'ucl-odds-feed.json');
 const SEED_PATH = join(ROOT, 'src', 'data', 'odds', 'seed.ts');
 
 const WRITE_SEED = process.argv.includes('--write-seed');
@@ -122,7 +123,7 @@ function roundToHundred(h, d, a) {
 const matches = {};
 
 if (ODDS_API_KEY) {
-  const SPORT_KEY = 'soccer_fifa_world_cup';
+  const SPORT_KEY = 'soccer_uefa_champs_league';
   const apiUrl = `https://api.the-odds-api.com/v4/sports/${SPORT_KEY}/odds?regions=eu,uk&markets=h2h&oddsFormat=decimal&apiKey=${ODDS_API_KEY}`;
 
   console.log(`Fetching market odds (${SPORT_KEY}, h2h)…`);
@@ -202,7 +203,8 @@ console.log(`Total: ${Object.keys(matches).length} / ${GROUP_MATCHES.length} gro
 
 const feed = { updatedAt: new Date().toISOString(), matches };
 writeFileSync(FEED_PATH, JSON.stringify(feed, null, 2));
-console.log(`✅ odds-feed.json written (${Object.keys(matches).length} matches).`);
+writeFileSync(UCL_FEED_PATH, JSON.stringify(feed, null, 2));
+console.log(`✅ odds-feed.json + ucl-odds-feed.json written (${Object.keys(matches).length} matches).`);
 
 // --- Optional: write bundled seed ---
 if (WRITE_SEED) {

@@ -1,7 +1,8 @@
 name: Update odds feed
 
 on:
-  # Pausado tras el Mundial (19 jul 2026). Dispatch manual sigue activo.
+  schedule:
+    - cron: '0 6,18 * * *'
   workflow_dispatch:
 
 permissions:
@@ -69,10 +70,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           cp odds-feed.json /tmp/odds-feed.json
+          cp ucl-odds-feed.json /tmp/ucl-odds-feed.json 2>/dev/null || cp odds-feed.json /tmp/ucl-odds-feed.json
 
           git checkout --orphan odds-data-tmp
           git rm -rf . --quiet
           cp /tmp/odds-feed.json odds-feed.json
+          cp /tmp/ucl-odds-feed.json ucl-odds-feed.json
           echo '{
             "$schema": "https://openapi.vercel.sh/vercel.json",
             "installCommand": "true",
@@ -83,7 +86,7 @@ jobs:
               }
             }
           }' > vercel.json
-          git add odds-feed.json vercel.json
+          git add odds-feed.json ucl-odds-feed.json vercel.json
           git commit -m "chore: update odds feed $(date -u +%Y-%m-%d)"
           git push origin odds-data-tmp:odds-data --force
           echo "✅ odds-data branch updated."

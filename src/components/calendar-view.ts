@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { STADIUMS } from '../data/stadiums';
+import { COMPETITION } from '../data/competition';
 import { renderFlag } from '../lib/render-flag';
 import { formatFullDate } from '../lib/date-utils';
 import { openMatchModal } from '../lib/match-modal-service';
@@ -18,6 +19,7 @@ interface CalendarRow {
   kind: 'group' | 'knockout';
   phaseKey: string;
   phaseLabel: string;
+  matchDay?: number;
   date: string;
   timeSpain: string;
   venue: string;
@@ -115,9 +117,10 @@ export class CalendarView extends LitElement {
       gap: 18px;
       margin-bottom: 22px;
       padding: 18px;
-      background: var(--paper-2);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
     }
 
     .filter-block {
@@ -128,7 +131,7 @@ export class CalendarView extends LitElement {
     .filter-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
@@ -143,34 +146,36 @@ export class CalendarView extends LitElement {
       all: unset;
       cursor: pointer;
       padding: 8px 12px;
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--ink);
     }
 
     .chip.active {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
 
     .summary {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 12px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .day-group {
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       margin-bottom: 18px;
       overflow: hidden;
-      background: var(--paper);
+      background: var(--card-grad);
     }
 
     .day-strip {
@@ -181,9 +186,9 @@ export class CalendarView extends LitElement {
       gap: 12px;
       align-items: center;
       padding: 12px 16px;
-      background: var(--retro-blue);
+      background: var(--accent);
       color: var(--paper);
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline-strong);
       cursor: pointer;
     }
 
@@ -196,7 +201,7 @@ export class CalendarView extends LitElement {
     }
 
     .day-strip:focus-visible {
-      outline: 3px solid var(--retro-yellow);
+      outline: 3px solid var(--accent);
       outline-offset: -3px;
     }
 
@@ -221,9 +226,10 @@ export class CalendarView extends LitElement {
       font-weight: 700;
       letter-spacing: 0.12em;
       padding: 3px 7px;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--retro-red);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
     }
 
     .day-count {
@@ -254,8 +260,8 @@ export class CalendarView extends LitElement {
       gap: 16px;
       align-items: center;
       padding: 14px 16px;
-      border-bottom: 2px solid var(--ink);
-      background: var(--paper);
+      border-bottom: 1px solid var(--hairline);
+      background: var(--fill);
     }
 
     .match-row:nth-child(even) {
@@ -286,8 +292,10 @@ export class CalendarView extends LitElement {
     .phase-badge {
       width: fit-content;
       padding: 4px 8px;
-      border: 2px solid var(--ink);
-      background: var(--retro-yellow);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
@@ -302,7 +310,8 @@ export class CalendarView extends LitElement {
 
     .badge-tv {
       padding: 2px 6px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
       font-family: var(--font-mono);
       font-size: 9px;
       font-weight: bold;
@@ -310,7 +319,7 @@ export class CalendarView extends LitElement {
     }
 
     .badge-rtve { background: var(--retro-red); color: var(--paper); }
-    .badge-dazn { background: var(--ink); color: var(--retro-yellow); }
+    .badge-dazn { background: var(--ink); color: var(--accent); }
 
     .teams-block {
       display: grid;
@@ -328,6 +337,13 @@ export class CalendarView extends LitElement {
       color: var(--ink);
     }
 
+    .team-line img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
     .team-line span:last-child {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -339,9 +355,10 @@ export class CalendarView extends LitElement {
       justify-content: center;
       align-items: center;
       min-height: 64px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-var);
       font-size: 28px;
       color: var(--ink);
@@ -362,14 +379,15 @@ export class CalendarView extends LitElement {
     .city {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.05em;
     }
 
     .empty {
       padding: 28px 20px;
-      border: 3px dashed var(--ink);
-      background: var(--paper-2);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       font-family: var(--font-display);
       color: var(--ink);
       text-align: center;
@@ -381,9 +399,10 @@ export class CalendarView extends LitElement {
       gap: 5px;
       margin-top: 8px;
       padding: 4px 8px;
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.06em;
@@ -394,7 +413,7 @@ export class CalendarView extends LitElement {
     }
 
     .gcal-btn:hover {
-      background: var(--retro-blue);
+      background: var(--accent);
       color: var(--paper);
     }
 
@@ -444,7 +463,7 @@ export class CalendarView extends LitElement {
         gap: 8px 12px;
         padding: 12px;
         align-items: center;
-        border-bottom: 2px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
       }
 
       .time-block {
@@ -463,7 +482,7 @@ export class CalendarView extends LitElement {
       .phase-badge {
         font-size: 9px;
         padding: 2px 6px;
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--hairline);
       }
 
       .broadcast-badge {
@@ -495,9 +514,9 @@ export class CalendarView extends LitElement {
         min-height: 38px;
         font-size: 14px;
         font-weight: 800;
-        border: 2px solid var(--ink);
-        box-shadow: 2px 2px 0 var(--ink);
-        background: var(--paper);
+        border: 1px solid var(--hairline);
+        box-shadow: var(--shadow-sm);
+        background: var(--fill);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -535,9 +554,10 @@ export class CalendarView extends LitElement {
     }
 
     .export-section {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 18px;
       margin-bottom: 22px;
       display: flex;
@@ -560,7 +580,7 @@ export class CalendarView extends LitElement {
     .export-subtitle {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-top: -4px;
@@ -573,13 +593,14 @@ export class CalendarView extends LitElement {
     }
 
     .export-card {
-      border: 2px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--fill);
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
 
     .export-card-title {
@@ -603,20 +624,21 @@ export class CalendarView extends LitElement {
       justify-content: center;
       gap: 6px;
       padding: 8px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 10px;
       text-transform: uppercase;
       font-weight: bold;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       transition: all 0.1s ease;
     }
 
     .export-btn:hover:not(.disabled) {
       transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 var(--ink);
+      box-shadow: var(--shadow-md);
     }
 
     .export-btn.excel {
@@ -633,7 +655,7 @@ export class CalendarView extends LitElement {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
-      box-shadow: var(--shadow-hard-sm) !important;
+      box-shadow: var(--shadow-sm) !important;
     }
 
     @media (max-width: 768px) {
@@ -720,19 +742,22 @@ export class CalendarView extends LitElement {
 
   private getRows(): CalendarRow[] {
     const store = useTournamentStore.getState();
+    const locale = useLocaleStore.getState().locale;
 
-    const groupRows = store.groupMatches.map(match => {
-      const stadium = STADIUMS.find(item => item.name === match.venue);
+    const groupRows: CalendarRow[] = store.groupMatches.map(match => {
+      const matchDay = match.matchDay ?? 1;
+      const phaseLabel = locale === 'en' ? `Matchday ${matchDay}` : `Jornada ${matchDay}`;
       return {
         id: match.matchId,
         kind: 'group' as const,
-        phaseKey: match.group,
-        phaseLabel: t('groups.group', { letter: match.group }),
+        phaseKey: `MD${matchDay}`,
+        phaseLabel,
+        matchDay,
         date: match.date ?? '',
         timeSpain: match.timeSpain ?? '',
         venue: match.venue ?? 'TBD',
-        city: match.city ?? 'TBD',
-        venueId: stadium?.id ?? '',
+        city: match.city ?? '',
+        venueId: match.venueId ?? '',
         teamA: match.teamA,
         teamB: match.teamB,
         scoreA: match.scoreA,
@@ -743,30 +768,30 @@ export class CalendarView extends LitElement {
       };
     });
 
-    const knockoutRows = Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
-      const match = store.knockoutMatches[matchId];
-      const phaseKey = this.getKnockoutPhaseKey(matchId);
-      return {
-        id: matchId,
-        kind: 'knockout' as const,
-        phaseKey,
-        phaseLabel: this.getKnockoutPhaseLabel(phaseKey),
-        date: match?.date ?? scheduled.date,
-        timeSpain: match?.timeSpain ?? scheduled.timeSpain,
-        venue: match?.venue ?? scheduled.venue,
-        city: match?.city ?? scheduled.city,
-        venueId: scheduled.venueId,
-        // Mostrar los equipos en cuanto el cruce está definido por la clasificación,
-        // aunque el partido aún no se haya jugado (como hace el match-centre de FIFA).
-        teamA: match?.teamA ?? null,
-        teamB: match?.teamB ?? null,
-        scoreA: match?.scoreA ?? null,
-        scoreB: match?.scoreB ?? null,
-        penaltyScoreA: match?.penaltyScoreA ?? null,
-        penaltyScoreB: match?.penaltyScoreB ?? null,
-        goalScorers: match?.goalScorers,
-      };
-    });
+    const knockoutRows: CalendarRow[] = COMPETITION.knockoutEnabled
+      ? Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
+          const match = store.knockoutMatches[matchId];
+          const phaseKey = this.getKnockoutPhaseKey(matchId);
+          return {
+            id: matchId,
+            kind: 'knockout' as const,
+            phaseKey,
+            phaseLabel: this.getKnockoutPhaseLabel(phaseKey),
+            date: match?.date ?? scheduled.date,
+            timeSpain: match?.timeSpain ?? scheduled.timeSpain,
+            venue: match?.venue ?? scheduled.venue,
+            city: match?.city ?? scheduled.city,
+            venueId: scheduled.venueId,
+            teamA: match?.teamA ?? null,
+            teamB: match?.teamB ?? null,
+            scoreA: match?.scoreA ?? null,
+            scoreB: match?.scoreB ?? null,
+            penaltyScoreA: match?.penaltyScoreA ?? null,
+            penaltyScoreB: match?.penaltyScoreB ?? null,
+            goalScorers: match?.goalScorers,
+          };
+        })
+      : [];
 
     return [...groupRows, ...knockoutRows].sort((left, right) => {
       const leftKey = `${left.date}T${left.timeSpain}`;
@@ -796,7 +821,7 @@ export class CalendarView extends LitElement {
   private getFilteredRows() {
     return this.getRows().filter(row => {
       if (this.selectedDate !== 'all' && row.date !== this.selectedDate) return false;
-      if (this.selectedVenue !== 'all' && row.venueId !== this.selectedVenue) return false;
+      if (this.selectedVenue !== 'all' && row.city !== this.selectedVenue && row.venue !== this.selectedVenue && row.venueId !== this.selectedVenue) return false;
       if (this.selectedPhase !== 'all' && row.phaseKey !== this.selectedPhase) return false;
       return true;
     });
@@ -913,7 +938,9 @@ export class CalendarView extends LitElement {
   render() {
     const rows = this.getFilteredRows();
     const groupedRows = this.getGroupedRows(rows);
-    const availableDates = [...new Set(this.getRows().map(row => row.date))];
+    const availableDates = [...new Set(this.getRows().map(row => row.date))].sort();
+    const availableCities = [...new Set(this.getRows().map(row => row.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const matchDays = Array.from({ length: COMPETITION.matchdays }, (_, i) => i + 1);
     const locale = useLocaleStore.getState().locale;
     const todayKey = this.getTodayKey();
     const hasToday = availableDates.includes(todayKey);
@@ -936,7 +963,7 @@ export class CalendarView extends LitElement {
         <div class="export-grid">
           <!-- Calendario Completo -->
           <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Full Tournament' : 'Torneo Completo'}</div>
+            <div class="export-card-title">${locale === 'en' ? 'Full Tournament (144 matches)' : 'Torneo Completo (144 partidos)'}</div>
             <div class="export-btn-group">
               <button 
                 class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
@@ -953,9 +980,9 @@ export class CalendarView extends LitElement {
             </div>
           </div>
 
-          <!-- Fase de Grupos -->
+          <!-- Fase de Grupos / Liga -->
           <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Group Stage' : 'Fase de Grupos'}</div>
+            <div class="export-card-title">${locale === 'en' ? 'League Phase (144 matches)' : 'Fase Liga (144 partidos)'}</div>
             <div class="export-btn-group">
               <button 
                 class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
@@ -972,32 +999,36 @@ export class CalendarView extends LitElement {
             </div>
           </div>
 
-          <!-- Eliminatorias -->
-          <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
-            <div class="export-btn-group">
-              <button 
-                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('knockout', 'excel')}>
-                ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
-              </button>
-              <button 
-                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('knockout', 'pdf')}>
-                ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
-              </button>
+          ${COMPETITION.knockoutEnabled ? html`
+            <!-- Eliminatorias -->
+            <div class="export-card">
+              <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
+              <div class="export-btn-group">
+                <button 
+                  class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
+                  ?disabled=${this.exporting !== null}
+                  @click=${() => this._exportCalendar('knockout', 'excel')}>
+                  ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
+                </button>
+                <button 
+                  class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
+                  ?disabled=${this.exporting !== null}
+                  @click=${() => this._exportCalendar('knockout', 'pdf')}>
+                  ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
+                </button>
+              </div>
             </div>
-          </div>
+          ` : ''}
         </div>
       </div>
 
       <div class="filters">
         <div class="filter-block">
-          <div class="filter-label">Día</div>
+          <div class="filter-label">${locale === 'en' ? 'Day' : 'Día'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedDate === 'all' ? 'active' : ''}" @click=${() => { this.selectedDate = 'all'; }}>Todos</button>
+            <button class="chip ${this.selectedDate === 'all' ? 'active' : ''}" @click=${() => { this.selectedDate = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todos'}
+            </button>
             ${hasToday ? html`
               <button class="chip chip-today ${this.selectedDate === todayKey ? 'active' : ''}"
                       @click=${() => { this.selectedDate = todayKey; }}>
@@ -1013,31 +1044,35 @@ export class CalendarView extends LitElement {
         </div>
 
         <div class="filter-block">
-          <div class="filter-label">Sede</div>
+          <div class="filter-label">${locale === 'en' ? 'Host city' : 'Ciudad sede'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedVenue === 'all' ? 'active' : ''}" @click=${() => { this.selectedVenue = 'all'; }}>Todas</button>
-            ${STADIUMS.map(stadium => html`
-              <button class="chip ${this.selectedVenue === stadium.id ? 'active' : ''}" @click=${() => { this.selectedVenue = stadium.id; }}>
-                ${stadium.city}
+            <button class="chip ${this.selectedVenue === 'all' ? 'active' : ''}" @click=${() => { this.selectedVenue = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todas'}
+            </button>
+            ${availableCities.map(city => html`
+              <button class="chip ${this.selectedVenue === city ? 'active' : ''}" @click=${() => { this.selectedVenue = city; }}>
+                ${city}
               </button>
             `)}
           </div>
         </div>
 
         <div class="filter-block">
-          <div class="filter-label">Grupo o ronda</div>
+          <div class="filter-label">${locale === 'en' ? 'Matchday or round' : 'Jornada o ronda'}</div>
           <div class="chips">
-            <button class="chip ${this.selectedPhase === 'all' ? 'active' : ''}" @click=${() => { this.selectedPhase = 'all'; }}>Todo</button>
-            ${'ABCDEFGHIJKL'.split('').map(group => html`
-              <button class="chip ${this.selectedPhase === group ? 'active' : ''}" @click=${() => { this.selectedPhase = group; }}>
-                Grupo ${group}
+            <button class="chip ${this.selectedPhase === 'all' ? 'active' : ''}" @click=${() => { this.selectedPhase = 'all'; }}>
+              ${locale === 'en' ? 'All' : 'Todo'}
+            </button>
+            ${matchDays.map(md => html`
+              <button class="chip ${this.selectedPhase === `MD${md}` ? 'active' : ''}" @click=${() => { this.selectedPhase = `MD${md}`; }}>
+                ${locale === 'en' ? `Matchday ${md}` : `Jornada ${md}`}
               </button>
             `)}
-            ${KNOCKOUT_LABEL_KEYS.map(phase => html`
+            ${COMPETITION.knockoutEnabled ? KNOCKOUT_LABEL_KEYS.map(phase => html`
               <button class="chip ${this.selectedPhase === phase.key ? 'active' : ''}" @click=${() => { this.selectedPhase = phase.key; }}>
                 ${t(phase.i18nKey)}
               </button>
-            `)}
+            `) : ''}
           </div>
         </div>
       </div>

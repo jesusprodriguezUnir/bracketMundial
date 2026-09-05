@@ -201,7 +201,7 @@ export class MobileAwards extends LitElement {
         font-size: 9px;
         letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: var(--dim);
+        color: var(--ink-muted);
         margin-bottom: 6px;
       }
       .awards-h1 {
@@ -210,12 +210,15 @@ export class MobileAwards extends LitElement {
         line-height: 0.95;
         color: var(--ink);
         margin: 0;
+        text-transform: uppercase;
+        font-weight: 800;
       }
       .awards-league-banner {
         margin: 12px 16px 0;
-        background: color-mix(in srgb, var(--retro-blue) 14%, var(--paper-3));
-        border: 2.5px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
         padding: 8px 12px;
         font-family: var(--font-mono);
         font-size: 10px;
@@ -230,9 +233,10 @@ export class MobileAwards extends LitElement {
         font-family: var(--font-mono);
         font-size: 10px;
         line-height: 1.6;
-        color: var(--dim);
-        border: 2px dashed var(--ink);
-        background: var(--paper-2);
+        color: var(--ink-muted);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        background: var(--fill);
         padding: 10px 12px;
       }
       .awards-hint b { color: var(--ink); }
@@ -240,9 +244,10 @@ export class MobileAwards extends LitElement {
       /* ── Panel de premios ── */
       .awards-panel {
         margin: 0 16px 14px;
-        background: var(--paper-3);
-        border: 2.5px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
         padding: 8px 12px 10px;
         display: flex;
         flex-direction: column;
@@ -251,16 +256,17 @@ export class MobileAwards extends LitElement {
       .awards-title {
         font-family: var(--font-var);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 800;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         color: var(--ink);
-        border-bottom: 2px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         padding-bottom: 4px;
       }
       .award-card {
-        background: var(--paper);
-        border: 2px solid var(--ink);
+        background: var(--fill);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
         padding: 6px 10px;
         display: flex;
         align-items: center;
@@ -269,7 +275,7 @@ export class MobileAwards extends LitElement {
       .award-icon { font-size: 18px; flex-shrink: 0; }
       .award-info { flex: 1; min-width: 0; }
       .award-cat {
-        color: var(--dim);
+        color: var(--ink-muted);
         font-size: 8px;
         text-transform: uppercase;
         font-family: var(--font-mono);
@@ -293,35 +299,37 @@ export class MobileAwards extends LitElement {
         cursor: pointer;
         flex-shrink: 0;
         padding: 7px 10px;
-        background: var(--ink);
-        color: var(--retro-yellow);
-        border: 2px solid var(--ink);
+        background: var(--accent);
+        color: var(--on-accent);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-sm);
         font-family: var(--font-mono);
         font-size: 9px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        box-shadow: 2px 2px 0 0 var(--retro-orange);
+        box-shadow: var(--glow-accent-sm);
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      .award-btn:active { transform: translate(1px, 1px); box-shadow: none; }
+      .award-btn:active { opacity: 0.7; }
 
       /* ── Modal de selección ── */
       .awm-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(26,25,51,0.65);
+        background: rgba(7,10,24,0.7);
         z-index: 99999;
         display: flex;
         align-items: flex-end;
         justify-content: center;
       }
       .awm-sheet {
-        background: var(--paper);
-        border: 3px solid var(--ink);
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
         border-bottom: none;
-        box-shadow: var(--shadow-hard-lg);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        box-shadow: var(--shadow-lg);
         width: 100%;
         max-height: 88dvh;
         display: flex;
@@ -329,8 +337,8 @@ export class MobileAwards extends LitElement {
         overflow: hidden;
       }
       .awm-header {
-        background: var(--retro-yellow);
-        border-bottom: 3px solid var(--ink);
+        background: var(--card-grad);
+        border-bottom: 1px solid var(--hairline);
         padding: 12px 14px;
         display: flex;
         align-items: center;
@@ -340,29 +348,31 @@ export class MobileAwards extends LitElement {
       .awm-title {
         font-family: var(--font-var);
         font-size: 14px;
-        font-weight: 700;
-        color: var(--ink);
+        font-weight: 800;
+        color: var(--on-dark);
         letter-spacing: 0.02em;
+        text-transform: uppercase;
       }
       .awm-close {
         all: unset;
         cursor: pointer;
         width: 32px; height: 32px; flex-shrink: 0;
         display: grid; place-items: center;
-        border: 2px solid var(--ink);
-        background: var(--paper);
-        color: var(--ink);
+        border: 1px solid var(--hairline-strong);
+        border-radius: var(--radius-sm);
+        background: var(--fill);
+        color: var(--on-dark);
         font-family: var(--font-mono);
         font-size: 14px;
         font-weight: 700;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      .awm-close:active { background: var(--ink); color: var(--paper); }
+      .awm-close:active { opacity: 0.7; border-color: var(--accent); }
       .awm-search {
         padding: 10px 14px;
-        border-bottom: 2px solid var(--ink);
-        background: var(--paper-2);
+        border-bottom: 1px solid var(--hairline);
+        background: var(--fill);
       }
       .awm-search input {
         width: 100%;
@@ -370,11 +380,11 @@ export class MobileAwards extends LitElement {
         padding: 10px 12px;
         font-family: var(--font-body);
         font-size: 16px;
-        border: 2px solid var(--ink);
-        background: var(--paper);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        background: var(--fill);
         color: var(--ink);
         outline: none;
-        border-radius: 0;
       }
       .awm-body {
         flex: 1;
@@ -385,16 +395,17 @@ export class MobileAwards extends LitElement {
       .awm-empty {
         font-family: var(--font-mono);
         font-size: 11px;
-        color: var(--dim);
+        color: var(--ink-muted);
         text-align: center;
         padding: 28px 14px;
-        border: 2px dashed var(--ink);
-        background: var(--paper-2);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        background: var(--fill);
       }
       .awm-count {
         font-family: var(--font-mono);
         font-size: 9px;
-        color: var(--dim);
+        color: var(--ink-muted);
         margin-bottom: 8px;
         letter-spacing: 0.08em;
       }
@@ -406,18 +417,19 @@ export class MobileAwards extends LitElement {
         align-items: center;
         gap: 10px;
         padding: 8px 10px;
-        border: 2px solid var(--ink);
-        background: var(--paper-2);
-        box-shadow: 2px 2px 0 0 var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        background: var(--fill);
+        box-shadow: var(--shadow-sm);
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      .awm-player:active { transform: translate(1px, 1px); box-shadow: none; }
+      .awm-player:active { opacity: 0.7; border-color: var(--accent); }
       .awm-avatar {
         width: 34px; height: 34px; flex-shrink: 0;
         border-radius: 50%;
-        border: 2px solid var(--ink);
-        background: var(--paper);
+        border: 1px solid var(--hairline);
+        background: var(--fill);
         display: flex; align-items: center; justify-content: center;
         font-family: var(--font-var);
         font-size: 13px;
@@ -442,13 +454,13 @@ export class MobileAwards extends LitElement {
         gap: 5px;
         font-family: var(--font-mono);
         font-size: 9px;
-        color: var(--dim);
+        color: var(--ink-muted);
       }
       .awm-player-pos { margin-left: auto; }
       .awm-player-club {
         font-family: var(--font-mono);
         font-size: 9px;
-        color: var(--dim);
+        color: var(--ink-muted);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

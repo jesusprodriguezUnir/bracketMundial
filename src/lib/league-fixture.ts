@@ -1,5 +1,6 @@
 import { GROUP_MATCHES, KNOCKOUT_SCHEDULE, type ScheduledKnockoutMatch } from '../data/match-schedule';
 import { getKnockoutMatchOrder } from '../store/tournament-store';
+import { COMPETITION } from '../data/competition';
 // League type imported structurally below — no runtime import needed
 
 const groupDateById = new Map(GROUP_MATCHES.map(m => [m.matchId, m.date]));
@@ -69,7 +70,7 @@ export interface MatchFixture {
   teamA: string;
   teamB: string;
   venueId: string;
-  matchDay?: 1 | 2 | 3;
+  matchDay?: number;
 }
 
 export interface MatchdayInfo {
@@ -114,7 +115,7 @@ function getAllFixtures(): MatchFixture[] {
     });
   }
 
-  const koOrder = ensureKnockoutOrder();
+  const koOrder = COMPETITION.knockoutEnabled ? ensureKnockoutOrder() : [];
   for (const matchId of koOrder) {
     const skm: ScheduledKnockoutMatch | undefined = KNOCKOUT_SCHEDULE[matchId];
     fixtures.push({

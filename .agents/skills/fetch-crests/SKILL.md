@@ -1,56 +1,57 @@
 ---
 name: fetch-crests
-description: Descarga y gestiona los escudos oficiales de las selecciones de fútbol del Mundial 2026 desde fuentes oficiales.
+description: Descarga y gestiona los escudos oficiales de los 36 clubes de la UEFA Champions League 2026/27 desde UEFA.com.
 ---
 
-# Skill: fetch-crests
+# Skill: fetch-crests (Champions League 2026/27)
 
-Esta skill permite descargar, actualizar y verificar los escudos oficiales (en formato vectorial SVG o PNG transparente optimizado) de las 48 selecciones clasificadas al Mundial 2026.
+Esta skill permite descargar, actualizar y verificar los escudos oficiales en alta resolución (PNG transparente optimizado) de los **36 clubes de la UEFA Champions League 2026/27** directamente desde el CDN oficial de **UEFA.com**.
 
 ## Cuándo usar esta skill
 
-- "Descarga el escudo de [Selección/País]"
-- "Actualiza los logos/escudos que faltan"
-- "Obtén los logos oficiales de FIFA de los equipos"
-- "Corrige el escudo pixelado de [Equipo]"
+- "Descarga el escudo de [Club]" (ej: Real Madrid, Barcelona, Man City)
+- "Actualiza los logos/escudos de la Champions que faltan"
+- "Obtén los logos oficiales de UEFA de los clubes"
+- "Corrige o mejora la resolución del escudo de [Club]"
 
-## Fuentes Oficiales
+## Fuente Oficial
 
-La fuente de verdad oficial del torneo es:
-- **FIFA 2026 Portal:** `https://www.fifa.com/es/tournaments/mens/worldcup/canadamexicousa2026`
-
-Secciones de referencia de datos en el portal FIFA:
-- Calendario oficial y estadios.
-- Fichas y escudos oficiales de federaciones nacionales.
+La fuente de verdad oficial del torneo es el portal y CDN de UEFA:
+- **UEFA Champions League:** `https://www.uefa.com/uefachampionsleague/clubs/`
+- **CDN de Logos:** `https://img.uefa.com/imgml/TP/teams/logos/240x240/{teamId}.png` (y `700x700`)
 
 ## Uso
 
 ### Comando del Script
 
 ```bash
-node scripts/fetch-crests.mjs [TEAM_CODES...] [opciones]
+# Con npm script dedicado:
+npm run ucl:crests
+
+# O mediante el script principal:
+node scripts/fetch-ucl-squads.mjs [CLUB_CODES...] --crests [--force]
 ```
 
 ### Opciones
 
-- `[TEAM_CODES...]`: Códigos FIFA de tres letras de los equipos a procesar (ej: `ESP ARG MEX`). Si se omite, procesa todos los 48 equipos.
-- `--force`: Descarga e invalida el caché local reemplazando los escudos existentes.
-- `--type [svg|png|all]`: Tipo de formato de salida preferido (por defecto descarga `svg` cuando está disponible y cae a `png` transparente).
+- `[CLUB_CODES...]`: Códigos de tres letras de los clubes (ej: `RMA BAR MCI BAY`). Si se omite, procesa los 36 clubes.
+- `--force`: Invalida y reemplaza los escudos existentes en disco.
 
 ### Ejemplos
 
 ```bash
-# Descargar el escudo de España
-node scripts/fetch-crests.mjs ESP
+# Descargar/verificar el escudo del Real Madrid
+node scripts/fetch-ucl-squads.mjs RMA --crests
 
-# Forzar la descarga de los escudos de Argentina y México
-node scripts/fetch-crests.mjs ARG MEX --force
+# Forzar la actualización de los escudos de Barcelona y Bayern
+node scripts/fetch-ucl-squads.mjs BAR BAY --crests --force
 
-# Descargar todos los escudos de las 48 selecciones
-node scripts/fetch-crests.mjs
+# Descargar y verificar los escudos de los 36 clubes de Champions
+npm run ucl:crests
 ```
 
 ## Estructura de Salida
 
-*   Los escudos se descargan en el directorio `public/assets/crests/`.
-*   El nombre del archivo corresponde al código FIFA del equipo en mayúsculas: `public/assets/crests/ESP.svg` (o `public/assets/crests/ESP.png` si no hay SVG).
+*   Los escudos se almacenan en: `public/assets/crests/{CLUB}.png`.
+*   El nombre del archivo corresponde al código del club en mayúsculas (ej: `public/assets/crests/RMA.png`).
+*   Los componentes visuales resuelven la ruta mediante `src/lib/team-assets.ts:crestSrc(teamId)`.

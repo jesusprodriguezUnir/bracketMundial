@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { TEAMS_2026 } from '../../data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../../data/match-schedule';
 import { STADIUMS } from '../../data/stadiums';
+import { COMPETITION } from '../../data/competition';
 import { renderFlag } from '../../lib/render-flag';
 import { formatFullDate } from '../../lib/date-utils';
 import { getBroadcastInfo } from '../../lib/broadcasting';
@@ -19,6 +20,7 @@ interface CalendarRow {
   kind: 'group' | 'knockout';
   phaseKey: string;
   phaseLabel: string;
+  matchDay?: number;
   date: string;
   timeSpain: string;
   venue: string;
@@ -138,19 +140,22 @@ export class MobileCalendar extends LitElement {
 
   private _getRows(): CalendarRow[] {
     const store = useTournamentStore.getState();
+    const locale = useLocaleStore.getState().locale;
 
-    const groupRows = store.groupMatches.map(match => {
-      const stadium = STADIUMS.find(item => item.name === match.venue);
+    const groupRows: CalendarRow[] = store.groupMatches.map(match => {
+      const matchDay = match.matchDay ?? 1;
+      const phaseLabel = locale === 'en' ? `Matchday ${matchDay}` : `Jornada ${matchDay}`;
       return {
         id: match.matchId,
         kind: 'group' as const,
-        phaseKey: match.group,
-        phaseLabel: t('groups.group', { letter: match.group }),
+        phaseKey: `MD${matchDay}`,
+        phaseLabel,
+        matchDay,
         date: match.date ?? '',
         timeSpain: match.timeSpain ?? '',
         venue: match.venue ?? 'TBD',
-        city: match.city ?? 'TBD',
-        venueId: stadium?.id ?? '',
+        city: match.city ?? '',
+        venueId: match.venueId ?? '',
         teamA: match.teamA,
         teamB: match.teamB,
         scoreA: match.scoreA,
@@ -161,29 +166,30 @@ export class MobileCalendar extends LitElement {
       };
     });
 
-    const knockoutRows = Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
-      const match = store.knockoutMatches[matchId];
-      const phaseKey = this._getKnockoutPhaseKey(matchId);
-      return {
-        id: matchId,
-        kind: 'knockout' as const,
-        phaseKey,
-        phaseLabel: this._getKnockoutPhaseLabel(phaseKey),
-        date: match?.date ?? scheduled.date,
-        timeSpain: match?.timeSpain ?? scheduled.timeSpain,
-        venue: match?.venue ?? scheduled.venue,
-        city: match?.city ?? scheduled.city,
-        venueId: scheduled.venueId,
-        // Mostrar los equipos en cuanto el cruce está definido por la clasificación.
-        teamA: match?.teamA ?? null,
-        teamB: match?.teamB ?? null,
-        scoreA: match?.scoreA ?? null,
-        scoreB: match?.scoreB ?? null,
-        penaltyScoreA: match?.penaltyScoreA ?? null,
-        penaltyScoreB: match?.penaltyScoreB ?? null,
-        goalScorers: match?.goalScorers,
-      };
-    });
+    const knockoutRows: CalendarRow[] = COMPETITION.knockoutEnabled
+      ? Object.entries(KNOCKOUT_SCHEDULE).map(([matchId, scheduled]) => {
+          const match = store.knockoutMatches[matchId];
+          const phaseKey = this._getKnockoutPhaseKey(matchId);
+          return {
+            id: matchId,
+            kind: 'knockout' as const,
+            phaseKey,
+            phaseLabel: this._getKnockoutPhaseLabel(phaseKey),
+            date: match?.date ?? scheduled.date,
+            timeSpain: match?.timeSpain ?? scheduled.timeSpain,
+            venue: match?.venue ?? scheduled.venue,
+            city: match?.city ?? scheduled.city,
+            venueId: scheduled.venueId,
+            teamA: match?.teamA ?? null,
+            teamB: match?.teamB ?? null,
+            scoreA: match?.scoreA ?? null,
+            scoreB: match?.scoreB ?? null,
+            penaltyScoreA: match?.penaltyScoreA ?? null,
+            penaltyScoreB: match?.penaltyScoreB ?? null,
+            goalScorers: match?.goalScorers,
+          };
+        })
+      : [];
 
     return [...groupRows, ...knockoutRows].sort((left, right) => {
       const leftKey = `${left.date}T${left.timeSpain}`;
@@ -195,7 +201,7 @@ export class MobileCalendar extends LitElement {
   private _getFilteredRows() {
     return this._getRows().filter(row => {
       if (this._selectedDate !== 'all' && row.date !== this._selectedDate) return false;
-      if (this._selectedVenue !== 'all' && row.venueId !== this._selectedVenue) return false;
+      if (this._selectedVenue !== 'all' && row.city !== this._selectedVenue && row.venue !== this._selectedVenue && row.venueId !== this._selectedVenue) return false;
       if (this._selectedPhase !== 'all' && row.phaseKey !== this._selectedPhase) return false;
       return true;
     });
@@ -333,7 +339,7 @@ export class MobileCalendar extends LitElement {
         font-size: 9px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: var(--dim);
+        color: var(--ink-muted);
         margin-bottom: 5px;
       }
       .cal-chips {
@@ -354,9 +360,10 @@ export class MobileCalendar extends LitElement {
         display: inline-flex;
         align-items: center;
         padding: 8px 12px;
-        background: var(--paper-3);
-        border: 2px solid var(--ink);
-        box-shadow: 2px 2px 0 0 var(--ink);
+        background: var(--fill);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-sm);
         color: var(--ink);
         font-family: var(--font-var);
         font-size: 12px;
@@ -365,9 +372,9 @@ export class MobileCalendar extends LitElement {
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
-      .cal-chip.active { background: var(--ink); color: var(--retro-yellow); }
-      .cal-chip.today { background: var(--retro-red); color: var(--paper); font-weight: 700; }
-      .cal-chip.today.active { box-shadow: 2px 2px 0 0 var(--ink), inset 0 0 0 2px var(--retro-yellow); }
+      .cal-chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+      .cal-chip.today { background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2)); border-color: var(--retro-red); color: var(--ink); font-weight: 700; }
+      .cal-chip.today.active { box-shadow: inset 0 0 0 2px var(--accent); }
 
       /* ── Exportación ── */
       .cal-export { padding: 0 16px 14px; }
@@ -380,9 +387,10 @@ export class MobileCalendar extends LitElement {
         align-items: center;
         justify-content: space-between;
         padding: 11px 14px;
-        background: var(--paper-2);
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
+        background: var(--fill);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
         font-family: var(--font-var);
         font-size: 13px;
         color: var(--ink);
@@ -390,9 +398,10 @@ export class MobileCalendar extends LitElement {
       }
       .cal-export-panel {
         margin-top: 10px;
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper-3);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        background: var(--card-grad);
         padding: 10px;
         display: grid;
         gap: 10px;
@@ -402,29 +411,30 @@ export class MobileCalendar extends LitElement {
         font-size: 9px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--dim);
+        color: var(--ink-muted);
         margin-bottom: 6px;
       }
       .cal-export-row { display: flex; gap: 8px; }
       .cal-export-row .btn { flex: 1; min-height: 40px; padding: 8px; font-size: 12px; }
-      .btn.excel { background: var(--retro-green); color: var(--paper); }
-      .btn.pdf { background: var(--retro-red); color: var(--paper); }
+      .btn.excel { background: color-mix(in srgb, var(--retro-green) 18%, var(--paper-2)); border-color: var(--retro-green); color: var(--ink); }
+      .btn.pdf { background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2)); border-color: var(--retro-red); color: var(--ink); }
 
       .cal-summary {
         padding: 4px 16px 10px;
         font-family: var(--font-mono);
         font-size: 9px;
         letter-spacing: 0.1em;
-        color: var(--dim);
+        color: var(--ink-muted);
         text-transform: uppercase;
       }
 
       /* ── Acordeón de día ── */
       .cal-day {
         margin: 0 16px 12px;
-        border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm);
-        background: var(--paper);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        background: var(--card-grad);
         overflow: hidden;
       }
       .cal-day-head {
@@ -435,9 +445,9 @@ export class MobileCalendar extends LitElement {
         align-items: center;
         gap: 10px;
         padding: 11px 13px;
-        background: var(--retro-blue);
-        color: var(--paper);
-        border-bottom: 3px solid var(--ink);
+        background: var(--card-grad);
+        color: var(--on-dark);
+        border-bottom: 1px solid var(--hairline);
         cursor: pointer;
         touch-action: manipulation;
       }
@@ -450,6 +460,7 @@ export class MobileCalendar extends LitElement {
         font-size: 17px;
         line-height: 1;
         text-transform: capitalize;
+        font-weight: 800;
       }
       .cal-day-tag {
         font-family: var(--font-mono);
@@ -457,9 +468,10 @@ export class MobileCalendar extends LitElement {
         font-weight: 700;
         letter-spacing: 0.1em;
         padding: 2px 6px;
-        background: var(--paper);
+        background: var(--fill);
         color: var(--retro-red);
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
       }
       .cal-day-count {
         margin-left: auto;
@@ -471,14 +483,14 @@ export class MobileCalendar extends LitElement {
 
       /* ── Tarjeta de partido ── */
       .cal-card {
-        border-bottom: 2px solid var(--ink);
+        border-bottom: 1px solid var(--hairline);
         padding: 9px 12px;
         cursor: pointer;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
       }
       .cal-card:last-child { border-bottom: none; }
-      .cal-card:active { background: var(--paper-2); }
+      .cal-card:active { background: var(--fill); }
       .cal-card.disabled { cursor: default; opacity: 0.85; }
       .cal-card-top {
         display: flex;
@@ -499,8 +511,9 @@ export class MobileCalendar extends LitElement {
         letter-spacing: 0.06em;
         text-transform: uppercase;
         padding: 2px 6px;
-        border: 1.5px solid var(--ink);
-        background: var(--paper-3);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
+        background: var(--fill);
         color: var(--ink);
       }
       .cal-tv { margin-left: auto; display: flex; gap: 4px; }
@@ -509,10 +522,11 @@ export class MobileCalendar extends LitElement {
         font-size: 8px;
         font-weight: 700;
         padding: 2px 5px;
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
       }
-      .badge-rtve { background: var(--retro-orange); color: var(--paper); }
-      .badge-dazn { background: var(--ink); color: var(--paper); }
+      .badge-rtve { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+      .badge-dazn { background: var(--fill); color: var(--ink); }
 
       .cal-teams { display: grid; gap: 4px; }
       .cal-team-line {
@@ -543,7 +557,7 @@ export class MobileCalendar extends LitElement {
         flex-shrink: 0;
         white-space: nowrap;
       }
-      .cal-score.vs { color: var(--dim); font-size: 12px; }
+      .cal-score.vs { color: var(--ink-muted); font-size: 12px; }
 
       .cal-foot {
         display: flex;
@@ -551,12 +565,12 @@ export class MobileCalendar extends LitElement {
         gap: 8px;
         margin-top: 8px;
         padding-top: 7px;
-        border-top: 1.5px dashed rgba(26,25,51,0.25);
+        border-top: 1px solid var(--hairline);
       }
       .cal-venue {
         font-family: var(--font-mono);
         font-size: 9px;
-        color: var(--dim);
+        color: var(--ink-muted);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -570,9 +584,10 @@ export class MobileCalendar extends LitElement {
         align-items: center;
         gap: 4px;
         padding: 5px 8px;
-        background: var(--paper-3);
-        border: 1.5px solid var(--ink);
-        box-shadow: 1.5px 1.5px 0 0 var(--ink);
+        background: var(--fill);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
         font-family: var(--font-mono);
         font-size: 8px;
         font-weight: 700;
@@ -590,14 +605,14 @@ export class MobileCalendar extends LitElement {
         font-family: var(--font-mono);
         font-size: 10px;
         letter-spacing: 0.12em;
-        color: var(--dim);
-        border: 2px dashed var(--ink);
+        color: var(--ink-muted);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
       }
 
       .flag-img {
-        width: 22px; height: 15px;
-        object-fit: cover;
-        border: 1px solid var(--ink);
+        width: 22px; height: 22px;
+        object-fit: contain;
         flex-shrink: 0;
       }
     `,
@@ -605,6 +620,9 @@ export class MobileCalendar extends LitElement {
 
   private _renderFilters(availableDates: string[], todayKey: string, locale: string) {
     const hasToday = availableDates.includes(todayKey);
+    const matchDays = Array.from({ length: COMPETITION.matchdays }, (_, i) => i + 1);
+    const availableCities = [...new Set(this._getRows().map(r => r.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
     return html`
       <div class="cal-filters">
         <div>
@@ -616,33 +634,39 @@ export class MobileCalendar extends LitElement {
               <button class="cal-chip today ${this._selectedDate === todayKey ? 'active' : ''}"
                       @click=${() => { this._selectedDate = todayKey; }}>${locale === 'en' ? 'Today' : 'Hoy'}</button>
             ` : ''}
+            ${availableDates.map(d => html`
+              <button class="cal-chip ${this._selectedDate === d ? 'active' : ''}"
+                      @click=${() => { this._selectedDate = d; }}>${formatFullDate(d)}</button>
+            `)}
           </div>
         </div>
 
         <div>
-          <div class="cal-filter-label">${locale === 'en' ? 'Group or round' : 'Grupo o ronda'}</div>
+          <div class="cal-filter-label">${locale === 'en' ? 'Matchday or round' : 'Jornada o ronda'}</div>
           <div class="cal-chips">
             <button class="cal-chip ${this._selectedPhase === 'all' ? 'active' : ''}"
                     @click=${() => { this._selectedPhase = 'all'; }}>${locale === 'en' ? 'All' : 'Todo'}</button>
-            ${'ABCDEFGHIJKL'.split('').map(group => html`
-              <button class="cal-chip ${this._selectedPhase === group ? 'active' : ''}"
-                      @click=${() => { this._selectedPhase = group; }}>${locale === 'en' ? `Group ${group}` : `Grupo ${group}`}</button>
+            ${matchDays.map(md => html`
+              <button class="cal-chip ${this._selectedPhase === `MD${md}` ? 'active' : ''}"
+                      @click=${() => { this._selectedPhase = `MD${md}`; }}>
+                ${locale === 'en' ? `Matchday ${md}` : `Jornada ${md}`}
+              </button>
             `)}
-            ${KNOCKOUT_LABEL_KEYS.map(phase => html`
+            ${COMPETITION.knockoutEnabled ? KNOCKOUT_LABEL_KEYS.map(phase => html`
               <button class="cal-chip ${this._selectedPhase === phase.key ? 'active' : ''}"
                       @click=${() => { this._selectedPhase = phase.key; }}>${t(phase.i18nKey)}</button>
-            `)}
+            `) : ''}
           </div>
         </div>
 
         <div>
-          <div class="cal-filter-label">${locale === 'en' ? 'Venue' : 'Sede'}</div>
+          <div class="cal-filter-label">${locale === 'en' ? 'Host city' : 'Ciudad sede'}</div>
           <div class="cal-chips">
             <button class="cal-chip ${this._selectedVenue === 'all' ? 'active' : ''}"
                     @click=${() => { this._selectedVenue = 'all'; }}>${locale === 'en' ? 'All' : 'Todas'}</button>
-            ${STADIUMS.map(stadium => html`
-              <button class="cal-chip ${this._selectedVenue === stadium.id ? 'active' : ''}"
-                      @click=${() => { this._selectedVenue = stadium.id; }}>${stadium.city}</button>
+            ${availableCities.map(city => html`
+              <button class="cal-chip ${this._selectedVenue === city ? 'active' : ''}"
+                      @click=${() => { this._selectedVenue = city; }}>${city}</button>
             `)}
           </div>
         </div>
@@ -674,9 +698,9 @@ export class MobileCalendar extends LitElement {
         </button>
         ${this._showExport ? html`
           <div class="cal-export-panel">
-            ${card(locale === 'en' ? 'Full tournament' : 'Torneo completo', 'all')}
-            ${card(locale === 'en' ? 'Group stage' : 'Fase de grupos', 'groups')}
-            ${card(locale === 'en' ? 'Knockout stage' : 'Fase eliminatoria', 'knockout')}
+            ${card(locale === 'en' ? 'Full tournament (144 matches)' : 'Torneo completo (144 partidos)', 'all')}
+            ${card(locale === 'en' ? 'League phase (144 matches)' : 'Fase liga (144 partidos)', 'groups')}
+            ${COMPETITION.knockoutEnabled ? card(locale === 'en' ? 'Knockout stage' : 'Fase eliminatoria', 'knockout') : ''}
           </div>
         ` : ''}
       </div>

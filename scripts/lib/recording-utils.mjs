@@ -20,6 +20,7 @@ export const DEV_URL = 'http://localhost:5173';
 export const VIEW_MAP = {
   hero:     { tab: 'hero',     es: 'Inicio',       en: 'Home' },
   groups:   { tab: 'groups',   es: 'Grupos',       en: 'Groups' },
+  matchday: { tab: 'matchday', es: 'Jornadas',     en: 'Matchday' },
   knockout: { tab: 'knockout', es: 'Cruces',       en: 'Knockout' },
   squads:   { tab: 'squads',   es: 'Equipos',      en: 'Teams' },
   calendar: { tab: 'calendar', es: 'Calendario',   en: 'Schedule' },
@@ -33,15 +34,16 @@ export const VIEW_MAP = {
 // Alias en español -> clave canónica.
 const VIEW_ALIASES = {
   inicio: 'hero', home: 'hero', hero: 'hero',
-  grupos: 'groups', groups: 'groups',
+  grupos: 'groups', groups: 'groups', tabla: 'groups', table: 'groups',
+  jornadas: 'matchday', jornada: 'matchday', matchday: 'matchday', partidos: 'matchday', fixtures: 'matchday',
   cruces: 'knockout', knockout: 'knockout', eliminatorias: 'knockout',
-  equipos: 'squads', squads: 'squads', plantillas: 'squads', teams: 'squads',
+  equipos: 'squads', squads: 'squads', plantillas: 'squads', teams: 'squads', clubes: 'squads', clubs: 'squads',
   calendario: 'calendar', calendar: 'calendar', schedule: 'calendar',
   estadios: 'stadiums', stadiums: 'stadiums',
-  entrenadores: 'coaches', coaches: 'coaches',
+  entrenadores: 'coaches', coaches: 'coaches', dt: 'coaches',
   guia: 'guide', guía: 'guide', guide: 'guide',
   'guide-print': 'guide-print', 'guide-pdf': 'guide-print',
-  liga: 'league', league: 'league',
+  liga: 'league', league: 'league', porra: 'league', miniliga: 'league',
 };
 
 /** Normaliza una clave de vista escrita por el usuario (ES o EN). */

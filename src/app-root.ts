@@ -20,9 +20,9 @@ async function ensureMobileApp() {
   await import('./components/mobile/mobile-app');
 }
 
-type PhaseTab = 'hero' | 'groups' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'league';
 
-const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'league'];
+const PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'squads', 'calendar', 'coaches', 'league'];
 
 function hashToTab(hash: string): PhaseTab | null {
   const clean = hash.replace('#', '');
@@ -69,7 +69,10 @@ export class AppRoot extends LitElement {
     .topbar {
       display: flex;
       flex-direction: column;
-      background: var(--surface-dark);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--hairline);
       position: sticky;
       top: 0;
       z-index: 110;
@@ -95,13 +98,20 @@ export class AppRoot extends LitElement {
     .logo-icon {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
-      background: #E84B1A;
+      border-radius: 12px;
+      background: linear-gradient(150deg, var(--accent), var(--accent-deep));
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 20px;
+      box-shadow: 0 6px 18px rgba(77,163,255,0.35);
+    }
+    .logo-diamond {
+      width: 14px;
+      height: 14px;
+      background: var(--paper);
+      transform: rotate(45deg);
+      border-radius: 2px;
     }
     .logo-text {
       display: flex;
@@ -110,19 +120,22 @@ export class AppRoot extends LitElement {
     }
     .logo-main {
       font-family: var(--font-var);
-      font-size: 14px;
-      font-weight: 900;
-      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
       letter-spacing: 0.04em;
+      text-transform: uppercase;
       line-height: 1;
     }
     .logo-sub {
-      font-family: var(--font-var);
-      font-size: 11px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: 0.1em;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
       line-height: 1;
+      margin-top: 3px;
     }
 
     /* ── Stats pill-badges ── */
@@ -144,24 +157,25 @@ export class AppRoot extends LitElement {
     }
     .stat-num {
       font-family: var(--font-var);
-      font-size: 18px;
-      font-weight: 800;
-      color: #FFFFFF;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
       line-height: 1;
     }
     .stat-lbl {
       font-family: var(--font-mono);
       font-size: 9px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.08em;
+      font-weight: 500;
+      color: var(--ink-muted);
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       line-height: 1;
     }
     .stat-sep {
-      color: rgba(255,255,255,0.2);
-      font-family: var(--font-mono);
-      font-size: 14px;
+      width: 1px;
+      height: 22px;
+      background: var(--hairline);
+      font-size: 0;
       user-select: none;
       flex-shrink: 0;
     }
@@ -184,7 +198,7 @@ export class AppRoot extends LitElement {
       letter-spacing: 0.03em;
       display: flex;
       align-items: center;
-      color: rgba(255,255,255,0.75);
+      color: var(--ink-soft);
       background: transparent;
       transition: background 0.15s, color 0.15s;
       text-decoration: none;
@@ -193,8 +207,8 @@ export class AppRoot extends LitElement {
     }
     @media (hover: hover) {
       .header-actions > button:hover {
-        background: rgba(255,255,255,0.08);
-        color: #FFFFFF;
+        background: var(--fill);
+        color: var(--ink);
       }
     }
     .ha-btn-sm {
@@ -203,33 +217,32 @@ export class AppRoot extends LitElement {
     }
     /* Primary CTA — Compartir */
     .ha-btn-primary {
-      background: #E84B1A !important;
-      color: #FFFFFF !important;
-      border-radius: 6px !important;
+      background: var(--accent) !important;
+      color: var(--on-accent) !important;
+      border-radius: var(--radius-sm) !important;
       margin: 8px 4px;
       padding: 0 16px !important;
-      font-weight: 700 !important;
+      font-weight: 800 !important;
       border: none !important;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: var(--glow-accent-sm);
     }
     @media (hover: hover) {
       .ha-btn-primary:hover {
-        background: #C43A14 !important;
+        background: var(--accent-hover) !important;
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
       }
     }
     /* Secondary CTA — Excel ghost */
     .ha-btn-ghost {
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 4px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
       margin: 8px 4px;
       padding: 0 14px !important;
     }
     @media (hover: hover) {
       .ha-btn-ghost:hover {
-        border-color: rgba(255,255,255,0.55);
-        color: #FFFFFF !important;
+        border-color: var(--accent);
+        color: var(--ink) !important;
       }
     }
 
@@ -244,10 +257,10 @@ export class AppRoot extends LitElement {
       top: 100%;
       right: 0;
       min-width: 220px;
-      background: var(--surface-dark);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      background: var(--surface-dark-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
       z-index: 200;
       display: flex;
       flex-direction: column;
@@ -265,7 +278,7 @@ export class AppRoot extends LitElement {
       padding: 8px 14px 4px;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: #E84B1A;
+      color: var(--accent);
       letter-spacing: 0.15em;
       text-transform: uppercase;
       font-weight: 700;
@@ -295,7 +308,8 @@ export class AppRoot extends LitElement {
     /* ── Nav tabs integradas en el header ── */
     .topbar-nav {
       display: flex;
-      border-top: 1px solid rgba(255,255,255,0.1);
+      gap: 2px;
+      border-top: 1px solid var(--hairline);
       overflow-x: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -304,48 +318,51 @@ export class AppRoot extends LitElement {
     .topbar-nav-btn {
       all: unset;
       cursor: pointer;
-      padding: 12px 18px;
+      padding: 12px 16px;
       font-family: var(--font-var);
       font-size: 14px;
+      font-weight: 600;
       letter-spacing: 0.05em;
-      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      color: var(--ink-muted);
       white-space: nowrap;
       flex-shrink: 0;
       transition: color 0.15s, background 0.15s, border-color 0.15s;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       display: flex;
       align-items: center;
+      gap: 6px;
     }
     .topbar-nav-btn:first-child { padding-left: 20px; }
     @media (hover: hover) {
       .topbar-nav-btn:hover {
-        color: rgba(255,255,255,0.85);
-        background: rgba(255,255,255,0.08);
+        color: var(--ink);
+        background: var(--fill);
       }
     }
     .topbar-nav-btn.active {
-      color: #FFFFFF;
+      color: var(--ink);
       font-weight: 700;
-      border-bottom-color: #E84B1A;
+      border-bottom-color: var(--accent);
     }
 
     /* ── Content ── */
     .content {
-      max-width: 1600px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 10px 20px 24px;
+      padding: 22px 20px 40px;
     }
 
     /* ── Offline banner ── */
     .offline-banner {
-      background: var(--retro-yellow);
-      color: var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
       text-align: center;
       padding: 6px 16px;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.06em;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       position: sticky;
       top: 88px;
       z-index: 89;
@@ -353,22 +370,22 @@ export class AppRoot extends LitElement {
 
     /* ── Tournament progress bar ── */
     .progress-bar {
-      height: 5px;
-      background: rgba(26,25,51,0.2);
+      height: 3px;
+      background: var(--hairline);
       position: sticky;
       top: 56px;
       z-index: 109;
     }
     .progress-fill {
       height: 100%;
-      background: var(--retro-yellow);
+      background: var(--accent);
       transition: width 0.4s ease;
-      box-shadow: 0 0 6px rgba(240,176,33,0.5);
+      box-shadow: 0 0 10px rgba(77,163,255,0.55);
     }
 
     /* ── Footer ── */
     .site-footer {
-      border-top: 4px solid var(--ink);
+      border-top: 1px solid var(--hairline);
       background: var(--paper-2);
       display: flex;
       align-items: center;
@@ -385,7 +402,7 @@ export class AppRoot extends LitElement {
     .footer-label {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       flex-shrink: 0;
@@ -401,11 +418,11 @@ export class AppRoot extends LitElement {
       font-size: 10px;
       letter-spacing: 0.05em;
       text-decoration: none;
-      color: var(--ink);
-      border: 2px solid var(--ink);
+      color: var(--ink-soft);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
       padding: 4px 10px;
-      box-shadow: 2px 2px 0 var(--ink);
-      transition: background 0.1s, box-shadow 0.1s, transform 0.1s;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -415,13 +432,13 @@ export class AppRoot extends LitElement {
     @media (hover: hover) {
       .footer-social a:hover,
       .footer-email:hover {
-        background: var(--retro-yellow);
-        box-shadow: 3px 3px 0 var(--ink);
-        transform: translate(-1px, -1px);
+        background: var(--fill);
+        border-color: var(--accent);
+        color: var(--ink);
       }
     }
     .footer-sep {
-      color: var(--dim);
+      color: var(--ink-muted);
       font-family: var(--font-mono);
       font-size: 14px;
       user-select: none;
@@ -430,7 +447,7 @@ export class AppRoot extends LitElement {
       margin-left: auto;
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
@@ -568,7 +585,7 @@ export class AppRoot extends LitElement {
     this._unsubscribeToast = onToast(this._onToast.bind(this));
 
     // Resultados oficiales: cargar al arrancar y re-aplicar en cada refresco.
-    // Con el Mundial ya en marcha, la app arranca en "Resultados Reales"
+    // Tras el primer partido (M1), la app arranca en "Resultados Reales"
     // (el usuario puede volver a "Mis Predicciones" durante la sesión).
     this._unsubOfficialResults = subscribeOfficialResults(bracket => {
       const store = useTournamentStore.getState();
@@ -612,6 +629,52 @@ export class AppRoot extends LitElement {
     }
   }
 
+  /** Enlace `#league/join/` y compacto `#lg=` unen en la nube con el mismo flujo. */
+  private async _joinCloudLeague(hash: string, leagueId: string, knownName?: string): Promise<void> {
+    this._processedInviteHash = hash;
+    if (!leagueId) return;
+
+    const session = await waitForAuthReady();
+    const locale = useLocaleStore.getState().locale;
+    if (!session) {
+      try { sessionStorage.setItem('wm2026_pending_invite_hash', hash); } catch (_) { /* noop */ }
+      showToast(
+        locale === 'es'
+          ? 'Inicia sesión para unirte a la liga. El enlace se retomará tras el login.'
+          : 'Please sign in to join the league. The invite link will be resumed after login.'
+      );
+      return;
+    }
+
+    const name = prompt(
+      knownName
+        ? (locale === 'es'
+          ? `¿Quieres unirte a la liga "${knownName}"?\n\nEscribe tu nombre:`
+          : `Do you want to join the league "${knownName}"?\n\nEnter your name:`)
+        : (locale === 'es'
+          ? '¿Quieres unirte a esta liga?\n\nEscribe tu nombre:'
+          : 'Do you want to join this league?\n\nEnter your name:')
+    );
+    if (!name?.trim()) return;
+
+    const { joinLeagueInCloud, fetchLeagueNameFromCloud, refreshLeagueMembers } = await import('./lib/league-sync');
+    const ok = await joinLeagueInCloud(leagueId, name.trim());
+    if (ok) {
+      const leagueName = knownName || (await fetchLeagueNameFromCloud(leagueId)) || '';
+      const { useLeaguesStore } = await import('./store/leagues-store');
+      useLeaguesStore.getState().joinLeagueFromInvite(leagueId, leagueName, name.trim());
+      await refreshLeagueMembers(leagueId);
+      this._activeTab = 'league';
+      window.location.hash = '#league';
+    } else {
+      showToast(
+        locale === 'es'
+          ? 'No se pudo unir a la liga. Comprueba que el enlace es válido e inténtalo de nuevo.'
+          : 'Could not join the league. Please check that the link is valid and try again.'
+      );
+    }
+  }
+
   private async _loadSharedBracketIfPresent() {
     // Primero: recuperar hash de invitación guardado en sessionStorage por _cleanAuthParams
     // (ocurre cuando el usuario llegó con un magic-link que contenía también #league/join/).
@@ -622,54 +685,8 @@ export class AppRoot extends LitElement {
 
     const hash = window.location.hash;
 
-    // Cloud league join: #league/join/<uuid>
     if (hash.startsWith('#league/join/')) {
-      // Marcar como procesado antes de await para evitar doble disparo por hashchange.
-      this._processedInviteHash = hash;
-
-      const leagueId = hash.slice('#league/join/'.length).trim();
-      if (!leagueId) return;
-
-      // Esperar a que la sesión esté resuelta (evita la race-condition de connectedCallback).
-      const session = await waitForAuthReady();
-
-      const locale = useLocaleStore.getState().locale;
-      if (!session) {
-        // Sin sesión: avisar y conservar el hash para que se procese tras login.
-        // _onSignedIn → onLeagueSignedIn ya recarga la liga; nosotros guardamos el hash
-        // en sessionStorage para retomarlo si el usuario hace login con magic-link.
-        try { sessionStorage.setItem('wm2026_pending_invite_hash', hash); } catch (_) { /* noop */ }
-        showToast(
-          locale === 'es'
-            ? 'Inicia sesión para unirte a la liga. El enlace se retomará tras el login.'
-            : 'Please sign in to join the league. The invite link will be resumed after login.'
-        );
-        return;
-      }
-
-      const name = prompt(
-        locale === 'es'
-          ? '¿Quieres unirte a esta liga?\n\nEscribe tu nombre:'
-          : 'Do you want to join this league?\n\nEnter your name:'
-      );
-      if (!name?.trim()) return;
-
-      const { joinLeagueInCloud, fetchLeagueNameFromCloud, refreshLeagueMembers } = await import('./lib/league-sync');
-      const ok = await joinLeagueInCloud(leagueId, name.trim());
-      if (ok) {
-        const leagueName = await fetchLeagueNameFromCloud(leagueId) ?? '';
-        const { useLeaguesStore } = await import('./store/leagues-store');
-        useLeaguesStore.getState().joinLeagueFromInvite(leagueId, leagueName, name.trim());
-        await refreshLeagueMembers(leagueId);
-        this._activeTab = 'league';
-        window.location.hash = '#league';
-      } else {
-        showToast(
-          locale === 'es'
-            ? 'No se pudo unir a la liga. Comprueba que el enlace es válido e inténtalo de nuevo.'
-            : 'Could not join the league. Please check that the link is valid and try again.'
-        );
-      }
+      await this._joinCloudLeague(hash, hash.slice('#league/join/'.length).trim());
       return;
     }
 
@@ -680,18 +697,7 @@ export class AppRoot extends LitElement {
       if (leagueHash.type === 'invite') {
         const invite = decodeLeagueInvite(leagueHash.raw);
         if (invite) {
-          const locale = useLocaleStore.getState().locale;
-          const name = prompt(
-            locale === 'es'
-              ? `¿Quieres unirte a la liga "${invite.name}"?\n\nEscribe tu nombre:`
-              : `Do you want to join the league "${invite.name}"?\n\nEnter your name:`
-          );
-          if (name && name.trim()) {
-            const { useLeaguesStore } = await import('./store/leagues-store');
-            useLeaguesStore.getState().joinLeagueFromInvite(invite.leagueId, invite.name, name.trim());
-            this._activeTab = 'league';
-            window.location.hash = '#league';
-          }
+          await this._joinCloudLeague(hash, invite.leagueId, invite.name);
         }
       } else if (leagueHash.type === 'participant') {
         const share = decodeParticipantShare(leagueHash.raw);
@@ -872,27 +878,27 @@ export class AppRoot extends LitElement {
         <header class="topbar" role="banner">
           <!-- Fila principal: logo + stats + acciones -->
           <div class="topbar-main">
-            <a href="/" class="logo-lockup" aria-label="Bracket Mundial 2026 Home">
-              <div class="logo-icon">⚽</div>
+            <a href="/" class="logo-lockup" aria-label="Bracket Nights">
+              <div class="logo-icon"><span class="logo-diamond"></span></div>
               <div class="logo-text">
                 <span class="logo-main">BRACKET</span>
-                <span class="logo-sub">MUNDIAL 2026</span>
+                <span class="logo-sub">NIGHTS 26/27</span>
               </div>
             </a>
 
             <div class="topbar-stats">
               <div class="stat-pill">
-                <span class="stat-num">48</span>
+                <span class="stat-num">36</span>
                 <span class="stat-lbl">${t('header.statsTeams')}</span>
               </div>
               <span class="stat-sep">/</span>
               <div class="stat-pill">
-                <span class="stat-num">12</span>
+                <span class="stat-num">8</span>
                 <span class="stat-lbl">${t('header.statsGroups')}</span>
               </div>
               <span class="stat-sep">/</span>
               <div class="stat-pill">
-                <span class="stat-num">104</span>
+                <span class="stat-num">144</span>
                 <span class="stat-lbl">${t('header.statsMatches')}</span>
               </div>
               <span class="stat-sep">/</span>
@@ -967,17 +973,19 @@ export class AppRoot extends LitElement {
                 class="topbar-nav-btn ${at === tab ? 'active' : ''}"
                 aria-pressed="${at === tab}"
                 @click="${() => this._selectTab(tab)}">
-                ${tab === 'hero' ? '⚽' : ''}
-                ${tab === 'groups' ? '📋' : ''}
+                ${tab === 'hero' ? '🏠' : ''}
+                ${tab === 'groups' ? '⚽' : ''}
+                ${tab === 'matchday' ? '📅' : ''}
                 ${tab === 'knockout' ? '🏆' : ''}
                 ${tab === 'squads' ? '👥' : ''}
-                ${tab === 'calendar' ? '📅' : ''}
+                ${tab === 'calendar' ? '🗓️' : ''}
                 ${tab === 'stadiums' ? '🏟' : ''}
                 ${tab === 'coaches' ? '👔' : ''}
                 ${tab === 'guide' ? '📖' : ''}
                 ${tab === 'league' ? '📊' : ''}
                 ${tab === 'hero' ? t('tabs.hero')
-                  : tab === 'groups' ? t('tabs.groups')
+                  : tab === 'groups' ? t('tabs.table')
+                  : tab === 'matchday' ? t('tabs.matchday')
                   : tab === 'knockout' ? t('tabs.knockout')
                   : tab === 'squads' ? t('tabs.squads')
                   : tab === 'calendar' ? t('tabs.calendar')
@@ -992,7 +1000,7 @@ export class AppRoot extends LitElement {
 
         <!-- Tournament progress -->
         <div class="progress-bar">
-          <div class="progress-fill" style="width: ${Math.round((totalPlayed / 104) * 100)}%"></div>
+          <div class="progress-fill" style="width: ${Math.round((totalPlayed / 144) * 100)}%"></div>
         </div>
 
         <!-- Offline banner -->
@@ -1084,7 +1092,7 @@ export class AppRoot extends LitElement {
             </a>
           </div>
 
-          <span class="footer-copy">© BRACKET MUNDIAL 2026</span>
+          <span class="footer-copy">© BRACKET NIGHTS 26/27</span>
         </footer>
 
         ${this._toastMessage ? html`<div class="toast-bar" role="status" aria-live="polite" aria-atomic="true">${this._toastMessage}</div>` : ''}

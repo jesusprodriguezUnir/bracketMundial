@@ -1,8 +1,8 @@
-/** Partido inaugural: 11 jun 2026, 21:00 CEST = 19:00 UTC */
-export const KICKOFF_UTC = Date.UTC(2026, 5, 11, 19, 0, 0);
+/** Jornada 1: 8 sep 2026, 18:45 CEST = 16:45 UTC */
+export const KICKOFF_UTC = Date.UTC(2026, 8, 8, 16, 45, 0);
 
-/** Cierre del torneo: final 19 jul 2026 21:00 CEST + 3 h (prórroga/penaltis) = 22:00 UTC */
-export const TOURNAMENT_END_UTC = Date.UTC(2026, 6, 19, 22, 0, 0);
+/** Final: 5 jun 2027 21:00 CEST + 3 h = 22:00 UTC */
+export const TOURNAMENT_END_UTC = Date.UTC(2027, 5, 5, 20, 0, 0);
 
 export type TournamentPhase = 'countdown' | 'live' | 'archive';
 

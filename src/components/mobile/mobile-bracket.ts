@@ -246,13 +246,14 @@ export class MobileBracket extends LitElement {
       .final-banner {
         margin: 0 16px 14px;
         padding: 9px 14px;
-        background: var(--ink);
-        color: var(--retro-yellow);
+        background: var(--card-grad);
+        color: var(--on-dark);
         font-family: var(--font-mono);
         font-size: 9px;
         letter-spacing: 0.14em;
         text-align: center;
-        border: 3px solid var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
       }
 
       /* ── Steps de ronda ── */
@@ -265,59 +266,63 @@ export class MobileBracket extends LitElement {
         all: unset; cursor: pointer; flex-shrink: 0;
         font-family: var(--font-mono); font-size: 9px; font-weight: 700;
         letter-spacing: 0.08em; text-transform: uppercase;
-        padding: 6px 9px; border: 2px solid var(--ink);
-        color: var(--ink); background: var(--paper-3);
+        padding: 6px 9px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-pill);
+        color: var(--ink); background: var(--fill);
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      .rstep.active { color: var(--paper); }
-      .rstep.active.c-blue   { background: var(--retro-blue); }
-      .rstep.active.c-orange { background: var(--retro-orange); }
-      .rstep.active.c-green  { background: var(--retro-green); }
-      .rstep.active.c-red    { background: var(--retro-red); }
-      .rstep.active.c-ink    { background: var(--ink); color: var(--retro-yellow); }
+      .rstep.active { color: var(--on-accent); }
+      .rstep.active.c-blue   { background: var(--accent); border-color: var(--accent); }
+      .rstep.active.c-orange { background: var(--accent); border-color: var(--accent); }
+      .rstep.active.c-green  { background: var(--retro-green); border-color: var(--retro-green); }
+      .rstep.active.c-red    { background: var(--retro-red); border-color: var(--retro-red); }
+      .rstep.active.c-ink    { background: var(--card-grad); color: var(--on-dark); border-color: var(--hairline); }
 
       /* ── Round nav ── */
       .round-nav {
         display: flex; align-items: stretch;
-        margin: 0 16px 4px; border: 3px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm); background: var(--ink);
+        margin: 0 16px 4px; border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm); background: var(--card-grad);
       }
       .rn-arrow {
         all: unset; cursor: pointer; width: 44px;
         display: grid; place-items: center;
-        color: var(--paper); font-size: 20px; background: var(--ink);
+        color: var(--on-dark); font-size: 20px; background: transparent;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      .rn-arrow:active { background: var(--retro-orange); }
+      .rn-arrow:active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
       .rn-arrow[disabled] { opacity: 0.3; pointer-events: none; }
-      .rn-center { flex: 1; text-align: center; padding: 8px 4px; color: var(--paper); }
-      .rn-name { font-family: var(--font-var); font-size: 18px; line-height: 1; }
-      .rn-count { font-family: var(--font-mono); font-size: 9px; color: var(--retro-yellow); letter-spacing: 0.15em; margin-top: 3px; }
+      .rn-center { flex: 1; text-align: center; padding: 8px 4px; color: var(--on-dark); }
+      .rn-name { font-family: var(--font-var); font-size: 18px; line-height: 1; text-transform: uppercase; font-weight: 800; }
+      .rn-count { font-family: var(--font-mono); font-size: 9px; color: var(--on-dark-soft); letter-spacing: 0.15em; margin-top: 3px; }
 
       /* ── Bracket list ── */
       .bracket-list { padding: 8px 16px; display: grid; gap: 11px; }
 
       /* ── kmatch (tarjeta de partido eliminatorio) ── */
       .kmatch {
-        background: var(--paper-2); border: 2.5px solid var(--ink);
-        box-shadow: var(--shadow-hard-sm); overflow: hidden;
+        background: var(--card-grad); border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm); overflow: hidden;
       }
       .kmatch-tag {
         font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em;
-        color: var(--dim); padding: 6px 12px 0; text-transform: uppercase;
+        color: var(--ink-muted); padding: 6px 12px 0; text-transform: uppercase;
         display: flex; justify-content: space-between; align-items: center;
       }
       .kmatch-meta {
-        font-family: var(--font-mono); font-size: 9px; color: var(--dim);
+        font-family: var(--font-mono); font-size: 9px; color: var(--ink-muted);
         padding: 3px 12px 7px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center;
-        border-bottom: 1.5px dashed rgba(26,25,51,0.25);
+        border-bottom: 1px solid var(--hairline);
       }
       .kmatch-date {
-        background: var(--retro-yellow);
-        color: var(--ink);
+        background: var(--accent);
+        color: var(--on-accent);
         font-weight: 700;
         padding: 2px 6px;
-        border: 1.5px solid var(--ink);
+        border: 1px solid var(--accent);
+        border-radius: var(--radius-pill);
         letter-spacing: 0.06em;
       }
 
@@ -326,50 +331,51 @@ export class MobileBracket extends LitElement {
         display: flex; justify-content: space-between; align-items: center; gap: 10px;
         padding: 8px 12px; min-height: 52px;
       }
-      .krow.winner { color: var(--paper); }
+      .krow.winner { color: var(--on-dark); }
       .krow.loser { opacity: 0.5; }
       .krow .team-info { display: flex; align-items: center; gap: 9px; font-family: var(--font-body); font-size: 14px; font-weight: 800; overflow: hidden; }
       .krow .team-info .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .kstepper { flex-shrink: 0; }
-      .ksep { height: 2px; background: var(--ink); margin: 0 12px; }
+      .ksep { height: 2px; background: var(--hairline); margin: 0 12px; }
 
       /* ── Stepper (compartido) ── */
       .stepper {
         display: flex; align-items: center;
-        border: 2px solid var(--ink);
-        background: var(--paper);
-        box-shadow: 2px 2px 0 0 var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-sm);
+        background: var(--fill);
+        box-shadow: var(--shadow-sm);
       }
       .step {
-        width: 40px; height: 40px; border: none; background: var(--paper);
+        width: 40px; height: 40px; border: none; background: var(--fill);
         font-family: var(--font-var); font-size: 22px; line-height: 1; color: var(--ink);
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
-      .step.minus { border-right: 2px solid var(--ink); }
-      .step.plus  { border-left: 2px solid var(--ink); }
-      .step:active { background: var(--ink); color: var(--paper); }
+      .step.minus { border-right: 1px solid var(--hairline); }
+      .step.plus  { border-left: 1px solid var(--hairline); }
+      .step:active { opacity: 0.7; }
       .step-val {
         min-width: 38px; text-align: center;
         font-family: var(--font-var); font-size: 22px; font-weight: 700; color: var(--ink);
       }
-      .step-val.pending { color: var(--dim); opacity: 0.55; }
+      .step-val.pending { color: var(--ink-muted); opacity: 0.55; }
 
       /* ── Clear button ── */
       .meta-clear {
         width: 22px; height: 22px; flex-shrink: 0;
-        border: 1.5px solid var(--ink); background: var(--paper-2); color: var(--ink);
+        border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: var(--fill); color: var(--ink);
         font-family: var(--font-mono); font-size: 10px; line-height: 1; cursor: pointer;
         display: grid; place-items: center;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
       }
-      .meta-clear:active { background: var(--ink); color: var(--paper); }
+      .meta-clear:active { opacity: 0.7; border-color: var(--accent); }
 
       /* ── Penalty editor ── */
       .pen-editor {
-        border-top: 1.5px solid var(--ink);
-        background: rgba(196,30,44,0.08);
+        border-top: 1px solid var(--hairline);
+        background: color-mix(in srgb, var(--retro-red) 10%, transparent);
         padding: 8px 12px 10px;
       }
       .pen-lbl {
@@ -380,24 +386,25 @@ export class MobileBracket extends LitElement {
         display: flex; align-items: center; justify-content: center;
         gap: 10px; margin-top: 7px;
       }
-      .pen-steppers .stepper { box-shadow: 1.5px 1.5px 0 0 var(--ink); }
+      .pen-steppers .stepper { box-shadow: var(--shadow-sm); }
       .pen-steppers .step { width: 34px; height: 34px; font-size: 18px; }
       .pen-steppers .step-val { min-width: 30px; font-size: 18px; }
       .pen-mid {
         font-family: var(--font-mono); font-size: 9px;
-        color: var(--dim); font-weight: 700;
+        color: var(--ink-muted); font-weight: 700;
       }
 
       /* ── Champion ── */
       .champion-box {
         margin: 18px 16px 16px;
-        background: var(--retro-yellow);
-        background-image: radial-gradient(circle, rgba(26,25,51,0.13) 1.5px, transparent 1.6px) 0 0 / 6px 6px;
-        border: 4px solid var(--ink); box-shadow: var(--shadow-hard-lg);
+        background: var(--accent);
+        background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1.4px) 0 0 / 6px 6px;
+        border: 1px solid var(--accent); box-shadow: var(--glow-accent-sm);
+        border-radius: var(--radius-md);
         padding: 22px 18px; text-align: center;
       }
-      .champion-title { font-family: var(--font-mono); font-size: 9px; color: var(--ink); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px; }
-      .champion-team { font-family: var(--font-var); font-size: 26px; color: var(--ink); line-height: 1.05; display: flex; align-items: center; justify-content: center; gap: 10px; }
+      .champion-title { font-family: var(--font-mono); font-size: 9px; color: var(--on-accent); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px; }
+      .champion-team { font-family: var(--font-var); font-size: 26px; color: var(--on-accent); font-weight: 800; line-height: 1.05; display: flex; align-items: center; justify-content: center; gap: 10px; }
       .champion-team.tbd { opacity: 0.35; font-size: 20px; }
     `,
   ];

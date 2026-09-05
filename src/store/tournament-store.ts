@@ -4,6 +4,7 @@ import { TEAMS_2026, generateGroupMatches, KNOCKOUT_BRACKET } from '../data/fifa
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { calculateBestThirds, syncKnockoutBracket } from '../lib/bracket-logic';
 import type { TeamStats } from '../lib/bracket-logic';
+import { COMPETITION, compareUefaLeagueRows, standingToUefaRow } from '../data/competition';
 import { TEAM_STRENGTH } from '../data/team-strength';
 import { expectedProbabilities, sampleResult } from '../lib/odds-model';
 import { ODDS_SEED } from '../data/odds/seed';
@@ -96,7 +97,7 @@ function _defaultSnapshot(): BracketSnapshot {
 // ── Persistencia local del snapshot personal (clave separada de la del torneo) ──
 // Garantiza que las predicciones personales sobreviven a un recargo con contexto de liga activo.
 
-const _PERSONAL_SNAPSHOT_LS_KEY = 'mundial-2026-personal-snapshot';
+const _PERSONAL_SNAPSHOT_LS_KEY = COMPETITION.personalSnapshotKey;
 
 function _savePersonalToStorage(snapshot: BracketSnapshot): void {
   try {
@@ -183,6 +184,8 @@ export interface GroupStanding {
   goalsAgainst: number;
   goalDiff: number;
   points: number;
+  awayGoals: number;
+  awayWins: number;
 }
 
 export interface GroupMatchResult {
@@ -198,6 +201,7 @@ export interface GroupMatchResult {
   timeSpain?: string;
   venue?: string;
   city?: string;
+  venueId?: string;
 }
 
 export interface KnockoutMatchResult {
@@ -272,21 +276,27 @@ interface TournamentState {
   isMatchEditable: (matchId: string) => boolean;
 }
 
+function emptyStanding(teamId: string): GroupStanding {
+  return {
+    teamId,
+    played: 0,
+    won: 0,
+    drawn: 0,
+    lost: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+    goalDiff: 0,
+    points: 0,
+    awayGoals: 0,
+    awayWins: 0,
+  };
+}
+
 function createInitialStandings(): Record<string, GroupStanding[]> {
   const standings: Record<string, GroupStanding[]> = {};
-  for (const group of 'ABCDEFGHIJKL'.split('')) {
+  for (const group of COMPETITION.groups) {
     const groupTeams = TEAMS_2026.filter(t => t.group === group);
-    standings[group] = groupTeams.map(t => ({
-      teamId: t.id,
-      played: 0,
-      won: 0,
-      drawn: 0,
-      lost: 0,
-      goalsFor: 0,
-      goalsAgainst: 0,
-      goalDiff: 0,
-      points: 0,
-    }));
+    standings[group] = groupTeams.map(t => emptyStanding(t.id));
   }
   return standings;
 }
@@ -315,27 +325,32 @@ export function recalculateStandings(matches: GroupMatchResult[]): Record<string
         standing.goalsFor += match.scoreB;
         standing.goalsAgainst += match.scoreA;
         standing.goalDiff = standing.goalsFor - standing.goalsAgainst;
-        if (match.scoreB > match.scoreA) { standing.won++; standing.points += 3; }
-        else if (match.scoreA === match.scoreB) { standing.drawn++; standing.points += 1; }
-        else { standing.lost++; }
+        standing.awayGoals += match.scoreB;
+        if (match.scoreB > match.scoreA) {
+          standing.won++;
+          standing.awayWins++;
+          standing.points += 3;
+        } else if (match.scoreA === match.scoreB) {
+          standing.drawn++;
+          standing.points += 1;
+        } else {
+          standing.lost++;
+        }
       }
     }
   }
 
-  for (const group of 'ABCDEFGHIJKL'.split('')) {
-    newStandings[group].sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
-      return b.goalsFor - a.goalsFor;
-    });
+  for (const group of COMPETITION.groups) {
+    newStandings[group].sort((a, b) => compareUefaLeagueRows(standingToUefaRow(a), standingToUefaRow(b)));
   }
 
   return newStandings;
 }
 
 function mapThirds(standings: Record<string, GroupStanding[]>): TeamStats[] {
+  if (!COMPETITION.hasThirdPlace) return [];
   const thirds: TeamStats[] = [];
-  for (const group of 'ABCDEFGHIJKL'.split('')) {
+  for (const group of COMPETITION.groups) {
     const gs = standings[group];
     if (gs && gs.length > 2) {
       thirds.push({
@@ -405,6 +420,7 @@ function resolveKnockoutMatches(
   standings: Record<string, GroupStanding[]>,
   knockoutMatches: Record<string, KnockoutMatchResult>
 ): Record<string, KnockoutMatchResult> {
+  if (!COMPETITION.knockoutEnabled) return knockoutMatches;
   return syncKnockoutBracket(standings, knockoutMatches, KNOCKOUT_BRACKET, KNOCKOUT_SCHEDULE);
 }
 
@@ -480,6 +496,7 @@ export const useTournamentStore = createStore<TournamentState>()(
       realKnockoutResults: {},
 
       isMatchEditable: (matchId: string): boolean => {
+        if (!COMPETITION.predictionsOpen) return false;
         const ctx = _get().activeContext;
         if (ctx.kind !== 'league') return true;
         const leagueId = (ctx as { kind: 'league'; leagueId: string }).leagueId;
@@ -672,12 +689,15 @@ export const useTournamentStore = createStore<TournamentState>()(
       
 
       initializeKnockoutFromGroups: () => {
+        if (!COMPETITION.knockoutEnabled) return;
         const state = _get();
         const knockout = resolveKnockoutMatches(state.groupStandings, state.knockoutMatches);
         set({ knockoutMatches: knockout });
       },
 
-      getBestThirds: () => calculateBestThirds(mapThirds(_get().groupStandings)),
+      getBestThirds: () => COMPETITION.hasThirdPlace
+        ? calculateBestThirds(mapThirds(_get().groupStandings))
+        : [],
 
       switchContext: async (ctx) => {
         const state = _get();
@@ -998,7 +1018,7 @@ export const useTournamentStore = createStore<TournamentState>()(
       },
     }),
     {
-      name: 'mundial-2026-tournament',
+      name: COMPETITION.persistKey,
       merge: (persisted, current) => {
         const p = persisted as Partial<typeof current>;
         if (p.groupMatches) {

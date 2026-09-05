@@ -1,7 +1,8 @@
 name: Ingest news to Supabase
 
 on:
-  # Pausado tras el Mundial (19 jul 2026). Dispatch manual sigue activo.
+  schedule:
+    - cron: '0 */3 * 9,10,11,12,1,2,3,4,5,6 *'
   workflow_dispatch:
     inputs:
       teams:

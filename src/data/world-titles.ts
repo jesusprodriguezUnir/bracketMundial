@@ -1,5 +1,8 @@
-/** Número de títulos de Copa del Mundo por selección (hasta 2022). */
+import { UCL_TITLES } from './ucl-clubs';
+
+/** Número de títulos de Champions League por club o Copa del Mundo por selección. */
 export const WORLD_TITLES: Record<string, number> = {
+  ...UCL_TITLES,
   BRA: 5,
   GER: 4,
   ARG: 3,

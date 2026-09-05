@@ -1,84 +1,120 @@
 ---
 name: x-post
 description: >
-  Genera el contenido para un post en X (Twitter): una imagen optimizada de una
-  vista de la app del Mundial 2026 más el texto del tweet con hashtags. Úsala
-  cuando el usuario pida: crear un post en X, post para Twitter, publicar en X,
-  imagen para un tweet, contenido para X, tweet de una sección de la app.
+  Genera el contenido visual y textual optimizado para publicaciones en X (Twitter):
+  captura de alta resolución (16:9 horizontal o 1:1 cuadrada) con banner opcional
+  más copy de tweet (≤280 caracteres) con hashtags y enlace web. Úsala cuando el
+  usuario pida: crear un post en X, post para Twitter, tweet de una sección,
+  imagen para tweet, hilo para X, post de jornada de Champions o Mundial.
+license: MIT
+metadata:
+  author: bracketMundial
+  version: "2.0"
 ---
 
 # Skill: x-post
 
-Genera el material para publicar un post en **X (Twitter)** sobre una vista
-concreta de la web: una **imagen optimizada** (16:9 o 1:1) más un **texto de
-tweet** de ≤280 caracteres con hashtags. La publicación es **manual** — el script
-no usa la API de X.
+Genera todo el material necesario para publicar en **X (Twitter)** sobre cualquier sección, jornada o equipo de la aplicación:
+1. Una **imagen de alta resolución** ajustada a la proporción perfecta para el feed de X (`16:9` panorámica o `1:1` cuadrada móvil).
+2. Un **texto de tweet (≤280 caracteres)** con gancho, enlace a la web y hashtags relevantes.
+
+> **Nota de publicación**: El script no utiliza la API de X; produce los archivos finales listos para componer el post manualmente o programarlo en cualquier gestor de redes sociales (TweetDeck, Buffer, Hootsuite, etc.).
+
+---
 
 ## Flujo de trabajo
 
-### 1. Ver qué vistas hay disponibles
+### 1. Ver qué vistas y secciones se pueden capturar
 
 ```bash
 npm run x:post list
 ```
 
-Vistas: `hero`, `groups`, `knockout`, `squads`, `calendar`, `stadiums`,
-`coaches`, `guide`, `league` (aceptan alias en español: `grupos`, `cruces`,
-`equipos`, `estadios`, etc.).
+**Vistas y alias admitidos:**
 
-### 2. Generar el post
+| Clave canónica | Alias en español | Contenido capturado |
+|----------------|------------------|---------------------|
+| `matchday` | `jornadas`, `jornada`, `partidos` | Fixture de la jornada de Champions / Mundial con cuotas y horarios |
+| `groups` | `grupos`, `tabla`, `table` | Tabla general de 36 equipos UEFA o grupos del Mundial |
+| `squads` | `equipos`, `clubes`, `plantillas` | Cartas oficiales de jugadores, dorsales y alineaciones |
+| `league` | `liga`, `porra`, `miniliga` | Panel de mini-ligas privadas y ranking de amigos |
+| `calendar` | `calendario`, `schedule` | Calendario completo con horarios y sedes |
+| `coaches` | `entrenadores`, `dt` | Fichas de entrenadores y directores técnicos |
+| `hero` | `inicio`, `home` | Portada, cuenta atrás y destacados |
+| `knockout` | `cruces`, `eliminatorias` | Cuadro eliminatorio y bracket de predicciones |
+| `stadiums` | `estadios` | Fichas de estadios y sedes |
+| `guide` | `guia` | Guía táctica y onces titulares |
 
+---
+
+### 2. Comandos y ejemplos de generación
+
+#### A) Post de una Jornada de Champions League (16:9 panorámico)
 ```bash
-# Post de estadios, imagen 16:9
-npm run x:post -- estadios --ratio 16:9
-
-# Post del bracket con texto encima, en inglés, imagen cuadrada
-npm run x:post -- knockout --text "Predice al campeón" --ratio 1:1 --lang en
+npm run x:post -- jornadas --ratio 16:9 --text "Jornada 1 · Champions League"
 ```
 
-**Argumentos:**
+#### B) Post de la Tabla de Clasificación en formato cuadrado (1:1 óptimo para móviles)
+```bash
+npm run x:post -- tabla --ratio 1:1 --text "Clasificación General UEFA"
+```
+
+#### C) Post en inglés con tema oscuro (Dark Mode)
+```bash
+npm run x:post -- matchday --lang en --theme dark --text "Predict this matchday!"
+```
+
+#### D) Post de Mini-Ligas para captar usuarios
+```bash
+npm run x:post -- liga --text "Crea tu porra gratis con amigos" --ratio 16:9
+```
+
+---
+
+## Opciones y argumentos
 
 | Argumento | Valores | Por defecto | Descripción |
 |-----------|---------|-------------|-------------|
-| `<vista>` | clave de vista | — (obligatorio) | Qué vista capturar |
-| `--text` | texto libre | (ninguno) | Texto quemado sobre la imagen (banner Panini) |
-| `--ratio` | `16:9` \| `1:1` | `16:9` | Proporción de la imagen |
-| `--lang` | `es` \| `en` | `es` | Idioma de la app |
-| `--theme` | `light` \| `dark` | `light` | Tema visual |
+| `<vista>` | Clave de vista o alias | — *(Obligatorio)* | Vista que se capturará |
+| `--text` | Texto libre | `null` | Banner Panini retro quemado sobre la imagen |
+| `--ratio` | `16:9` \| `1:1` | `16:9` | Relación de aspecto de la imagen |
+| `--lang` | `es` \| `en` | `es` | Idioma de la interfaz (`es` o `en`) |
+| `--theme` | `light` \| `dark` | `light` | Modo visual de la captura |
 
-### 3. Resultado
+---
 
-El script genera en `marketing/x/`:
+## Archivos generados
 
-- `x-<vista>.png` — la imagen (1600×900 para 16:9, o 1080×1080 para 1:1).
-- `x-<vista>.txt` — el texto del tweet (≤280 chars) con la URL de la app y hashtags.
+El script guarda los resultados en la carpeta `marketing/x/`:
 
-Para publicar: copia el contenido del `.txt` y adjunta el `.png` al componer el
-post en X.
+- **`x-<vista>.png`**: Imagen optimizada mediante `sharp` (`1600×900` para `16:9` o `1080×1080` para `1:1`).
+- **`x-<vista>.txt`**: Texto del tweet ajustado estrictamente a ≤280 caracteres, respetando palabras completas, con la URL de la app y hashtags optimizados (`#ChampionsLeague #UCL #Mundial2026 #Porra #BracketNights`).
 
-## Cómo funciona
+---
 
-- Captura la vista indicada navegando con Playwright (despachando el evento
-  `navigate` de la app, idioma-agnóstico).
-- Si se pasa `--text`, inyecta el mismo banner Panini que la skill `instagram-reel`
-  (tipografía Bowlby One, naranja retro, sombra dura) — queda quemado en la imagen.
-- `sharp` recorta a las dimensiones exactas del ratio elegido.
-- El texto del tweet se recorta de forma segura a 280 caracteres conservando
-  palabras completas.
+## Estrategias avanzadas para publicaciones en X
 
-## Archivos clave
+### Publicar un carrusel de hasta 4 imágenes
+X permite adjuntar hasta **4 imágenes** en un solo tweet:
+1. Ejecuta el comando para las vistas que desees combinar:
+   ```bash
+   npm run x:post -- jornadas --ratio 1:1
+   npm run x:post -- tabla --ratio 1:1
+   npm run x:post -- equipos --ratio 1:1
+   npm run x:post -- liga --ratio 1:1
+   ```
+2. En el compositor de X, pega el texto de `marketing/x/x-jornadas.txt` y adjunta los 4 PNGs generados en `marketing/x/`.
 
-| Archivo | Propósito |
-|---------|-----------|
-| `scripts/generate-x-post.mjs` | Script principal |
-| `scripts/lib/recording-utils.mjs` | Helpers compartidos (navegación, overlay de texto) |
-| `marketing/x/` | Carpeta de salida |
+### Publicación en tiempo real / Días de partido
+Combina las capturas de `x:post` con las fuentes de datos vivas de la app:
+- **Cuotas 1X2**: Ejecuta `npm run odds` para actualizar las probabilidades del modelo.
+- **Noticias frescas**: Ejecuta `npm run news` para disponer de los titulares más recientes del club o selección.
+- Usa el banner `--text` para destacar el partido estrella (ej: `--text "Real Madrid vs Manchester City · Pronostica gratis"`).
 
-## Notas
+---
 
-- No requiere `ffmpeg` (solo genera imagen, no video).
-- El script arranca y detiene su propio servidor dev automáticamente.
-- X admite hasta 4 imágenes por post; este script genera 1. Ejecuta el comando
-  varias veces con distintas vistas si quieres un carrusel.
-- La URL de la app en el tweet (`APP_URL`) está en `scripts/generate-x-post.mjs`;
-  ajústala si la web cambia de dominio.
+## Aspectos técnicos
+
+- **Playwright** navega limpiamente despachando el evento custom `navigate` en el Shadow DOM de la app, siendo totalmente independiente del idioma activo.
+- **Sin dependencias de API externa**: No requiere tokens ni credenciales de desarrollador de X.
+- **Servidor automático**: Inicia y apaga el entorno de desarrollo local automáticamente.

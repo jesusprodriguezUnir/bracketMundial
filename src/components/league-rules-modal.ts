@@ -15,8 +15,9 @@ export class LeagueRulesModal extends LitElement {
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(3,6,16,0.66);
       backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       display: flex;
       align-items: flex-start;
       padding-top: 4vh;
@@ -33,10 +34,11 @@ export class LeagueRulesModal extends LitElement {
     }
 
     .modal-content {
-      background: var(--paper, #ecdfc0);
-      background-image: var(--paper-texture);
-      border: 3px solid var(--ink, #1a1933);
-      box-shadow: var(--shadow-hard-lg, 4px 4px 0 0 var(--ink));
+      background: var(--card-grad);
+      background-image: none;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       max-width: 600px;
       width: calc(100% - 40px);
       max-height: 80vh;
@@ -59,21 +61,23 @@ export class LeagueRulesModal extends LitElement {
       width: 8px;
     }
     .modal-content::-webkit-scrollbar-track {
-      background: var(--paper-2, #e6d6b1);
-      border-left: 2px solid var(--ink);
+      background: var(--fill);
+      border-left: 1px solid var(--hairline);
     }
     .modal-content::-webkit-scrollbar-thumb {
-      background: var(--retro-orange, #e8541f);
-      border: 2px solid var(--ink);
+      background: var(--accent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
     }
 
     .close-btn {
       position: absolute;
       top: 14px;
       right: 14px;
-      background: var(--retro-red, #c41e2c);
-      color: var(--paper-3, #fff9ec);
-      border: 2.5px solid var(--ink, #1a1933);
+      background: color-mix(in srgb, var(--retro-red) 18%, var(--paper-2));
+      color: var(--ink);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-sm);
       width: 28px;
       height: 28px;
       cursor: pointer;
@@ -83,19 +87,18 @@ export class LeagueRulesModal extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 2px 2px 0 0 var(--ink, #1a1933);
+      box-shadow: var(--shadow-sm);
       z-index: 10;
       transition: transform 0.1s, box-shadow 0.1s;
     }
 
     .close-btn:hover {
       transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 0 var(--ink);
+      box-shadow: var(--shadow-md);
     }
 
     .close-btn:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0 0 var(--ink);
+      opacity: 0.7;
     }
 
     .modal-title {
@@ -104,9 +107,10 @@ export class LeagueRulesModal extends LitElement {
       letter-spacing: 0.04em;
       color: var(--ink, #1a1933);
       margin: 0;
-      border-bottom: 3px solid var(--retro-orange, #e8541f);
+      border-bottom: 1px solid var(--accent);
       padding-bottom: 4px;
       text-transform: uppercase;
+      font-weight: 800;
       margin-right: 28px;
     }
 
@@ -140,9 +144,10 @@ export class LeagueRulesModal extends LitElement {
     }
 
     .rules-card {
-      background: var(--paper-3, #fff9ec);
-      border: 2px solid var(--ink, #1a1933);
-      box-shadow: var(--shadow-hard-sm, 2px 2px 0 0 var(--ink));
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 8px 10px;
       display: flex;
       align-items: center;
@@ -157,15 +162,16 @@ export class LeagueRulesModal extends LitElement {
       justify-content: center;
       width: 36px;
       height: 36px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       flex-shrink: 0;
-      box-shadow: 2px 2px 0 0 var(--ink);
+      box-shadow: var(--shadow-sm);
     }
 
-    .pts-badge.exact { background: var(--retro-orange, #e8541f); color: var(--paper-3, #fff9ec); }
-    .pts-badge.diff { background: var(--retro-yellow, #f0b021); color: var(--ink, #1a1933); }
-    .pts-badge.sign { background: var(--paper-2, #e6d6b1); color: var(--ink, #1a1933); }
-    .pts-badge.miss { background: var(--paper, #ecdfc0); color: var(--dim, #7a6f54); }
+    .pts-badge.exact { background: var(--accent); color: var(--on-accent); }
+    .pts-badge.diff { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink, #1a1933); }
+    .pts-badge.sign { background: var(--fill); color: var(--ink, #1a1933); }
+    .pts-badge.miss { background: var(--fill-soft); color: var(--ink-muted); }
 
     .card-text {
       font-family: var(--font-body, sans-serif);
@@ -189,17 +195,18 @@ export class LeagueRulesModal extends LitElement {
     }
 
     .ko-item {
-      background: var(--paper-3, #fff9ec);
-      border: 2px solid var(--ink, #1a1933);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 6px 4px;
       text-align: center;
-      box-shadow: var(--shadow-hard-sm, 2px 2px 0 0 var(--ink));
+      box-shadow: var(--shadow-sm);
     }
 
     .ko-round {
       font-family: var(--font-mono, monospace);
       font-size: 9px;
-      color: var(--dim, #7a6f54);
+      color: var(--ink-muted);
       text-transform: uppercase;
       display: block;
       margin-bottom: 2px;
@@ -212,8 +219,9 @@ export class LeagueRulesModal extends LitElement {
     }
 
     .ko-callout {
-      background: var(--paper-2, #e6d6b1);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 8px 10px;
       font-family: var(--font-body, sans-serif);
       font-size: 11px;
@@ -226,21 +234,22 @@ export class LeagueRulesModal extends LitElement {
     .ko-callout::before {
       content: '★ ';
       font-weight: bold;
-      color: var(--retro-orange);
+      color: var(--accent);
     }
 
     /* List element style */
     .trophy-badge {
-      background: var(--retro-yellow, #f0b021);
-      color: var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-var);
       font-size: 12px;
       padding: 5px 8px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-pill);
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 2px 2px 0 0 var(--ink);
+      box-shadow: var(--shadow-sm);
       margin-top: 2px;
     }
 
@@ -263,7 +272,7 @@ export class LeagueRulesModal extends LitElement {
     }
 
     .separator {
-      border-top: 2px dashed var(--ink, #1a1933);
+      border-top: 1px dashed var(--hairline);
       margin: 6px 0;
       opacity: 0.75;
     }

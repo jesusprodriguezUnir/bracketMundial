@@ -28,6 +28,7 @@ temp/
 tmp/
 scratch/
 extract-*.json
+.atl/
 
 # Artefactos de grabación (no versionar)
 recordings/

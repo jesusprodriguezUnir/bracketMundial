@@ -108,14 +108,17 @@ export class LeaguesView extends LitElement {
     }
 
     .lg-header {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 24px;
       margin-bottom: 28px;
     }
     .lg-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 28px;
       letter-spacing: 0.02em;
       color: var(--ink);
@@ -124,14 +127,15 @@ export class LeaguesView extends LitElement {
     .lg-subtitle {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
     .lg-progress {
-      background: var(--paper-2);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 12px 16px;
       margin-bottom: 24px;
       display: flex;
@@ -143,8 +147,9 @@ export class LeaguesView extends LitElement {
       flex: 1;
       min-width: 120px;
       height: 14px;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
     }
     .lg-progress-fill {
       height: 100%;
@@ -165,10 +170,10 @@ export class LeaguesView extends LitElement {
     }
 
     .lg-hero {
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 18%, var(--paper-3)) 0%, var(--paper-3) 100%);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
       padding: 22px;
       position: relative;
       overflow: hidden;
@@ -197,12 +202,14 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.18em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       margin-bottom: 6px;
     }
     .lg-hero-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: clamp(28px, 5vw, 42px);
       line-height: 0.95;
       letter-spacing: -0.02em;
@@ -220,8 +227,9 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.08em;
       text-transform: uppercase;
       padding: 5px 8px;
-      border: 1px solid var(--ink);
-      background: color-mix(in srgb, var(--paper) 82%, transparent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
     }
     .lg-actions {
       display: flex;
@@ -237,7 +245,7 @@ export class LeaguesView extends LitElement {
       padding: 5px 10px;
       font-size: 10px;
       letter-spacing: 0.03em;
-      box-shadow: 2px 2px 0 0 var(--ink);
+      box-shadow: var(--shadow-sm);
     }
     .lg-summary-grid {
       display: grid;
@@ -246,20 +254,21 @@ export class LeaguesView extends LitElement {
       align-items: stretch;
     }
     .lg-summary-card {
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 14px;
       min-width: 0;
     }
     .lg-summary-card.leader {
-      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 36%, var(--paper)) 0%, var(--paper) 100%);
+      background: color-mix(in srgb, var(--accent) 14%, var(--paper-2));
     }
     .lg-summary-label {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       margin-bottom: 8px;
     }
@@ -272,7 +281,7 @@ export class LeaguesView extends LitElement {
     .lg-summary-meta {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
       margin-top: 6px;
     }
@@ -285,7 +294,7 @@ export class LeaguesView extends LitElement {
     .lg-summary-inline {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -297,9 +306,10 @@ export class LeaguesView extends LitElement {
       gap: 16px;
     }
     .lg-card {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 20px;
       cursor: pointer;
       transition: background 0.1s;
@@ -310,7 +320,8 @@ export class LeaguesView extends LitElement {
       flex-wrap: wrap;
     }
     .lg-card:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-card-main {
       flex: 1;
@@ -323,7 +334,7 @@ export class LeaguesView extends LitElement {
     .lg-card-meta {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.06em;
       margin-top: 4px;
     }
@@ -349,8 +360,9 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.06em;
       padding: 6px 10px;
-      border: 1px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
     }
     .lg-small-btn:hover {
       background: var(--retro-red);
@@ -359,8 +371,9 @@ export class LeaguesView extends LitElement {
     }
 
     .lg-create-section {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 20px;
       margin-bottom: 24px;
       display: flex;
@@ -369,19 +382,20 @@ export class LeaguesView extends LitElement {
       flex-wrap: wrap;
     }
     .lg-create-section input {
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-family: var(--font-body);
       font-size: 14px;
       color: var(--ink);
       outline: none;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       flex: 1;
       min-width: 200px;
     }
     .lg-create-section input:focus {
-      border-color: var(--retro-orange);
+      border-color: var(--accent);
     }
 
     .lg-empty {
@@ -389,13 +403,14 @@ export class LeaguesView extends LitElement {
       padding: 40px 20px;
       font-family: var(--font-var);
       font-size: 16px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
     }
 
     .lg-rules-panel {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 16px 20px;
       margin-bottom: 24px;
     }
@@ -403,7 +418,7 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       margin-bottom: 10px;
     }
@@ -417,7 +432,8 @@ export class LeaguesView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.04em;
       padding: 6px 14px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
     }
 
     .lg-rules-chip-row {
@@ -440,16 +456,17 @@ export class LeaguesView extends LitElement {
       }
     }
     .lg-fantasy-block {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 20px;
     }
     .lg-fantasy-block h3 {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       margin: 0 0 12px 0;
     }
@@ -472,7 +489,7 @@ export class LeaguesView extends LitElement {
     .lg-leader-card .lg-leader-gap {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-leader-card .lg-leader-stats {
       font-family: var(--font-mono);
@@ -493,7 +510,7 @@ export class LeaguesView extends LitElement {
       font-size: 12px;
       letter-spacing: 0.03em;
       padding: 6px 0;
-      border-bottom: 1px dashed var(--ink);
+      border-bottom: 1px dashed var(--hairline);
     }
     .lg-upcoming-item:last-child {
       border-bottom: none;
@@ -505,13 +522,13 @@ export class LeaguesView extends LitElement {
     }
     .lg-upcoming-date {
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       white-space: nowrap;
     }
     .lg-normal {
       font-family: var(--font-var);
       font-size: 14px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .lg-results-board {
@@ -523,9 +540,10 @@ export class LeaguesView extends LitElement {
       grid-template-columns: minmax(0, 1fr);
     }
     .lg-section-panel {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 18px;
     }
     .lg-section-head {
@@ -538,6 +556,8 @@ export class LeaguesView extends LitElement {
     }
     .lg-section-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 20px;
       letter-spacing: 0.02em;
     }
@@ -545,7 +565,7 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-results-list {
@@ -554,9 +574,10 @@ export class LeaguesView extends LitElement {
       gap: 12px;
     }
     .lg-result-card {
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -572,19 +593,21 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.14em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-result-badge {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.08em;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 2px 6px;
-      background: var(--paper-2);
+      background: var(--fill);
     }
     .lg-result-badge.live {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-result-teams {
       display: grid;
@@ -617,7 +640,7 @@ export class LeaguesView extends LitElement {
       white-space: nowrap;
     }
     .lg-result-foot {
-      border-top: 1px dashed var(--ink);
+      border-top: 1px dashed var(--hairline);
       padding-top: 8px;
       display: flex;
       justify-content: space-between;
@@ -626,7 +649,7 @@ export class LeaguesView extends LitElement {
       flex-wrap: wrap;
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-next-list {
       display: flex;
@@ -634,9 +657,10 @@ export class LeaguesView extends LitElement {
       gap: 10px;
     }
     .lg-next-item {
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 12px;
       display: grid;
       gap: 7px;
@@ -648,7 +672,7 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.12em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-next-teams {
@@ -659,7 +683,7 @@ export class LeaguesView extends LitElement {
     .lg-next-meta {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
     }
 
@@ -667,51 +691,56 @@ export class LeaguesView extends LitElement {
     .lg-btn {
       all: unset;
       cursor: pointer;
-      background: var(--retro-yellow);
-      border: 2px solid var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 20px;
       font-family: var(--font-var);
       font-size: 13px;
       letter-spacing: 0.06em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 42px;
       display: inline-flex;
       align-items: center;
     }
     .lg-btn:hover {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-btn-sm {
       all: unset;
       cursor: pointer;
-      background: var(--retro-yellow);
-      border: 2px solid var(--ink);
+      background: var(--accent);
+      color: var(--on-accent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 6px 14px;
       font-family: var(--font-var);
       font-size: 11px;
       letter-spacing: 0.04em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 32px;
       display: inline-flex;
       align-items: center;
     }
     .lg-btn-sm:hover {
-      background: var(--retro-orange);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-btn-back {
       all: unset;
       cursor: pointer;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 20px;
       font-family: var(--font-var);
       font-size: 13px;
       letter-spacing: 0.06em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 42px;
       display: inline-flex;
@@ -720,26 +749,27 @@ export class LeaguesView extends LitElement {
     }
     .lg-btn-back:hover {
       background: var(--ink);
-      color: var(--retro-yellow);
+      color: var(--accent);
     }
     .lg-upload-btn {
       all: unset;
       cursor: pointer;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 20px;
       font-family: var(--font-var);
       font-size: 13px;
       letter-spacing: 0.06em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 42px;
       display: flex;
       align-items: center;
     }
     .lg-upload-btn:hover {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-upload-btn.compact {
       padding: 8px 14px;
@@ -750,40 +780,42 @@ export class LeaguesView extends LitElement {
     .lg-upload-btn-sm {
       all: unset;
       cursor: pointer;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 6px 14px;
       font-family: var(--font-var);
       font-size: 11px;
       letter-spacing: 0.04em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 32px;
       display: flex;
       align-items: center;
     }
     .lg-upload-btn-sm:hover {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-danger-btn {
       all: unset;
       cursor: pointer;
       background: var(--retro-red);
       color: var(--paper);
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 20px;
       font-family: var(--font-var);
       font-size: 13px;
       letter-spacing: 0.06em;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       white-space: nowrap;
       min-height: 42px;
       display: inline-flex;
       align-items: center;
     }
     .lg-danger-btn:hover {
-      background: var(--retro-orange);
+      background: var(--accent);
     }
 
     /* ── DETAIL / ADD ── */
@@ -801,8 +833,9 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.04em;
     }
     .lg-add-section {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 20px;
       margin-bottom: 28px;
     }
@@ -829,21 +862,22 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-field input {
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-family: var(--font-body);
       font-size: 14px;
       color: var(--ink);
       outline: none;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
     }
     .lg-field input:focus {
-      border-color: var(--retro-orange);
+      border-color: var(--accent);
     }
     .lg-error {
       font-family: var(--font-mono);
@@ -852,8 +886,9 @@ export class LeaguesView extends LitElement {
       margin-top: 8px;
     }
     .lg-confirm-box {
-      background: var(--paper-3);
-      border: 2px solid var(--retro-red);
+      background: var(--card-grad);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-md);
       padding: 16px;
       margin-bottom: 16px;
       display: flex;
@@ -874,19 +909,22 @@ export class LeaguesView extends LitElement {
     }
     .lg-ranking-head {
       padding: 18px;
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-blue) 10%, var(--paper-3)) 0%, var(--paper-3) 100%);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      background: var(--card-grad);
     }
     .lg-ranking-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 22px;
       letter-spacing: 0.02em;
     }
     .lg-ranking-subtitle {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-top: 4px;
@@ -906,9 +944,10 @@ export class LeaguesView extends LitElement {
       margin-top: 14px;
     }
     .lg-ranking-stat {
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 10px 12px;
     }
     .lg-ranking-stat strong {
@@ -923,23 +962,24 @@ export class LeaguesView extends LitElement {
       gap: 16px;
     }
     .lg-participant-card {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       display: grid;
       overflow: hidden;
     }
     .lg-participant-card.leader {
-      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-yellow) 25%, var(--paper-3)) 0%, var(--paper-3) 100%);
+      background: color-mix(in srgb, var(--accent) 14%, var(--paper-2));
     }
     .lg-participant-card.silver {
-      background: linear-gradient(180deg, color-mix(in srgb, white 28%, var(--paper-3)) 0%, var(--paper-3) 100%);
+      background: var(--fill);
     }
     .lg-participant-card.bronze {
-      background: linear-gradient(180deg, color-mix(in srgb, var(--retro-orange) 18%, var(--paper-3)) 0%, var(--paper-3) 100%);
+      background: var(--card-grad);
     }
     .lg-participant-card.me {
-      outline: 2px solid var(--retro-blue);
+      outline: 2px solid var(--accent);
       outline-offset: -4px;
     }
     .lg-participant-summary {
@@ -954,16 +994,17 @@ export class LeaguesView extends LitElement {
       padding: 14px 16px;
     }
     .lg-participant-summary:hover {
-      background: color-mix(in srgb, var(--retro-yellow) 12%, var(--paper-3));
+      background: color-mix(in srgb, var(--accent) 14%, var(--paper-3));
     }
     .lg-participant-rank-badge {
       min-width: 44px;
       min-height: 44px;
       display: grid;
       place-items: center;
-      border: 2px solid var(--ink);
-      background: var(--paper);
-      box-shadow: var(--shadow-hard-sm);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
+      box-shadow: var(--shadow-sm);
       font-family: var(--font-var);
       font-size: 22px;
       line-height: 1;
@@ -978,7 +1019,7 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       margin-bottom: 6px;
     }
     .lg-participant-name-row {
@@ -999,8 +1040,9 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.08em;
       text-transform: uppercase;
       padding: 3px 6px;
-      border: 1px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
     }
     .lg-participant-mini-stats {
       display: grid;
@@ -1013,13 +1055,14 @@ export class LeaguesView extends LitElement {
       gap: 2px;
       min-width: 54px;
       padding: 6px 8px;
-      background: var(--paper);
-      border: 1px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-align: center;
     }
     .lg-participant-mini-stat strong {
@@ -1045,7 +1088,7 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-align: right;
       margin-top: 4px;
     }
@@ -1053,8 +1096,8 @@ export class LeaguesView extends LitElement {
       display: grid;
       gap: 12px;
       padding: 0 16px 16px;
-      border-top: 2px solid var(--ink);
-      background: color-mix(in srgb, var(--paper) 84%, white);
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
     }
     .lg-participant-actions {
       display: flex;
@@ -1074,8 +1117,9 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.05em;
       padding: 4px 6px;
-      border: 1px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
     }
     .lg-predictions-locked {
       padding: 20px 12px;
@@ -1085,7 +1129,8 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.04em;
       color: var(--ink);
       opacity: 0.6;
-      border: 2px dashed var(--ink);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
       margin-top: 12px;
     }
     .lg-inline-bracket-wrap {
@@ -1111,30 +1156,31 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       padding-bottom: 6px;
-      border-bottom: 1px dashed var(--ink);
+      border-bottom: 1px dashed var(--hairline);
     }
     .lg-inline-match {
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 9px;
       display: grid;
       gap: 6px;
       min-height: 116px;
     }
     .lg-inline-match.tone-exact {
-      background: color-mix(in srgb, var(--retro-green) 16%, var(--paper));
+      background: color-mix(in srgb, var(--retro-green) 16%, var(--paper-2));
     }
     .lg-inline-match.tone-diff {
-      background: color-mix(in srgb, var(--retro-blue) 14%, var(--paper));
+      background: color-mix(in srgb, var(--retro-blue) 14%, var(--paper-2));
     }
     .lg-inline-match.tone-sign {
-      background: color-mix(in srgb, var(--retro-yellow) 20%, var(--paper));
+      background: color-mix(in srgb, var(--retro-yellow) 20%, var(--paper-2));
     }
     .lg-inline-match.tone-miss {
-      background: color-mix(in srgb, var(--paper-2) 88%, white);
+      background: var(--fill);
     }
     .lg-inline-match-header {
       display: flex;
@@ -1149,13 +1195,14 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.06em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-inline-match-kind {
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 2px 5px;
-      background: var(--paper-2);
+      background: var(--fill);
       color: var(--ink);
     }
     .lg-inline-teams {
@@ -1189,7 +1236,7 @@ export class LeaguesView extends LitElement {
       text-align: right;
     }
     .lg-inline-foot {
-      border-top: 1px dashed var(--ink);
+      border-top: 1px dashed var(--hairline);
       padding-top: 6px;
       display: flex;
       justify-content: space-between;
@@ -1205,7 +1252,7 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-delete-btn {
       all: unset;
@@ -1227,14 +1274,15 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.06em;
       padding: 4px 8px;
-      background: var(--paper);
-      border: 1px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       margin-right: 6px;
-      color: var(--retro-blue);
+      color: var(--accent);
     }
     .lg-bracket-btn:hover {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-league-switcher {
       display: flex;
@@ -1246,19 +1294,20 @@ export class LeaguesView extends LitElement {
       cursor: pointer;
       box-sizing: border-box;
       padding: 6px 10px;
-      border: 1px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .lg-league-chip-btn.active {
-      background: var(--retro-blue);
-      color: var(--paper);
+      background: var(--accent);
+      color: var(--on-accent);
     }
     .lg-league-chip-btn:hover {
-      background: color-mix(in srgb, var(--retro-blue) 18%, var(--paper));
+      background: color-mix(in srgb, var(--accent) 18%, var(--paper));
     }
 
     .lg-mode-toggle {
@@ -1268,8 +1317,9 @@ export class LeaguesView extends LitElement {
       align-items: center;
     }
     .lg-projection-banner {
-      background: color-mix(in srgb, var(--retro-yellow) 30%, var(--paper-3));
-      border: 2px solid var(--ink);
+      background: color-mix(in srgb, var(--accent) 14%, var(--paper-3));
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 10px 16px;
       font-family: var(--font-mono);
       font-size: 10px;
@@ -1279,8 +1329,9 @@ export class LeaguesView extends LitElement {
       margin-bottom: 16px;
     }
     .lg-inline-projected {
-      background: color-mix(in srgb, var(--retro-yellow) 16%, transparent);
-      border: 1px solid var(--ink);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 2px 5px;
     }
 
@@ -1288,15 +1339,18 @@ export class LeaguesView extends LitElement {
     .lg-bracket-screen { }
     .lg-bracket-phase-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 18px;
       letter-spacing: 0.04em;
       margin: 20px 0 12px;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       padding-bottom: 6px;
     }
     .lg-bracket-match {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 12px 16px;
       margin-bottom: 8px;
       display: flex;
@@ -1323,7 +1377,7 @@ export class LeaguesView extends LitElement {
     .lg-bracket-vs {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       padding: 0 4px;
     }
     .lg-bracket-score {
@@ -1339,19 +1393,20 @@ export class LeaguesView extends LitElement {
     .lg-bracket-real {
       font-family: var(--font-mono);
       font-size: 9px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
     }
     .lg-bracket-points {
       font-family: var(--font-mono);
       font-size: 11px;
       padding: 2px 8px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
     }
     .lg-section-label {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       margin-top: 8px;
@@ -1372,7 +1427,7 @@ export class LeaguesView extends LitElement {
     .lg-hint {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       letter-spacing: 0.04em;
       margin-top: 12px;
     }
@@ -1384,13 +1439,14 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 14px;
       text-align: center;
-      background: var(--retro-yellow);
-      border: 2px solid var(--ink);
-      color: var(--ink);
+      background: var(--accent);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      color: var(--on-accent);
       outline: none;
     }
     .lg-edit-input:focus {
-      border-color: var(--retro-orange);
+      border-color: var(--accent);
     }
     .lg-edit-sep {
       font-family: var(--font-mono);
@@ -1419,9 +1475,10 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.08em;
-      color: var(--dim);
+      color: var(--ink-muted);
       padding: 6px 12px;
-      border: 1px solid var(--dim);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
     }
     .lg-clear-btn:hover {
       color: var(--retro-red);
@@ -1474,10 +1531,11 @@ export class LeaguesView extends LitElement {
        Prefijo lg-v2-* para no chocar con clases legacy.
        ════════════════════════════════════════════════════════ */
     .lg-v2-shell {
-      background: var(--paper);
+      background: var(--paper-2);
       background-image: var(--paper-texture);
-      border: 3px solid var(--ink);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.18), var(--shadow-hard-lg);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
       padding: 28px 32px 32px;
       position: relative;
       overflow: hidden;
@@ -1489,7 +1547,7 @@ export class LeaguesView extends LitElement {
       align-items: end;
       gap: 20px;
       padding-bottom: 16px;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       margin-bottom: 22px;
     }
     .lg-v2-eyebrow {
@@ -1497,7 +1555,7 @@ export class LeaguesView extends LitElement {
       font-size: 10.5px;
       letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -1519,7 +1577,7 @@ export class LeaguesView extends LitElement {
     .lg-v2-live-pill::before {
       content: "";
       width: 6px; height: 6px;
-      background: var(--paper);
+      background: var(--fill);
       border-radius: 50%;
       animation: lg-v2-pulse 1.4s infinite;
     }
@@ -1529,13 +1587,15 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-h1 {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 56px;
       line-height: 0.85;
       letter-spacing: -0.015em;
       color: var(--ink);
       margin: 0;
     }
-    .lg-v2-h1 .accent { color: var(--retro-orange); display: block; }
+    .lg-v2-h1 .accent { color: var(--accent); display: block; }
     .lg-v2-tagline {
       margin-top: 14px;
       font-size: 13px;
@@ -1549,7 +1609,7 @@ export class LeaguesView extends LitElement {
       font-size: 10.5px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       line-height: 1.6;
     }
     .lg-v2-hero-meta .bignum {
@@ -1562,7 +1622,7 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-hero-meta .bignum em {
       font-style: normal;
-      color: var(--retro-orange);
+      color: var(--accent);
     }
 
     .lg-v2-actions {
@@ -1572,14 +1632,15 @@ export class LeaguesView extends LitElement {
       margin-bottom: 22px;
     }
     .lg-v2-btn {
-      border: 2.5px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 14px 18px;
       font-family: var(--font-head);
       font-size: 13px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      box-shadow: var(--shadow-hard-md);
-      background: var(--paper-3);
+      box-shadow: var(--shadow-md);
+      background: var(--card-grad);
       color: var(--ink);
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -1589,26 +1650,26 @@ export class LeaguesView extends LitElement {
       transition: transform 0.12s ease, box-shadow 0.12s ease;
       cursor: pointer;
     }
-    .lg-v2-btn:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--ink); }
-    .lg-v2-btn.primary { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-btn:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sm); }
+    .lg-v2-btn.primary { background: var(--accent); color: var(--on-accent); }
     .lg-v2-btn .lg-v2-btn-ic {
       width: 36px; height: 36px;
       background: var(--ink);
-      color: var(--retro-yellow);
+      color: var(--accent);
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-var);
       font-size: 20px;
     }
     .lg-v2-btn.primary .lg-v2-btn-ic {
-      background: var(--paper);
-      color: var(--retro-orange);
+      background: var(--fill);
+      color: var(--accent);
     }
     .lg-v2-btn .lg-v2-btn-sub {
       display: block;
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.18em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       margin-top: 2px;
       font-weight: 400;
@@ -1625,7 +1686,7 @@ export class LeaguesView extends LitElement {
       align-items: baseline;
       gap: 14px;
       margin-bottom: 14px;
-      border-bottom: 2px dashed rgba(26,25,51,0.25);
+      border-bottom: 1px dashed var(--hairline);
       padding-bottom: 10px;
       flex-wrap: wrap;
     }
@@ -1642,14 +1703,14 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-v2-section-bar .sort {
       margin-left: auto;
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.15em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-v2-section-bar .sort b { color: var(--ink); }
@@ -1662,30 +1723,32 @@ export class LeaguesView extends LitElement {
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink);
-      background: var(--paper-2);
-      border: 1.5px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 3px 8px;
-      box-shadow: 1.5px 1.5px 0 0 var(--ink);
+      box-shadow: var(--shadow-sm);
       display: inline-flex;
       align-items: center;
       gap: 4px;
       transition: background 0.1s, transform 0.1s;
     }
     .lg-v2-help-link:hover {
-      background: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
       transform: translate(-0.5px, -0.5px);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      box-shadow: var(--shadow-sm);
     }
     .lg-v2-help-link:active {
-      transform: translate(1px, 1px);
-      box-shadow: 0 0 0 0 var(--ink);
+      opacity: 0.7;
     }
 
     .lg-v2-list { display: grid; gap: 14px; }
     .lg-v2-card {
-      background: var(--paper-3);
-      border: 2.5px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 16px 18px 16px 26px;
       position: relative;
       display: grid;
@@ -1695,16 +1758,18 @@ export class LeaguesView extends LitElement {
       transition: transform 0.12s ease, box-shadow 0.12s ease;
       cursor: pointer;
     }
-    .lg-v2-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--ink); }
+    .lg-v2-card:hover { transform: translate(-2px,-2px); box-shadow: var(--shadow-sm); }
     .lg-v2-card::before {
       content: "";
       position: absolute;
       left: 0; top: 0; bottom: 0;
       width: 10px;
-      background: var(--card-color, var(--retro-orange));
+      background: var(--card-color, var(--accent));
     }
     .lg-v2-card-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 26px;
       line-height: 0.95;
       letter-spacing: -0.01em;
@@ -1721,9 +1786,10 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10.5px;
       letter-spacing: 0.18em;
-      background: var(--paper);
+      background: var(--fill);
       color: var(--ink);
-      border: 1.5px dashed var(--ink);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 4px 8px;
       font-weight: 700;
       text-transform: uppercase;
@@ -1732,7 +1798,7 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 10.5px;
       letter-spacing: 0.12em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
     }
     .lg-v2-members b { color: var(--ink); font-weight: 700; }
@@ -1745,11 +1811,12 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-avatar {
       width: 38px; height: 38px;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
       font-size: 22px;
-      box-shadow: 2px 2px 0 var(--ink);
+      box-shadow: var(--shadow-sm);
       flex: none;
     }
     .lg-v2-leader-label {
@@ -1757,7 +1824,7 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       display: block;
       margin-bottom: 2px;
     }
@@ -1772,7 +1839,7 @@ export class LeaguesView extends LitElement {
     .lg-v2-leader-points {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--retro-orange);
+      color: var(--accent);
       letter-spacing: 0.08em;
       margin-top: 2px;
       font-weight: 700;
@@ -1789,20 +1856,21 @@ export class LeaguesView extends LitElement {
       font-size: 9px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-v2-pos {
       font-family: var(--font-var);
       font-size: 32px;
       line-height: 0.85;
       color: var(--ink);
-      background: var(--paper);
-      border: 2.5px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 6px 14px 4px;
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       letter-spacing: -0.02em;
     }
-    .lg-v2-pos.win { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-pos.win { background: var(--accent); color: var(--on-accent); }
     .lg-v2-pos.podium { background: var(--retro-yellow); color: var(--ink); }
     .lg-v2-pos .hash {
       font-family: var(--font-mono);
@@ -1823,7 +1891,7 @@ export class LeaguesView extends LitElement {
       margin-top: 4px;
     }
     .lg-v2-delta.down { color: var(--retro-red); }
-    .lg-v2-delta.same { color: var(--dim); }
+    .lg-v2-delta.same { color: var(--ink-muted); }
 
     .lg-v2-card-actions-row {
       display: flex;
@@ -1831,20 +1899,22 @@ export class LeaguesView extends LitElement {
       margin-top: 12px;
       grid-column: 1 / -1;
       padding-top: 10px;
-      border-top: 1px dashed rgba(26,25,51,0.18);
+      border-top: 1px dashed var(--hairline);
     }
     .lg-v2-card-actions-row button {
       font-family: var(--font-mono);
       font-size: 9.5px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      background: var(--paper);
-      border: 1.5px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       padding: 4px 8px;
       color: var(--ink);
       cursor: pointer;
     }
-    .lg-v2-card-actions-row button:hover { background: var(--retro-yellow); }
+    .lg-v2-card-actions-row button:hover { background: var(--accent);
+      color: var(--on-accent); }
 
     /* ── Detail ── */
     .lg-v2-detail-top {
@@ -1853,7 +1923,7 @@ export class LeaguesView extends LitElement {
       gap: 20px;
       align-items: end;
       padding-bottom: 16px;
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       margin-bottom: 22px;
     }
     .lg-v2-back {
@@ -1861,7 +1931,7 @@ export class LeaguesView extends LitElement {
       font-size: 10.5px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       display: inline-block;
       margin-bottom: 12px;
       cursor: pointer;
@@ -1872,6 +1942,8 @@ export class LeaguesView extends LitElement {
     .lg-v2-back:hover { color: var(--ink); }
     .lg-v2-detail-h1 {
       font-family: var(--font-var);
+      text-transform: uppercase;
+      font-weight: 800;
       font-size: 52px;
       line-height: 0.85;
       letter-spacing: -0.01em;
@@ -1889,8 +1961,9 @@ export class LeaguesView extends LitElement {
       padding: 5px 10px;
       vertical-align: middle;
       margin-left: 12px;
-      border: 2.5px solid var(--ink);
-      box-shadow: 3px 3px 0 var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
     }
     .lg-v2-codeblock {
       display: flex;
@@ -1904,19 +1977,21 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
     .lg-v2-codeblock .lg-v2-code { font-size: 13px; padding: 5px 11px; }
     .lg-v2-copy {
       width: 30px; height: 30px;
-      background: var(--paper);
-      border: 2px solid var(--ink);
-      box-shadow: 2px 2px 0 var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
       display: flex; align-items: center; justify-content: center;
       font-size: 13px;
       cursor: pointer;
     }
-    .lg-v2-copy:hover { background: var(--retro-yellow); }
+    .lg-v2-copy:hover { background: var(--accent);
+      color: var(--on-accent); }
 
     .lg-v2-detail-stats {
       text-align: right;
@@ -1924,7 +1999,7 @@ export class LeaguesView extends LitElement {
       font-size: 10px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       line-height: 1.6;
     }
     .lg-v2-detail-stats .row { display: flex; justify-content: flex-end; gap: 8px; align-items: baseline; }
@@ -1945,8 +2020,9 @@ export class LeaguesView extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: var(--paper);
-      border: 1.5px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 4px 9px;
       font-family: var(--font-mono);
       font-size: 10px;
@@ -1956,7 +2032,8 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-legend-item .dot {
       width: 9px; height: 9px;
-      border: 1.5px solid var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       display: inline-block;
     }
     .lg-v2-legend-item b {
@@ -1966,9 +2043,10 @@ export class LeaguesView extends LitElement {
     }
 
     .lg-v2-podium-wrap {
-      background: var(--paper);
-      border: 2.5px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 22px 24px 0;
       margin-bottom: 22px;
       position: relative;
@@ -1986,7 +2064,7 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 0.32em;
-      color: var(--dim);
+      color: var(--ink-muted);
       text-transform: uppercase;
       white-space: nowrap;
     }
@@ -2006,33 +2084,34 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-pod .pod-figure {
       width: 86px; height: 86px;
-      border: 3px solid var(--ink);
-      background: var(--paper-3);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       display: flex; align-items: center; justify-content: center;
       font-size: 48px;
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
       position: relative;
       margin-bottom: 10px;
     }
     .lg-v2-pod.first .pod-figure {
       width: 108px; height: 108px;
       font-size: 60px;
-      background: var(--retro-orange);
+      background: var(--accent);
       border-width: 3.5px;
-      box-shadow: 5px 5px 0 var(--ink);
+      box-shadow: var(--shadow-sm);
     }
     .lg-v2-pod .pod-medal {
       position: absolute;
       bottom: -10px; right: -10px;
       width: 30px; height: 30px;
       border-radius: 50%;
-      border: 2.5px solid var(--ink);
+      border: 1px solid var(--hairline);
       background: var(--retro-yellow);
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-var);
       font-size: 14px;
       color: var(--ink);
-      box-shadow: 2px 2px 0 var(--ink);
+      box-shadow: var(--shadow-sm);
       line-height: 1;
       padding-top: 1px;
     }
@@ -2058,14 +2137,15 @@ export class LeaguesView extends LitElement {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.12em;
-      color: var(--retro-orange);
+      color: var(--accent);
       font-weight: 700;
     }
     .lg-v2-pod-step {
       width: 100%;
       margin-top: 14px;
-      background: var(--paper-2);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       border-bottom: none;
       padding: 10px 0 14px;
       font-family: var(--font-var);
@@ -2091,10 +2171,11 @@ export class LeaguesView extends LitElement {
     .lg-v2-pod.third .lg-v2-pod-step { padding-top: 8px; padding-bottom: 12px; font-size: 32px; }
 
     .lg-v2-board {
-      border: 2.5px solid var(--ink);
-      background: var(--paper-3);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       overflow: hidden;
-      box-shadow: var(--shadow-hard-md);
+      box-shadow: var(--shadow-md);
       margin-bottom: 18px;
     }
     .lg-v2-board .head {
@@ -2114,25 +2195,25 @@ export class LeaguesView extends LitElement {
     .lg-v2-board .head .extra {
       font-family: var(--font-mono);
       font-size: 9.5px;
-      color: var(--retro-yellow);
+      color: var(--accent);
       letter-spacing: 0.12em;
     }
     .lg-v2-table { width: 100%; border-collapse: collapse; }
     .lg-v2-table th {
-      background: var(--paper-2);
+      background: var(--fill);
       font-family: var(--font-mono);
       font-size: 9.5px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       padding: 8px 12px;
       text-align: left;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
     }
     .lg-v2-table th.num { text-align: right; }
     .lg-v2-table td {
       padding: 11px 12px;
-      border-bottom: 1px dashed rgba(26,25,51,0.18);
+      border-bottom: 1px dashed var(--hairline);
       font-family: var(--font-body);
       font-size: 13px;
       color: var(--ink);
@@ -2140,19 +2221,20 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-table tr:last-child td { border-bottom: none; }
     .lg-v2-table tr.row-click { cursor: pointer; }
-    .lg-v2-table tr.row-click:hover td { background: rgba(232,84,31,0.07); }
+    .lg-v2-table tr.row-click:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .lg-v2-table .rank {
       font-family: var(--font-head);
       font-size: 13px;
       letter-spacing: 0.04em;
-      color: var(--dim);
+      color: var(--ink-muted);
       width: 36px;
     }
     .lg-v2-table .user { display: flex; align-items: center; gap: 10px; }
     .lg-v2-table .av {
       width: 30px; height: 30px;
-      background: var(--paper);
-      border: 1.5px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
       display: flex; align-items: center; justify-content: center;
       font-size: 16px;
       flex: none;
@@ -2164,15 +2246,15 @@ export class LeaguesView extends LitElement {
       text-transform: uppercase;
     }
     .lg-v2-table tr.you td {
-      background: rgba(240,176,33,0.18);
-      border-color: var(--retro-orange);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border-color: var(--accent);
     }
-    .lg-v2-table tr.you .name { color: var(--retro-orange); }
-    .lg-v2-table tr.you .rank { color: var(--retro-orange); }
+    .lg-v2-table tr.you .name { color: var(--accent); }
+    .lg-v2-table tr.you .rank { color: var(--accent); }
     .lg-v2-table .exact {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--retro-orange);
+      color: var(--accent);
       font-weight: 700;
       text-align: right;
       letter-spacing: 0.04em;
@@ -2191,21 +2273,21 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-table .var.up    { color: var(--retro-green); }
     .lg-v2-table .var.down  { color: var(--retro-red); }
-    .lg-v2-table .var.same  { color: var(--dim); }
-    .lg-v2-table .var.na    { color: var(--dim); }
+    .lg-v2-table .var.same  { color: var(--ink-muted); }
+    .lg-v2-table .var.na    { color: var(--ink-muted); }
 
     .lg-v2-board-foot {
-      background: var(--paper-2);
+      background: var(--fill);
       padding: 8px 14px;
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-top: 2px solid var(--ink);
+      border-top: 1px solid var(--hairline);
       flex-wrap: wrap;
       gap: 6px;
     }
@@ -2246,20 +2328,21 @@ export class LeaguesView extends LitElement {
       font-size: 9.5px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: var(--dim);
+      color: var(--ink-muted);
     }
-    .lg-v2-foot .star { color: var(--retro-orange); }
+    .lg-v2-foot .star { color: var(--accent); }
 
     .lg-v2-empty {
-      border: 2.5px dashed var(--ink);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-md);
       padding: 28px 24px;
       text-align: center;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--dim);
-      background: var(--paper-3);
+      color: var(--ink-muted);
+      background: var(--card-grad);
     }
 
     .lg-v2-create-inline {
@@ -2270,16 +2353,17 @@ export class LeaguesView extends LitElement {
     }
     .lg-v2-create-inline input {
       flex: 1;
-      border: 2.5px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
       padding: 10px 14px;
       font-family: var(--font-body);
       font-size: 14px;
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       outline: none;
     }
-    .lg-v2-create-inline input:focus { background: var(--paper-2); }
+    .lg-v2-create-inline input:focus { background: var(--fill); }
 
     /* Join-by-code modal */
     .lg-v2-modal-backdrop {
@@ -2292,10 +2376,11 @@ export class LeaguesView extends LitElement {
       z-index: 100;
     }
     .lg-v2-modal {
-      background: var(--paper);
+      background: var(--paper-2);
       background-image: var(--paper-texture);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-lg);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
       padding: 24px 26px;
       max-width: 380px;
       width: calc(100% - 40px);
@@ -2311,15 +2396,16 @@ export class LeaguesView extends LitElement {
       color: var(--ink);
     }
     .lg-v2-modal input {
-      border: 2.5px solid var(--ink);
-      background: var(--paper);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      background: var(--fill);
       padding: 10px 14px;
       font-family: var(--font-mono);
       font-size: 14px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       outline: none;
       text-align: center;
     }
@@ -2329,14 +2415,15 @@ export class LeaguesView extends LitElement {
       font-size: 11px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      border: 2.5px solid var(--ink);
-      background: var(--paper-3);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: var(--card-grad);
       padding: 8px 14px;
       color: var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      box-shadow: var(--shadow-sm);
       cursor: pointer;
     }
-    .lg-v2-modal .modal-actions button.primary { background: var(--retro-orange); color: var(--paper); }
+    .lg-v2-modal .modal-actions button.primary { background: var(--accent); color: var(--on-accent); }
     .lg-v2-modal .modal-error {
       font-family: var(--font-mono);
       font-size: 10.5px;
@@ -2366,9 +2453,10 @@ export class LeaguesView extends LitElement {
 
     /* ── Barra / Panel de Premios Individuales en Ligas ── */
     .lg-awards-panel {
-      background: var(--paper-3);
-      border: 3px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
       padding: 6px 12px;
       margin-bottom: 12px;
       display: flex;
@@ -2378,10 +2466,11 @@ export class LeaguesView extends LitElement {
     }
     .lg-awards-title {
       font-family: var(--font-var);
+      text-transform: uppercase;
       font-size: 12px;
       font-weight: bold;
       letter-spacing: 0.02em;
-      border-bottom: 2px solid var(--ink);
+      border-bottom: 1px solid var(--hairline);
       padding-bottom: 4px;
       display: flex;
       align-items: center;
@@ -2396,8 +2485,9 @@ export class LeaguesView extends LitElement {
     .lg-award-card {
       flex: 1;
       min-width: 0;
-      background: var(--paper);
-      border: 2px solid var(--ink);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
       padding: 4px 8px;
       display: flex;
       align-items: center;
@@ -2420,7 +2510,7 @@ export class LeaguesView extends LitElement {
       min-width: 0;
     }
     .lg-award-category {
-      color: var(--dim);
+      color: var(--ink-muted);
       font-size: 7px;
       text-transform: uppercase;
       font-family: var(--font-mono);
@@ -4161,6 +4251,10 @@ export class LeaguesView extends LitElement {
         ${this._showInvite ? html`
           <div class="lg-confirm-box" style="border-color: var(--retro-yellow); flex-direction: column; align-items: stretch;">
             <span>${t('league.inviteBody')}</span>
+            <div class="lg-v2-codeblock">
+              <span class="label">${t('league.inviteCode')}</span>
+              <span class="lg-v2-code">${this._codeForLeague(league)}</span>
+            </div>
             <code style="font-family: var(--font-mono); font-size: 11px; padding: 8px; background: var(--paper); border: 1px solid var(--ink); word-break: break-all; user-select: all;">${this._inviteUrl(league.id)}</code>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               ${this._copiedInvite

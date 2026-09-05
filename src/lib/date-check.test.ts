@@ -10,7 +10,7 @@ describe('Match Dates', () => {
     console.log('Unique dates found:', uniqueDates.join(', '));
     
     expect(uniqueDates.length).toBeGreaterThan(1);
-    expect(uniqueDates).toContain('2026-06-12');
-    expect(uniqueDates).toContain('2026-06-18');
+    expect(uniqueDates).toContain('2026-09-08');
+    expect(uniqueDates.length).toBeGreaterThan(8);
   });
 });

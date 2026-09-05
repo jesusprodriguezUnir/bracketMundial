@@ -6,10 +6,9 @@ on:
     # primer step corta los días de jun/jul fuera del torneo sin gastar npm ci.
     # Partidos ≈ 18:00–07:00 CEST = 16:00–05:00 UTC → cada 5 min en esa ventana.
     # El script mantiene además su skip inteligente (ventana [-30min, +3h]).
-    - cron: '*/5 16-23 * 6,7 *'
-    - cron: '*/5 0-5 * 6,7 *'
-    # Respaldo horario fuera de ventana (correcciones tardías, aplazamientos):
-    - cron: '0 6-15 * 6,7 *'
+    # Fase liga 26/27: mié/jue noches + martes J8. Ventana 16:00–23:00 UTC.
+    - cron: '*/15 16-23 * 9,10,11,12,1,2,3,4,5 *'
+    - cron: '0 6-15 * 9,10,11,12,1,2,3,4,5 *'
   workflow_dispatch:
     inputs:
       force:
@@ -37,7 +36,7 @@ jobs:
           today=$(date -u +%Y-%m-%d)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$today" < "2026-06-11" || "$today" > "2026-07-20" ]]; then
+          elif [[ "$today" < "2026-09-08" || "$today" > "2027-06-06" ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "⏭ Fuera del torneo ($today) — no se ejecuta la sincronización" >> "$GITHUB_STEP_SUMMARY"
           else

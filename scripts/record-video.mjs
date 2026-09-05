@@ -72,9 +72,13 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
     await smoothScroll(page, -300, 1000);
     await sleep(500);
 
-    // 3) CRUCES / KNOCKOUT  (9.5s → 14s)
-    console.log('   (3/7) Cruces');
-    await gotoView(page, 'knockout');
+    // 3) JORNADAS / CRUCES (9.5s → 14s)
+    console.log('   (3/7) Jornadas / Cruces');
+    try {
+      await gotoView(page, 'matchday');
+    } catch {
+      await gotoView(page, 'knockout');
+    }
     await smoothScroll(page, 500, 1500);
     await sleep(600);
     await smoothScroll(page, -500, 1200);
@@ -94,9 +98,13 @@ async function recordDemo(platform = DEFAULT_PLATFORM, durationSec = 30) {
     await smoothScroll(page, 500, 1500);
     await sleep(500);
 
-    // 6) ESTADIOS  (22s → 25.5s)
-    console.log('   (6/7) Estadios');
-    await gotoView(page, 'stadiums');
+    // 6) LIGAS / ESTADIOS  (22s → 25.5s)
+    console.log('   (6/7) Ligas / Estadios');
+    try {
+      await gotoView(page, 'league');
+    } catch {
+      await gotoView(page, 'stadiums');
+    }
     await smoothScroll(page, 400, 1200);
     await sleep(800);
 

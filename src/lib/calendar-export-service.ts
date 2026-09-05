@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 import { TEAMS_2026 } from '../data/fifa-2026';
+import { COMPETITION } from '../data/competition';
 import type { Locale } from '../i18n';
 import type { TranslationKey } from '../i18n/es';
 import { es } from '../i18n/es';
@@ -146,7 +147,7 @@ export function getRows(phase: CalendarPhase, locale: Locale): CalendarRow[] {
     }
   }
 
-  if (phase === 'all' || phase === 'knockout') {
+  if (phase === 'knockout' || (phase === 'all' && COMPETITION.knockoutEnabled)) {
     for (const [matchId, m] of Object.entries(KNOCKOUT_SCHEDULE)) {
       const match = state.knockoutMatches[matchId];
       rows.push({
@@ -274,7 +275,7 @@ export async function exportCalendarExcel(phase: CalendarPhase, locale: Locale):
 
   // ── Title row ──
   const NCOLS_TOTAL = 2 + BOXES_PER_ROW * BOX_STEP - BOX_GAP;
-  const titleText = locale === 'en' ? 'SCHEDULE · WORLD CUP 2026' : 'CALENDARIO · MUNDIAL 2026';
+  const titleText = locale === 'en' ? 'SCHEDULE · UEFA CHAMPIONS LEAGUE 2026/27' : 'CALENDARIO · UEFA CHAMPIONS LEAGUE 2026/27';
   const titleRow = ws.getRow(currentStartRow);
   ws.mergeCells(currentStartRow, 2, currentStartRow, NCOLS_TOTAL);
   const titleCell = ws.getCell(currentStartRow, 2);
@@ -566,8 +567,9 @@ export async function exportCalendarPdf(phase: CalendarPhase, locale: Locale): P
   doc.setTextColor(...PDF_RGB.white);
   doc.text('BM \u2605', titleX + 4 + badgeW / 2, curY + 5 + badgeH / 2 + 2.5, { align: 'center' });
 
-  // Title
-  const titlePdfText = locale === 'en' ? 'SCHEDULE \u00b7 WORLD CUP 2026' : 'CALENDARIO \u00b7 MUNDIAL 2026';
+  // ── Encabezado principal ──
+  const titlePdfText = locale === 'en' ? 'SCHEDULE \u00b7 UEFA CHAMPIONS LEAGUE 2026/27' : 'CALENDARIO \u00b7 UEFA CHAMPIONS LEAGUE 2026/27';
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(...PDF_RGB.ink);
   doc.text(titlePdfText, PDF_PAGE_W / 2, curY + 9, { align: 'center' });

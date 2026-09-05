@@ -33,7 +33,7 @@ interface CacheEntry {
 }
 
 const FEED_URL =
-  'https://raw.githubusercontent.com/jesusprodriguezUnir/bracketMundial/odds-data/odds-feed.json';
+  'https://raw.githubusercontent.com/jesusprodriguezUnir/bracketMundial/odds-data/ucl-odds-feed.json';
 
 const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 h — aligns with twice-daily cron
 const CACHE_KEY = 'odds:feed:v2'; // v2 adds source field

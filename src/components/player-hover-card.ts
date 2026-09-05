@@ -41,9 +41,10 @@ export class PlayerHoverCard extends LitElement {
     }
 
     .hover-card {
-      background: var(--paper-3);
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-md);
+      background: var(--card-grad);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -68,8 +69,8 @@ export class PlayerHoverCard extends LitElement {
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--dim);
-      border-bottom: 1px solid rgba(26, 25, 51, 0.15);
+      color: var(--ink-muted);
+      border-bottom: 1px solid var(--hairline);
       padding-bottom: 4px;
     }
 
@@ -88,9 +89,10 @@ export class PlayerHoverCard extends LitElement {
       width: 72px;
       min-width: 72px;
       height: 86px;
-      border: 2px solid var(--ink);
-      box-shadow: var(--shadow-hard-sm);
-      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--fill);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -131,7 +133,7 @@ export class PlayerHoverCard extends LitElement {
     .meta {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--dim);
+      color: var(--ink-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -141,7 +143,7 @@ export class PlayerHoverCard extends LitElement {
       font-family: var(--font-mono);
       font-size: 9.5px;
       font-weight: 600;
-      color: var(--retro-blue);
+      color: var(--accent);
       text-transform: lowercase;
     }
 
@@ -156,9 +158,10 @@ export class PlayerHoverCard extends LitElement {
       letter-spacing: 0.05em;
       text-transform: uppercase;
       padding: 2px 5px;
-      background: var(--retro-yellow);
-      border: 1px solid var(--ink);
-      color: var(--ink);
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-pill);
+      color: var(--on-accent);
     }
 
     .bio {
@@ -168,7 +171,7 @@ export class PlayerHoverCard extends LitElement {
       color: var(--ink-soft);
       margin-top: 8px;
       padding-top: 8px;
-      border-top: 1px dashed rgba(26, 25, 51, 0.15);
+      border-top: 1px dashed var(--hairline);
     }
   `;
 

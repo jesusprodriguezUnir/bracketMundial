@@ -26,7 +26,7 @@ export class OddsBar extends LitElement {
       display: flex;
       justify-content: space-between;
       font-family: var(--font-mono);
-      color: var(--dim);
+      color: var(--ink-muted);
     }
 
     .legend {
@@ -41,7 +41,7 @@ export class OddsBar extends LitElement {
 
     .legend .home,
     .figures .home {
-      color: var(--retro-blue);
+      color: var(--accent);
     }
 
     .legend .away,
@@ -52,6 +52,7 @@ export class OddsBar extends LitElement {
     .bar {
       display: flex;
       overflow: hidden;
+      border-radius: var(--radius-pill);
     }
 
     .segment {
@@ -60,11 +61,11 @@ export class OddsBar extends LitElement {
     }
 
     .segment.home {
-      background: var(--retro-blue);
+      background: var(--accent);
     }
 
     .segment.draw {
-      background: var(--dim);
+      background: var(--ink-muted);
     }
 
     .segment.away {
@@ -72,7 +73,7 @@ export class OddsBar extends LitElement {
     }
 
     .segment.large-draw {
-      background: var(--paper-2);
+      background: var(--fill);
       color: var(--ink);
     }
 
@@ -83,7 +84,7 @@ export class OddsBar extends LitElement {
       width: 100%;
       height: 100%;
       font-family: var(--font-head, var(--font-var));
-      color: var(--paper);
+      color: var(--on-accent);
       overflow: hidden;
       white-space: nowrap;
     }
@@ -94,7 +95,7 @@ export class OddsBar extends LitElement {
 
     .default .bar {
       height: 6px;
-      border: 2px solid var(--ink);
+      border: 1px solid var(--hairline);
     }
 
     .default .figures {
@@ -103,7 +104,7 @@ export class OddsBar extends LitElement {
 
     .compact .bar {
       height: 4px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
     }
 
     .compact .figures {
@@ -113,12 +114,13 @@ export class OddsBar extends LitElement {
 
     .large .bar {
       height: 36px;
-      border: 2.5px solid var(--ink);
-      box-shadow: 2px 2px 0 0 var(--ink);
+      border: 1px solid var(--hairline-strong);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
     }
 
     .large .segment + .segment {
-      border-left: 2px solid var(--ink);
+      border-left: 1px solid var(--hairline);
     }
 
     .large .segment-value {

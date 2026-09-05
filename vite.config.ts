@@ -15,6 +15,7 @@ export default defineConfig({
           '**/estadios/**',
           '**/plantillas/**',
           '**/seleccion/**',
+          '**/mundial-2026/**',
           'en/**',
         ],
         maximumFileSizeToCacheInBytes: 4194304, // 4 MiB para acomodar el bundle de datos bilingües
@@ -27,9 +28,9 @@ export default defineConfig({
         enabled: false
       },
       manifest: {
-        name: 'Bracket Mundial 2026',
-        short_name: 'Bracket26',
-        description: 'Predicciones y Bracket del Mundial FIFA 2026',
+        name: 'Bracket Nights',
+        short_name: 'Nights',
+        description: 'Porra de las noches europeas 26/27',
         theme_color: '#1a1933',
         background_color: '#ecdfc0',
         display: 'standalone',
