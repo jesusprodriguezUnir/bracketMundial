@@ -242,6 +242,7 @@ export class PlayerHoverCard extends LitElement {
           <div class="info-container">
             <div class="name">${this.player.name}</div>
             <div class="meta">${this.player.club} · ${t('player.ageSuffix', { n: this.player.age })}</div>
+            ${this.player.height ? html`<div class="meta">📏 ${this.player.height}${this.player.foot ? ` · ${this.player.foot === 'Left' ? t('player.footLeft') : t('player.footRight')}` : ''}</div>` : ''}
             ${statsStr ? html`<div class="stats">${statsStr}</div>` : ''}
             ${this.player.special ? html`<div class="special-badge">⭐ ${t('player.special')}</div>` : ''}
             ${(() => {

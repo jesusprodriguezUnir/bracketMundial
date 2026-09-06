@@ -7,6 +7,11 @@ export interface Player {
   captain?: boolean;
   thesportsdbId?: string;
   photoUrl?: string;
+  height?: string;
+  weight?: string;
+  foot?: string;
+  birthDate?: string;
+  birthPlace?: string;
   bio?: string | { es: string; en: string };
   caps?: number;
   goals?: number;

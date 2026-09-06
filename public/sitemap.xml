@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://bracketmundial.com/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/" />
@@ -11,7 +11,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/calendario/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/calendario/" />
@@ -20,7 +20,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/" />
@@ -29,7 +29,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/groups/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/grupos/" />
@@ -38,7 +38,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/groups/group-lp/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/grupos/grupo-lp/" />
@@ -47,7 +47,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/knockout-simulator/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/simulador-eliminatorias/" />
@@ -56,7 +56,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/printable-bracket/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantilla-imprimir/" />
@@ -65,7 +65,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/schedule/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/calendario/" />
@@ -74,7 +74,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/squads/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantillas/" />
@@ -83,7 +83,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/stadiums/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/estadios/" />
@@ -92,7 +92,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/arsenal-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/arsenal-fc/" />
@@ -101,7 +101,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/as-roma/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/as-roma/" />
@@ -110,7 +110,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/aston-villa-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/aston-villa-fc/" />
@@ -119,7 +119,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/borussia-dortmund/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/borussia-dortmund/" />
@@ -128,7 +128,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/club-atletico-de-madrid/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/club-atletico-de-madrid/" />
@@ -137,7 +137,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/club-brugge-kv/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/club-brugge-kv/" />
@@ -146,7 +146,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/como-1907/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/como-1907/" />
@@ -155,7 +155,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fc-barcelona/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-barcelona/" />
@@ -164,7 +164,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fc-bayern-munchen/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-bayern-munchen/" />
@@ -173,7 +173,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fc-internazionale-milano/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-internazionale-milano/" />
@@ -182,7 +182,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fc-porto/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-porto/" />
@@ -191,7 +191,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fenerbahce-sk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fenerbahce-sk/" />
@@ -200,7 +200,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/feyenoord-rotterdam/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/feyenoord-rotterdam/" />
@@ -209,7 +209,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fk-bod-glimt/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fk-bod-glimt/" />
@@ -218,7 +218,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/fk-shakhtar-donetsk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fk-shakhtar-donetsk/" />
@@ -227,7 +227,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/galatasaray-sk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/galatasaray-sk/" />
@@ -236,7 +236,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/lask-linz/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/lask-linz/" />
@@ -245,7 +245,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/lille-osc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/lille-osc/" />
@@ -254,7 +254,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/liverpool-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/liverpool-fc/" />
@@ -263,7 +263,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/manchester-city-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/manchester-city-fc/" />
@@ -272,7 +272,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/manchester-united-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/manchester-united-fc/" />
@@ -281,7 +281,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/pae-aek/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/pae-aek/" />
@@ -290,7 +290,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/paris-saint-germain-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/paris-saint-germain-fc/" />
@@ -299,7 +299,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/psv/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/psv/" />
@@ -308,7 +308,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/racing-club-de-lens/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/racing-club-de-lens/" />
@@ -317,7 +317,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/rb-leipzig/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/rb-leipzig/" />
@@ -326,7 +326,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/real-betis-balompie/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/real-betis-balompie/" />
@@ -335,7 +335,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/real-madrid-cf/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/real-madrid-cf/" />
@@ -344,7 +344,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/sabah-fk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sabah-fk/" />
@@ -353,7 +353,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/sk-slavia-praha/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sk-slavia-praha/" />
@@ -362,7 +362,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/sk-slovan-bratislava/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sk-slovan-bratislava/" />
@@ -371,7 +371,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/sporting-clube-de-portugal/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sporting-clube-de-portugal/" />
@@ -380,7 +380,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/ssc-napoli/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/ssc-napoli/" />
@@ -389,7 +389,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/vfb-stuttgart/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/vfb-stuttgart/" />
@@ -398,7 +398,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/viking-fk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/viking-fk/" />
@@ -407,7 +407,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/team/villarreal-cf/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/villarreal-cf/" />
@@ -416,7 +416,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/world-cup-classroom/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/mundial-para-clase/" />
@@ -425,7 +425,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/en/world-cup-pool/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/porra-mundial-2026/" />
@@ -434,7 +434,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/estadios/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/estadios/" />
@@ -443,7 +443,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/grupos/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/grupos/" />
@@ -452,7 +452,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/grupos/grupo-lp/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/grupos/grupo-lp/" />
@@ -461,7 +461,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/mundial-para-clase/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/mundial-para-clase/" />
@@ -470,7 +470,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/plantilla-imprimir/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantilla-imprimir/" />
@@ -479,7 +479,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/plantillas/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/plantillas/" />
@@ -488,7 +488,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/porra-mundial-2026/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/porra-mundial-2026/" />
@@ -497,7 +497,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/arsenal-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/arsenal-fc/" />
@@ -506,7 +506,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/as-roma/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/as-roma/" />
@@ -515,7 +515,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/aston-villa-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/aston-villa-fc/" />
@@ -524,7 +524,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/borussia-dortmund/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/borussia-dortmund/" />
@@ -533,7 +533,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/club-atletico-de-madrid/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/club-atletico-de-madrid/" />
@@ -542,7 +542,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/club-brugge-kv/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/club-brugge-kv/" />
@@ -551,7 +551,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/como-1907/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/como-1907/" />
@@ -560,7 +560,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fc-barcelona/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-barcelona/" />
@@ -569,7 +569,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fc-bayern-munchen/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-bayern-munchen/" />
@@ -578,7 +578,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fc-internazionale-milano/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-internazionale-milano/" />
@@ -587,7 +587,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fc-porto/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fc-porto/" />
@@ -596,7 +596,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fenerbahce-sk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fenerbahce-sk/" />
@@ -605,7 +605,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/feyenoord-rotterdam/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/feyenoord-rotterdam/" />
@@ -614,7 +614,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fk-bod-glimt/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fk-bod-glimt/" />
@@ -623,7 +623,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/fk-shakhtar-donetsk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/fk-shakhtar-donetsk/" />
@@ -632,7 +632,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/galatasaray-sk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/galatasaray-sk/" />
@@ -641,7 +641,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/lask-linz/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/lask-linz/" />
@@ -650,7 +650,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/lille-osc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/lille-osc/" />
@@ -659,7 +659,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/liverpool-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/liverpool-fc/" />
@@ -668,7 +668,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/manchester-city-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/manchester-city-fc/" />
@@ -677,7 +677,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/manchester-united-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/manchester-united-fc/" />
@@ -686,7 +686,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/pae-aek/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/pae-aek/" />
@@ -695,7 +695,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/paris-saint-germain-fc/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/paris-saint-germain-fc/" />
@@ -704,7 +704,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/psv/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/psv/" />
@@ -713,7 +713,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/racing-club-de-lens/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/racing-club-de-lens/" />
@@ -722,7 +722,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/rb-leipzig/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/rb-leipzig/" />
@@ -731,7 +731,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/real-betis-balompie/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/real-betis-balompie/" />
@@ -740,7 +740,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/real-madrid-cf/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/real-madrid-cf/" />
@@ -749,7 +749,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/sabah-fk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sabah-fk/" />
@@ -758,7 +758,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/sk-slavia-praha/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sk-slavia-praha/" />
@@ -767,7 +767,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/sk-slovan-bratislava/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sk-slovan-bratislava/" />
@@ -776,7 +776,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/sporting-clube-de-portugal/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/sporting-clube-de-portugal/" />
@@ -785,7 +785,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/ssc-napoli/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/ssc-napoli/" />
@@ -794,7 +794,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/vfb-stuttgart/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/vfb-stuttgart/" />
@@ -803,7 +803,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/viking-fk/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/viking-fk/" />
@@ -812,7 +812,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/seleccion/villarreal-cf/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/seleccion/villarreal-cf/" />
@@ -821,7 +821,7 @@
   </url>
   <url>
     <loc>https://bracketmundial.com/simulador-eliminatorias/</loc>
-    <lastmod>2026-09-05</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="es" href="https://bracketmundial.com/simulador-eliminatorias/" />

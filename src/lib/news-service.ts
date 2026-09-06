@@ -31,7 +31,7 @@ interface CacheEntry {
 }
 
 const CACHE_TTL = 60 * 60 * 1000; // 1 h — el feed se refresca cada 3 h en CI
-const CACHE_KEY = 'news:feed:v3';  // v3 invalida cachés del antiguo feed JSON
+const CACHE_KEY = 'news:feed:v4';  // v4 invalida cachés para incorporar equipos UCL
 
 let _inFlight: Promise<FeedMap> | null = null;
 
@@ -125,7 +125,7 @@ async function _loadFeed(): Promise<FeedMap> {
 export async function getTeamNews(teamId: string, locale: 'es' | 'en'): Promise<NewsItem[]> {
   const cached = _fromCache();
   const feed = cached ?? await _loadFeed();
-  return feed[teamId]?.[locale] ?? [];
+  return feed[teamId]?.[locale] ?? _seedAsMap()[teamId]?.[locale] ?? [];
 }
 
 /** Limpia la caché local. Útil tras un refresh manual del feed. */

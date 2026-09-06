@@ -4,8 +4,10 @@ import type { Player } from '../data/squads';
 import { searchPlayer } from '../lib/player-service';
 import type { PlayerDetail } from '../lib/player-service';
 import { resolvePlayerPhoto } from '../lib/player-photo';
-import { TEAMS_2026 } from '../data/fifa-2026';
+import { TEAMS_2026 as FIFA_TEAMS } from '../data/fifa-2026';
+import { TEAMS_2026 as UCL_TEAMS } from '../data/ucl-2027';
 import { renderFlag } from '../lib/render-flag';
+import { crestSrc } from '../lib/team-assets';
 import { getPlayerCondition, STATUS_META } from '../data/player-status';
 import { t } from '../i18n';
 
@@ -41,32 +43,47 @@ export class PlayerCard extends LitElement {
 
   private async _fetchDetail() {
     if (!this.player) return;
-    
-    // Si ya tenemos una foto directa, podemos saltarnos la búsqueda o usarla como fallback prioritario
-    // Pero por ahora, el servicio gestiona el enriquecimiento completo (bio, redes, etc)
-    this._detail = 'loading';
-    const result = await searchPlayer(
-      this.player.name,
-      this.teamId,
-      this.player.number,
-      this.player.thesportsdbId
-    );
 
-    const resolvedPhoto = resolvePlayerPhoto(this.teamId, this.player);
+    const resolvedPhoto = resolvePlayerPhoto(this.teamId, this.player) || this.player.photoUrl;
+    const baseDetail: PlayerDetail = {
+      id: this.player.thesportsdbId || 'local',
+      name: this.player.name,
+      position: this.player.position,
+      height: this.player.height,
+      weight: this.player.weight,
+      foot: this.player.foot,
+      birthDate: this.player.birthDate,
+      birthPlace: this.player.birthPlace,
+      description: typeof this.player.bio === 'object' ? (this.player.bio.es || this.player.bio.en) : this.player.bio,
+      photoUrl: resolvedPhoto,
+    };
 
-    if (result) {
-      if (resolvedPhoto) result.photoUrl = resolvedPhoto;
-    } else if (resolvedPhoto) {
-      this._detail = {
-        id: 'local',
-        name: this.player.name,
-        position: this.player.position,
-        photoUrl: resolvedPhoto,
-      };
-      return;
+    // Inicializar inmediatamente con los datos locales para respuesta instantánea
+    this._detail = baseDetail;
+
+    try {
+      const result = await searchPlayer(
+        this.player.name,
+        this.teamId,
+        this.player.number,
+        this.player.thesportsdbId
+      );
+
+      if (result) {
+        this._detail = {
+          ...baseDetail,
+          ...result,
+          photoUrl: resolvedPhoto || result.photoUrl,
+          height: this.player.height || result.height,
+          weight: this.player.weight || result.weight,
+          foot: this.player.foot || result.foot,
+          birthDate: this.player.birthDate || result.birthDate,
+          birthPlace: this.player.birthPlace || result.birthPlace,
+        };
+      }
+    } catch {
+      // Si falla la API externa, mantenemos la ficha local íntegra
     }
-
-    this._detail = result;
   }
 
   private _close() {
@@ -203,13 +220,20 @@ export class PlayerCard extends LitElement {
     .player-team {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
+      margin-top: 4px;
       font-family: var(--font-mono);
       font-size: 11px;
+      letter-spacing: 0.08em;
       color: var(--ink-muted);
-      letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+    }
+
+    .team-crest {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      flex-shrink: 0;
     }
 
     .player-club {
@@ -358,8 +382,10 @@ export class PlayerCard extends LitElement {
 
   render() {
     if (!this.player) return nothing;
-    const team = TEAMS_2026.find(t => t.id === this.teamId);
-    const detail = this._detail;
+    const team = UCL_TEAMS.find(t => t.id === this.teamId) || FIFA_TEAMS.find(t => t.id === this.teamId);
+    const crest = crestSrc(this.teamId);
+    const detail = this._detail === 'loading' ? null : this._detail;
+    const photo = detail?.photoUrl || resolvePlayerPhoto(this.teamId, this.player) || this.player.photoUrl;
 
     return html`
       <div
@@ -372,25 +398,23 @@ export class PlayerCard extends LitElement {
             <span class="card-badge">#${this.player.number} · ${this.player.position}</span>
           </div>
 
-          ${detail === 'loading'
-            ? html`<div class="loading">${t('player.loading')}</div>`
-            : html`
-              <div class="card-body">
-                <div class="player-hero">
-                  <div class="player-photo">
-                    ${detail?.photoUrl
-                      ? html`<img src="${detail.photoUrl}" alt="${this.player.name}" loading="lazy">`
-                      : html`<span class="photo-placeholder">👤</span>`}
-                  </div>
-                  <div>
-                    <div class="player-name">${this.player.name}</div>
-                    <div class="player-team">
-                      ${renderFlag(team, 'sm')}
-                      ${team?.name ?? this.teamId}
-                    </div>
-                    <div class="player-club">${this.player.club}</div>
-                  </div>
+          <div class="card-body">
+            <div class="player-hero">
+              <div class="player-photo">
+                ${photo
+                  ? html`<img src="${photo}" alt="${this.player.name}" loading="lazy" decoding="async">`
+                  : html`<span class="photo-placeholder">👤</span>`}
+              </div>
+              <div>
+                <div class="player-name">${this.player.name}</div>
+                <div class="player-team">
+                  ${crest ? html`<img src="${crest}" class="team-crest" alt="" @error=${(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }}>` : ''}
+                  ${renderFlag(team, 'sm')}
+                  <span>${team?.name ?? this.teamId}</span>
                 </div>
+                <div class="player-club">${this.player.club}</div>
+              </div>
+            </div>
 
                 ${(() => {
                   const cond = getPlayerCondition(this.teamId, this.player.name);
@@ -402,7 +426,7 @@ export class PlayerCard extends LitElement {
                       <div class="condition-content">
                         <div class="condition-title">${meta.label}</div>
                         <div class="condition-desc">${cond.diagnosis ?? ''}</div>
-                        ${cond.expectedReturn ? html`<div class="condition-return">Regreso estimado: ${cond.expectedReturn}</div>` : ''}
+                        ${cond.duration ? html`<div class="condition-return">Tiempo estimado: ${cond.duration}</div>` : ''}
                       </div>
                     </div>
                   `;
@@ -422,7 +446,6 @@ export class PlayerCard extends LitElement {
                   </div>
                 ` : ''}
               </div>
-            `}
         </div>
       </div>
     `;
@@ -435,11 +458,23 @@ export class PlayerCard extends LitElement {
     cells.push({ label: t('player.labelPosition'), value: this._posLabel(p.position) });
     cells.push({ label: t('player.labelAge'), value: t('player.ageSuffix', { n: p.age }) });
 
-    if (detail?.height) cells.push({ label: t('player.labelHeight'), value: detail.height });
-    if (detail?.birthDate) cells.push({ label: t('player.labelBirth'), value: formatBirthDate(detail.birthDate) });
-    if (detail?.foot) cells.push({ label: t('player.labelFoot'), value: footLabel(detail.foot) });
-    if (detail?.weight) cells.push({ label: t('player.labelWeight'), value: detail.weight });
-    if (detail?.birthPlace) cells.push({ label: t('player.labelBirthPlace'), value: detail.birthPlace });
+    const height = p.height || detail?.height;
+    if (height) cells.push({ label: t('player.labelHeight'), value: height });
+
+    const weight = p.weight || detail?.weight;
+    if (weight) cells.push({ label: t('player.labelWeight'), value: weight });
+
+    const foot = p.foot || detail?.foot;
+    if (foot) cells.push({ label: t('player.labelFoot'), value: footLabel(foot) });
+
+    const birthDate = p.birthDate || detail?.birthDate;
+    if (birthDate) cells.push({ label: t('player.labelBirth'), value: formatBirthDate(birthDate) });
+
+    const birthPlace = p.birthPlace || detail?.birthPlace;
+    if (birthPlace) cells.push({ label: t('player.labelBirthPlace'), value: birthPlace });
+
+    if (p.caps !== undefined) cells.push({ label: t('player.labelCaps'), value: String(p.caps) });
+    if (p.goals !== undefined) cells.push({ label: t('player.labelGoals'), value: String(p.goals) });
 
     if (cells.length % 2 !== 0) cells.push({ label: '', value: '' });
 
@@ -447,8 +482,8 @@ export class PlayerCard extends LitElement {
       <div class="data-grid">
         ${cells.map(c => html`
           <div class="data-cell">
-            <div class="data-label">${c.label}</div>
-            <div class="data-value">${c.value}</div>
+            <span class="data-label">${c.label}</span>
+            <span class="data-value">${c.value}</span>
           </div>
         `)}
       </div>

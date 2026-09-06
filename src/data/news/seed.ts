@@ -526,5 +526,768 @@ export const NEWS_SEED: NewsFeed = {
 
       ],
     },
+    // === UEFA CHAMPIONS LEAGUE 2026/27 TEAMS ===
+    RMA: {
+          "es": [
+                {
+                      "title": "Las tres alternativas de Mourinho contra el Inter ante el drama de bajas en la medular",
+                      "description": "El técnico portugués perfila el centro del campo del Real Madrid para el debut europeo de Champions League ante el Inter de Milán.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/150630-las-tres-alternativas-de-mourinho-contra-el-inter-ante-el-drama-de-bajas-en-la-medular",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "El Real Madrid pone el foco en el Inter de Milán pendiente de Tchouaméni",
+                      "description": "Los blancos ya preparan su estreno en la fase liga de Champions League frente al conjunto 'nerazzurro' en el Santiago Bernabéu.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/150679-tchouameni-endrick-y-thiago-pitarch-hacen-parte-de-la-sesion-con-el-grupo",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "Ferland Mendy se queda fuera de la lista de inscripción de Champions League",
+                      "description": "El lateral zurdo francés no forma parte de la convocatoria europea oficial remitida a UEFA.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/150535-ferland-mendy-se-queda-fuera-de-la-lista-de-inscripcion-de-champions",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-03"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Mourinho's midfield alternatives to face Inter Milan in Champions League clash",
+                      "description": "Real Madrid prepare for their Champions League League Phase opener at Santiago Bernabéu against Inter.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M6/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "Real Madrid switch focus to Inter Milan clash as Tchouaméni trains with the squad",
+                      "description": "Los Blancos step up preparation for Tuesday's European showdown with Simone Inzaghi's Inter.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M6/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    INT: {
+          "es": [
+                {
+                      "title": "El Inter de Milán viaja a Madrid con Lautaro Martínez liderando el once en el Bernabéu",
+                      "description": "Los 'nerazzurri' afrontan el partidazo de la jornada 1 de la Champions League buscando dar la campanada a domicilio.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M6/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "Previa del partidazo: Real Madrid vs Inter de Milán en el Santiago Bernabéu",
+                      "description": "Choque estelar entre dos gigantes europeos en el arranque de la fase liga de la Champions.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M6/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-04"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Inter Milan set for blockbuster Champions League test against Real Madrid",
+                      "description": "Lautaro Martínez and Inter head to the Santiago Bernabéu for the marquee fixture of Matchday 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M6/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BAR: {
+          "es": [
+                {
+                      "title": "El FC Barcelona debuta en la Champions League recibiendo al Feyenoord en el Camp Nou",
+                      "description": "Hansi Flick busca empezar con tres puntos en la fase liga europea con Lamine Yamal, Pedri y Raphinha comandando el ataque.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/149879-sorteados-los-rivales-de-champions-26-27-de-los-equipos-espanoles",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "Sorteo Champions 26/27: el Barça conoce su hoja de ruta en Europa",
+                      "description": "El club blaugrana arranca en casa ante el Feyenoord antes de viajar a Estambul para medirse al Galatasaray.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/149879-sorteados-los-rivales-de-champions-26-27-de-los-equipos-espanoles",
+                      "source": "FutbolFantasy",
+                      "date": "2026-08-27"
+                }
+          ],
+          "en": [
+                {
+                      "title": "FC Barcelona host Feyenoord at Camp Nou for Champions League Matchday 1",
+                      "description": "Hansi Flick's side begin their European campaign aiming for maximum points at home against the Dutch visitors.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M7/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    FEY: {
+          "es": [
+                {
+                      "title": "El Feyenoord aterriza en Barcelona sin complejos para el debut en Champions",
+                      "description": "El conjunto de Róterdam afronta una dura visita al Camp Nou con la intención de sorprender al cuadro azulgrana.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M7/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Feyenoord head to Camp Nou seeking an upset in Champions League opener",
+                      "description": "The Dutch side take on Barcelona in their Matchday 1 European encounter.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M7/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    ATL: {
+          "es": [
+                {
+                      "title": "El Atlético viaja a Anfield para abrir la Champions League frente al Liverpool",
+                      "description": "Simeone prepara una batalla táctica de máxima exigencia con Griezmann y Julián Álvarez en la punta de ataque.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/143424-simeone-analiza-la-eliminacion-y-habla-de-griezmann-y-koke",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                },
+                {
+                      "title": "Grimaldo y Llorente en los carriles rojiblancos para resistir el vendaval de Anfield",
+                      "description": "El Atlético confía en su solidez en bandas y el repliegue compacto para sumar en su estreno europeo.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-04"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Atlético Madrid prepare for Anfield showdown against Liverpool in Champions League opener",
+                      "description": "Diego Simeone's men face a heavyweight European test at Anfield for Matchday 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M9/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    LIV: {
+          "es": [
+                {
+                      "title": "El Liverpool recibe al Atlético de Madrid en una noche europea de alto voltaje en Anfield",
+                      "description": "Arne Slot debuta con los 'reds' en la Champions 2026/27 midiéndose al bloque de Simeone en un partido histórico.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M9/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Liverpool host Atlético Madrid at Anfield under the European lights",
+                      "description": "Matchday 1 brings an iconic clash as Arne Slot's side welcome Simeone's Atlético to Merseyside.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M9/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    MCI: {
+          "es": [
+                {
+                      "title": "El Manchester City visita Do Dragão para medirse al Oporto en la jornada 1",
+                      "description": "Guardiola alinea su once de gala con Haaland en punta para asegurar los tres primeros puntos en Portugal.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M4/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Manchester City kick off Champions League phase at FC Porto's Estádio do Dragão",
+                      "description": "Pep Guardiola's side travel to Portugal looking for an authoritative start to European action.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M4/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    FCP: {
+          "es": [
+                {
+                      "title": "El FC Porto se prepara para frenar al Manchester City en el Estádio do Dragão",
+                      "description": "Los dragones portugueses confían en el empuje de su afición para frenar el caudal ofensivo citizen.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M4/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "FC Porto ready to challenge Manchester City in Champions League opener",
+                      "description": "The Portuguese giants aim to make home advantage count against one of the tournament favourites.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M4/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BVB: {
+          "es": [
+                {
+                      "title": "El Borussia Dortmund recibe al Villarreal en el Signal Iduna Park",
+                      "description": "El muro amarillo vibrará en la jornada 1 ante el conjunto 'groguet' en un duelo directo por los puestos altos.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M3/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Borussia Dortmund welcome Villarreal to Signal Iduna Park",
+                      "description": "The Yellow Wall readies for European nights as BVB host Marcelino's Villarreal in Matchday 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M3/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    VIL: {
+          "es": [
+                {
+                      "title": "El Villarreal se estrena en la Champions visitando al Borussia Dortmund",
+                      "description": "Marcelino prepara un planteamiento táctico riguroso para desafiar al Dortmund en su feudo.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/149879-sorteados-los-rivales-de-champions-26-27-de-los-equipos-espanoles",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Villarreal travel to Dortmund for thrilling Champions League battle",
+                      "description": "The Yellow Submarine face a demanding away test at Signal Iduna Park.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M3/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BET: {
+          "es": [
+                {
+                      "title": "El Real Betis regresa a la Champions League visitando al Lille en Francia",
+                      "description": "Pellegrini lidera la expedición verdiblanca en busca de una victoria de prestigio en el Stade Pierre-Mauroy.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/149879-sorteados-los-rivales-de-champions-26-27-de-los-equipos-espanoles",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Real Betis travel to Lille for historic Champions League League Phase match",
+                      "description": "Manuel Pellegrini's side return to Europe's top table against Ligue 1 outfit LOSC Lille.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M5/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    LIL: {
+          "es": [
+                {
+                      "title": "El Lille recibe al Real Betis en el Stade Pierre-Mauroy en su debut de Champions",
+                      "description": "Los 'Dogos' quieren hacer valer su condición de locales en la apertura de la fase liga.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M5/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "LOSC Lille host Real Betis in Champions League League Phase opener",
+                      "description": "French side aim for early momentum as they welcome Betis to northern France.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M5/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    ARS: {
+          "es": [
+                {
+                      "title": "El Arsenal visita el Stadio San Paolo de Nápoles en un duelo electrizante",
+                      "description": "Mikel Arteta y sus 'gunners' viajan a Italia con la meta de asaltar uno de los estadios más calientes de Europa.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M10/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Arsenal face tricky test against Napoli at Stadio San Paolo",
+                      "description": "Mikel Arteta's side head to Naples for a marquee Champions League Matchday 1 clash.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M10/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    NAP: {
+          "es": [
+                {
+                      "title": "El Nápoles recibe al Arsenal con el San Paolo encendido para el debut europeo",
+                      "description": "Los partenopeos se miden al subcampeón de la Premier en uno de los grandes choques de la jornada 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M10/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Napoli welcome Arsenal to Stadio San Paolo in European heavyweight encounter",
+                      "description": "The Partenopei aim to start strong against Arsenal in their Champions League campaign.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M10/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    PSG: {
+          "es": [
+                {
+                      "title": "El Paris Saint-Germain inicia la defensa del cetro europeo recibiendo al Slovan Bratislava",
+                      "description": "Luis Enrique alinea a sus estrellas en el Parque de los Príncipes para el primer asalto de la fase liga.",
+                      "url": "https://www.futbolfantasy.com/champions/noticias/144761-el-psg-consolida-su-dominio-sin-caudillos",
+                      "source": "FutbolFantasy",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Paris Saint-Germain host Slovan Bratislava in Champions League Matchday 1",
+                      "description": "The French champions begin their European journey at Parc des Princes.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M11/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    SLO: {
+          "es": [
+                {
+                      "title": "El Slovan Bratislava afronta el reto del Parque de los Príncipes ante el PSG",
+                      "description": "El conjunto eslovaco viaja a París con la ilusión de dar la gran sorpresa continental.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M11/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Slovan Bratislava ready for Paris showdown against PSG",
+                      "description": "Slovakian champions travel to Parc des Princes for a momentous European tie.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M11/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BAY: {
+          "es": [
+                {
+                      "title": "El Bayern Múnich abre la Champions League recibiendo al Bodø/Glimt en el Allianz Arena",
+                      "description": "Kompany y los bávaros buscan un inicio contundente en casa ante la revelación noruega.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M15/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Bayern Munich host Bodø/Glimt at Allianz Arena for Champions League opener",
+                      "description": "Vincent Kompany's Bayern kick off their European campaign on home soil.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M15/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BOD: {
+          "es": [
+                {
+                      "title": "El Bodø/Glimt viaja a Múnich para desafiar al Bayern en el Allianz Arena",
+                      "description": "El conjunto noruego debuta en la fase liga de Champions en el escenario más exigente del continente.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M15/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Bodø/Glimt take on Bayern Munich in dream Allianz Arena fixture",
+                      "description": "The Norwegian side visit Bavaria for an unforgettable Champions League clash.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M15/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    AVL: {
+          "es": [
+                {
+                      "title": "El Aston Villa de Unai Emery viaja a Brujas en la primera jornada de Champions",
+                      "description": "Los 'villanos' quieren prolongar su gran momento europeo asaltando el Jan Breydelstadion.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M2/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Aston Villa travel to Club Brugge for European campaign curtain-raiser",
+                      "description": "Unai Emery's side head to Belgium seeking a winning start in the Champions League.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M2/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    BRU: {
+          "es": [
+                {
+                      "title": "El Club Brujas recibe al Aston Villa en el Jan Breydelstadion en el arranque de Champions",
+                      "description": "Los belgas intentarán hacer valer su fortín ante el ambicioso equipo de Birmingham.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M2/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Club Brugge host Aston Villa in Matchday 1 clash",
+                      "description": "Belgian giants welcome Aston Villa to Jan Breydelstadion for their European opener.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M2/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    MUN: {
+          "es": [
+                {
+                      "title": "El Manchester United debuta en Champions recibiendo al Sabah FK en Old Trafford",
+                      "description": "El Teatro de los Sueños acoge la primera jornada con los 'red devils' buscando un triunfo rotundo.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M17/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Manchester United host Sabah FK at Old Trafford for Matchday 1",
+                      "description": "The Red Devils begin their Champions League journey at home against the Azerbaijani club.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M17/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    SAB: {
+          "es": [
+                {
+                      "title": "El Sabah FK viaja a Old Trafford para medirse al Manchester United en una noche histórica",
+                      "description": "El club de Azerbaiyán debuta en la fase liga de Champions League en el mítico estadio inglés.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M17/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Sabah FK face Manchester United in historic Old Trafford visit",
+                      "description": "The Azerbaijani club make their Champions League League Phase debut against Manchester United.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M17/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    FEN: {
+          "es": [
+                {
+                      "title": "El Fenerbahçe de Mourinho recibe a la Roma en un Şükrü Saracoğlu infernal",
+                      "description": "Duelo de alto voltaje en Estambul entre dos aspirantes a llegar lejos en la competición.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M13/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Fenerbahçe host AS Roma in explosive Istanbul Champions League tie",
+                      "description": "Passionate atmosphere expected at Şükrü Saracoğlu Stadium for Matchday 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M13/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    ROM: {
+          "es": [
+                {
+                      "title": "La AS Roma viaja a Estambul para medirse al Fenerbahçe en la primera jornada",
+                      "description": "Los 'giallorossi' afrontan una de las salidas más complicadas del calendario continental.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M13/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "AS Roma travel to Istanbul for intense test against Fenerbahçe",
+                      "description": "The Italian side face a roaring crowd in Turkey in their European opener.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M13/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    SPO: {
+          "es": [
+                {
+                      "title": "El Sporting CP recibe al Galatasaray en el Estádio José Alvalade",
+                      "description": "Los leones lisboetas buscan imponer su juego ante el conjunto turco en el estreno continental.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M12/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Sporting CP host Galatasaray at Estádio José Alvalade in Matchday 1",
+                      "description": "Portuguese champions aim for home victory against Turkish giants.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M12/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    GAL: {
+          "es": [
+                {
+                      "title": "El Galatasaray viaja a Lisboa para medirse al Sporting CP en el José Alvalade",
+                      "description": "El conjunto otomano quiere dar un golpe de autoridad fuera de casa en el inicio de la Champions.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M12/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Galatasaray take on Sporting CP in Lisbon for Champions League opener",
+                      "description": "Turkish giants seek a key away result in their first league phase fixture.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M12/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    PSV: {
+          "es": [
+                {
+                      "title": "El PSV Eindhoven recibe al Shakhtar Donetsk en el Philips Stadion",
+                      "description": "El conjunto neerlandés confía en su pegada ofensiva para comenzar sumando de a tres en Europa.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M14/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "PSV Eindhoven host Shakhtar Donetsk at Philips Stadion",
+                      "description": "Dutch champions begin their European journey against Shakhtar.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M14/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    SHK: {
+          "es": [
+                {
+                      "title": "El Shakhtar Donetsk viaja a Eindhoven para desafiar al PSV en la fecha 1",
+                      "description": "Los ucranianos buscan puntuar a domicilio en su primera presentación en la fase liga.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M14/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Shakhtar Donetsk travel to PSV Eindhoven for European curtain-raiser",
+                      "description": "Shakhtar target an away result at Philips Stadion.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M14/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    COM: {
+          "es": [
+                {
+                      "title": "El Como 1907 debuta en la Champions League recibiendo al RB Leipzig junto al lago",
+                      "description": "Noche de gala en el Stadio Giuseppe Sinigaglia para el histórico regreso continental del Como.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M16/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Como 1907 make historic Champions League debut against RB Leipzig",
+                      "description": "Historic European night by the lake as Como host Bundesliga powerhouse RB Leipzig.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M16/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    RBL: {
+          "es": [
+                {
+                      "title": "El RB Leipzig visita al Como en Italia para el arranque de la fase liga",
+                      "description": "Los alemanes quieren imponer su velocidad y juventud en el Giuseppe Sinigaglia.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M16/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "RB Leipzig travel to Como for Champions League Matchday 1 fixture",
+                      "description": "German side look for an opening away victory in northern Italy.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M16/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    VFB: {
+          "es": [
+                {
+                      "title": "El VfB Stuttgart recibe al Viking FK en el Mercedes-Benz Arena",
+                      "description": "Los suabos quieren mandar en casa ante el combativo conjunto noruego en la primera jornada.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M8/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "VfB Stuttgart host Viking FK at Mercedes-Benz Arena",
+                      "description": "German side start their European campaign against Norwegian visitors.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M8/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    VIK: {
+          "es": [
+                {
+                      "title": "El Viking FK viaja a Stuttgart para su estreno en la fase liga de Champions",
+                      "description": "Los de Stavanger afrontan el reto del Mercedes-Benz Arena con ilusión.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M8/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Viking FK take on VfB Stuttgart in European away trip",
+                      "description": "Norwegian side head to Germany for Matchday 1.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M8/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    AEK: {
+          "es": [
+                {
+                      "title": "El AEK Atenas recibe al LASK Linz en el Spyros Louis para inaugurar la Champions",
+                      "description": "La afición ateniense empujará para sumar los primeros tres puntos continentales.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M1/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "AEK Athens host LASK Linz in Champions League Matchday 1 curtain-raiser",
+                      "description": "Greek side open their European account in Athens against Austrian visitors.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M1/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    LSK: {
+          "es": [
+                {
+                      "title": "El LASK Linz viaja a Atenas para medirse al AEK en el partido inaugural",
+                      "description": "Los austriacos quieren arrancar con buen pie en el Olympiako Stadio Spyros Louis.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M1/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "LASK Linz travel to Athens for Champions League opener against AEK",
+                      "description": "Austrian club face AEK in the very first game of the League Phase.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M1/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    SLP: {
+          "es": [
+                {
+                      "title": "El Slavia Praga recibe al Lens en el Sinobo Stadium",
+                      "description": "Duelo vibrante en Praga entre el campeón checo y el sólido bloque francés.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M18/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "Slavia Prague host RC Lens at Sinobo Stadium for Matchday 1",
+                      "description": "Czech champions welcome French outfit Lens to Prague.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M18/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
+    RCL: {
+          "es": [
+                {
+                      "title": "El RC Lens viaja a Praga para medirse al Slavia en su estreno europeo",
+                      "description": "Los 'sang et or' quieren llevarse los tres puntos del Sinobo Stadium.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M18/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ],
+          "en": [
+                {
+                      "title": "RC Lens visit Slavia Prague in Champions League opener",
+                      "description": "French side target an opening away triumph in the Czech capital.",
+                      "url": "https://www.uefa.com/uefachampionsleague/match/M18/",
+                      "source": "UEFA.com",
+                      "date": "2026-09-05"
+                }
+          ]
+    },
   },
 };
