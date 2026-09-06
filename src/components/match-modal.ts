@@ -1024,8 +1024,17 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       line-height: 1.6;
     }
     .cronica-full p { margin: 0 0 10px; }
+    .cronica-full h3, .cronica-full h4 {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      margin: 14px 0 6px;
+    }
     .cronica-full strong { color: var(--retro-red); }
-    .cronica-full ul { padding-left: 20px; }
+    .cronica-full ul { padding-left: 20px; margin: 0 0 10px; }
 
     /* ─── V2-Cancha: Probabilidades expandidas ─── */
     .prob-block {

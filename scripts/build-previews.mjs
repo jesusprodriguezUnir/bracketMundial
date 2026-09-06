@@ -11,17 +11,13 @@ const OUT_FILE = join(process.cwd(), 'src', 'data', 'previews', 'seed.ts');
 
 // All valid match IDs in the tournament
 const VALID_MATCH_IDS = new Set([
-  // Group matches M1..M72
-  ...Array.from({ length: 72 }, (_, i) => `M${i + 1}`),
-  // Round of 32
+  // League phase matches M1..M144 (UEFA Champions League 2026/27)
+  ...Array.from({ length: 144 }, (_, i) => `M${i + 1}`),
+  // Knockout
   ...Array.from({ length: 16 }, (_, i) => `R32-${String(i + 1).padStart(2, '0')}`),
-  // Round of 16
   ...Array.from({ length: 8 }, (_, i) => `R16-${String(i + 1).padStart(2, '0')}`),
-  // Quarter-finals
   ...Array.from({ length: 4 }, (_, i) => `QF-${String(i + 1).padStart(2, '0')}`),
-  // Semi-finals
   ...Array.from({ length: 2 }, (_, i) => `SF-${String(i + 1).padStart(2, '0')}`),
-  // Third place and final
   'TP-01',
   'FIN-01',
 ]);
@@ -68,7 +64,13 @@ function mdToHtml(md) {
         outLines.push('</ul>');
         inList = false;
       }
-      if (trimmed.length > 0) {
+      if (trimmed.startsWith('### ')) {
+        const heading = escapeHtml(trimmed.slice(4));
+        outLines.push(`<h4>${inlineMd(heading)}</h4>`);
+      } else if (trimmed.startsWith('## ')) {
+        const heading = escapeHtml(trimmed.slice(3));
+        outLines.push(`<h3>${inlineMd(heading)}</h3>`);
+      } else if (trimmed.length > 0) {
         outLines.push(`<p>${inlineMd(escapeHtml(trimmed))}</p>`);
       }
     }

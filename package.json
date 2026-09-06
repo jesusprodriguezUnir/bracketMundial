@@ -26,6 +26,7 @@
     "crests": "node scripts/fetch-ucl-squads.mjs --crests",
     "kits": "node scripts/fetch-kits.mjs",
     "pages": "tsx scripts/generate-pages.mjs",
+    "ucl:previews": "node scripts/generate-ucl-previews.mjs",
     "previews:build": "node scripts/build-previews.mjs",
     "prebuild": "tsx scripts/generate-pages.mjs && node scripts/generate-icons.mjs && npm run previews:build",
     "build": "tsc && vite build && node scripts/postbuild-seo.mjs",
