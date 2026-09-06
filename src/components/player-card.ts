@@ -6,6 +6,7 @@ import type { PlayerDetail } from '../lib/player-service';
 import { resolvePlayerPhoto } from '../lib/player-photo';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
+import { getPlayerCondition, STATUS_META } from '../data/player-status';
 import { t } from '../i18n';
 
 function formatBirthDate(dateStr: string): string {
@@ -252,6 +253,55 @@ export class PlayerCard extends LitElement {
       color: var(--ink);
     }
 
+    .condition-alert {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      margin-top: 14px;
+      border: 1px solid var(--hairline);
+      font-family: var(--font-body);
+    }
+    .condition-alert.status-injured {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.35);
+      color: #991b1b;
+    }
+    .condition-alert.status-doubt {
+      background: rgba(217, 119, 6, 0.1);
+      border-color: rgba(217, 119, 6, 0.35);
+      color: #92400e;
+    }
+    .condition-alert.status-suspended {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #991b1b;
+    }
+    .condition-icon {
+      font-size: 18px;
+      line-height: 1;
+      margin-top: 2px;
+    }
+    .condition-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .condition-desc {
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+    .condition-return {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-top: 4px;
+      opacity: 0.85;
+    }
+
     .divider {
       border: none;
       border-top: 1px solid var(--hairline);
@@ -341,6 +391,22 @@ export class PlayerCard extends LitElement {
                     <div class="player-club">${this.player.club}</div>
                   </div>
                 </div>
+
+                ${(() => {
+                  const cond = getPlayerCondition(this.teamId, this.player.name);
+                  if (!cond || cond.status === 'available') return '';
+                  const meta = STATUS_META[cond.status];
+                  return html`
+                    <div class="condition-alert status-${cond.status}">
+                      <span class="condition-icon">${meta.icon}</span>
+                      <div class="condition-content">
+                        <div class="condition-title">${meta.label}</div>
+                        <div class="condition-desc">${cond.diagnosis ?? ''}</div>
+                        ${cond.expectedReturn ? html`<div class="condition-return">Regreso estimado: ${cond.expectedReturn}</div>` : ''}
+                      </div>
+                    </div>
+                  `;
+                })()}
 
                 ${this._renderDataGrid(detail)}
 

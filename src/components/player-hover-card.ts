@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 import type { Player } from '../data/squads';
 import { resolvePlayerPhoto } from '../lib/player-photo';
+import { getPlayerCondition, STATUS_META } from '../data/player-status';
 import { t } from '../i18n';
 
 @customElement('player-hover-card')
@@ -164,6 +165,35 @@ export class PlayerHoverCard extends LitElement {
       color: var(--on-accent);
     }
 
+    .hover-condition {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--hairline);
+    }
+    .hover-condition.status-injured {
+      background: rgba(220, 38, 38, 0.12);
+      border-color: rgba(220, 38, 38, 0.35);
+      color: #b91c1c;
+    }
+    .hover-condition.status-doubt {
+      background: rgba(217, 119, 6, 0.12);
+      border-color: rgba(217, 119, 6, 0.35);
+      color: #b45309;
+    }
+    .hover-condition.status-suspended {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #dc2626;
+    }
+
     .bio {
       font-family: var(--font-body);
       font-size: 11px;
@@ -214,6 +244,17 @@ export class PlayerHoverCard extends LitElement {
             <div class="meta">${this.player.club} · ${t('player.ageSuffix', { n: this.player.age })}</div>
             ${statsStr ? html`<div class="stats">${statsStr}</div>` : ''}
             ${this.player.special ? html`<div class="special-badge">⭐ ${t('player.special')}</div>` : ''}
+            ${(() => {
+              const cond = getPlayerCondition(this.teamId, this.player.name);
+              if (!cond || cond.status === 'available') return '';
+              const meta = STATUS_META[cond.status];
+              return html`
+                <div class="hover-condition status-${cond.status}" title="${cond.diagnosis ?? ''}">
+                  <span>${meta.icon}</span>
+                  <span>${meta.label}${cond.diagnosis ? `: ${cond.diagnosis}` : ''}</span>
+                </div>
+              `;
+            })()}
           </div>
         </div>
         ${bioText ? html`<div class="bio">${bioText}</div>` : ''}

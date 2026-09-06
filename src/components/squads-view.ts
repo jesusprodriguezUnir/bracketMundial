@@ -20,6 +20,7 @@ import { resolveCoachPhoto } from '../lib/coach-photo';
 import '../components/player-card';
 import '../components/player-hover-card';
 import '../components/lineup-view';
+import { getPlayerCondition, STATUS_META } from '../data/player-status';
 import { t, useLocaleStore } from '../i18n';
 import { getOddsForMatch } from '../lib/odds-service';
 import type { MatchOdds } from '../lib/odds-service';
@@ -889,6 +890,39 @@ export class SquadsView extends LitElement {
       margin-left: 6px;
     }
 
+    .condition-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--hairline);
+      font-family: var(--font-mono);
+      font-weight: bold;
+      vertical-align: middle;
+      margin-left: 6px;
+      line-height: 1.2;
+    }
+
+    .condition-badge.status-injured {
+      background: rgba(220, 38, 38, 0.15);
+      border-color: rgba(220, 38, 38, 0.4);
+      color: #b91c1c;
+    }
+
+    .condition-badge.status-doubt {
+      background: rgba(217, 119, 6, 0.15);
+      border-color: rgba(217, 119, 6, 0.4);
+      color: #b45309;
+    }
+
+    .condition-badge.status-suspended {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #dc2626;
+    }
+
     .player-row {
       cursor: pointer;
     }
@@ -1374,6 +1408,15 @@ export class SquadsView extends LitElement {
       padding: 2px 5px;
       white-space: nowrap;
       font-weight: 700;
+    }
+
+    .pitch-dot .pd-cond {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      font-size: 11px;
+      line-height: 1;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
     }
 
     /* ── Venue detail (inline) ── */
@@ -2018,6 +2061,12 @@ export class SquadsView extends LitElement {
                       <td>
                         ${player.name}
                         ${player.captain ? html`<span class="captain">${t('squads.table.captain')}</span>` : ''}
+                        ${(() => {
+                          const cond = getPlayerCondition(selectedTeam.id, player.name);
+                          if (!cond || cond.status === 'available') return '';
+                          const meta = STATUS_META[cond.status];
+                          return html`<span class="condition-badge status-${cond.status}" title="${meta.label}: ${cond.diagnosis ?? ''}">${meta.icon} ${cond.status === 'injured' ? 'Baja' : cond.status === 'doubt' ? 'Duda' : 'Sanción'}</span>`;
+                        })()}
                       </td>
                       <td>${player.position}</td>
                       <td>${player.age}</td>
@@ -2049,6 +2098,12 @@ export class SquadsView extends LitElement {
                       <span class="mob-player-number">${player.number}</span>
                       <span class="mob-player-name">${player.name}</span>
                       ${player.captain ? html`<span class="captain">CAP</span>` : ''}
+                      ${(() => {
+                        const cond = getPlayerCondition(selectedTeam.id, player.name);
+                        if (!cond || cond.status === 'available') return '';
+                        const meta = STATUS_META[cond.status];
+                        return html`<span class="condition-badge status-${cond.status}" title="${meta.label}: ${cond.diagnosis ?? ''}">${meta.icon}</span>`;
+                      })()}
                     </div>
                     <div class="mob-player-secondary">
                       <span class="mob-player-pos-badge">${player.position}</span>
@@ -2358,6 +2413,9 @@ export class SquadsView extends LitElement {
       '4-4-2':   [[50,8],[12,28],[38,26],[62,26],[88,28],[15,55],[40,52],[60,52],[85,55],[30,88],[70,88]],
       '3-5-2':   [[50,8],[22,26],[50,22],[78,26],[12,50],[35,55],[62,55],[88,50],[50,40],[30,88],[70,88]],
       '5-3-2':   [[50,8],[8,26],[28,22],[50,18],[72,22],[92,26],[22,55],[50,50],[78,55],[32,88],[68,88]],
+      '5-2-3':   [[50,8],[8,26],[28,22],[50,18],[72,22],[92,26],[32,52],[68,52],[18,88],[50,90],[82,88]],
+      '4-2-4':   [[50,8],[12,28],[38,26],[62,26],[88,28],[35,52],[65,52],[15,88],[38,90],[62,90],[85,88]],
+      '3-4-3':   [[50,8],[22,26],[50,22],[78,26],[12,52],[38,52],[62,52],[88,52],[18,88],[50,90],[82,88]],
     };
     const slots = FORMATIONS[lineup.formation] ?? FORMATIONS['4-3-3'];
     const starters = lineup.startingXI
@@ -2372,6 +2430,10 @@ export class SquadsView extends LitElement {
       // cada equipo ocupa 3%–47% (arriba) o 53%–97% (abajo), dejando margen en el centro
       const y = isTop ? 3 + sy * 0.44 : 97 - sy * 0.44;
       const lastName = player.name.trim().split(/\s+/).at(-1) ?? player.name;
+      const cond = getPlayerCondition(teamId, player.name);
+      const hasIssue = cond && cond.status !== 'available';
+      const condMeta = hasIssue ? STATUS_META[cond.status] : null;
+
       return html`
         <div 
           class="pitch-dot" 
@@ -2382,6 +2444,7 @@ export class SquadsView extends LitElement {
         >
           <div class="pdnum" style="background:${color}">${player.number}</div>
           <div class="pdname">${lastName}</div>
+          ${hasIssue && condMeta ? html`<div class="pd-cond" title="${condMeta.label}: ${cond?.diagnosis ?? ''}">${condMeta.icon}</div>` : ''}
         </div>
       `;
     });

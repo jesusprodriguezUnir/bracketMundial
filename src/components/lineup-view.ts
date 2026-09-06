@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import type { Player, Lineup } from '../data/squads';
 import { resolvePlayerPhoto } from '../lib/player-photo';
 import { getInitials } from '../lib/text-utils';
+import { getPlayerCondition, STATUS_META } from '../data/player-status';
 
 function getLastName(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -176,6 +177,26 @@ export class LineupView extends LitElement {
       font-weight: 700;
       letter-spacing: 0.1em;
       line-height: 1;
+      z-index: 2;
+    }
+
+    .condition-mark {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--paper, #fff);
+      border: 1.5px solid var(--hairline-strong);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      line-height: 1;
+      z-index: 3;
+      cursor: help;
     }
 
     .player-name {
@@ -321,6 +342,21 @@ export class LineupView extends LitElement {
                     </div>
                     <div class="number-sticker">${playerNumber}</div>
                     ${player?.captain ? html`<div class="captain-mark">CAP</div>` : ''}
+                    ${(() => {
+                      if (!player) return '';
+                      const cond = getPlayerCondition(this.teamId, player);
+                      if (!cond) return '';
+                      const meta = STATUS_META[cond.status];
+                      return html`
+                        <div
+                          class="condition-mark"
+                          title="${meta.labelEs}: ${cond.diagnosis}${cond.probability ? ` (${cond.probability})` : ''}"
+                          aria-label="${meta.labelEs}: ${cond.diagnosis}"
+                        >
+                          ${meta.icon}
+                        </div>
+                      `;
+                    })()}
                   </div>
                   <div class="player-name">${name}</div>
                 </div>
