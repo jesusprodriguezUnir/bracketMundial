@@ -65,7 +65,7 @@ function isHiddenTab(tab: PhaseTab): boolean {
   return (COMPETITION.hiddenViews as readonly string[]).includes(tab);
 }
 
-const MORE_TABS: PhaseTab[] = (['squads', 'calendar', 'coaches'] as PhaseTab[])
+const MORE_TABS: PhaseTab[] = (['squads', 'calendar', 'stadiums', 'coaches'] as PhaseTab[])
   .filter(tab => !isHiddenTab(tab));
 
 /** Orden de tabs para swipe */
@@ -1080,7 +1080,7 @@ export class BracketView extends LitElement {
           ${at === 'stadiums' && loaded.has('stadiums') ? html`
             <div class="section-heading">
               <div class="section-eyebrow">${t('section.stadiums.eyebrow')}</div>
-              <div class="section-title">${t('section.stadiums.title')}</div>
+              <div class="section-title">${COMPETITION.id === 'ucl-2027' ? '36 ESTADIOS · FASE LIGA' : t('section.stadiums.title')}</div>
             </div>
             <stadiums-view></stadiums-view>
           ` : at === 'stadiums' ? html`<div class="loading-spinner"></div>` : ''}

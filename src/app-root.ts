@@ -23,7 +23,7 @@ async function ensureMobileApp() {
 
 type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
 
-const ALL_PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'coaches'];
+const ALL_PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
 
 /**
  * Tabs realmente navegables. La competicion activa decide que superficies

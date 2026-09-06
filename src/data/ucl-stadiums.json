@@ -1,0 +1,470 @@
+[
+  {
+    "clubId": "BAR",
+    "clubName": "FC Barcelona",
+    "shortName": "BAR",
+    "city": "Barcelona",
+    "country": "España",
+    "stadiumName": "Spotify Camp Nou",
+    "capacity": 105000,
+    "colors": [
+      "#004D98",
+      "#A50044"
+    ]
+  },
+  {
+    "clubId": "BVB",
+    "clubName": "Borussia Dortmund",
+    "shortName": "BVB",
+    "city": "Dortmund",
+    "country": "Alemania",
+    "stadiumName": "Signal Iduna Park",
+    "capacity": 81365,
+    "colors": [
+      "#FDE100",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "RMA",
+    "clubName": "Real Madrid CF",
+    "shortName": "RMA",
+    "city": "Madrid",
+    "country": "España",
+    "stadiumName": "Estadio Santiago Bernabéu",
+    "capacity": 81044,
+    "colors": [
+      "#FFFFFF",
+      "#EEB111"
+    ]
+  },
+  {
+    "clubId": "INT",
+    "clubName": "FC Internazionale Milano",
+    "shortName": "INT",
+    "city": "Milán",
+    "country": "Italia",
+    "stadiumName": "Stadio San Siro",
+    "capacity": 75923,
+    "colors": [
+      "#001489",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "BAY",
+    "clubName": "FC Bayern München",
+    "shortName": "BAY",
+    "city": "Múnich",
+    "country": "Alemania",
+    "stadiumName": "Allianz Arena",
+    "capacity": 75024,
+    "colors": [
+      "#DC052D",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "MUN",
+    "clubName": "Manchester United FC",
+    "shortName": "MUN",
+    "city": "Manchester",
+    "country": "Inglaterra",
+    "stadiumName": "Old Trafford",
+    "capacity": 74310,
+    "colors": [
+      "#DA291C",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "ROM",
+    "clubName": "AS Roma",
+    "shortName": "ROM",
+    "city": "Roma",
+    "country": "Italia",
+    "stadiumName": "Stadio Olimpico",
+    "capacity": 70634,
+    "colors": [
+      "#8E1F2F",
+      "#F0BC42"
+    ]
+  },
+  {
+    "clubId": "ATL",
+    "clubName": "Club Atlético de Madrid",
+    "shortName": "ATL",
+    "city": "Madrid",
+    "country": "España",
+    "stadiumName": "Riyadh Air Metropolitano",
+    "capacity": 70460,
+    "colors": [
+      "#CB3524",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "LIV",
+    "clubName": "Liverpool FC",
+    "shortName": "LIV",
+    "city": "Liverpool",
+    "country": "Inglaterra",
+    "stadiumName": "Anfield",
+    "capacity": 61276,
+    "colors": [
+      "#C8102E",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "BET",
+    "clubName": "Real Betis Balompié",
+    "shortName": "BET",
+    "city": "Sevilla",
+    "country": "España",
+    "stadiumName": "Estadio Benito Villamarín",
+    "capacity": 60721,
+    "colors": [
+      "#008A4B",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "ARS",
+    "clubName": "Arsenal FC",
+    "shortName": "ARS",
+    "city": "Londres",
+    "country": "Inglaterra",
+    "stadiumName": "Emirates Stadium",
+    "capacity": 60704,
+    "colors": [
+      "#DB0007",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "VFB",
+    "clubName": "VfB Stuttgart",
+    "shortName": "VFB",
+    "city": "Stuttgart",
+    "country": "Alemania",
+    "stadiumName": "MHPArena",
+    "capacity": 60058,
+    "colors": [
+      "#FFFFFF",
+      "#E32219"
+    ]
+  },
+  {
+    "clubId": "NAP",
+    "clubName": "SSC Napoli",
+    "shortName": "NAP",
+    "city": "Nápoles",
+    "country": "Italia",
+    "stadiumName": "Stadio Diego Armando Maradona",
+    "capacity": 54726,
+    "colors": [
+      "#12A0D7",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "MCI",
+    "clubName": "Manchester City FC",
+    "shortName": "MCI",
+    "city": "Manchester",
+    "country": "Inglaterra",
+    "stadiumName": "Etihad Stadium",
+    "capacity": 53400,
+    "colors": [
+      "#6CABDD",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "GAL",
+    "clubName": "Galatasaray SK",
+    "shortName": "GAL",
+    "city": "Estambul",
+    "country": "Turquía",
+    "stadiumName": "RAMS Park",
+    "capacity": 52280,
+    "colors": [
+      "#A90432",
+      "#FDB912"
+    ]
+  },
+  {
+    "clubId": "SHK",
+    "clubName": "FK Shakhtar Donetsk",
+    "shortName": "SHK",
+    "city": "Donetsk",
+    "country": "Ucrania",
+    "stadiumName": "Volksparkstadion (Hamburgo, temporal)",
+    "capacity": 51500,
+    "colors": [
+      "#F26722",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "FEY",
+    "clubName": "Feyenoord Rotterdam",
+    "shortName": "FEY",
+    "city": "Róterdam",
+    "country": "Países Bajos",
+    "stadiumName": "Stadion Feijenoord (De Kuip)",
+    "capacity": 51117,
+    "colors": [
+      "#EE1C25",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "LIL",
+    "clubName": "Lille OSC",
+    "shortName": "LIL",
+    "city": "Lille",
+    "country": "Francia",
+    "stadiumName": "Decathlon Arena Pierre-Mauroy",
+    "capacity": 50186,
+    "colors": [
+      "#E01E2B",
+      "#111C4E"
+    ]
+  },
+  {
+    "clubId": "SPO",
+    "clubName": "Sporting Clube de Portugal",
+    "shortName": "SPO",
+    "city": "Lisboa",
+    "country": "Portugal",
+    "stadiumName": "Estádio José Alvalade",
+    "capacity": 50095,
+    "colors": [
+      "#008057",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "FCP",
+    "clubName": "FC Porto",
+    "shortName": "FCP",
+    "city": "Oporto",
+    "country": "Portugal",
+    "stadiumName": "Estádio do Dragão",
+    "capacity": 50033,
+    "colors": [
+      "#003876",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "PSG",
+    "clubName": "Paris Saint-Germain FC",
+    "shortName": "PSG",
+    "city": "París",
+    "country": "Francia",
+    "stadiumName": "Parc des Princes",
+    "capacity": 47929,
+    "colors": [
+      "#004170",
+      "#DA291C"
+    ]
+  },
+  {
+    "clubId": "FEN",
+    "clubName": "Fenerbahçe SK",
+    "shortName": "FEN",
+    "city": "Estambul",
+    "country": "Turquía",
+    "stadiumName": "Ülker Stadyumu Şükrü Saracoğlu",
+    "capacity": 47834,
+    "colors": [
+      "#FEE100",
+      "#00205B"
+    ]
+  },
+  {
+    "clubId": "RBL",
+    "clubName": "RB Leipzig",
+    "shortName": "RBL",
+    "city": "Leipzig",
+    "country": "Alemania",
+    "stadiumName": "Red Bull Arena",
+    "capacity": 47069,
+    "colors": [
+      "#FFFFFF",
+      "#DD013F"
+    ]
+  },
+  {
+    "clubId": "AVL",
+    "clubName": "Aston Villa FC",
+    "shortName": "AVL",
+    "city": "Birmingham",
+    "country": "Inglaterra",
+    "stadiumName": "Villa Park",
+    "capacity": 42640,
+    "colors": [
+      "#670E36",
+      "#95BFE5"
+    ]
+  },
+  {
+    "clubId": "RCL",
+    "clubName": "Racing Club de Lens",
+    "shortName": "RCL",
+    "city": "Lens",
+    "country": "Francia",
+    "stadiumName": "Stade Bollaert-Delelis",
+    "capacity": 38223,
+    "colors": [
+      "#E0112F",
+      "#FDD000"
+    ]
+  },
+  {
+    "clubId": "PSV",
+    "clubName": "PSV Eindhoven",
+    "shortName": "PSV",
+    "city": "Eindhoven",
+    "country": "Países Bajos",
+    "stadiumName": "Philips Stadion",
+    "capacity": 35000,
+    "colors": [
+      "#FF0000",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "AEK",
+    "clubName": "PAE AEK",
+    "shortName": "AEK",
+    "city": "Atenas",
+    "country": "Grecia",
+    "stadiumName": "OPAP Arena (Agia Sophia)",
+    "capacity": 32500,
+    "colors": [
+      "#FED100",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "BRU",
+    "clubName": "Club Brugge KV",
+    "shortName": "BRU",
+    "city": "Brujas",
+    "country": "Bélgica",
+    "stadiumName": "Jan Breydelstadion",
+    "capacity": 29062,
+    "colors": [
+      "#0047AB",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "VIL",
+    "clubName": "Villarreal CF",
+    "shortName": "VIL",
+    "city": "Villarreal",
+    "country": "España",
+    "stadiumName": "Estadio de la Cerámica",
+    "capacity": 23500,
+    "colors": [
+      "#F5E200",
+      "#005BAC"
+    ]
+  },
+  {
+    "clubId": "SLO",
+    "clubName": "ŠK Slovan Bratislava",
+    "shortName": "SLO",
+    "city": "Bratislava",
+    "country": "Eslovaquia",
+    "stadiumName": "Tehelné pole",
+    "capacity": 22500,
+    "colors": [
+      "#6CBEEF",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "SLP",
+    "clubName": "SK Slavia Praha",
+    "shortName": "SLP",
+    "city": "Praga",
+    "country": "República Checa",
+    "stadiumName": "Fortuna Arena",
+    "capacity": 19370,
+    "colors": [
+      "#ED1B24",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "LSK",
+    "clubName": "LASK Linz",
+    "shortName": "LSK",
+    "city": "Linz",
+    "country": "Austria",
+    "stadiumName": "Raiffeisen Arena",
+    "capacity": 19080,
+    "colors": [
+      "#FFFFFF",
+      "#000000"
+    ]
+  },
+  {
+    "clubId": "VIK",
+    "clubName": "Viking FK",
+    "shortName": "VIK",
+    "city": "Stavanger",
+    "country": "Noruega",
+    "stadiumName": "SR-Bank Arena",
+    "capacity": 15900,
+    "colors": [
+      "#002855",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "COM",
+    "clubName": "Como 1907",
+    "shortName": "COM",
+    "city": "Como",
+    "country": "Italia",
+    "stadiumName": "Stadio Giuseppe Sinigaglia",
+    "capacity": 13602,
+    "colors": [
+      "#003399",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "SAB",
+    "clubName": "Sabah FK",
+    "shortName": "SAB",
+    "city": "Masazır",
+    "country": "Azerbaiyán",
+    "stadiumName": "Bank Respublika Arena",
+    "capacity": 13000,
+    "colors": [
+      "#003366",
+      "#FFFFFF"
+    ]
+  },
+  {
+    "clubId": "BOD",
+    "clubName": "FK Bodø/Glimt",
+    "shortName": "BOD",
+    "city": "Bodø",
+    "country": "Noruega",
+    "stadiumName": "Aspmyra Stadion",
+    "capacity": 8270,
+    "colors": [
+      "#FFE500",
+      "#000000"
+    ]
+  }
+]
