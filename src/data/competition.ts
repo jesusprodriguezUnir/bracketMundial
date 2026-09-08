@@ -43,7 +43,7 @@ export const COMPETITION = {
     playoff: { from: 9, to: 24 },
     out: { from: 25, to: 36 },
   },
-  hiddenViews: ['guide', 'broadcasting', 'knockout'] as const,
+  hiddenViews: ['guide', 'knockout'] as const,
   predictionsOpen:
     UCL_INGEST_META.dumpMismatches === 0
     && UCL_INGEST_META.fixtures === 144

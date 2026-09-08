@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { t } from '../i18n';
-import { RTVE_MATCH_IDS } from '../lib/broadcasting';
+import { t, useLocaleStore } from '../i18n';
+import { getBroadcastInfo } from '../lib/broadcasting';
 import { GROUP_MATCHES } from '../data/match-schedule';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { renderFlag } from '../lib/render-flag';
@@ -147,25 +147,33 @@ export class BroadcastingView extends LitElement {
       white-space: nowrap;
     }
 
-    .badge-rtve {
+    .badge-mplus {
       display: inline-block;
       padding: 2px 8px;
-      background: var(--retro-red);
-      color: var(--paper);
+      background: var(--fill);
+      color: var(--ink);
       font-family: var(--font-var);
       font-size: 11px;
-      border: 1px solid var(--ink);
+      border: 1px solid var(--hairline);
+      margin-right: 4px;
     }
 
-    .badge-dazn {
+    .badge-featured {
       display: inline-block;
       padding: 2px 8px;
-      background: var(--ink);
-      color: var(--retro-yellow);
+      background: var(--accent);
+      color: var(--on-accent);
       font-family: var(--font-var);
       font-size: 11px;
-      border: 1px solid var(--ink);
-      margin-left: 4px;
+      border: 1px solid var(--accent);
+      margin-right: 4px;
+    }
+
+    .channel-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
     }
 
     .knockout-card {
@@ -208,17 +216,40 @@ export class BroadcastingView extends LitElement {
     }
   `;
 
+  private unsubscribeLocale?: () => void;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+  }
+
+  disconnectedCallback() {
+    this.unsubscribeLocale?.();
+    super.disconnectedCallback();
+  }
+
   private getTeam(id: string) {
     return TEAMS_2026.find(t => t.id === id);
   }
 
   private formatDate(dateStr: string) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase();
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const locale = useLocaleStore.getState().locale === 'en' ? 'en-GB' : 'es-ES';
+    return date.toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: 'short' });
+  }
+
+  private currentMatchday(): number {
+    const iso = new Date().toISOString().slice(0, 10);
+    const today = GROUP_MATCHES.find(m => m.date === iso);
+    if (today) return today.matchDay;
+    const upcoming = GROUP_MATCHES.find(m => m.date >= iso);
+    return upcoming?.matchDay ?? 1;
   }
 
   render() {
-    const rtveMatches = GROUP_MATCHES.filter(m => RTVE_MATCH_IDS.includes(m.matchId));
+    const matchDay = this.currentMatchday();
+    const matches = GROUP_MATCHES.filter(m => m.matchDay === matchDay);
 
     return html`
       <div class="intro-card">
@@ -237,22 +268,22 @@ export class BroadcastingView extends LitElement {
       </div>
 
       <h2 class="section-title">${t('tv.groupStageTitle')}</h2>
-      
+
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Partido</th>
-              <th>Grp</th>
-              <th>Canal</th>
+              <th>${t('tv.colDate')}</th>
+              <th>${t('tv.colTime')}</th>
+              <th>${t('tv.colMatch')}</th>
+              <th>${t('tv.colChannel')}</th>
             </tr>
           </thead>
           <tbody>
-            ${rtveMatches.map(m => {
+            ${matches.map(m => {
               const teamA = this.getTeam(m.teamA);
               const teamB = this.getTeam(m.teamB);
+              const info = getBroadcastInfo(m.matchId, m.teamA, m.teamB);
               return html`
                 <tr>
                   <td class="date-cell">${this.formatDate(m.date)}</td>
@@ -260,14 +291,15 @@ export class BroadcastingView extends LitElement {
                   <td>
                     <div class="match-cell">
                       ${renderFlag(teamA, 'sm')}
-                      <span>${teamA?.name} vs ${teamB?.name}</span>
+                      <span>${teamA?.shortName ?? m.teamA} vs ${teamB?.shortName ?? m.teamB}</span>
                       ${renderFlag(teamB, 'sm')}
                     </div>
                   </td>
-                  <td class="date-cell">${m.group}</td>
                   <td>
-                    <span class="badge-rtve">RTVE</span>
-                    <span class="badge-dazn">DAZN</span>
+                    <div class="channel-list">
+                      <span class="${info.featured ? 'badge-featured' : 'badge-mplus'}">${info.channel}</span>
+                      ${info.featured ? html`<span class="badge-featured">${t('tv.featured')}</span>` : ''}
+                    </div>
                   </td>
                 </tr>
               `;

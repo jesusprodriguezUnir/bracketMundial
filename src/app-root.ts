@@ -21,9 +21,9 @@ async function ensureMobileApp() {
   await import('./components/mobile/mobile-app');
 }
 
-type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
 
-const ALL_PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches'];
+const ALL_PHASE_TABS: PhaseTab[] = ['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'tv', 'stadiums', 'coaches'];
 
 /**
  * Tabs realmente navegables. La competicion activa decide que superficies
@@ -1024,6 +1024,7 @@ export class AppRoot extends LitElement {
                 ${tab === 'knockout' ? '🏆' : ''}
                 ${tab === 'squads' ? '👥' : ''}
                 ${tab === 'calendar' ? '🗓️' : ''}
+                ${tab === 'tv' ? '📺' : ''}
                 ${tab === 'stadiums' ? '🏟' : ''}
                 ${tab === 'coaches' ? '👔' : ''}
                 ${tab === 'guide' ? '📖' : ''}
@@ -1033,6 +1034,7 @@ export class AppRoot extends LitElement {
                   : tab === 'knockout' ? t('tabs.knockout')
                   : tab === 'squads' ? t('tabs.squads')
                   : tab === 'calendar' ? t('tabs.calendar')
+                  : tab === 'tv' ? t('tabs.tv')
                   : tab === 'stadiums' ? t('tabs.stadiums')
                   : tab === 'coaches' ? t('tabs.coaches')
                   : t('tabs.guide')}

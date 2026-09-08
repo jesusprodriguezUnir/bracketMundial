@@ -1438,10 +1438,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
           <span class="ticket-group">${phaseLabel}</span>
           ${(() => {
             const info = getBroadcastInfo(this.matchId, this.teamA, this.teamB);
-            if (info === 'BOTH') {
+            if (info.featured) {
               return html`<span class="ticket-broadcast">${t('modal.broadcastShared')}</span>`;
             }
-            return html`<span class="ticket-broadcast exclusive">${t('modal.broadcastExclusive')}</span>`;
+            return html`<span class="ticket-broadcast exclusive">${info.channel}</span>`;
           })()}
           <button class="ticket-close" @click="${this.close}" aria-label="${t('modal.close')}">✕</button>
         </div>

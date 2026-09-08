@@ -11,6 +11,7 @@ import { TEAMS_2026, KNOCKOUT_BRACKET } from '../src/data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../src/data/match-schedule';
 import { GROUP_MATCHES } from '../src/data/league-schedule';
 import { UCL_API_TEAMS } from '../src/data/ucl-2027';
+import { COMPETITION } from '../src/data/competition';
 import { decodeBracket, encodeBracket } from '../src/lib/bracket-codec';
 import { syncKnockoutBracket } from '../src/lib/bracket-logic';
 import { recalculateStandings, getWinnerId, getKnockoutMatchOrder, initialGroupMatches } from '../src/store/tournament-store';
@@ -330,14 +331,16 @@ async function run() {
         const s = groupScoreMap.get(m.matchId);
         return s ? { ...m, scoreA: s.scoreA, scoreB: s.scoreB } : { ...m };
       });
-      for (const ks of decoded.knockoutScores) {
-        knockoutMatches[ks.matchId] = {
-          ...(knockoutMatches[ks.matchId] ?? { teamA: null, teamB: null, winnerId: null, isPlayed: false }),
-          scoreA: ks.scoreA,
-          scoreB: ks.scoreB,
-          penaltyScoreA: ks.penaltyScoreA ?? null,
-          penaltyScoreB: ks.penaltyScoreB ?? null,
-        };
+      if (COMPETITION.knockoutEnabled) {
+        for (const ks of decoded.knockoutScores) {
+          knockoutMatches[ks.matchId] = {
+            ...(knockoutMatches[ks.matchId] ?? { teamA: null, teamB: null, winnerId: null, isPlayed: false }),
+            scoreA: ks.scoreA,
+            scoreB: ks.scoreB,
+            penaltyScoreA: ks.penaltyScoreA ?? null,
+            penaltyScoreB: ks.penaltyScoreB ?? null,
+          };
+        }
       }
     }
     logJson('info', 'official_loaded', { has_payload: true });
@@ -401,11 +404,26 @@ async function run() {
 
     for (const f of fixtures) {
       if (processedFixtures.has(f.id.toString())) continue;
-      if (SKIP_STATUSES.has(f.status)) continue;
 
+      const status = typeof f.status === 'string' ? f.status : f.status?.status;
       const teamA_id = getTeamIdFromApi(f.homeTeam);
       const teamB_id = getTeamIdFromApi(f.awayTeam);
       if (!teamA_id || !teamB_id) continue;
+
+      if (SKIP_STATUSES.has(status)) {
+        const groupMatch = groupMatches.find(m =>
+          (m.teamA === teamA_id && m.teamB === teamB_id) ||
+          (m.teamA === teamB_id && m.teamB === teamA_id)
+        );
+        if (groupMatch && (groupMatch.scoreA !== null || groupMatch.scoreB !== null)) {
+          groupMatch.scoreA = null;
+          groupMatch.scoreB = null;
+          updatedCount++;
+          hasPendingUpdates = true;
+        }
+        processedFixtures.add(f.id.toString());
+        continue;
+      }
 
       // fullTime contiene el marcador final (o actual si IN_PLAY)
       const scoreA = f.score.fullTime.home ?? 0;

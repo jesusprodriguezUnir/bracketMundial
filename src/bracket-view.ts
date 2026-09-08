@@ -10,7 +10,7 @@ import { t, useLocaleStore } from './i18n';
 import type { TranslationKey } from './i18n/es';
 import { COMPETITION } from './data/competition';
 
-type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'coaches' | 'guide' | 'guide-print';
+type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide' | 'guide-print';
 
 // Mapa de vista → módulo lazy
 type LazyView = 'groups' | 'matchday' | 'knockout' | 'squads' | 'calendar' | 'stadiums' | 'tv' | 'coaches' | 'guide' | 'guide-print';
@@ -36,6 +36,7 @@ function tabToView(tab: PhaseTab): LazyView | null {
   if (tab === 'knockout') return 'knockout';
   if (tab === 'squads') return 'squads';
   if (tab === 'calendar') return 'calendar';
+  if (tab === 'tv') return 'tv';
   if (tab === 'stadiums') return 'stadiums';
   if (tab === 'coaches') return 'coaches';
   if (tab === 'guide') return 'guide';
@@ -50,6 +51,7 @@ const PHASE_TAB_KEYS: Record<PhaseTab, TranslationKey> = {
   knockout:  'tabs.knockout',
   squads:    'tabs.squads',
   calendar:  'tabs.calendar',
+  tv:        'tabs.tv',
   stadiums:  'tabs.stadiums',
   coaches:   'tabs.coaches',
   guide:     'tabs.guide',
@@ -65,7 +67,7 @@ function isHiddenTab(tab: PhaseTab): boolean {
   return (COMPETITION.hiddenViews as readonly string[]).includes(tab);
 }
 
-const MORE_TABS: PhaseTab[] = (['squads', 'calendar', 'stadiums', 'coaches'] as PhaseTab[])
+const MORE_TABS: PhaseTab[] = (['squads', 'calendar', 'tv', 'stadiums', 'coaches'] as PhaseTab[])
   .filter(tab => !isHiddenTab(tab));
 
 /** Orden de tabs para swipe */
@@ -678,7 +680,7 @@ export class BracketView extends LitElement {
   private _restoreFromHash() {
     const hash = window.location.hash.replace('#', '');
     if (!hash) return;
-    const validTabs: PhaseTab[] = (['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'stadiums', 'coaches', 'guide', 'guide-print'] as PhaseTab[])
+    const validTabs: PhaseTab[] = (['hero', 'groups', 'matchday', 'knockout', 'squads', 'calendar', 'tv', 'stadiums', 'coaches', 'guide', 'guide-print'] as PhaseTab[])
       .filter(tab => !isHiddenTab(tab));
     if (validTabs.includes(hash as PhaseTab) && this._activeTab !== hash) {
       // Usar requestAnimationFrame para evitar conflictos con el render inicial
@@ -766,6 +768,7 @@ export class BracketView extends LitElement {
       if (tab === 'stadiums') targetId = 'section-stadiums';
       if (tab === 'squads') targetId = 'section-squads';
       if (tab === 'calendar') targetId = 'section-calendar';
+      if (tab === 'tv') targetId = 'section-tv';
       if (tab === 'coaches') targetId = 'section-coaches';
       if (tab === 'guide') targetId = 'section-guide';
       if (tab === 'guide-print') targetId = 'section-guide-print';
@@ -944,6 +947,8 @@ export class BracketView extends LitElement {
                     ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
                     : tab === 'calendar'
                       ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+                      : tab === 'tv'
+                        ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>`
                       : tab === 'stadiums'
                         ? html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="7"/><ellipse cx="12" cy="12" rx="6" ry="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>`
                         : tab === 'coaches'
@@ -1089,8 +1094,14 @@ export class BracketView extends LitElement {
         <!-- Dónde ver (lazy) -->
         <div
           id="section-tv"
-          class="section-tv">
-          <!-- tab 'tv' removed from PhaseTab -->
+          class="section-tv ${at === 'tv' ? 'visible' : ''}">
+          ${at === 'tv' && loaded.has('tv') ? html`
+            <div class="section-heading">
+              <div class="section-eyebrow">${t('section.tv.eyebrow')}</div>
+              <div class="section-title">${t('section.tv.title')}</div>
+            </div>
+            <broadcasting-view></broadcasting-view>
+          ` : at === 'tv' ? html`<div class="loading-spinner"></div>` : ''}
         </div>
 
         <!-- Vista de Entrenadores (lazy) -->

@@ -14,7 +14,7 @@ import '../matchday-view';
 
 type MobileView =
   | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads'
-  | 'awards' | 'calendar' | 'stadiums' | 'coaches' | 'guide';
+  | 'awards' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
 
 /** El shell movil llama 'bracket' a la vista que el resto de la app llama 'knockout'. */
 const VIEW_ALIASES: Partial<Record<MobileView, string>> = { bracket: 'knockout' };
@@ -26,13 +26,14 @@ function isHiddenView(v: MobileView): boolean {
 
 const MAIN_VIEWS: MobileView[] = (['home', 'groups', 'matchday'] as MobileView[])
   .filter(v => !isHiddenView(v));
-const SHEET_VIEWS: MobileView[] = (['calendar', 'squads', 'coaches'] as MobileView[])
+const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'coaches'] as MobileView[])
   .filter(v => !isHiddenView(v));
 const ALL_VIEWS: MobileView[] = ([...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'] as MobileView[])
   .filter(v => !isHiddenView(v));
 
 const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   calendar: () => import('./mobile-calendar'),
+  tv:       () => import('../broadcasting-view'),
   squads:   () => import('../squads-view'),
   coaches:  () => import('../coaches-view'),
   bracket:  () => import('../bracket-knockout'),
@@ -236,6 +237,14 @@ export class MobileApp extends LitElement {
           <div class="section-title">${t('section.calendar.title')}</div>
         </div>
         <mobile-calendar></mobile-calendar>
+      </div>`;
+    if (v === 'tv') return html`
+      <div class="secondary-view">
+        <div class="section-heading">
+          <div class="section-eyebrow">${t('section.tv.eyebrow')}</div>
+          <div class="section-title">${t('section.tv.title')}</div>
+        </div>
+        <broadcasting-view></broadcasting-view>
       </div>`;
     if (v === 'squads') return html`
       <div class="secondary-view">
@@ -623,6 +632,14 @@ export class MobileApp extends LitElement {
               <span class="si-text">
                 <span>${t('tabs.calendar')}</span>
                 <span class="si-sub">${locale === 'es' ? '144 partidos · 8 jornadas' : '144 matches · 8 matchdays'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('tv')}">
+              <span class="si-glyph">📺</span>
+              <span class="si-text">
+                <span>${t('tabs.tv')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Movistar Plus+ y Orange' : 'Movistar Plus+ and Orange'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>

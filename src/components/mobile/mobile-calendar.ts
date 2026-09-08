@@ -525,8 +525,8 @@ export class MobileCalendar extends LitElement {
         border: 1px solid var(--hairline);
         border-radius: var(--radius-pill);
       }
-      .badge-rtve { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-      .badge-dazn { background: var(--fill); color: var(--ink); }
+      .badge-mplus { background: var(--fill); color: var(--ink); }
+      .badge-featured { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
       .cal-teams { display: grid; gap: 4px; }
       .cal-team-line {
@@ -715,7 +715,7 @@ export class MobileCalendar extends LitElement {
     const played = row.scoreA !== null && row.scoreB !== null;
     const cellA = played ? String(row.scoreA) : '–';
     const cellB = played ? String(row.scoreB) : '–';
-    const both = getBroadcastInfo(row.id, row.teamA ?? undefined, row.teamB ?? undefined) === 'BOTH';
+    const info = getBroadcastInfo(row.id, row.teamA ?? undefined, row.teamB ?? undefined);
     return html`
       <div class="cal-card ${clickable ? '' : 'disabled'}"
            role="button"
@@ -726,8 +726,7 @@ export class MobileCalendar extends LitElement {
           <span class="cal-time">${row.timeSpain || '--:--'}</span>
           <span class="cal-phase">${row.phaseLabel}</span>
           <span class="cal-tv">
-            ${both ? html`<span class="badge-tv badge-rtve">RTVE</span>` : ''}
-            <span class="badge-tv badge-dazn">DAZN</span>
+            <span class="badge-tv ${info.featured ? 'badge-featured' : 'badge-mplus'}">${info.channel}</span>
           </span>
         </div>
         <div class="cal-teams">

@@ -318,8 +318,8 @@ export class CalendarView extends LitElement {
       letter-spacing: 0.05em;
     }
 
-    .badge-rtve { background: var(--retro-red); color: var(--paper); }
-    .badge-dazn { background: var(--ink); color: var(--accent); }
+    .badge-mplus { background: var(--fill); color: var(--ink); }
+    .badge-featured { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
     .teams-block {
       display: grid;
@@ -1116,12 +1116,10 @@ export class CalendarView extends LitElement {
                     <div class="time">${row.timeSpain || '--:--'}</div>
                     <div class="phase-badge">${row.phaseLabel}</div>
                     <div class="broadcast-badge">
-                      ${getBroadcastInfo(row.id, row.teamA ?? undefined, row.teamB ?? undefined) === 'BOTH' ? html`
-                        <span class="badge-tv badge-rtve">RTVE</span>
-                        <span class="badge-tv badge-dazn">DAZN</span>
-                      ` : html`
-                        <span class="badge-tv badge-dazn">DAZN</span>
-                      `}
+                      ${(() => {
+                        const info = getBroadcastInfo(row.id, row.teamA ?? undefined, row.teamB ?? undefined);
+                        return html`<span class="badge-tv ${info.featured ? 'badge-featured' : 'badge-mplus'}">${info.channel}</span>`;
+                      })()}
                     </div>
                   </div>
 
