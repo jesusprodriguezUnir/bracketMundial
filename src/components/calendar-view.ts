@@ -895,6 +895,7 @@ export class CalendarView extends LitElement {
       initialPenaltyScoreB: row.penaltyScoreB,
       phase: row.kind === 'group' ? 'group' : 'knockout',
       goalScorers: row.goalScorers,
+      date: row.date,
       venue: row.venue,
       city: row.city,
       timeSpain: row.timeSpain,

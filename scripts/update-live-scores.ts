@@ -35,7 +35,25 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ENV.SUPABA
 
 const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
+const DRY_RUN = args.includes('--dry-run');
+const PRETTY = args.includes('--pretty') || (!process.env.CI && process.stdout.isTTY);
 const TRIGGERED_BY = process.env.GITHUB_EVENT_NAME ?? (process.env.CI ? 'cron' : 'manual');
+
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(`Sincroniza los resultados oficiales de la Champions 2026/27
+(football-data.org → Supabase official_results).
+
+  npm run ucl:scores              Recarga completa y tabla legible
+  npm run scores:update           Modo cron (JSON + skip inteligente)
+  npm run ucl:scores -- --dry-run Consulta la API y no escribe
+
+Flags:
+  --force    Ignora el skip de inactividad
+  --pretty   Tabla humana (implícito fuera de CI)
+  --dry-run  No escribe en Supabase
+`);
+  process.exit(0);
+}
 
 if (!FOOTBALL_DATA_KEY) {
   console.error('❌ Falta FOOTBALL_DATA_KEY (env o .env). Regístrate en https://www.football-data.org/client/register');
@@ -48,7 +66,42 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 // ── Helpers de log estructurado ──────────────────────────────────────────────
 function logJson(level: 'info' | 'warn' | 'error', event: string, data: Record<string, unknown> = {}) {
+  if (PRETTY && level === 'info') return;
   console.log(JSON.stringify({ t: new Date().toISOString(), level, event, ...data }));
+}
+
+function printScoreTable(
+  matches: Array<{ matchId: string; matchDay: number; teamA: string; teamB: string; scoreA: number | null; scoreB: number | null }>,
+  stats: { set: number; cleared: number; dryRun: boolean },
+) {
+  const played = matches
+    .filter(m => m.scoreA !== null && m.scoreB !== null)
+    .sort((a, b) => a.matchDay - b.matchDay || a.matchId.localeCompare(b.matchId, 'en', { numeric: true }));
+
+  console.log('\nChampions 2026/27 — resultados oficiales\n');
+  if (played.length === 0) {
+    console.log('  (ningún partido finalizado)\n');
+  } else {
+    let currentDay = -1;
+    for (const m of played) {
+      if (m.matchDay !== currentDay) {
+        currentDay = m.matchDay;
+        console.log(`Jornada ${currentDay}`);
+      }
+      console.log(`  ${m.matchId.padEnd(5)} ${m.teamA} ${m.scoreA}-${m.scoreB} ${m.teamB}`);
+    }
+    console.log('');
+  }
+
+  const pending = matches.length - played.length;
+  const bits = [
+    `${played.length} con marcador`,
+    `${pending} pendientes`,
+    `${stats.set} escritos`,
+    `${stats.cleared} limpiados`,
+  ];
+  if (stats.dryRun) bits.push('DRY-RUN');
+  console.log(bits.join(' · '));
 }
 
 // ── Detección de partido activo (skip inteligente) ───────────────────────────
@@ -194,7 +247,12 @@ interface ApiFetchResult {
 // Statuses de football-data.org que indican partido no empezado
 const SKIP_STATUSES = new Set(['SCHEDULED', 'TIMED', 'POSTPONED', 'CANCELLED', 'SUSPENDED']);
 
-async function fetchWorldCupFixtures(retries = 2): Promise<ApiFetchResult> {
+/** Parches puntuales cuando football-data.org no refleja el acta (VAR, etc.). */
+const SCORE_OVERRIDES: Record<string, { scoreA: number; scoreB: number; note: string }> = {
+  M1: { scoreA: 1, scoreB: 0, note: 'AEK–LASK: gol de Jović anulado por VAR' },
+};
+
+async function fetchUclFixtures(retries = 2): Promise<ApiFetchResult> {
   const url = 'https://api.football-data.org/v4/competitions/CL/matches?season=2026';
   let lastError = '';
   let lastStatus = 0;
@@ -297,6 +355,7 @@ async function run() {
   // 1. ¿Debemos saltarnos esta ejecución?
   const skipDecision = await shouldSkip(sb);
   if (skipDecision.skip) {
+    if (PRETTY) console.log(`Saltado: ${skipDecision.reason}`);
     logJson('info', 'skip', { reason: skipDecision.reason });
     await recordRun(sb, {
       fixtures_seen: 0, fixtures_updated: 0,
@@ -374,7 +433,7 @@ async function run() {
   // 3. Fetch API-Football con retries
   let fetchResult: ApiFetchResult;
   try {
-    fetchResult = await fetchWorldCupFixtures();
+    fetchResult = await fetchUclFixtures();
   } catch (e: any) {
     logJson('error', 'api_fetch_failed', { error: e.message });
     await recordRun(sb, { http_status: 0, error_msg: e.message, duration_ms: Date.now() - t0 });
@@ -385,7 +444,7 @@ async function run() {
   logJson('info', 'api_ok', { http_status: httpStatus, fixtures_seen: fixtures.length });
 
   if (fixtures.length === 0) {
-    // Esperado pre-temporada. No es error.
+    if (PRETTY) console.log('La API no devolvió partidos (¿pretemporada?).');
     logJson('info', 'no_fixtures', { note: 'API devolvió 0; probable pre-temporada' });
     await recordRun(sb, {
       fixtures_seen: 0, fixtures_updated: 0, http_status: httpStatus,
@@ -395,6 +454,7 @@ async function run() {
   }
 
   // 4. Mapeo y actualización iterativa
+  const previousScores = new Map(groupMatches.map(m => [m.matchId, { a: m.scoreA, b: m.scoreB }]));
   let updatedCount = 0;
   let hasPendingUpdates = true;
   const processedFixtures = new Set<string>();
@@ -475,12 +535,44 @@ async function run() {
     }
   }
 
+  const overrideNotes: string[] = [];
+  for (const [matchId, override] of Object.entries(SCORE_OVERRIDES)) {
+    const match = groupMatches.find(m => m.matchId === matchId);
+    if (!match) continue;
+    if (match.scoreA === override.scoreA && match.scoreB === override.scoreB) continue;
+    match.scoreA = override.scoreA;
+    match.scoreB = override.scoreB;
+    updatedCount++;
+    overrideNotes.push(override.note);
+  }
+
+  let setCount = 0;
+  let clearedCount = 0;
+  for (const m of groupMatches) {
+    const prev = previousScores.get(m.matchId);
+    const wasPlayed = prev && prev.a !== null && prev.b !== null;
+    const isPlayed = m.scoreA !== null && m.scoreB !== null;
+    if (!wasPlayed && isPlayed) setCount++;
+    else if (wasPlayed && !isPlayed) clearedCount++;
+    else if (wasPlayed && isPlayed && (prev!.a !== m.scoreA || prev!.b !== m.scoreB)) setCount++;
+  }
+
+  if (PRETTY) {
+    printScoreTable(groupMatches, { set: setCount, cleared: clearedCount, dryRun: DRY_RUN });
+    for (const note of overrideNotes) console.log(`  ⚠ ${note}`);
+  }
+
   if (updatedCount === 0) {
     logJson('info', 'no_updates');
     await recordRun(sb, {
       fixtures_seen: fixtures.length, fixtures_updated: 0,
       http_status: httpStatus, duration_ms: Date.now() - t0,
     });
+    return;
+  }
+
+  if (DRY_RUN) {
+    logJson('info', 'dry_run', { fixtures_updated: updatedCount });
     return;
   }
 

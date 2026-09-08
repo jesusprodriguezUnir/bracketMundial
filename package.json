@@ -35,6 +35,7 @@
     "odds": "tsx scripts/generate-odds.mjs",
     "cache:purge:cf": "node scripts/purge-cloudflare-cache.mjs",
     "scores:update": "tsx scripts/update-live-scores.ts",
+    "ucl:scores": "tsx scripts/update-live-scores.ts --force --pretty",
     "test": "vitest run",
     "cap:sync": "npm run build && npx cap sync",
     "android": "npm run cap:sync && npx cap open android",

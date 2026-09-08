@@ -14,6 +14,7 @@ Este repositorio es una PWA de bracket para el Mundial 2026 construida con Lit, 
 - Descargar fotos y datos UCL: `npm run ucl:photos -- RMA`, `npm run ucl:squads -- RMA BAR`, `npm run ucl:data`
 - Escudos oficiales UCL: `npm run ucl:crests`
 - Script principal UCL: [scripts/fetch-ucl-squads.mjs](scripts/fetch-ucl-squads.mjs) (fuente oficial UEFA.com para plantillas, fotos, DTs y escudos).
+- Resultados oficiales: `npm run ucl:scores` (football-data.org → Supabase). Dry-run: `npm run ucl:scores -- --dry-run`. Cron: `npm run scores:update`.
 
 ## Mapa rápido
 

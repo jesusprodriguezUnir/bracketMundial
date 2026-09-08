@@ -2,15 +2,31 @@ import type { GoalEvent } from '../types';
 import { getSquad } from '../data/squads';
 import type { Player } from '../data/squads';
 
+function createSeededRandom(seedStr: string): () => number {
+  let hash = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = Math.imul(hash ^ seedStr.charCodeAt(i), 3432918353);
+    hash = (hash << 13) | (hash >>> 19);
+  }
+  return function () {
+    hash = Math.imul(hash ^ (hash >>> 16), 2246822507);
+    hash = Math.imul(hash ^ (hash >>> 13), 3266489909);
+    return ((hash ^= hash >>> 16) >>> 0) / 4294967296;
+  };
+}
+
 export function generateGoalScorers(
   teamId: string,
   goalCount: number,
   isKnockout = false,
+  customRand?: () => number,
 ): GoalEvent[] {
   if (goalCount <= 0) return [];
 
   const squad = getSquad(teamId);
   if (!squad || squad.length === 0) return [];
+
+  const rand = customRand ?? Math.random;
 
   // Jugadores de campo con pesos por posición
   const weighted: { player: Player; weight: number }[] = [];
@@ -29,7 +45,7 @@ export function generateGoalScorers(
   const usedMinutes = new Set<number>();
 
   for (let i = 0; i < goalCount; i++) {
-    let r = Math.random() * totalWeight;
+    let r = rand() * totalWeight;
     let selected = weighted[0].player;
     for (const { player, weight } of weighted) {
       r -= weight;
@@ -43,13 +59,13 @@ export function generateGoalScorers(
     let minute = 0;
     let attempts = 0;
     do {
-      minute = Math.floor(Math.random() * 95) + 1;
+      minute = Math.floor(rand() * 95) + 1;
       attempts++;
     } while (usedMinutes.has(minute) && attempts < 100);
     usedMinutes.add(minute);
 
     const type: GoalEvent['type'] =
-      isKnockout && Math.random() < 0.15 ? 'penalty' : 'normal';
+      isKnockout && rand() < 0.15 ? 'penalty' : 'normal';
 
     scorers.push({
       minute,
@@ -62,3 +78,32 @@ export function generateGoalScorers(
 
   return scorers.sort((a, b) => a.minute - b.minute);
 }
+
+/**
+ * Retorna los goleadores existentes o genera una lista determinista si aún no fueron persistidos.
+ */
+export function getOrGenerateGoalScorers(
+  matchId: string,
+  teamA: string,
+  teamB: string,
+  scoreA: number | null,
+  scoreB: number | null,
+  existingScorers?: GoalEvent[],
+  isKnockout = false,
+): GoalEvent[] {
+  if (existingScorers && existingScorers.length > 0) {
+    return existingScorers;
+  }
+  const countA = scoreA ?? 0;
+  const countB = scoreB ?? 0;
+  if (countA <= 0 && countB <= 0) return [];
+
+  const randA = createSeededRandom(`${matchId}_${teamA}_scorers_${countA}`);
+  const randB = createSeededRandom(`${matchId}_${teamB}_scorers_${countB}`);
+
+  const scorersA = generateGoalScorers(teamA, countA, isKnockout, randA);
+  const scorersB = generateGoalScorers(teamB, countB, isKnockout, randB);
+
+  return [...scorersA, ...scorersB].sort((a, b) => a.minute - b.minute);
+}
+

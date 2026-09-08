@@ -15,6 +15,10 @@ import { showToast, lightTap, mediumTap } from '../lib/interaction';
 import type { GoalEvent } from '../types';
 import './odds-bar';
 import { useTournamentStore } from '../store/tournament-store';
+import { getMatchStats, type MatchStats } from '../lib/match-stats';
+import { getOrGenerateGoalScorers } from '../lib/goal-scorers';
+import { isMatchPending } from '../lib/date-utils';
+import { GROUP_MATCHES } from '../data/league-schedule';
 
 
 @customElement('match-modal')
@@ -30,6 +34,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @property() venue = '';
   @property() city = '';
   @property() timeSpain = '';
+  @property() date = '';
   @property() stadiumImage = '';
   @property({ type: Boolean }) hideFooter = false;
   @property({ attribute: false }) goalScorers: GoalEvent[] | undefined;
@@ -41,11 +46,42 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   @state() private _odds: MatchOdds | null = null;
   @state() private _preview: Preview | null = null;
   @state() private _chronicleOpen = false;
-  @state() private _infoTab: 'preview' | 'lineups' | 'edit' = 'preview';
+  @state() private _infoTab: 'preview' | 'lineups' | 'edit' | 'stats' = 'preview';
   @state() private _confirmClose = false;
+  @state() private _stats: MatchStats | null = null;
 
   get scoreA() { return this._scoreA; }
   get scoreB() { return this._scoreB; }
+
+  private get _resolvedDate(): string {
+    if (this.date) return this.date;
+    const groupMatch = GROUP_MATCHES.find(m => m.matchId === this.matchId);
+    return groupMatch?.date ?? '';
+  }
+
+  private get _resolvedTimeSpain(): string {
+    if (this.timeSpain) return this.timeSpain;
+    const groupMatch = GROUP_MATCHES.find(m => m.matchId === this.matchId);
+    return groupMatch?.timeSpain ?? '';
+  }
+
+  private get _isPlayed(): boolean {
+    const hasScore = this._scoreA !== null && this._scoreB !== null;
+    const isPast = !isMatchPending(this._resolvedDate, this._resolvedTimeSpain);
+    return hasScore || isPast;
+  }
+
+  private get _effectiveGoalScorers(): GoalEvent[] {
+    return getOrGenerateGoalScorers(
+      this.matchId,
+      this.teamA,
+      this.teamB,
+      this._scoreA,
+      this._scoreB,
+      this.goalScorers,
+      this.phase === 'knockout',
+    );
+  }
 
   protected override updated(changedProps: PropertyValues) {
     if (changedProps.has('initialScoreA')) this._scoreA = this.initialScoreA;
@@ -53,23 +89,30 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     if (changedProps.has('initialPenaltyScoreA')) this._penaltyScoreA = this.initialPenaltyScoreA;
     if (changedProps.has('initialPenaltyScoreB')) this._penaltyScoreB = this.initialPenaltyScoreB;
     if (changedProps.has('matchId') || changedProps.has('teamA') || changedProps.has('teamB')) {
-      if (this.matchId && this.teamA && this.teamB) {
+      if (this.matchId && this.teamA && this.teamB && !this._isPlayed) {
         getOddsForMatch(this.matchId, this.teamA, this.teamB).then(o => {
           if (this.isConnected) this._odds = o;
         });
       }
     }
-    if (changedProps.has('matchId')) {
+    if (changedProps.has('matchId') || changedProps.has('initialScoreA') || changedProps.has('initialScoreB') || changedProps.has('date')) {
       this._preview = getPreview(this.matchId);
       this._chronicleOpen = false;
-      this._infoTab = 'preview';
       this._confirmClose = false;
+      if (this._isPlayed) {
+        this._infoTab = 'stats';
+        this._stats = getMatchStats(this.matchId, this.teamA, this.teamB, this._scoreA, this._scoreB);
+      } else {
+        this._infoTab = 'preview';
+      }
     }
   }
 
   override firstUpdated() {
-    const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
-    addBtn?.focus({ preventScroll: true });
+    if (!this._isPlayed) {
+      const addBtn = this.shadowRoot?.querySelector<HTMLButtonElement>('.score-add-a');
+      addBtn?.focus({ preventScroll: true });
+    }
   }
 
   private readonly _handleKeydown = (e: KeyboardEvent) => {
@@ -894,6 +937,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       .odds-block {
         padding: 10px 10px 0;
       }
+      .stats-block { padding: 14px 12px 16px; }
       .cronica-block { padding: 14px 12px 16px; }
       .cronica-text { font-size: 13px; }
       .prob-block { padding: 12px 12px 14px; }
@@ -983,6 +1027,77 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
       flex: 1;
       height: 0;
       border-top: 1px solid var(--hairline);
+    }
+
+    /* ─── V2-Cancha: Estadísticas Post-Partido ─── */
+    .stats-block {
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--hairline);
+      background: var(--fill);
+    }
+    .stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      margin-top: 12px;
+    }
+    .stat-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      min-width: 36px;
+    }
+    .stat-val.left {
+      text-align: left;
+    }
+    .stat-val.right {
+      text-align: right;
+    }
+    .stat-val.stat-dominant {
+      color: var(--accent);
+    }
+    .stat-name {
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: center;
+      flex: 1;
+    }
+    .stat-bar-container {
+      display: flex;
+      height: 7px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      gap: 2px;
+    }
+    .stat-bar-left {
+      height: 100%;
+      background: var(--retro-blue);
+      border-radius: 2px 0 0 2px;
+      transition: width 0.3s ease;
+    }
+    .stat-bar-right {
+      height: 100%;
+      background: var(--retro-orange);
+      border-radius: 0 2px 2px 0;
+      transition: width 0.3s ease;
     }
 
     /* ─── V2-Cancha: Crónica ─── */
@@ -1249,9 +1364,10 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   }
 
   private _renderGoalScorers(_tA: ReturnType<typeof TEAMS_2026.find>, _tB: ReturnType<typeof TEAMS_2026.find>) {
-    if (!this.goalScorers || this.goalScorers.length === 0) return '';
-    const homeScorers = this.goalScorers.filter(g => g.teamId === this.teamA);
-    const awayScorers = this.goalScorers.filter(g => g.teamId === this.teamB);
+    const scorers = this._effectiveGoalScorers;
+    if (!scorers || scorers.length === 0) return '';
+    const homeScorers = scorers.filter(g => g.teamId === this.teamA);
+    const awayScorers = scorers.filter(g => g.teamId === this.teamB);
     return html`
       <div class="scorers-block">
         <div class="scorers-side left">
@@ -1393,13 +1509,62 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
     `;
   }
 
+  private _renderStatRow(label: string, valA: string | number, valB: string | number, numA: number, numB: number) {
+    const total = numA + numB;
+    const pctA = total === 0 ? 50 : Math.round((numA / total) * 100);
+    const pctB = 100 - pctA;
+    const dominantA = numA > numB;
+    const dominantB = numB > numA;
+
+    return html`
+      <div class="stat-row">
+        <div class="stat-header">
+          <span class="stat-val left ${dominantA ? 'stat-dominant' : ''}">${valA}</span>
+          <span class="stat-name">${label}</span>
+          <span class="stat-val right ${dominantB ? 'stat-dominant' : ''}">${valB}</span>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-left" style="width: ${pctA}%"></div>
+          <div class="stat-bar-right" style="width: ${pctB}%"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderStatsBlock(tA: ReturnType<typeof TEAMS_2026.find>, tB: ReturnType<typeof TEAMS_2026.find>) {
+    if (!tA || !tB) return '';
+    const stats = this._stats ?? getMatchStats(this.matchId, this.teamA, this.teamB, this._scoreA, this._scoreB);
+
+    return html`
+      <div class="stats-block">
+        <div class="section-label">
+          <span class="section-num" style="background:var(--retro-green)">01</span>
+          <span class="section-title">${t('modal.statsSection')}</span>
+          <div class="section-rule"></div>
+        </div>
+        <div class="stats-list">
+          ${this._renderStatRow(t('modal.statsPossession'), `${stats.possession[0]}%`, `${stats.possession[1]}%`, stats.possession[0], stats.possession[1])}
+          ${this._renderStatRow(t('modal.statsShots'), stats.shots[0], stats.shots[1], stats.shots[0], stats.shots[1])}
+          ${this._renderStatRow(t('modal.statsShotsOnTarget'), stats.shotsOnTarget[0], stats.shotsOnTarget[1], stats.shotsOnTarget[0], stats.shotsOnTarget[1])}
+          ${this._renderStatRow(t('modal.statsCorners'), stats.corners[0], stats.corners[1], stats.corners[0], stats.corners[1])}
+          ${this._renderStatRow(t('modal.statsFouls'), stats.fouls[0], stats.fouls[1], stats.fouls[0], stats.fouls[1])}
+          ${this._renderStatRow(t('modal.statsYellowCards'), stats.yellowCards[0], stats.yellowCards[1], stats.yellowCards[0], stats.yellowCards[1])}
+          ${this._renderStatRow(t('modal.statsOffsides'), stats.offsides[0], stats.offsides[1], stats.offsides[0], stats.offsides[1])}
+        </div>
+      </div>
+    `;
+  }
+
   // ─────────────────────────────────────────────────────────────────
 
   private getPenaltyBadgeText() {
-    if (this._penaltyScoreA === null || this._penaltyScoreB === null) {
-      return t('modal.finalTime');
+    if (this._penaltyScoreA !== null && this._penaltyScoreB !== null) {
+      return t('modal.penScore', { a: this._penaltyScoreA, b: this._penaltyScoreB });
     }
-    return t('modal.penScore', { a: this._penaltyScoreA, b: this._penaltyScoreB });
+    if (this._isPlayed) {
+      return t('modal.matchFinished');
+    }
+    return t('modal.finalTime');
   }
 
   render() {
@@ -1468,7 +1633,17 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
                 </div>
                 <span class="score-final-badge">${scoreBadgeText}</span>
               `
-              : html`<div class="score-tbd">${t('modal.vs')}</div>`
+              : (isPlayed
+                ? html`
+                  <div class="score-big">
+                    <span>0</span>
+                    <span class="score-sep">×</span>
+                    <span>0</span>
+                  </div>
+                  <span class="score-final-badge">${scoreBadgeText}</span>
+                `
+                : html`<div class="score-tbd">${t('modal.vs')}</div>`
+              )
             }
           </div>
 
@@ -1485,128 +1660,155 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
 
         <!-- Info tab bar -->
         <div class="info-tab-bar">
-          <button class="info-tab-btn ${this._infoTab === 'preview' ? 'active' : ''}"
-                  @click=${() => { this._infoTab = 'preview'; }}>
-            ${t('modal.tabPreview')}
-          </button>
-          <button class="info-tab-btn ${this._infoTab === 'lineups' ? 'active' : ''}"
-                  @click=${() => { this._infoTab = 'lineups'; }}>
-            ${t('modal.tabLineups')}
-          </button>
-          <button class="info-tab-btn ${this._infoTab === 'edit' ? 'active' : ''}"
-                  @click=${() => { this._infoTab = 'edit'; }}>
-            ${t('modal.tabScore')}
-          </button>
+          ${isPlayed ? html`
+            <button class="info-tab-btn ${this._infoTab === 'stats' ? 'active' : ''}"
+                    @click=${() => { this._infoTab = 'stats'; }}>
+              ${t('modal.tabStats')}
+            </button>
+            <button class="info-tab-btn ${this._infoTab === 'lineups' ? 'active' : ''}"
+                    @click=${() => { this._infoTab = 'lineups'; }}>
+              ${t('modal.tabLineups')}
+            </button>
+          ` : html`
+            <button class="info-tab-btn ${this._infoTab === 'preview' ? 'active' : ''}"
+                    @click=${() => { this._infoTab = 'preview'; }}>
+              ${t('modal.tabPreview')}
+            </button>
+            <button class="info-tab-btn ${this._infoTab === 'lineups' ? 'active' : ''}"
+                    @click=${() => { this._infoTab = 'lineups'; }}>
+              ${t('modal.tabLineups')}
+            </button>
+            <button class="info-tab-btn ${this._infoTab === 'edit' ? 'active' : ''}"
+                    @click=${() => { this._infoTab = 'edit'; }}>
+              ${t('modal.tabScore')}
+            </button>
+          `}
         </div>
 
-        <!-- Tab: Preview -->
-        <div class="info-tab-content ${this._infoTab === 'preview' ? 'active' : ''}">
-          ${this._renderCronica(tA, tB)}
-          ${this._renderProbBlock(tA, tB)}
-        </div>
+        ${isPlayed ? html`
+          <!-- Tab: Stats -->
+          <div class="info-tab-content ${this._infoTab === 'stats' ? 'active' : ''}">
+            ${this._renderStatsBlock(tA, tB)}
+          </div>
 
-        <!-- Tab: Lineups -->
-        <div class="info-tab-content ${this._infoTab === 'lineups' ? 'active' : ''}">
-          ${this._renderPitchBlock(tA, tB)}
-        </div>
+          <!-- Tab: Lineups -->
+          <div class="info-tab-content ${this._infoTab === 'lineups' ? 'active' : ''}">
+            ${this._renderPitchBlock(tA, tB)}
+          </div>
+        ` : html`
+          <!-- Tab: Preview -->
+          <div class="info-tab-content ${this._infoTab === 'preview' ? 'active' : ''}">
+            ${this._renderCronica(tA, tB)}
+            ${this._renderProbBlock(tA, tB)}
+          </div>
 
-        <!-- Tab: Edit -->
-        <div class="info-tab-content ${this._infoTab === 'edit' ? 'active' : ''}">
-          <div class="editor-section">
-            <div class="editor-label">
+          <!-- Tab: Lineups -->
+          <div class="info-tab-content ${this._infoTab === 'lineups' ? 'active' : ''}">
+            ${this._renderPitchBlock(tA, tB)}
+          </div>
+
+          <!-- Tab: Edit -->
+          <div class="info-tab-content ${this._infoTab === 'edit' ? 'active' : ''}">
+            <div class="editor-section">
+              <div class="editor-label">
                 ${leagueLocked
                   ? html`<span style="color:var(--retro-orange);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;">${t('league.matchLocked')}</span>`
                   : t('modal.editScore')
                 }
               </div>
-            <div class="editor-stack">
-              <div class="editor-row">
-                <div class="score-input">
-                  <button
-                    class="score-add-a"
-                    @click="${() => this.adjustScore('A', -1)}"
-                    aria-label="${t('modal.subtractGoal', { team: tA?.shortName ?? '' })}">−</button>
-                  <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
-                  <button
-                    @click="${() => this.adjustScore('A', 1)}"
-                    aria-label="${t('modal.addGoal', { team: tA?.shortName ?? '' })}">+</button>
+              <div class="editor-stack">
+                <div class="editor-row">
+                  <div class="score-input">
+                    <button
+                      class="score-add-a"
+                      @click="${() => this.adjustScore('A', -1)}"
+                      aria-label="${t('modal.subtractGoal', { team: tA?.shortName ?? '' })}">−</button>
+                    <span class="score-display" aria-live="polite">${this._scoreA ?? '-'}</span>
+                    <button
+                      @click="${() => this.adjustScore('A', 1)}"
+                      aria-label="${t('modal.addGoal', { team: tA?.shortName ?? '' })}">+</button>
+                  </div>
+
+                  <span class="vs-sep">×</span>
+
+                  <div class="score-input">
+                    <button
+                      @click="${() => this.adjustScore('B', -1)}"
+                      aria-label="${t('modal.subtractGoal', { team: tB?.shortName ?? '' })}">−</button>
+                    <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
+                    <button
+                      @click="${() => this.adjustScore('B', 1)}"
+                      aria-label="${t('modal.addGoal', { team: tB?.shortName ?? '' })}">+</button>
+                  </div>
+
+                  <button class="btn btn-danger limpiar-btn" @click="${this.clear}">${t('modal.clear')}</button>
                 </div>
 
-                <span class="vs-sep">×</span>
+                ${penaltiesVisible ? html`
+                  <div class="penalties-block">
+                    <div class="penalties-title">${t('modal.penalties')}</div>
+                    <div class="penalties-row">
+                      <div class="score-input">
+                        <button
+                          @click="${() => this.adjustPenalty('A', -1)}"
+                          aria-label="${t('modal.subtractPen', { team: tA?.shortName ?? '' })}">−</button>
+                        <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
+                        <button
+                          @click="${() => this.adjustPenalty('A', 1)}"
+                          aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
+                      </div>
 
-                <div class="score-input">
-                  <button
-                    @click="${() => this.adjustScore('B', -1)}"
-                    aria-label="${t('modal.subtractGoal', { team: tB?.shortName ?? '' })}">−</button>
-                  <span class="score-display" aria-live="polite">${this._scoreB ?? '-'}</span>
-                  <button
-                    @click="${() => this.adjustScore('B', 1)}"
-                    aria-label="${t('modal.addGoal', { team: tB?.shortName ?? '' })}">+</button>
-                </div>
+                      <span class="penalties-badge">${t('modal.penShort')}</span>
 
-                <button class="btn btn-danger limpiar-btn" @click="${this.clear}">${t('modal.clear')}</button>
-              </div>
-
-              ${penaltiesVisible ? html`
-                <div class="penalties-block">
-                  <div class="penalties-title">${t('modal.penalties')}</div>
-                  <div class="penalties-row">
-                    <div class="score-input">
-                      <button
-                        @click="${() => this.adjustPenalty('A', -1)}"
-                        aria-label="${t('modal.subtractPen', { team: tA?.shortName ?? '' })}">−</button>
-                      <span class="score-display" aria-live="polite">${this._penaltyScoreA ?? '-'}</span>
-                      <button
-                        @click="${() => this.adjustPenalty('A', 1)}"
-                        aria-label="${t('modal.addPen', { team: tA?.shortName ?? '' })}">+</button>
-                    </div>
-
-                    <span class="penalties-badge">${t('modal.penShort')}</span>
-
-                    <div class="score-input">
-                      <button
-                        @click="${() => this.adjustPenalty('B', -1)}"
-                        aria-label="${t('modal.subtractPen', { team: tB?.shortName ?? '' })}">−</button>
-                      <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
-                      <button
-                        @click="${() => this.adjustPenalty('B', 1)}"
-                        aria-label="${t('modal.addPen', { team: tB?.shortName ?? '' })}">+</button>
+                      <div class="score-input">
+                        <button
+                          @click="${() => this.adjustPenalty('B', -1)}"
+                          aria-label="${t('modal.subtractPen', { team: tB?.shortName ?? '' })}">−</button>
+                        <span class="score-display" aria-live="polite">${this._penaltyScoreB ?? '-'}</span>
+                        <button
+                          @click="${() => this.adjustPenalty('B', 1)}"
+                          aria-label="${t('modal.addPen', { team: tB?.shortName ?? '' })}">+</button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ` : ''}
-            </div>
+                ` : ''}
+              </div>
 
-            ${isDraw
-              ? html`<div class="warn">${t('modal.penRequired')}</div>`
-              : ''
-            }
+              ${isDraw
+                ? html`<div class="warn">${t('modal.penRequired')}</div>`
+                : ''
+              }
+            </div>
           </div>
-        </div>
+        `}
 
         </div><!-- /modal-body -->
 
         <!-- Footer -->
         ${!this.hideFooter ? html`
         <div class="modal-footer">
-          ${this._confirmClose
-            ? html`
-              <div class="confirm-bar">
-                <span class="confirm-msg">${t('modal.unsaved')}</span>
-                <span class="confirm-hint">${t('modal.unsavedMessage')}</span>
-                <div class="confirm-actions">
-                  <button class="btn btn-secondary" @click=${() => { this._confirmClose = false; this._dispatchClose(); }}>${t('modal.discard')}</button>
-                  <button class="btn btn-primary" @click=${this._discardAndClose}>${t('modal.saveClose')}</button>
+          ${isPlayed
+            ? html`<button class="btn btn-secondary" style="width: 100%" @click="${this.close}">${t('modal.close')}</button>`
+            : (this._confirmClose
+              ? html`
+                <div class="confirm-bar">
+                  <span class="confirm-msg">${t('modal.unsaved')}</span>
+                  <span class="confirm-hint">${t('modal.unsavedMessage')}</span>
+                  <div class="confirm-actions">
+                    <button class="btn btn-secondary" @click=${() => { this._confirmClose = false; this._dispatchClose(); }}>${t('modal.discard')}</button>
+                    <button class="btn btn-primary" @click=${this._discardAndClose}>${t('modal.saveClose')}</button>
+                  </div>
                 </div>
-              </div>
-            `
-            : html`
-              <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
-              <button
-                class="btn btn-primary"
-                ?disabled="${!canSaveEffective}"
-                @click="${this.save}">${t('modal.save')}</button>
-            `}
+              `
+              : html`
+                <button class="btn btn-secondary" @click="${this.close}">${t('modal.cancel')}</button>
+                <button
+                  class="btn btn-primary"
+                  ?disabled="${!canSaveEffective}"
+                  @click="${this.save}">${t('modal.save')}</button>
+              `
+            )
+          }
         </div>
         ` : ''}
       </div>

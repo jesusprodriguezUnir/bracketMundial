@@ -1851,7 +1851,6 @@ export class BracketKnockout extends LitElement {
     if (store.viewMode === 'real') return;
     const match = store.knockoutMatches[matchId];
     if (!match?.teamA || !match?.teamB) return;
-    if (!isMatchPending(match.date ?? '', match.timeSpain ?? '')) return;
 
     const stadium = STADIUMS.find(st => st.name === match.venue);
     openMatchModal({
@@ -1864,6 +1863,7 @@ export class BracketKnockout extends LitElement {
       initialPenaltyScoreB: match.penaltyScoreB ?? null,
       phase: 'knockout',
       goalScorers: match.goalScorers,
+      date: match.date,
       venue: match.venue,
       city: match.city,
       timeSpain: match.timeSpain,

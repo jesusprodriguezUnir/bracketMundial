@@ -230,6 +230,8 @@ export class MatchdayView extends LitElement {
       initialScoreA: m.scoreA,
       initialScoreB: m.scoreB,
       phase: 'group',
+      goalScorers: m.goalScorers,
+      date: m.date,
       venue: m.venue ?? '',
       timeSpain: m.timeSpain ?? '',
       hideFooter: false,
