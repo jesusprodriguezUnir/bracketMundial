@@ -1568,6 +1568,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   }
 
   render() {
+    const isPlayed = this._isPlayed;
     const tA = TEAMS_2026.find(t => t.id === this.teamA);
     const tB = TEAMS_2026.find(t => t.id === this.teamB);
     const hasCompleteScore = this._scoreA !== null && this._scoreB !== null;
