@@ -650,6 +650,11 @@ export class CalendarView extends LitElement {
       background: var(--retro-red);
       color: var(--paper);
     }
+    .export-section > .export-btn {
+      width: max-content;
+      padding: 10px 18px;
+      margin-top: 10px;
+    }
 
     .export-btn.disabled {
       opacity: 0.6;
@@ -676,6 +681,8 @@ export class CalendarView extends LitElement {
       (a, b) => a.gm === b.gm && a.km === b.km,
     );
     this.unsubscribeLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    const today = this.getTodayKey();
+    if (this.getRows().some(r => r.date === today)) this.selectedDate = today;
   }
 
   disconnectedCallback() {
@@ -709,7 +716,7 @@ export class CalendarView extends LitElement {
   // varios frames seguidos para compensar el reflow de banderas/imágenes que
   // cargan tarde y empujarían el contenido hacia abajo.
   private scrollToToday() {
-    if (this.didScrollToToday) return;
+    if (this.didScrollToToday || this.selectedDate !== 'all') return;
     const section = this.findTodaySection();
     if (!section) return;
     this.didScrollToToday = true;
@@ -815,7 +822,8 @@ export class CalendarView extends LitElement {
   }
 
   private formatDateLabel(date: string) {
-    return formatFullDate(date);
+    const s = formatFullDate(date);
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
 
   private getFilteredRows() {
@@ -912,23 +920,15 @@ export class CalendarView extends LitElement {
     });
   }
 
-  private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
-    const key = `${phase}-${format}`;
+  private async _exportPdf() {
     if (this.exporting) return;
-    this.exporting = key;
+    this.exporting = 'pdf';
     try {
-      const {
-        exportCalendarExcel,
-        exportCalendarPdf,
-        fileNameBase,
-        triggerDownload,
-      } = await import('../lib/calendar-export-service');
+      const { exportCalendarPdf, fileNameBase, triggerDownload } =
+        await import('../lib/calendar-export-service');
       const locale = useLocaleStore.getState().locale;
-      const ext = format === 'excel' ? 'xlsx' : 'pdf';
-      const blob = format === 'excel'
-        ? await exportCalendarExcel(phase, locale)
-        : await exportCalendarPdf(phase, locale);
-      triggerDownload(blob, `${fileNameBase(phase, locale)}.${ext}`);
+      const blob = await exportCalendarPdf('groups', locale);
+      triggerDownload(blob, `${fileNameBase('groups', locale)}.pdf`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -954,73 +954,19 @@ export class CalendarView extends LitElement {
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          ${locale === 'en' ? 'DOWNLOAD TOURNAMENT CALENDAR' : 'DESCARGAR CALENDARIO DEL TORNEO'}
+          ${locale === 'en' ? 'LEAGUE PHASE CALENDAR' : 'CALENDARIO DE LA FASE LIGA'}
         </h3>
         <div class="export-subtitle">
-          ${locale === 'en' 
-            ? 'Get the clean official schedule or your active predictions' 
-            : 'Guarda el calendario oficial limpio o con tus predicciones activas'}
+          ${locale === 'en'
+            ? '144 matches · times in Spain'
+            : '144 partidos · hora España'}
         </div>
-        <div class="export-grid">
-          <!-- Calendario Completo -->
-          <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'Full Tournament (144 matches)' : 'Torneo Completo (144 partidos)'}</div>
-            <div class="export-btn-group">
-              <button 
-                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('all', 'excel')}>
-                ${this.exporting === 'all-excel' ? '...' : 'EXCEL'}
-              </button>
-              <button 
-                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('all', 'pdf')}>
-                ${this.exporting === 'all-pdf' ? '...' : 'PDF'}
-              </button>
-            </div>
-          </div>
-
-          <!-- Fase de Grupos / Liga -->
-          <div class="export-card">
-            <div class="export-card-title">${locale === 'en' ? 'League Phase (144 matches)' : 'Fase Liga (144 partidos)'}</div>
-            <div class="export-btn-group">
-              <button 
-                class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('groups', 'excel')}>
-                ${this.exporting === 'groups-excel' ? '...' : 'EXCEL'}
-              </button>
-              <button 
-                class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
-                ?disabled=${this.exporting !== null}
-                @click=${() => this._exportCalendar('groups', 'pdf')}>
-                ${this.exporting === 'groups-pdf' ? '...' : 'PDF'}
-              </button>
-            </div>
-          </div>
-
-          ${COMPETITION.knockoutEnabled ? html`
-            <!-- Eliminatorias -->
-            <div class="export-card">
-              <div class="export-card-title">${locale === 'en' ? 'Knockout Stage' : 'Fase Eliminatoria'}</div>
-              <div class="export-btn-group">
-                <button 
-                  class="export-btn excel ${this.exporting ? 'disabled' : ''}" 
-                  ?disabled=${this.exporting !== null}
-                  @click=${() => this._exportCalendar('knockout', 'excel')}>
-                  ${this.exporting === 'knockout-excel' ? '...' : 'EXCEL'}
-                </button>
-                <button 
-                  class="export-btn pdf ${this.exporting ? 'disabled' : ''}" 
-                  ?disabled=${this.exporting !== null}
-                  @click=${() => this._exportCalendar('knockout', 'pdf')}>
-                  ${this.exporting === 'knockout-pdf' ? '...' : 'PDF'}
-                </button>
-              </div>
-            </div>
-          ` : ''}
-        </div>
+        <button
+          class="export-btn pdf ${this.exporting ? 'disabled' : ''}"
+          ?disabled=${this.exporting !== null}
+          @click=${() => this._exportPdf()}>
+          ${this.exporting ? '...' : (locale === 'en' ? 'Download PDF' : 'Descargar PDF')}
+        </button>
       </div>
 
       <div class="filters">
@@ -1036,11 +982,6 @@ export class CalendarView extends LitElement {
                 ${locale === 'en' ? 'Today' : 'Hoy'}
               </button>
             ` : ''}
-            ${availableDates.map(date => html`
-              <button class="chip ${this.selectedDate === date ? 'active' : ''}" @click=${() => { this.selectedDate = date; }}>
-                ${this.formatDateLabel(date)}
-              </button>
-            `)}
           </div>
         </div>
 
@@ -1059,7 +1000,7 @@ export class CalendarView extends LitElement {
         </div>
 
         <div class="filter-block">
-          <div class="filter-label">${locale === 'en' ? 'Matchday or round' : 'Jornada o ronda'}</div>
+          <div class="filter-label">${locale === 'en' ? 'Matchday' : 'Jornada'}</div>
           <div class="chips">
             <button class="chip ${this.selectedPhase === 'all' ? 'active' : ''}" @click=${() => { this.selectedPhase = 'all'; }}>
               ${locale === 'en' ? 'All' : 'Todo'}

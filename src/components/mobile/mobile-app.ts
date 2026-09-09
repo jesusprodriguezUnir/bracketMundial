@@ -2,7 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { t, toggleLocale, useLocaleStore } from '../../i18n';
 import { onToast, type ToastEventDetail } from '../../lib/interaction';
-import { useTournamentStore } from '../../store/tournament-store';
+import { useTournamentStore, type ViewMode } from '../../store/tournament-store';
+import { subscribeSlice } from '../../store/store-utils';
 import { useAuthStore } from '../../store/auth-store';
 import { subscribeUnpublished, getUnpublished, publishNow } from '../../lib/prediction-sync';
 import { COMPETITION } from '../../data/competition';
@@ -26,7 +27,7 @@ function isHiddenView(v: MobileView): boolean {
 
 const MAIN_VIEWS: MobileView[] = (['home', 'groups', 'matchday'] as MobileView[])
   .filter(v => !isHiddenView(v));
-const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'players', 'coaches'] as MobileView[])
+const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'players', 'coaches', 'awards'] as MobileView[])
   .filter(v => !isHiddenView(v));
 const ALL_VIEWS: MobileView[] = ([...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'] as MobileView[])
   .filter(v => !isHiddenView(v));
@@ -38,6 +39,7 @@ const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   players:  () => import('../players-view'),
   coaches:  () => import('../coaches-view'),
   bracket:  () => import('../bracket-knockout'),
+  awards:   () => import('./mobile-awards'),
 };
 
 function validView(v: string): v is MobileView {
@@ -57,12 +59,14 @@ export class MobileApp extends LitElement {
   @state() private _loadedViews = new Set<MobileView>(MAIN_VIEWS as MobileView[]);
   @state() private _authEmail: string | null = null;
   @state() private _hasUnpublished = false;
+  @state() private _viewMode: ViewMode = 'predictions';
 
   private _toastTimer?: ReturnType<typeof setTimeout>;
   private _unsubToast?: () => void;
   private _unsubLocale?: () => void;
   private _unsubAuth?: () => void;
   private _unsubUnpublished?: () => void;
+  private _unsubViewMode?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
@@ -87,6 +91,13 @@ export class MobileApp extends LitElement {
     this._hasUnpublished = getUnpublished();
     this._unsubUnpublished = subscribeUnpublished(d => { this._hasUnpublished = d; });
 
+    this._viewMode = useTournamentStore.getState().viewMode;
+    this._unsubViewMode = subscribeSlice(
+      useTournamentStore,
+      s => s.viewMode,
+      mode => { this._viewMode = mode; },
+    );
+
     // Evento de navegación de vistas hijas
     this.addEventListener('mobile-navigate', this._onNavigate as EventListener);
     this.addEventListener('navigate', this._onStandardNavigate as EventListener);
@@ -98,6 +109,7 @@ export class MobileApp extends LitElement {
     this._unsubLocale?.();
     this._unsubAuth?.();
     this._unsubUnpublished?.();
+    this._unsubViewMode?.();
     this.removeEventListener('mobile-navigate', this._onNavigate as EventListener);
     this.removeEventListener('navigate', this._onStandardNavigate as EventListener);
     super.disconnectedCallback();
@@ -173,24 +185,6 @@ export class MobileApp extends LitElement {
     this._sheetOpen = false;
   }
 
-  private _handleExport() {
-    void useTournamentStore.getState().exportExcel();
-    this._sheetOpen = false;
-  }
-
-  private _handleImport() {
-    const inp = this.shadowRoot?.querySelector<HTMLInputElement>('#mobile-file-import');
-    inp?.click();
-    this._sheetOpen = false;
-  }
-
-  private _handleImportFile(e: Event) {
-    const inp = e.target as HTMLInputElement;
-    if (!inp.files?.length) return;
-    void useTournamentStore.getState().importExcel(inp.files[0]);
-    inp.value = '';
-  }
-
   private _toggleTheme() {
     const isDark = document.documentElement.dataset.theme === 'dark';
     const next = isDark ? 'light' : 'dark';
@@ -224,21 +218,14 @@ export class MobileApp extends LitElement {
 
     // Vistas nativas móviles (siempre cargadas)
     if (v === 'home')   return html`<mobile-home class="view-slot active"></mobile-home>`;
-    if (v === 'groups') return html`<league-table-view class="view-slot active"></league-table-view>`;
-    if (v === 'matchday') return html`<matchday-view class="view-slot active"></matchday-view>`;
+    if (v === 'groups') return html`<league-table-view class="view-slot active inset"></league-table-view>`;
+    if (v === 'matchday') return html`<matchday-view class="view-slot active inset"></matchday-view>`;
 
     // Vistas secundarias (reusan los componentes existentes)
     if (!loaded.has(v)) {
       return html`<div class="loading-spinner"></div>`;
     }
-    if (v === 'calendar') return html`
-      <div class="secondary-view">
-        <div class="section-heading">
-          <div class="section-eyebrow">${t('section.calendar.eyebrow')}</div>
-          <div class="section-title">${t('section.calendar.title')}</div>
-        </div>
-        <mobile-calendar></mobile-calendar>
-      </div>`;
+    if (v === 'calendar') return html`<mobile-calendar class="view-slot active"></mobile-calendar>`;
     if (v === 'tv') return html`
       <div class="secondary-view">
         <div class="section-heading">
@@ -275,6 +262,7 @@ export class MobileApp extends LitElement {
         </div>
         <bracket-knockout></bracket-knockout>
       </div>`;
+    if (v === 'awards') return html`<mobile-awards class="view-slot active"></mobile-awards>`;
 
     return html``;
   }
@@ -368,11 +356,46 @@ export class MobileApp extends LitElement {
       scroll-behavior: smooth;
       position: relative;
       /* Avoid content hiding behind bottom-nav */
-      padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+      padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
     }
     .app-main::-webkit-scrollbar { width: 0; }
 
     .view-slot { display: block; animation: viewIn 0.25s ease both; }
+    .view-slot.inset { padding: 12px 12px 0; }
+
+    .mode-bar {
+      display: flex;
+      gap: 4px;
+      margin: 0 12px 4px;
+      padding: 4px;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      background: var(--fill);
+    }
+    .mode-btn {
+      all: unset;
+      flex: 1;
+      cursor: pointer;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mode-btn.active {
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+    .mode-btn.real.active {
+      background: var(--retro-green);
+      color: #04121c;
+    }
     @keyframes viewIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
     .secondary-view { padding: 0 0 32px; }
@@ -581,6 +604,20 @@ export class MobileApp extends LitElement {
 
       <!-- Main -->
       <main class="app-main" role="main">
+        ${this._view === 'groups' || this._view === 'matchday' ? html`
+          <div class="mode-bar">
+            <button
+              class="mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
+              @click=${() => useTournamentStore.getState().setViewMode('predictions')}>
+              ${t('viewMode.predictions')}
+            </button>
+            <button
+              class="mode-btn real ${this._viewMode === 'real' ? 'active' : ''}"
+              @click=${() => useTournamentStore.getState().setViewMode('real')}>
+              ${t('viewMode.real')}
+            </button>
+          </div>
+        ` : ''}
         ${this._renderView()}
       </main>
 
@@ -688,20 +725,6 @@ export class MobileApp extends LitElement {
                 <span class="si-sub">${locale === 'es' ? 'Genera un enlace' : 'Generate a link'}</span>
               </span>
             </button>
-            <button class="sheet-item" @click="${this._handleExport}">
-              <span class="si-glyph">⤓</span>
-              <span class="si-text">
-                <span>${t('header.excel')}</span>
-                <span class="si-sub">${locale === 'es' ? 'Exportar como archivo' : 'Export as file'}</span>
-              </span>
-            </button>
-            <button class="sheet-item" @click="${this._handleImport}">
-              <span class="si-glyph">⤒</span>
-              <span class="si-text">
-                <span>${t('header.importExcel')}</span>
-                <span class="si-sub">${locale === 'es' ? 'Cargar predicción' : 'Load prediction'}</span>
-              </span>
-            </button>
             ${this._authEmail ? html`
               <button class="sheet-item" @click="${this._handlePublish}">
                 <span class="si-glyph">☁</span>
@@ -764,9 +787,6 @@ export class MobileApp extends LitElement {
 
       <!-- Toast -->
       ${this._toastMsg ? html`<div class="toast" role="status" aria-live="polite">${this._toastMsg}</div>` : ''}
-
-      <!-- Input de importación oculto -->
-      <input type="file" id="mobile-file-import" style="display:none" accept=".xlsx" @change="${this._handleImportFile}">
     `;
   }
 }

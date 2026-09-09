@@ -1,11 +1,12 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore, type GroupMatchResult } from '../store/tournament-store';
+import { useTournamentStore, type GroupMatchResult, type ViewMode } from '../store/tournament-store';
 import { subscribeSlice } from '../store/store-utils';
 import { renderFlag } from '../lib/render-flag';
 import { TEAMS_2026 } from '../data/fifa-2026';
 import { COMPETITION } from '../data/competition';
 import { formatShortDate, isMatchPending } from '../lib/date-utils';
+import { isMatchLive } from '../lib/match-window';
 import { openMatchModal } from '../lib/match-modal-service';
 import { showToast } from '../lib/interaction';
 import { t, useLocaleStore } from '../i18n';
@@ -26,6 +27,7 @@ export class MatchdayView extends LitElement {
   @state() private _matches: GroupMatchResult[] = [];
   @state() private _matchday = 1;
   @state() private _flash: string | null = null;
+  @state() private _viewMode: ViewMode = 'predictions';
   private _unsub?: () => void;
   private _unsubLocale?: () => void;
 
@@ -43,6 +45,16 @@ export class MatchdayView extends LitElement {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+    }
+    @media (max-width: 768px) {
+      .toolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .toolbar::-webkit-scrollbar { display: none; }
+      .md-btn { flex-shrink: 0; }
     }
     .md-btn {
       all: unset;
@@ -158,6 +170,20 @@ export class MatchdayView extends LitElement {
     }
     .meta-details { display: flex; gap: 8px; align-items: center; }
     .meta-hint { font-size: 9px; color: var(--ink-muted); opacity: 0.8; }
+    .live-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--retro-red);
+      border: 1px solid var(--retro-red);
+      border-radius: var(--radius-pill);
+      padding: 2px 6px;
+    }
+    @media (max-width: 768px) {
+      .toolbar-actions { width: 100%; flex-wrap: wrap; }
+      .action-btn { font-size: 9px; padding: 7px 9px; }
+    }
     .inline-score-row {
       display: flex;
       justify-content: center;
@@ -171,14 +197,20 @@ export class MatchdayView extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     const read = () => {
-      const matches = useTournamentStore.getState().groupMatches;
-      this._matches = matches;
-      if (!this._matchday) this._matchday = currentMatchday(matches);
+      const st = useTournamentStore.getState();
+      this._matches = st.groupMatches;
+      this._viewMode = st.viewMode;
+      if (!this._matchday) this._matchday = currentMatchday(st.groupMatches);
     };
     const s = useTournamentStore.getState();
     this._matches = s.groupMatches;
+    this._viewMode = s.viewMode;
     this._matchday = currentMatchday(s.groupMatches);
-    this._unsub = subscribeSlice(useTournamentStore, st => st.groupMatches, () => read());
+    this._unsub = subscribeSlice(
+      useTournamentStore,
+      st => `${st.viewMode}|${st.groupMatches.map(m => `${m.matchId}:${m.scoreA}-${m.scoreB}`).join(',')}`,
+      () => read(),
+    );
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
   }
 
@@ -264,7 +296,7 @@ export class MatchdayView extends LitElement {
         </div>
         <div class="toolbar-actions">
           <span class="progress-pill">${filledCount}/${totalCount}</span>
-          ${open ? html`
+          ${open && this._viewMode !== 'real' ? html`
             <button class="action-btn" @click=${this._simulateCurrentMatchday}>
               🎲 ${locale === 'es' ? `Simular J${this._matchday}` : `Simulate MD${this._matchday}`}
             </button>
@@ -282,7 +314,8 @@ export class MatchdayView extends LitElement {
           const tA = teamById(m.teamA);
           const tB = teamById(m.teamB);
           const pending = isMatchPending(m.date ?? '', m.timeSpain ?? '');
-          const editable = open && store.isMatchEditable(m.matchId) && pending;
+          const live = isMatchLive(m.date ?? '', m.timeSpain ?? '');
+          const editable = open && this._viewMode !== 'real' && store.isMatchEditable(m.matchId) && pending;
           const played = m.scoreA !== null && m.scoreB !== null;
           return html`
             <div
@@ -320,6 +353,7 @@ export class MatchdayView extends LitElement {
                 <div class="meta-details">
                   <span>${m.date ? formatShortDate(m.date) : ''}</span>
                   ${m.timeSpain ? html`<span>${m.timeSpain}</span>` : ''}
+                  ${live ? html`<span class="live-badge">${t('matchday.live')}</span>` : ''}
                   ${m.venue ? html`<span>${m.venue}</span>` : ''}
                 </div>
                 <span class="meta-hint">${locale === 'es' ? 'Detalle ▶' : 'Detail ▶'}</span>

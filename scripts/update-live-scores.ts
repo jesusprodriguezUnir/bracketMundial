@@ -10,6 +10,7 @@ const ROOT = join(__dirname, '..');
 import { TEAMS_2026, KNOCKOUT_BRACKET } from '../src/data/fifa-2026';
 import { KNOCKOUT_SCHEDULE } from '../src/data/match-schedule';
 import { GROUP_MATCHES } from '../src/data/league-schedule';
+import { isWithinScoreSyncWindow } from '../src/lib/match-window';
 import { UCL_API_TEAMS } from '../src/data/ucl-2027';
 import { COMPETITION } from '../src/data/competition';
 import { decodeBracket, encodeBracket } from '../src/lib/bracket-codec';
@@ -105,31 +106,7 @@ function printScoreTable(
 }
 
 // ── Detección de partido activo (skip inteligente) ───────────────────────────
-/**
- * Devuelve true si hay al menos un partido programado dentro de la ventana
- * [-30min, +3h] del momento actual. Eso es "hay fútbol ahora o en breve".
- *
- * Si no hay partido en esa ventana y la última run de Supabase tiene <1h,
- * el caller puede decidir saltarse esta ejecución y ahorrar cuota de API.
- */
-function hasMatchInProgress(now: Date): boolean {
-  // CEST = UTC+2 en verano 2026. timeSpain es HH:MM CEST.
-  const nowMs = now.getTime();
-  const windowStart = nowMs - 30 * 60 * 1000;
-  const windowEnd = nowMs + 3 * 60 * 60 * 1000;
-
-  for (const m of GROUP_MATCHES) {
-    const iso = `${m.date}T${m.timeSpain}:00+02:00`;
-    const t = new Date(iso).getTime();
-    if (t >= windowStart && t <= windowEnd) return true;
-  }
-  for (const m of Object.values(KNOCKOUT_SCHEDULE)) {
-    const iso = `${m.date}T${m.timeSpain}:00+02:00`;
-    const t = new Date(iso).getTime();
-    if (t >= windowStart && t <= windowEnd) return true;
-  }
-  return false;
-}
+/** True si hay fútbol en [kickoff − 30 min, kickoff + 3 h] de algún partido. */
 
 // ── name normalization + Levenshtein similarity ──────────────────────────────
 function normalizeStr(s: string) {
@@ -317,7 +294,7 @@ async function recordRun(sb: SupabaseClient, row: {
 // ── Skip inteligente: si no hay partido en ventana y última run <1h, salta ──
 async function shouldSkip(sb: SupabaseClient): Promise<{ skip: boolean; reason: string }> {
   if (FORCE) return { skip: false, reason: 'force' };
-  if (hasMatchInProgress(new Date())) return { skip: false, reason: 'match_in_window' };
+  if (isWithinScoreSyncWindow(new Date())) return { skip: false, reason: 'match_in_window' };
 
   const { data } = await sb
     .from('score_sync_runs')

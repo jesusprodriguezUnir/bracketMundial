@@ -23,7 +23,7 @@ export async function loadOfficialResults(): Promise<DecodedBracket | null> {
 // Una única fuente para toda la app: se fetchéa con throttle y los
 // suscriptores (store, leagues-view…) reciben cada bracket nuevo.
 
-const REFRESH_THROTTLE_MS = 60_000;
+const REFRESH_THROTTLE_MS = 30_000;
 
 type OfficialResultsListener = (bracket: DecodedBracket) => void;
 
@@ -33,7 +33,7 @@ let _inflight: Promise<DecodedBracket | null> | null = null;
 const _listeners = new Set<OfficialResultsListener>();
 
 /**
- * Fetch + decode de `official_results` con throttle de 60 s (`force` lo salta).
+ * Fetch + decode de `official_results` con throttle de 30 s (`force` lo salta).
  * Notifica a los suscriptores cuando hay bracket. Devuelve el último conocido.
  */
 export async function refreshOfficialResults(opts?: { force?: boolean }): Promise<DecodedBracket | null> {
@@ -70,7 +70,7 @@ export function subscribeOfficialResults(cb: OfficialResultsListener): () => voi
 // re-evaluar el estado en cada tick. La pestaña oculta no fetchéa (el
 // visibilitychange de app-root refresca al volver, y el throttle dedupea).
 
-const POLL_LIVE_MS = 90_000;            // > throttle de 60 s → cada tick fetchéa de verdad
+const POLL_LIVE_MS = 35_000;            // > throttle de 30 s → cada tick fetchéa de verdad
 const POLL_MATCHDAY_MS = 600_000;       // 10 min
 const POLL_IDLE_RECHECK_MS = 1_800_000; // 30 min: re-evaluar ventana sin fetch
 

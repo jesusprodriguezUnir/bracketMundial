@@ -862,31 +862,20 @@ export class AppRoot extends LitElement {
     this.requestUpdate();
   }
 
-  private handleExcelExport() {
-    useTournamentStore.getState().exportExcel();
-  }
-
   private _toggleMoreMenu(e: Event) {
     e.stopPropagation();
     this._moreMenuOpen = !this._moreMenuOpen;
     this._calendarMenuOpen = false;
   }
 
-  private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
+  private async _exportCalendarPdf() {
     this._calendarMenuOpen = false;
     this._moreMenuOpen = false;
-    const {
-      exportCalendarExcel,
-      exportCalendarPdf,
-      fileNameBase,
-      triggerDownload,
-    } = await import('./lib/calendar-export-service');
+    const { exportCalendarPdf, fileNameBase, triggerDownload } =
+      await import('./lib/calendar-export-service');
     const locale = useLocaleStore.getState().locale;
-    const ext = format === 'excel' ? 'xlsx' : 'pdf';
-    const blob = format === 'excel'
-      ? await exportCalendarExcel(phase, locale)
-      : await exportCalendarPdf(phase, locale);
-    triggerDownload(blob, `${fileNameBase(phase, locale)}.${ext}`);
+    const blob = await exportCalendarPdf('groups', locale);
+    triggerDownload(blob, `${fileNameBase('groups', locale)}.pdf`);
   }
 
   private async handleShare() {
@@ -897,19 +886,6 @@ export class AppRoot extends LitElement {
   private async _handleAuth() {
     const { openAuthModal } = await import('./components/auth-modal');
     openAuthModal();
-  }
-
-  private triggerImportExcel() {
-    const fileInput = this.shadowRoot?.querySelector('#excel-upload') as HTMLInputElement;
-    if (fileInput) fileInput.click();
-  }
-
-  private handleExcelFileChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    const file = input.files[0];
-    useTournamentStore.getState().importExcel(file);
-    input.value = '';
   }
 
   render() {
@@ -964,7 +940,6 @@ export class AppRoot extends LitElement {
               ${this._authEmail
                 ? html`<button class="ha-btn-sm" @click="${this._handleAuth}" title="${this._authEmail}">${this._authEmail}</button>`
                 : html`<button class="ha-btn-primary" @click="${this._handleAuth}">${t('header.signInTitle')}</button>`}
-              <input type="file" id="excel-upload" style="display:none" accept=".xlsx" @change="${this.handleExcelFileChange}">
               <button class="ha-btn-sm" @click="${this._toggleTheme}" title="${this._isDark ? t('header.dayTitle') : t('header.nightTitle')}">
                 ${this._isDark ? html`☀️` : html`🌙`}
               </button>
@@ -974,12 +949,6 @@ export class AppRoot extends LitElement {
                 @click="${this.handleShare}"
                 title="${t('header.share')}">
                 ${t('header.share')}
-              </button>
-              <button
-                class="ha-btn-ghost"
-                @click="${this.handleExcelExport}"
-                title="${t('header.exportExcelTitle')}">
-                ⬇ ${t('header.excel')}
               </button>
               <div class="dropdown-wrap">
                 <button
@@ -992,18 +961,8 @@ export class AppRoot extends LitElement {
                 ${this._moreMenuOpen ? html`
                   <div class="more-dropdown">
                     <div class="dropdown-section">
-                      <span>${t('header.excel')}</span>
-                      <button @click="${() => { this._moreMenuOpen = false; this.handleExcelExport(); }}">
-                        ⬇ ${t('header.exportExcel')}
-                      </button>
-                      <button @click="${() => { this._moreMenuOpen = false; this.triggerImportExcel(); }}">
-                        ⬆ ${t('header.importExcel')}
-                      </button>
-                    </div>
-                    <div class="dropdown-section">
                       <span>${t('tabs.calendar')}</span>
-                      <button @click="${() => this._exportCalendar('all', 'excel')}">${t('calendar.exportAllExcel')}</button>
-                      <button @click="${() => this._exportCalendar('all', 'pdf')}">${t('calendar.exportAllPdf')}</button>
+                      <button @click="${() => this._exportCalendarPdf()}">${t('calendar.exportAllPdf')}</button>
                     </div>
                   </div>
                 ` : ''}

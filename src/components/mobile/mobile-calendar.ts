@@ -84,16 +84,19 @@ function formatGoogleCalendarLocal(date: Date, timeZone: string): string {
   return `${parts.year}${pad(parts.month)}${pad(parts.day)}T${pad(parts.hour)}${pad(parts.minute)}${pad(parts.second)}`;
 }
 
-/** Calendario nativo móvil: tarjetas-cromo, acordeón día a día con foco en hoy,
- *  filtros por ronda/sede y exportación Excel/PDF. */
+function dayHeading(iso: string): string {
+  const s = formatFullDate(iso);
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+/** Calendario nativo móvil: tarjetas por día, foco en hoy y PDF de la fase liga. */
 @customElement('mobile-calendar')
 export class MobileCalendar extends LitElement {
   @state() private _selectedDate = 'all';
   @state() private _selectedVenue = 'all';
   @state() private _selectedPhase = 'all';
   @state() private _toggledDays = new Set<string>();
-  @state() private _exporting: string | null = null;
-  @state() private _showExport = false;
+  @state() private _exporting = false;
 
   private _unsubStore?: () => void;
   private _unsubLocale?: () => void;
@@ -108,6 +111,8 @@ export class MobileCalendar extends LitElement {
       (a, b) => a.gm === b.gm && a.km === b.km,
     );
     this._unsubLocale = useLocaleStore.subscribe(() => this.requestUpdate());
+    const today = this._getTodayKey();
+    if (this._getRows().some(r => r.date === today)) this._selectedDate = today;
   }
 
   disconnectedCallback() {
@@ -248,7 +253,7 @@ export class MobileCalendar extends LitElement {
   }
 
   private _scrollToToday() {
-    if (this._didScrollToToday) return;
+    if (this._didScrollToToday || this._selectedDate !== 'all') return;
     const section = this._findTodaySection();
     if (!section) return;
     this._didScrollToToday = true;
@@ -304,23 +309,19 @@ export class MobileCalendar extends LitElement {
     });
   }
 
-  private async _exportCalendar(phase: 'all' | 'groups' | 'knockout', format: 'excel' | 'pdf') {
-    const key = `${phase}-${format}`;
+  private async _exportPdf() {
     if (this._exporting) return;
-    this._exporting = key;
+    this._exporting = true;
     try {
-      const { exportCalendarExcel, exportCalendarPdf, fileNameBase, triggerDownload } =
+      const { exportCalendarPdf, fileNameBase, triggerDownload } =
         await import('../../lib/calendar-export-service');
       const locale = useLocaleStore.getState().locale;
-      const ext = format === 'excel' ? 'xlsx' : 'pdf';
-      const blob = format === 'excel'
-        ? await exportCalendarExcel(phase, locale)
-        : await exportCalendarPdf(phase, locale);
-      triggerDownload(blob, `${fileNameBase(phase, locale)}.${ext}`);
+      const blob = await exportCalendarPdf('groups', locale);
+      triggerDownload(blob, `${fileNameBase('groups', locale)}.pdf`);
     } catch (err) {
       console.error(err);
     } finally {
-      this._exporting = null;
+      this._exporting = false;
     }
   }
 
@@ -330,10 +331,38 @@ export class MobileCalendar extends LitElement {
       :host { display: block; }
 
       /* ── Filtros ── */
+      .cal-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        background: var(--paper);
+        padding: 12px 0 8px;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .cal-kicker {
+        padding: 0 16px 8px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .cal-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px 10px;
+      }
+      .cal-pdf {
+        margin-left: auto;
+        min-height: 38px;
+        padding: 8px 12px;
+        font-size: 11px;
+      }
       .cal-filters {
         display: grid;
         gap: 10px;
-        padding: 0 16px 12px;
+        padding: 0 16px 8px;
       }
       .cal-filter-label {
         font-family: var(--font-mono);
@@ -460,7 +489,6 @@ export class MobileCalendar extends LitElement {
         font-family: var(--font-var);
         font-size: 17px;
         line-height: 1;
-        text-transform: capitalize;
         font-weight: 800;
       }
       .cal-day-tag {
@@ -619,91 +647,51 @@ export class MobileCalendar extends LitElement {
     `,
   ];
 
-  private _renderFilters(availableDates: string[], todayKey: string, locale: string) {
-    const hasToday = availableDates.includes(todayKey);
+  private _renderToolbar(todayKey: string, locale: string) {
+    const hasToday = this._getRows().some(r => r.date === todayKey);
     const matchDays = Array.from({ length: COMPETITION.matchdays }, (_, i) => i + 1);
     const availableCities = [...new Set(this._getRows().map(r => r.city).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
     return html`
-      <div class="cal-filters">
-        <div>
-          <div class="cal-filter-label">${locale === 'en' ? 'Day' : 'Día'}</div>
-          <div class="cal-chips">
-            <button class="cal-chip ${this._selectedDate === 'all' ? 'active' : ''}"
-                    @click=${() => { this._selectedDate = 'all'; }}>${locale === 'en' ? 'All' : 'Todos'}</button>
-            ${hasToday ? html`
-              <button class="cal-chip today ${this._selectedDate === todayKey ? 'active' : ''}"
-                      @click=${() => { this._selectedDate = todayKey; }}>${locale === 'en' ? 'Today' : 'Hoy'}</button>
-            ` : ''}
-            ${availableDates.map(d => html`
-              <button class="cal-chip ${this._selectedDate === d ? 'active' : ''}"
-                      @click=${() => { this._selectedDate = d; }}>${formatFullDate(d)}</button>
-            `)}
-          </div>
-        </div>
-
-        <div>
-          <div class="cal-filter-label">${locale === 'en' ? 'Matchday or round' : 'Jornada o ronda'}</div>
-          <div class="cal-chips">
-            <button class="cal-chip ${this._selectedPhase === 'all' ? 'active' : ''}"
-                    @click=${() => { this._selectedPhase = 'all'; }}>${locale === 'en' ? 'All' : 'Todo'}</button>
-            ${matchDays.map(md => html`
-              <button class="cal-chip ${this._selectedPhase === `MD${md}` ? 'active' : ''}"
-                      @click=${() => { this._selectedPhase = `MD${md}`; }}>
-                ${locale === 'en' ? `Matchday ${md}` : `Jornada ${md}`}
-              </button>
-            `)}
-            ${COMPETITION.knockoutEnabled ? KNOCKOUT_LABEL_KEYS.map(phase => html`
-              <button class="cal-chip ${this._selectedPhase === phase.key ? 'active' : ''}"
-                      @click=${() => { this._selectedPhase = phase.key; }}>${t(phase.i18nKey)}</button>
-            `) : ''}
-          </div>
-        </div>
-
-        <div>
-          <div class="cal-filter-label">${locale === 'en' ? 'Host city' : 'Ciudad sede'}</div>
-          <div class="cal-chips">
-            <button class="cal-chip ${this._selectedVenue === 'all' ? 'active' : ''}"
-                    @click=${() => { this._selectedVenue = 'all'; }}>${locale === 'en' ? 'All' : 'Todas'}</button>
-            ${availableCities.map(city => html`
-              <button class="cal-chip ${this._selectedVenue === city ? 'active' : ''}"
-                      @click=${() => { this._selectedVenue = city; }}>${city}</button>
-            `)}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  private _renderExport(locale: string) {
-    const card = (label: string, phase: 'all' | 'groups' | 'knockout') => html`
-      <div>
-        <div class="cal-export-card-title">${label}</div>
-        <div class="cal-export-row">
-          <button class="btn excel" ?disabled=${this._exporting !== null}
-                  @click=${() => this._exportCalendar(phase, 'excel')}>
-            ${this._exporting === `${phase}-excel` ? '...' : 'EXCEL'}
-          </button>
-          <button class="btn pdf" ?disabled=${this._exporting !== null}
-                  @click=${() => this._exportCalendar(phase, 'pdf')}>
-            ${this._exporting === `${phase}-pdf` ? '...' : 'PDF'}
+      <div class="cal-sticky">
+        <div class="cal-kicker">${locale === 'en' ? 'Schedule · 144 matches' : 'Calendario · 144 partidos'}</div>
+        <div class="cal-toolbar">
+          <button class="cal-chip ${this._selectedDate === 'all' ? 'active' : ''}"
+                  @click=${() => { this._selectedDate = 'all'; }}>${locale === 'en' ? 'All' : 'Todos'}</button>
+          ${hasToday ? html`
+            <button class="cal-chip today ${this._selectedDate === todayKey ? 'active' : ''}"
+                    @click=${() => { this._selectedDate = todayKey; }}>${locale === 'en' ? 'Today' : 'Hoy'}</button>
+          ` : ''}
+          <button class="btn pdf cal-pdf" ?disabled=${this._exporting} @click=${() => this._exportPdf()}>
+            ${this._exporting ? '...' : (locale === 'en' ? '⬇ PDF' : '⬇ PDF')}
           </button>
         </div>
-      </div>
-    `;
-    return html`
-      <div class="cal-export">
-        <button class="cal-export-toggle" @click=${() => { this._showExport = !this._showExport; }}>
-          <span>⬇ ${locale === 'en' ? 'DOWNLOAD CALENDAR' : 'DESCARGAR CALENDARIO'}</span>
-          <span>${this._showExport ? '▲' : '▼'}</span>
-        </button>
-        ${this._showExport ? html`
-          <div class="cal-export-panel">
-            ${card(locale === 'en' ? 'Full tournament (144 matches)' : 'Torneo completo (144 partidos)', 'all')}
-            ${card(locale === 'en' ? 'League phase (144 matches)' : 'Fase liga (144 partidos)', 'groups')}
-            ${COMPETITION.knockoutEnabled ? card(locale === 'en' ? 'Knockout stage' : 'Fase eliminatoria', 'knockout') : ''}
+        <div class="cal-filters">
+          <div>
+            <div class="cal-filter-label">${locale === 'en' ? 'Matchday' : 'Jornada'}</div>
+            <div class="cal-chips">
+              <button class="cal-chip ${this._selectedPhase === 'all' ? 'active' : ''}"
+                      @click=${() => { this._selectedPhase = 'all'; }}>${locale === 'en' ? 'All' : 'Todas'}</button>
+              ${matchDays.map(md => html`
+                <button class="cal-chip ${this._selectedPhase === `MD${md}` ? 'active' : ''}"
+                        @click=${() => { this._selectedPhase = `MD${md}`; }}>
+                  ${locale === 'en' ? `MD${md}` : `J${md}`}
+                </button>
+              `)}
+            </div>
           </div>
-        ` : ''}
+          <div>
+            <div class="cal-filter-label">${locale === 'en' ? 'City' : 'Ciudad'}</div>
+            <div class="cal-chips">
+              <button class="cal-chip ${this._selectedVenue === 'all' ? 'active' : ''}"
+                      @click=${() => { this._selectedVenue = 'all'; }}>${locale === 'en' ? 'All' : 'Todas'}</button>
+              ${availableCities.map(city => html`
+                <button class="cal-chip ${this._selectedVenue === city ? 'active' : ''}"
+                        @click=${() => { this._selectedVenue = city; }}>${city}</button>
+              `)}
+            </div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -747,7 +735,8 @@ export class MobileCalendar extends LitElement {
           <span class="cal-venue">${row.venue} · ${row.city}</span>
           ${gcalUrl ? html`
             <a class="gcal-btn" href=${gcalUrl} target="_blank" rel="noopener noreferrer"
-               @click=${(e: Event) => e.stopPropagation()}>📅 ${locale_gcal()}</a>
+               aria-label=${locale_gcal()}
+               @click=${(e: Event) => e.stopPropagation()}>📅</a>
           ` : ''}
         </div>
       </div>
@@ -757,13 +746,11 @@ export class MobileCalendar extends LitElement {
   render() {
     const rows = this._getFilteredRows();
     const grouped = this._getGroupedRows(rows);
-    const availableDates = [...new Set(this._getRows().map(row => row.date))];
     const locale = useLocaleStore.getState().locale;
     const todayKey = this._getTodayKey();
 
     return html`
-      ${this._renderExport(locale)}
-      ${this._renderFilters(availableDates, todayKey, locale)}
+      ${this._renderToolbar(todayKey, locale)}
 
       <div class="cal-summary">${rows.length} ${locale === 'en' ? 'matches' : 'partidos'}</div>
 
@@ -779,7 +766,7 @@ export class MobileCalendar extends LitElement {
               <svg class="cal-day-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
-              <span class="cal-day-title">${formatFullDate(date)}</span>
+              <span class="cal-day-title">${dayHeading(date)}</span>
               ${isToday ? html`<span class="cal-day-tag">${locale === 'en' ? 'TODAY' : 'HOY'}</span>` : ''}
               <span class="cal-day-count">${dateRows.length}</span>
             </button>

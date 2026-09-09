@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getMatchWindowInfo, kickoffMs, getAllKickoffsMs } from './match-window';
+import { getMatchWindowInfo, kickoffMs, getAllKickoffsMs, isMatchLive, isWithinScoreSyncWindow } from './match-window';
+import { COMPETITION } from '../data/competition';
 import { GROUP_MATCHES, KNOCKOUT_SCHEDULE } from '../data/match-schedule';
 
 const m1 = GROUP_MATCHES[0];
@@ -18,7 +19,9 @@ describe('kickoffMs', () => {
 describe('getAllKickoffsMs', () => {
   it('incluye todos los partidos de liga y knockout ordenados ascendente', () => {
     const ks = getAllKickoffsMs();
-    expect(ks.length).toBe(GROUP_MATCHES.length + Object.keys(KNOCKOUT_SCHEDULE).length);
+    const expected = GROUP_MATCHES.length
+      + (COMPETITION.knockoutEnabled ? Object.keys(KNOCKOUT_SCHEDULE).length : 0);
+    expect(ks.length).toBe(expected);
     for (let i = 1; i < ks.length; i++) expect(ks[i]).toBeGreaterThanOrEqual(ks[i - 1]);
   });
 });
@@ -56,5 +59,33 @@ describe('getMatchWindowInfo', () => {
     const info = getMatchWindowInfo(new Date('2027-06-06T12:00:00Z'));
     expect(info.state).toBe('idle');
     expect(info.msToNextLiveWindow).toBeNull();
+  });
+});
+
+describe('isMatchLive', () => {
+  it('es false antes del kickoff y true a los 45 min', () => {
+    expect(isMatchLive(m1.date, m1.timeSpain, new Date(m1Kick - 1_000))).toBe(false);
+    expect(isMatchLive(m1.date, m1.timeSpain, new Date(m1Kick + 45 * 60_000))).toBe(true);
+  });
+
+  it('es false 3 h después del kickoff', () => {
+    expect(isMatchLive(m1.date, m1.timeSpain, new Date(m1Kick + 3 * 3_600_000))).toBe(false);
+  });
+});
+
+describe('isWithinScoreSyncWindow', () => {
+  it('cubre el segundo tiempo (kickoff + 45 min), no solo ±30 min alrededor de ahora', () => {
+    expect(isWithinScoreSyncWindow(new Date(m1Kick + 45 * 60_000))).toBe(true);
+    expect(isWithinScoreSyncWindow(new Date(m1Kick + 2 * 3_600_000))).toBe(true);
+  });
+
+  it('abre 30 min antes del primer kickoff y cierra 3 h después del último', () => {
+    const kicks = getAllKickoffsMs();
+    const first = kicks[0];
+    const last = kicks[kicks.length - 1];
+    expect(isWithinScoreSyncWindow(new Date(first - 30 * 60_000))).toBe(true);
+    expect(isWithinScoreSyncWindow(new Date(first - 30 * 60_000 - 1_000))).toBe(false);
+    expect(isWithinScoreSyncWindow(new Date(last + 3 * 3_600_000))).toBe(true);
+    expect(isWithinScoreSyncWindow(new Date(last + 3 * 3_600_000 + 1_000))).toBe(false);
   });
 });

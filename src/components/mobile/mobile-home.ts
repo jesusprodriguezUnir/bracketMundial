@@ -1,11 +1,26 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { useTournamentStore } from '../../store/tournament-store';
+import { useTournamentStore, type GroupMatchResult } from '../../store/tournament-store';
 import { subscribeSlice } from '../../store/store-utils';
 import { t, useLocaleStore } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
 import { showToast } from '../../lib/interaction';
 import { getCountdownValues, getTournamentPhase, type TournamentPhase } from '../../lib/tournament-phase';
+import { TEAMS_2026 } from '../../data/fifa-2026';
+import { COMPETITION } from '../../data/competition';
+import { renderFlag } from '../../lib/render-flag';
+import { formatShortDate } from '../../lib/date-utils';
+import { isMatchLive } from '../../lib/match-window';
+
+const HERO_CLUBS = ['RMA', 'BAR', 'MCI', 'LIV', 'BAY', 'PSG', 'INT', 'NAP'] as const;
+
+function todayIsoSpain(): string {
+  return new Date(Date.now() + 2 * 3_600_000).toISOString().slice(0, 10);
+}
+
+function teamById(id: string) {
+  return TEAMS_2026.find(x => x.id === id);
+}
 
 /**
  * Vista de inicio del shell móvil: hero, stats, countdown, simulación y quick-grid.
@@ -16,6 +31,7 @@ export class MobileHome extends LitElement {
   @state() private _phase: TournamentPhase = getTournamentPhase();
   @state() private _cd = getCountdownValues();
   @state() private _played = 0;
+  @state() private _matches: GroupMatchResult[] = [];
 
   private _timer?: ReturnType<typeof setInterval>;
   private _unsub?: () => void;
@@ -31,12 +47,18 @@ export class MobileHome extends LitElement {
     }
     this._unsub = subscribeSlice(
       useTournamentStore,
-      s => s.groupMatches.filter(m => m.scoreA !== null).length + Object.values(s.knockoutMatches).filter(m => m.isPlayed).length,
-      played => { this._played = played; },
+      s => s.groupMatches,
+      matches => {
+        this._matches = matches;
+        this._played = matches.filter(m => m.scoreA !== null).length
+          + Object.values(useTournamentStore.getState().knockoutMatches).filter(m => m.isPlayed).length;
+      },
     );
+    const s = useTournamentStore.getState();
+    this._matches = s.groupMatches;
     this._played =
-      useTournamentStore.getState().groupMatches.filter(m => m.scoreA !== null).length +
-      Object.values(useTournamentStore.getState().knockoutMatches).filter(m => m.isPlayed).length;
+      s.groupMatches.filter(m => m.scoreA !== null).length +
+      Object.values(s.knockoutMatches).filter(m => m.isPlayed).length;
   }
 
   disconnectedCallback() {
@@ -53,6 +75,7 @@ export class MobileHome extends LitElement {
     const store = useTournamentStore.getState();
     store.autoSimulateGroups();
     store.autoSimulateKnockout();
+    this._matches = store.groupMatches;
     this._played =
       store.groupMatches.filter(m => m.scoreA !== null).length +
       Object.values(store.knockoutMatches).filter(m => m.isPlayed).length;
@@ -65,6 +88,7 @@ export class MobileHome extends LitElement {
     if (confirm(locale === 'es' ? '¿Reiniciar todo el torneo?' : 'Reset the whole tournament?')) {
       const store = useTournamentStore.getState();
       store.resetTournament();
+      this._matches = store.groupMatches;
       this._played = 0;
       showToast(locale === 'es' ? 'Torneo reiniciado 🔄' : 'Tournament reset 🔄');
     }
@@ -121,12 +145,17 @@ export class MobileHome extends LitElement {
         margin-top: 14px;
         max-width: 30ch;
       }
-      .hero-flags {
+      .hero-crests {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         margin-top: 16px;
-        font-size: 20px;
         flex-wrap: wrap;
+        align-items: center;
+      }
+      .hero-crests img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
       }
       .hero-cta { margin-top: 20px; }
 
@@ -359,13 +388,135 @@ export class MobileHome extends LitElement {
         letter-spacing: 0.12em;
         text-transform: uppercase;
       }
+
+      .today-card {
+        margin: 0 16px 16px;
+        background: var(--card-grad);
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+      .today-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px 8px;
+      }
+      .today-title {
+        font-family: var(--font-var);
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+      .today-link {
+        all: unset;
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        touch-action: manipulation;
+      }
+      .today-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-top: 1px solid var(--hairline);
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .today-row:active { background: var(--fill); }
+      .today-side { display: flex; align-items: center; gap: 6px; min-width: 0; }
+      .today-side.away { justify-content: flex-end; }
+      .today-side img { width: 22px; height: 22px; object-fit: contain; }
+      .today-name {
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .today-score {
+        font-family: var(--font-var);
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .today-meta {
+        grid-column: 1 / -1;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--ink-muted);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .live-badge {
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: var(--retro-red);
+        border: 1px solid var(--retro-red);
+        border-radius: var(--radius-pill);
+        padding: 1px 6px;
+      }
     `,
   ];
+
+  private _renderToday() {
+    const today = todayIsoSpain();
+    const rows = this._matches
+      .filter(m => m.date === today)
+      .sort((a, b) => `${a.timeSpain}`.localeCompare(`${b.timeSpain}`));
+    if (rows.length === 0) return html``;
+
+    return html`
+      <div class="today-card">
+        <div class="today-head">
+          <div class="today-title">⚽ ${t('home.today')}</div>
+          <button class="today-link" @click="${() => this._navigate('matchday')}">
+            ${t('tabs.matchday')} ▶
+          </button>
+        </div>
+        ${rows.map(m => {
+          const tA = teamById(m.teamA);
+          const tB = teamById(m.teamB);
+          const played = m.scoreA !== null && m.scoreB !== null;
+          const live = isMatchLive(m.date ?? '', m.timeSpain ?? '');
+          return html`
+            <div class="today-row" @click="${() => this._navigate('matchday')}">
+              <div class="today-side">
+                ${renderFlag(tA, { size: 'sm' })}
+                <span class="today-name">${tA?.shortName ?? m.teamA}</span>
+              </div>
+              <div class="today-score">${played ? `${m.scoreA}–${m.scoreB}` : (m.timeSpain ?? '–')}</div>
+              <div class="today-side away">
+                <span class="today-name">${tB?.shortName ?? m.teamB}</span>
+                ${renderFlag(tB, { size: 'sm' })}
+              </div>
+              <div class="today-meta">
+                <span>${m.date ? formatShortDate(m.date) : ''}</span>
+                ${live ? html`<span class="live-badge">${t('matchday.live')}</span>` : ''}
+                ${m.venue ? html`<span>${m.venue}</span>` : ''}
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
 
   render() {
     const cd = this._cd;
     const played = this._played;
     const locale = useLocaleStore.getState().locale;
+    const isHiddenKnockout = (COMPETITION.hiddenViews as readonly string[]).includes('knockout');
 
     return html`
       <!-- Hero oscuro -->
@@ -376,11 +527,11 @@ export class MobileHome extends LitElement {
         </h1>
         <p class="hero-sub">
           ${locale === 'es'
-            ? 'Simula la fase liga, avanza por las eliminatorias de 36 clubes y corona a tu campeón de Europa.'
-            : 'Simulate the league phase, advance through the 36-club knockout rounds and crown your European champion.'}
+            ? 'Predice las 8 jornadas de la fase liga, sigue los marcadores en directo y publica tu porra.'
+            : 'Predict the 8 league-phase matchdays, follow live scores and publish your pool.'}
         </p>
-        <div class="hero-flags">
-          ${['🇪🇸','🏴󠁧󠁢󠁥󠁮󠁧󠁿','🇩🇪','🇮🇹','🇫🇷','🇵🇹','🇳🇱','🇹🇷'].map(f => html`<span>${f}</span>`)}
+        <div class="hero-crests">
+          ${HERO_CLUBS.map(id => renderFlag(teamById(id), { size: 'md' }))}
         </div>
         <div class="hero-cta">
           <button class="btn btn-primary btn-block" @click="${() => this._navigate('groups')}">
@@ -425,23 +576,7 @@ export class MobileHome extends LitElement {
             </div>
           `}
 
-      <!-- Bloque de Simulación Rápida -->
-      <div class="sim-card">
-        <div class="sim-title">⚡ ${locale === 'es' ? 'SIMULACIÓN DEL TORNEO' : 'TOURNAMENT SIMULATION'}</div>
-        <div class="sim-desc">
-          ${locale === 'es'
-            ? '¿Quieres rellenar todo el torneo al instante? Simula los 144 partidos de la fase liga y los cruces de una sola vez desde aquí.'
-            : 'Want to fill the entire tournament instantly? Simulate all 144 league phase matches and knockout rounds at once from here.'}
-        </div>
-        <div class="sim-actions">
-          <button class="btn btn-primary" @click="${this._simulateAll}">
-            <span class="btn-icon">🎲</span> ${locale === 'es' ? 'SIMULAR TODO' : 'SIMULATE ALL'}
-          </button>
-          <button class="btn" style="color: var(--retro-red)" @click="${this._resetAll}">
-            ${t('groups.reset').toUpperCase()}
-          </button>
-        </div>
-      </div>
+      ${this._renderToday()}
 
       <!-- Quick grid -->
       <div class="quick-grid">
@@ -450,11 +585,13 @@ export class MobileHome extends LitElement {
           <div class="qc-title">${t('tabs.groups').toUpperCase()}</div>
           <div class="qc-desc">${locale === 'es' ? '36 clubes · tabla única' : '36 clubs · single table'}</div>
         </button>
-        <button class="quick-card" @click="${() => this._navigate('bracket')}">
-          <div class="qc-glyph" style="background:var(--retro-green)">🏆</div>
-          <div class="qc-title">${t('knockout.mobileTitle').toUpperCase()}</div>
-          <div class="qc-desc">${locale === 'es' ? 'Playoffs a la Final' : 'Playoffs to the Final'}</div>
-        </button>
+        ${isHiddenKnockout ? '' : html`
+          <button class="quick-card" @click="${() => this._navigate('bracket')}">
+            <div class="qc-glyph" style="background:var(--retro-green)">🏆</div>
+            <div class="qc-title">${t('knockout.mobileTitle').toUpperCase()}</div>
+            <div class="qc-desc">${locale === 'es' ? 'Playoffs a la Final' : 'Playoffs to the Final'}</div>
+          </button>
+        `}
         <button class="quick-card" @click="${() => this._navigate('squads')}">
           <div class="qc-glyph" style="background:var(--accent)">★</div>
           <div class="qc-title">${t('tabs.squads').toUpperCase()}</div>
@@ -465,6 +602,28 @@ export class MobileHome extends LitElement {
           <div class="qc-title">${t('tabs.matchday').toUpperCase()}</div>
           <div class="qc-desc">${locale === 'es' ? '18 partidos · Jornada 1' : '18 matches · Matchday 1'}</div>
         </button>
+        <button class="quick-card" @click="${() => this._navigate('awards')}">
+          <div class="qc-glyph" style="background:var(--retro-yellow)">⭐</div>
+          <div class="qc-title">${locale === 'es' ? 'PREMIOS' : 'AWARDS'}</div>
+          <div class="qc-desc">${locale === 'es' ? 'Goleador y MVP' : 'Top scorer & MVP'}</div>
+        </button>
+      </div>
+
+      <div class="sim-card">
+        <div class="sim-title">⚡ ${locale === 'es' ? 'SIMULACIÓN DEL TORNEO' : 'TOURNAMENT SIMULATION'}</div>
+        <div class="sim-desc">
+          ${locale === 'es'
+            ? 'Rellena el resto de la porra al instante. No pisa los resultados oficiales.'
+            : 'Fill the rest of your pool instantly. Official results stay untouched.'}
+        </div>
+        <div class="sim-actions">
+          <button class="btn btn-primary" @click="${this._simulateAll}">
+            <span class="btn-icon">🎲</span> ${locale === 'es' ? 'SIMULAR TODO' : 'SIMULATE ALL'}
+          </button>
+          <button class="btn" style="color: var(--retro-red)" @click="${this._resetAll}">
+            ${t('groups.reset').toUpperCase()}
+          </button>
+        </div>
       </div>
 
       <!-- Footer móvil con autoría de WebDespega -->

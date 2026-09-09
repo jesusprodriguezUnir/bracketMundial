@@ -4,10 +4,10 @@ on:
   schedule:
     # Solo junio-julio (torneo: 11 jun – 19 jul 2026). El guard de fechas del
     # primer step corta los días de jun/jul fuera del torneo sin gastar npm ci.
-    # Partidos ≈ 18:00–07:00 CEST = 16:00–05:00 UTC → cada 5 min en esa ventana.
-    # El script mantiene además su skip inteligente (ventana [-30min, +3h]).
+    # Partidos ≈ 18:00–01:00 CEST = 16:00–23:00 UTC → cada 5 min en esa ventana.
+    # El script mantiene además su skip inteligente (kickoff −30 min … +3 h).
     # Fase liga 26/27: mié/jue noches + martes J8. Ventana 16:00–23:00 UTC.
-    - cron: '*/15 16-23 * 9,10,11,12,1,2,3,4,5 *'
+    - cron: '*/5 16-23 * 9,10,11,12,1,2,3,4,5 *'
     - cron: '0 6-15 * 9,10,11,12,1,2,3,4,5 *'
   workflow_dispatch:
     inputs:
