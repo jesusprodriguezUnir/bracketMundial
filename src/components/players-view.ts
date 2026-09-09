@@ -16,8 +16,6 @@ interface EnrichedPlayer {
   teamId: string;
   teamName: string;
   teamShortName: string;
-  flagUrl?: string;
-  flag?: string;
   photoUrl?: string;
 }
 
@@ -66,7 +64,6 @@ export class PlayersView extends LitElement {
 
   private _loadAllPlayers() {
     const list: EnrichedPlayer[] = [];
-    const teamMap = new Map(TEAMS_2026.map(t => [t.id, t]));
 
     for (const team of TEAMS_2026) {
       const squad = SQUADS[team.id] ?? [];
@@ -76,8 +73,6 @@ export class PlayersView extends LitElement {
           teamId: team.id,
           teamName: team.name,
           teamShortName: team.shortName,
-          flagUrl: team.flagUrl,
-          flag: (team as unknown as { flag?: string }).flag,
           photoUrl: resolvePlayerPhoto(team.id, player),
         });
       }
