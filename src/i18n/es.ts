@@ -152,6 +152,7 @@ export const es = {
   'modal.scorers': 'GOLEADORES',
   'modal.penShort': 'Pen',
   'modal.penaltyMark': '(P)',
+  'modal.ownGoalMark': 'p.p.',
   'modal.previewIntroGroup': '{teamA} y {teamB} se miden en la fase liga',
   'modal.previewIntroNoGroup': '{teamA} y {teamB} se miden en la fase liga',
   'modal.previewVenueSuffix': ' en {venue}',

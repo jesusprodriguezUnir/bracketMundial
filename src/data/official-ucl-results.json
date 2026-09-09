@@ -1,0 +1,50 @@
+{
+  "M1": {
+    "scoreA": 1,
+    "scoreB": 0
+  },
+  "M2": {
+    "scoreA": 2,
+    "scoreB": 3
+  },
+  "M3": {
+    "scoreA": 3,
+    "scoreB": 2
+  },
+  "M4": {
+    "scoreA": 0,
+    "scoreB": 2
+  },
+  "M5": {
+    "scoreA": 2,
+    "scoreB": 3
+  },
+  "M6": {
+    "scoreA": 2,
+    "scoreB": 1
+  },
+  "M7": {
+    "scoreA": 5,
+    "scoreB": 1
+  },
+  "M8": {
+    "scoreA": 3,
+    "scoreB": 1
+  },
+  "M9": {
+    "scoreA": 2,
+    "scoreB": 1
+  },
+  "M10": {
+    "scoreA": 0,
+    "scoreB": 1
+  },
+  "M11": {
+    "scoreA": 6,
+    "scoreB": 1
+  },
+  "M12": {
+    "scoreA": 3,
+    "scoreB": 1
+  }
+}

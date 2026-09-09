@@ -79,8 +79,11 @@ export function generateGoalScorers(
   return scorers.sort((a, b) => a.minute - b.minute);
 }
 
+import { OFFICIAL_GOAL_SCORERS } from '../data/official-goal-scorers';
+
 /**
- * Retorna los goleadores existentes o genera una lista determinista si aún no fueron persistidos.
+ * Retorna los goleadores oficiales de UEFA.com o los provistos expresamente.
+ * No genera goleadores ficticios si no hay datos reales.
  */
 export function getOrGenerateGoalScorers(
   matchId: string,
@@ -97,6 +100,16 @@ export function getOrGenerateGoalScorers(
   const countA = scoreA ?? 0;
   const countB = scoreB ?? 0;
   if (countA <= 0 && countB <= 0) return [];
+
+  // Si hay goleadores oficiales de UEFA y coinciden con los goles del partido, usarlos prioritariamente
+  const official = OFFICIAL_GOAL_SCORERS[matchId];
+  if (official && official.length > 0) {
+    const officialA = official.filter(g => (g.teamId === teamA && g.type !== 'own_goal') || (g.teamId === teamB && g.type === 'own_goal')).length;
+    const officialB = official.filter(g => (g.teamId === teamB && g.type !== 'own_goal') || (g.teamId === teamA && g.type === 'own_goal')).length;
+    if (officialA === countA && officialB === countB) {
+      return official;
+    }
+  }
 
   const randA = createSeededRandom(`${matchId}_${teamA}_scorers_${countA}`);
   const randB = createSeededRandom(`${matchId}_${teamB}_scorers_${countB}`);

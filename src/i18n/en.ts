@@ -149,6 +149,7 @@ export const en: Record<TranslationKey, string> = {
   'modal.scorers': 'SCORERS',
   'modal.penShort': 'Pen',
   'modal.penaltyMark': '(P)',
+  'modal.ownGoalMark': 'o.g.',
   'modal.previewIntroGroup': '{teamA} and {teamB} meet in the league phase',
   'modal.previewIntroNoGroup': '{teamA} and {teamB} meet in the league phase',
   'modal.previewVenueSuffix': ' in {venue}',

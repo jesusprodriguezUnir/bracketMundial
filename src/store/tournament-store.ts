@@ -14,6 +14,7 @@ import type { DecodedBracket } from '../lib/bracket-codec';
 import type { LeagueParticipant } from './leagues-store';
 import { getLeagueState } from './league-context-bridge';
 import { GROUP_MATCHES } from '../data/match-schedule';
+import { OFFICIAL_UCL_RESULTS } from '../data/official-ucl-results';
 
 export type ActiveContext = { kind: 'personal' } | { kind: 'league'; leagueId: string };
 export type ViewMode = 'predictions' | 'real';
@@ -493,7 +494,7 @@ export const useTournamentStore = createStore<TournamentState>()(
       myTopScorerPrediction: null,
       myMvpPrediction: null,
       viewMode: 'predictions' as ViewMode,
-      realGroupResults: {},
+      realGroupResults: { ...OFFICIAL_UCL_RESULTS },
       realKnockoutResults: {},
 
       isMatchEditable: (matchId: string): boolean => {
@@ -1093,7 +1094,7 @@ export const useTournamentStore = createStore<TournamentState>()(
         const myMvpPrediction = p.myMvpPrediction ?? null;
         const activeContext: ActiveContext = p.activeContext ?? { kind: 'personal' };
         const viewMode: ViewMode = p.viewMode ?? 'predictions';
-        const realGroupResults = p.realGroupResults ?? {};
+        const realGroupResults = { ...OFFICIAL_UCL_RESULTS, ...(p.realGroupResults ?? {}) };
         const realKnockoutResults = p.realKnockoutResults ?? {};
 
         return { 

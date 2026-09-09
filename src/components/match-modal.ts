@@ -1366,8 +1366,8 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
   private _renderGoalScorers(_tA: ReturnType<typeof TEAMS_2026.find>, _tB: ReturnType<typeof TEAMS_2026.find>) {
     const scorers = this._effectiveGoalScorers;
     if (!scorers || scorers.length === 0) return '';
-    const homeScorers = scorers.filter(g => g.teamId === this.teamA);
-    const awayScorers = scorers.filter(g => g.teamId === this.teamB);
+    const homeScorers = scorers.filter(g => (g.teamId === this.teamA && g.type !== 'own_goal') || (g.teamId === this.teamB && g.type === 'own_goal'));
+    const awayScorers = scorers.filter(g => (g.teamId === this.teamB && g.type !== 'own_goal') || (g.teamId === this.teamA && g.type === 'own_goal'));
     return html`
       <div class="scorers-block">
         <div class="scorers-side left">
@@ -1376,6 +1376,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
               <span class="scorer-name">${g.playerName}</span>
               <span class="scorer-min">${g.minute}'</span>
               ${g.type === 'penalty' ? html`<span class="scorer-pen">${t('modal.penaltyMark')}</span>` : ''}
+              ${g.type === 'own_goal' ? html`<span class="scorer-pen">(${t('modal.ownGoalMark') || 'p.p.'})</span>` : ''}
             </span>
           `)}
         </div>
@@ -1386,6 +1387,7 @@ export class MatchModal extends DragToDismissMixin(LitElement) {
               <span class="scorer-name">${g.playerName}</span>
               <span class="scorer-min">${g.minute}'</span>
               ${g.type === 'penalty' ? html`<span class="scorer-pen">${t('modal.penaltyMark')}</span>` : ''}
+              ${g.type === 'own_goal' ? html`<span class="scorer-pen">(${t('modal.ownGoalMark') || 'p.p.'})</span>` : ''}
             </span>
           `)}
         </div>
