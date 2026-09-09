@@ -2511,6 +2511,13 @@ export class SquadsView extends LitElement {
                 </button>
               `;
             })}
+            <button
+              class="player-result-btn"
+              style="background: var(--paper-3); font-weight: bold; border-top: 1px dashed var(--hairline); color: var(--accent);"
+              @click=${() => { window.location.hash = '#players'; }}
+            >
+              <span>★ ${useLocaleStore.getState().locale === 'en' ? 'Open in Player Explorer' : 'Abrir en Buscador de Jugadores'} →</span>
+            </button>
           </div>
         ` : ''}
       </div>

@@ -13,7 +13,7 @@ import '../league-table-view';
 import '../matchday-view';
 
 type MobileView =
-  | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads'
+  | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads' | 'players'
   | 'awards' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
 
 /** El shell movil llama 'bracket' a la vista que el resto de la app llama 'knockout'. */
@@ -26,7 +26,7 @@ function isHiddenView(v: MobileView): boolean {
 
 const MAIN_VIEWS: MobileView[] = (['home', 'groups', 'matchday'] as MobileView[])
   .filter(v => !isHiddenView(v));
-const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'coaches'] as MobileView[])
+const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'players', 'coaches'] as MobileView[])
   .filter(v => !isHiddenView(v));
 const ALL_VIEWS: MobileView[] = ([...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'] as MobileView[])
   .filter(v => !isHiddenView(v));
@@ -35,6 +35,7 @@ const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   calendar: () => import('./mobile-calendar'),
   tv:       () => import('../broadcasting-view'),
   squads:   () => import('../squads-view'),
+  players:  () => import('../players-view'),
   coaches:  () => import('../coaches-view'),
   bracket:  () => import('../bracket-knockout'),
 };
@@ -253,6 +254,10 @@ export class MobileApp extends LitElement {
           <div class="section-title">${t('section.squads.title')}</div>
         </div>
         <squads-view></squads-view>
+      </div>`;
+    if (v === 'players') return html`
+      <div class="secondary-view">
+        <players-view></players-view>
       </div>`;
     if (v === 'coaches') return html`
       <div class="secondary-view">
@@ -648,6 +653,14 @@ export class MobileApp extends LitElement {
               <span class="si-text">
                 <span>${t('tabs.squads')}</span>
                 <span class="si-sub">${locale === 'es' ? '36 clubes y plantillas' : '36 clubs & squads'}</span>
+              </span>
+              <span class="si-arrow">›</span>
+            </button>
+            <button class="sheet-item" @click="${() => this._go('players')}">
+              <span class="si-glyph">★</span>
+              <span class="si-text">
+                <span>${t('tabs.players')}</span>
+                <span class="si-sub">${locale === 'es' ? 'Buscador y álbum de cromos' : 'Explorer & sticker album'}</span>
               </span>
               <span class="si-arrow">›</span>
             </button>
