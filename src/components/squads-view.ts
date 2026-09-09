@@ -10,11 +10,10 @@ import type { Player } from '../data/squads';
 import { getCoach } from '../data/coaches';
 import type { Coach } from '../data/coaches';
 import { renderFlag } from '../lib/render-flag';
-import { formatShortDate, isMatchPending, coachAge } from '../lib/date-utils';
+import { formatShortDate, coachAge } from '../lib/date-utils';
 import { getTeamNews } from '../lib/news-service';
 import type { NewsItem } from '../lib/news-service';
 import { useTournamentStore } from '../store/tournament-store';
-import { subscribeSlice } from '../store/store-utils';
 import { resolvePlayerPhoto } from '../lib/player-photo';
 import { resolveCoachPhoto } from '../lib/coach-photo';
 import '../components/player-card';
@@ -28,6 +27,12 @@ import { getInitials, normalize } from '../lib/text-utils';
 import { TEAM_COLORS } from '../data/team-colors';
 import { crestSrc, kitSrc } from '../lib/team-assets';
 import { WORLD_TITLES } from '../data/world-titles';
+import { openMatchModal } from '../lib/match-modal-service';
+import './match-modal';
+import { OFFICIAL_UCL_RESULTS } from '../data/official-ucl-results';
+import { OFFICIAL_GOAL_SCORERS } from '../data/official-goal-scorers';
+import { isMatchLive } from '../lib/match-window';
+import type { GoalEvent } from '../types';
 
 interface TeamMatchSummary {
   id: string;
@@ -38,10 +43,20 @@ interface TeamMatchSummary {
   venue: string;
   venueId: string;
   city: string;
+  teamA: string;
+  teamB: string;
   opponentId: string | null;
   matchDay: number;
   teamId: string;
   isHome: boolean;
+  scoreA: number | null;
+  scoreB: number | null;
+  isPlayed: boolean;
+  isLive: boolean;
+  teamScore: number | null;
+  opponentScore: number | null;
+  outcome: 'win' | 'draw' | 'loss' | 'pending';
+  goalScorers: GoalEvent[];
 }
 
 @customElement('squads-view')
@@ -52,6 +67,7 @@ export class SquadsView extends LitElement {
   @state() private activeTab: 'squad' | 'matches' | 'news' = 'squad';
   @state() private squadViewMode: 'list' | 'pitch' = 'list';
   @state() private searchQuery = '';
+  @state() private _matchFilter: 'all' | 'played' | 'pending' = 'all';
   @state() private _openPlayer: { player: Player; teamId: string } | null = null;
   @state() private _hover: { player: Player; teamId: string; x: number; y: number } | null = null;
   @state() private _news: NewsItem[] | null = null;
@@ -63,6 +79,7 @@ export class SquadsView extends LitElement {
   @state() private _kitVariant: 'home' | 'away' = 'home';
 
   private unsubscribeStore?: () => void;
+  private unsubscribeLocale?: () => void;
   private _swipeStartX = 0;
   private _swipeStartY = 0;
   private _isSwiping = false;
@@ -73,6 +90,8 @@ export class SquadsView extends LitElement {
       const tid = this.targetTeamId;
       this.selectedTeamId = tid;
       this.activeTab = 'squad';
+      this._matchFilter = 'all';
+      this._openMatchId = null;
       this._kitVariant = 'home';
       this.targetTeamId = null;
       this._loadNewsForTeam(tid, useLocaleStore.getState().locale);
@@ -1144,13 +1163,55 @@ export class SquadsView extends LitElement {
 
     /* ── Match expandable ── */
 
+    .match-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .match-filter-tabs {
+      display: inline-flex;
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .filter-tab {
+      background: transparent;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .filter-tab:hover {
+      color: var(--ink);
+    }
+
+    .filter-tab.active {
+      background: var(--paper-2);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+
     .match-card-expand {
       border: 1px solid var(--hairline);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
       background: var(--card-grad);
       overflow: hidden;
-      transition: box-shadow 0.15s, transform 0.15s;
+      transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
     }
 
     .match-card-expand.collapsed {
@@ -1160,6 +1221,18 @@ export class SquadsView extends LitElement {
     .match-card-expand.collapsed:hover {
       transform: translate(-1px, -1px);
       box-shadow: var(--shadow-md);
+    }
+
+    .match-card-expand.is-played.outcome-win {
+      border-left: 4px solid var(--retro-green);
+    }
+
+    .match-card-expand.is-played.outcome-draw {
+      border-left: 4px solid var(--retro-yellow);
+    }
+
+    .match-card-expand.is-played.outcome-loss {
+      border-left: 4px solid var(--retro-red);
     }
 
     .match-card-header {
@@ -1175,22 +1248,286 @@ export class SquadsView extends LitElement {
     .match-card-meta {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       color: var(--ink-muted);
       font-weight: 700;
       margin-bottom: 8px;
       text-transform: uppercase;
+      gap: 8px;
     }
 
-    .match-card-opponent {
+    .meta-left {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-family: var(--font-display);
-      font-size: 26px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .matchday-pill {
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
       color: var(--ink);
+    }
+
+    .meta-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .outcome-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+    }
+
+    .outcome-badge.win {
+      background: rgba(14, 112, 66, 0.16);
+      color: var(--retro-green);
+      border: 1px solid var(--retro-green);
+    }
+
+    .outcome-badge.draw {
+      background: rgba(239, 159, 39, 0.16);
+      color: var(--retro-yellow);
+      border: 1px solid var(--retro-yellow);
+    }
+
+    .outcome-badge.loss {
+      background: rgba(216, 58, 74, 0.16);
+      color: var(--retro-red);
+      border: 1px solid var(--retro-red);
+    }
+
+    .status-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--hairline);
+      text-transform: uppercase;
+    }
+
+    .status-badge.final {
+      background: var(--fill);
+      color: var(--ink-muted);
+    }
+
+    .status-badge.live {
+      background: var(--retro-red);
+      color: #ffffff;
+      animation: pulse 1.5s infinite;
+      border-color: transparent;
+    }
+
+    .status-badge.pending {
+      background: var(--fill-soft);
+      color: var(--ink-muted);
+    }
+
+    .match-card-matchup {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 14px;
+      margin: 12px 0 10px;
+    }
+
+    .matchup-team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .matchup-team.home {
+      justify-content: flex-start;
+    }
+
+    .matchup-team.away {
+      justify-content: flex-end;
+    }
+
+    .matchup-team.is-current .team-name {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .matchup-team.is-loser {
+      opacity: 0.55;
+    }
+
+    .team-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .matchup-team.away .team-identity {
+      justify-content: flex-end;
+    }
+
+    .matchup-team .team-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.02em;
+    }
+
+    .home-away-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--fill);
+      color: var(--ink-muted);
+      border: 1px solid var(--hairline);
+      flex-shrink: 0;
+    }
+
+    .matchup-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .match-score-board {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 4px 16px;
+      border-radius: var(--radius-md);
+      background: var(--paper-2);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+
+    .score-digit {
+      min-width: 18px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .score-digit.lower {
+      opacity: 0.45;
+      font-weight: 600;
+    }
+
+    .score-dash {
+      color: var(--ink-muted);
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .match-vs-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 14px;
+      border-radius: var(--radius-md);
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      line-height: 1.1;
+    }
+
+    .vs-text {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .vs-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-muted);
+      font-weight: 700;
+    }
+
+    /* Goleadores en la tarjeta */
+    .match-card-scorers-preview {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 8px 0 6px;
+      padding: 8px 12px;
+      background: var(--fill-soft);
+      border: 1px solid var(--hairline-soft);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .scorers-ball {
+      font-size: 12px;
+      opacity: 0.8;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .scorers-names {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 6px;
+      line-height: 1.4;
+    }
+
+    .scorer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scorer-pill.team-scorer .scorer-pname {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .scorer-pill.opp-scorer .scorer-pname {
+      color: var(--ink-muted);
+    }
+
+    .scorer-pmin {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .scorer-sep {
+      color: var(--ink-muted);
+      opacity: 0.5;
+      margin-left: 2px;
     }
 
     .match-card-footer {
@@ -1200,8 +1537,49 @@ export class SquadsView extends LitElement {
       align-items: center;
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.06em;
       color: var(--ink-muted);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .venue-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .venue-pin {
+      font-size: 12px;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-open-modal {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--fill);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+      padding: 4px 10px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-open-modal:hover {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+      transform: translate(-1px, -1px);
     }
 
     .match-toggle-pill {
@@ -1213,8 +1591,10 @@ export class SquadsView extends LitElement {
       border: 1px solid var(--hairline);
       border-radius: var(--radius-pill);
       box-shadow: var(--shadow-sm);
-      padding: 3px 8px;
+      padding: 4px 10px;
       color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .match-card-expand.open .match-toggle-pill {
@@ -1254,6 +1634,7 @@ export class SquadsView extends LitElement {
 
     .match-section-num.orange { background: var(--accent); }
     .match-section-num.green  { background: var(--retro-green);  }
+    .match-section-num.blue   { background: var(--retro-blue);   }
 
     .match-section-title {
       font-family: var(--font-mono);
@@ -1417,6 +1798,104 @@ export class SquadsView extends LitElement {
       font-size: 11px;
       line-height: 1;
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+    }
+
+    .detailed-scorers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 14px;
+      background: var(--fill-soft);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--hairline);
+    }
+
+    .scorers-col-header {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .detailed-scorer-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .d-min {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 26px;
+    }
+
+    .d-name {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .d-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .d-tag.pen {
+      background: rgba(239, 159, 39, 0.2);
+      color: var(--retro-yellow);
+    }
+
+    .d-tag.og {
+      background: rgba(216, 58, 74, 0.2);
+      color: var(--retro-red);
+    }
+
+    .no-scorers-note {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-style: italic;
+      padding: 8px 12px;
+      background: var(--fill-soft);
+      border-radius: var(--radius-sm);
+    }
+
+    .full-modal-cta-wrap {
+      display: flex;
+      justify-content: center;
+      padding-top: 4px;
+    }
+
+    .btn-view-full-modal {
+      width: 100%;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--accent);
+      color: var(--on-accent);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+    }
+
+    .btn-view-full-modal:hover {
+      background: var(--accent-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
     }
 
     /* ── Venue detail (inline) ── */
@@ -1766,15 +2245,11 @@ export class SquadsView extends LitElement {
     }
   `;
 
-  private unsubscribeLocale?: () => void;
-
   connectedCallback() {
     super.connectedCallback();
-    this.unsubscribeStore = subscribeSlice(
-      useTournamentStore,
-      s => s.groupStandings,
-      () => this.requestUpdate(),
-    );
+    this.unsubscribeStore = useTournamentStore.subscribe(() => {
+      this.requestUpdate();
+    });
     this.unsubscribeLocale = useLocaleStore.subscribe(() => {
       this.requestUpdate();
       if (this.selectedTeamId) {
@@ -1837,29 +2312,58 @@ export class SquadsView extends LitElement {
   }
 
   private getTeamMatches(teamId: string): TeamMatchSummary[] {
+    const store = useTournamentStore.getState();
     return GROUP_MATCHES
-      .filter(match =>
-        (match.teamA === teamId || match.teamB === teamId) &&
-        isMatchPending(match.date, match.timeSpain)
-      )
+      .filter(match => match.teamA === teamId || match.teamB === teamId)
       .map(match => {
         const stadium = STADIUMS.find(s => s.id === match.venueId);
+        const gm = store.groupMatches.find(m => m.matchId === match.matchId);
+        const real = store.realGroupResults?.[match.matchId] ?? OFFICIAL_UCL_RESULTS[match.matchId];
+        const scoreA = gm?.scoreA ?? real?.scoreA ?? null;
+        const scoreB = gm?.scoreB ?? real?.scoreB ?? null;
+        const isPlayed = scoreA !== null && scoreB !== null;
+        const isHome = match.teamA === teamId;
+        const opponentId = isHome ? match.teamB : match.teamA;
+        const teamScore = isHome ? scoreA : scoreB;
+        const opponentScore = isHome ? scoreB : scoreA;
+        let outcome: 'win' | 'draw' | 'loss' | 'pending' = 'pending';
+        if (isPlayed && teamScore !== null && opponentScore !== null) {
+          if (teamScore > opponentScore) outcome = 'win';
+          else if (teamScore < opponentScore) outcome = 'loss';
+          else outcome = 'draw';
+        }
+        const live = !isPlayed && isMatchLive(match.date, match.timeSpain);
+        const goalScorers: GoalEvent[] = (gm?.goalScorers && gm.goalScorers.length > 0)
+          ? gm.goalScorers
+          : (OFFICIAL_GOAL_SCORERS[match.matchId] ?? []);
+
         return {
           id: match.matchId,
           matchId: match.matchId,
-          phase: `Grupo ${match.group}`,
+          phase: t('squads.matchDetail.matchday', { n: String(match.matchDay) }),
           date: match.date,
           timeSpain: match.timeSpain,
-          venue: stadium?.name ?? match.venueId,
+          venue: stadium?.name ?? match.venue ?? match.venueId,
           venueId: match.venueId,
-          city: stadium?.city ?? '',
-          opponentId: match.teamA === teamId ? match.teamB : match.teamA,
+          city: stadium?.city ?? match.city ?? '',
+          teamA: match.teamA,
+          teamB: match.teamB,
+          opponentId,
           matchDay: match.matchDay,
           teamId,
-          isHome: match.teamA === teamId,
+          isHome,
+          scoreA,
+          scoreB,
+          isPlayed,
+          isLive: live,
+          teamScore,
+          opponentScore,
+          outcome,
+          goalScorers,
         };
       })
       .sort((a, b) => {
+        if (a.matchDay !== b.matchDay) return a.matchDay - b.matchDay;
         const ak = `${a.date}T${a.timeSpain}`;
         const bk = `${b.date}T${b.timeSpain}`;
         return ak.localeCompare(bk);
@@ -1881,6 +2385,28 @@ export class SquadsView extends LitElement {
     }
   }
 
+  private _openOfficialMatchModal(match: TeamMatchSummary) {
+    const stadium = STADIUMS.find(s => s.id === match.venueId);
+    const store = useTournamentStore.getState();
+    openMatchModal({
+      matchId: match.matchId,
+      teamA: match.teamA,
+      teamB: match.teamB,
+      initialScoreA: match.scoreA,
+      initialScoreB: match.scoreB,
+      phase: 'group',
+      goalScorers: match.goalScorers,
+      venue: match.venue,
+      city: match.city,
+      timeSpain: match.timeSpain,
+      date: match.date,
+      stadiumImage: stadium?.image,
+      onSave: ({ scoreA, scoreB }) => {
+        store.setGroupMatchResult(match.matchId, scoreA, scoreB);
+      },
+    });
+  }
+
   private formatDate(date: string, timeSpain: string) {
     if (!date) return t('squads.matchDetail.dateTBD');
     const base = formatShortDate(date);
@@ -1890,6 +2416,8 @@ export class SquadsView extends LitElement {
   private selectTeam(id: string) {
     this.selectedTeamId = id;
     this.activeTab = 'squad';
+    this._matchFilter = 'all';
+    this._openMatchId = null;
     this._kitVariant = 'home';
     this._loadNewsForTeam(id, useLocaleStore.getState().locale);
   }
@@ -1954,7 +2482,14 @@ export class SquadsView extends LitElement {
 
     const squad = getSquad(selectedTeam.id);
     const isOfficial = isOfficialSquad(selectedTeam.id);
-    const teamMatches = this.getTeamMatches(selectedTeam.id);
+    const allTeamMatches = this.getTeamMatches(selectedTeam.id);
+    const playedCount = allTeamMatches.filter(m => m.isPlayed).length;
+    const pendingCount = allTeamMatches.filter(m => !m.isPlayed).length;
+    const teamMatches = allTeamMatches.filter(m => {
+      if (this._matchFilter === 'played') return m.isPlayed;
+      if (this._matchFilter === 'pending') return !m.isPlayed;
+      return true;
+    });
     const coach: Coach | null = getCoach(selectedTeam.id);
     const coachPhoto = resolveCoachPhoto(selectedTeam.id, coach);
     const coachName = coach ? coach.name : selectedTeam.name;
@@ -2119,44 +2654,205 @@ export class SquadsView extends LitElement {
           </div>
 
           <div class="panel-block ${this.activeTab !== 'matches' ? 'tab-hidden' : ''}">
-            <div class="panel-title">${t('squads.tab.matches')}</div>
+            <div class="panel-header-row match-panel-header">
+              <div class="panel-title">${t('squads.tab.matches')}</div>
+              <div class="match-filter-tabs" role="tablist">
+                <button
+                  class="filter-tab ${this._matchFilter === 'all' ? 'active' : ''}"
+                  @click=${() => { this._matchFilter = 'all'; }}
+                >
+                  ${t('squads.matches.all')} (${allTeamMatches.length})
+                </button>
+                <button
+                  class="filter-tab ${this._matchFilter === 'played' ? 'active' : ''}"
+                  @click=${() => { this._matchFilter = 'played'; }}
+                >
+                  ${t('squads.matches.played')} (${playedCount})
+                </button>
+                <button
+                  class="filter-tab ${this._matchFilter === 'pending' ? 'active' : ''}"
+                  @click=${() => { this._matchFilter = 'pending'; }}
+                >
+                  ${t('squads.matches.pendingTab')} (${pendingCount})
+                </button>
+              </div>
+            </div>
+
             ${teamMatches.length === 0
-              ? html`<div class="empty">${t('squads.matches.empty')}</div>`
+              ? html`
+                <div class="empty">
+                  ${this._matchFilter === 'played'
+                    ? t('squads.matches.emptyPlayed')
+                    : t('squads.matches.empty')}
+                </div>
+              `
               : html`
                 <div class="matches-list">
                   ${teamMatches.map(match => {
+                    const teamA = this.getTeam(match.teamA);
+                    const teamB = this.getTeam(match.teamB);
                     const opponent = this.getTeam(match.opponentId);
                     const isOpen = this._openMatchId === match.matchId;
                     const odds = this._matchOddsCache.get(match.matchId);
                     const lineup = getLineup(selectedTeam.id);
                     const opponentLineup = match.opponentId ? getLineup(match.opponentId) : null;
+                    const isWin = match.outcome === 'win';
+                    const isLoss = match.outcome === 'loss';
+                    const isDraw = match.outcome === 'draw';
+
                     return html`
-                      <article class="match-card-expand ${isOpen ? 'open' : 'collapsed'}">
+                      <article class="match-card-expand ${isOpen ? 'open' : 'collapsed'} ${match.isPlayed ? 'is-played' : 'is-pending'} outcome-${match.outcome}">
                         <div
                           class="match-card-header"
                           @click=${() => this._toggleMatch(match.matchId, match.teamId, match.opponentId)}
                         >
+                          <!-- Fila 1: Metadatos y badges de estado -->
                           <div class="match-card-meta">
-                            <span>${match.phase} · ${t('squads.matchDetail.matchday', { n: String(match.matchDay) })}</span>
-                            <span>${this.formatDate(match.date, match.timeSpain)}</span>
+                            <div class="meta-left">
+                              <span class="matchday-pill">${match.phase}</span>
+                              <span class="match-date">${this.formatDate(match.date, match.timeSpain)}</span>
+                            </div>
+                            <div class="meta-right">
+                              ${match.isPlayed ? html`
+                                <span class="outcome-badge ${match.outcome}">
+                                  ${isWin ? t('squads.matches.result.win') : isLoss ? t('squads.matches.result.loss') : isDraw ? t('squads.matches.result.draw') : ''}
+                                </span>
+                                <span class="status-badge final">${t('squads.matches.status.final')}</span>
+                              ` : match.isLive ? html`
+                                <span class="status-badge live">● ${t('squads.matches.status.live')}</span>
+                              ` : html`
+                                <span class="status-badge pending">${match.isHome ? t('squads.matches.home') : t('squads.matches.away')}</span>
+                              `}
+                            </div>
                           </div>
-                          <div class="match-card-opponent">
-                            ${renderFlag(opponent, 'sm')}
-                            <span>${opponent?.name ?? t('squads.matchDetail.unknownOpp')}</span>
+
+                          <!-- Fila 2: Matchup y Marcador -->
+                          <div class="match-card-matchup">
+                            <!-- Local (Team A) -->
+                            <div class="matchup-team home ${match.teamA === selectedTeam.id ? 'is-current' : ''} ${match.isPlayed && match.scoreA !== null && match.scoreB !== null && match.scoreA < match.scoreB ? 'is-loser' : ''}">
+                              <div class="team-identity">
+                                ${renderFlag(teamA, 'sm')}
+                                <span class="team-name" title="${teamA?.name ?? match.teamA}">${teamA?.name ?? match.teamA}</span>
+                              </div>
+                              <span class="home-away-pill">${t('squads.matches.home')}</span>
+                            </div>
+
+                            <!-- Centro: Marcador o VS -->
+                            <div class="matchup-center">
+                              ${match.isPlayed ? html`
+                                <div class="match-score-board outcome-${match.outcome}">
+                                  <span class="score-digit ${match.scoreA! < match.scoreB! ? 'lower' : ''}">${match.scoreA}</span>
+                                  <span class="score-dash">–</span>
+                                  <span class="score-digit ${match.scoreB! < match.scoreA! ? 'lower' : ''}">${match.scoreB}</span>
+                                </div>
+                              ` : html`
+                                <div class="match-vs-board">
+                                  <span class="vs-text">VS</span>
+                                  <span class="vs-time">${match.timeSpain || '--:--'}</span>
+                                </div>
+                              `}
+                            </div>
+
+                            <!-- Visitante (Team B) -->
+                            <div class="matchup-team away ${match.teamB === selectedTeam.id ? 'is-current' : ''} ${match.isPlayed && match.scoreA !== null && match.scoreB !== null && match.scoreB < match.scoreA ? 'is-loser' : ''}">
+                              <span class="home-away-pill">${t('squads.matches.away')}</span>
+                              <div class="team-identity">
+                                <span class="team-name" title="${teamB?.name ?? match.teamB}">${teamB?.name ?? match.teamB}</span>
+                                ${renderFlag(teamB, 'sm')}
+                              </div>
+                            </div>
                           </div>
+
+                          <!-- Goleadores si el partido fue jugado y hay datos -->
+                          ${match.isPlayed && match.goalScorers.length > 0 ? html`
+                            <div class="match-card-scorers-preview">
+                              <span class="scorers-ball" aria-hidden="true">⚽</span>
+                              <div class="scorers-names">
+                                ${match.goalScorers.map((g, idx) => html`
+                                  <span class="scorer-pill ${g.teamId === selectedTeam.id ? 'team-scorer' : 'opp-scorer'}">
+                                    <span class="scorer-pname">${g.playerName}</span>
+                                    <span class="scorer-pmin">${g.minute}'${g.type === 'penalty' ? ' (pen)' : g.type === 'own_goal' ? ' (p.p.)' : ''}</span>
+                                    ${idx < match.goalScorers.length - 1 ? html`<span class="scorer-sep">·</span>` : ''}
+                                  </span>
+                                `)}
+                              </div>
+                            </div>
+                          ` : ''}
+
+                          <!-- Fila 3: Footer de la tarjeta con sede y acciones -->
                           <div class="match-card-footer">
-                            <span>${match.venue} · ${match.city}</span>
-                            <span class="match-toggle-pill">${isOpen ? t('squads.matchDetail.collapse') : t('squads.matchDetail.expand')}</span>
+                            <div class="venue-info">
+                              <span class="venue-pin" aria-hidden="true">🏟</span>
+                              <span>${match.venue} · ${match.city}</span>
+                            </div>
+                            <div class="footer-actions">
+                              <button
+                                class="btn-open-modal"
+                                @click=${(e: Event) => {
+                                  e.stopPropagation();
+                                  this._openOfficialMatchModal(match);
+                                }}
+                                title="${t('squads.matches.viewMatch')}"
+                              >
+                                ${t('squads.matches.viewMatch')}
+                              </button>
+                              <span class="match-toggle-pill">
+                                ${isOpen ? t('squads.matchDetail.collapse') : t('squads.matchDetail.expand')}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
+                        <!-- Detalle expandido -->
                         ${isOpen ? html`
                           <div class="match-detail">
-                            <!-- Probabilidades -->
+                            <!-- Si el partido ya se jugó: desglose de resultado y goleadores -->
+                            ${match.isPlayed ? html`
+                              <div class="match-result-expanded">
+                                <div class="match-section-label">
+                                  <span class="match-section-num green">01</span>
+                                  <span class="match-section-title">${t('squads.matches.scorers')}</span>
+                                  <span class="match-section-dash"></span>
+                                </div>
+
+                                ${match.goalScorers.length > 0 ? html`
+                                  <div class="detailed-scorers-grid">
+                                    <div class="scorers-col home">
+                                      <div class="scorers-col-header">${teamA?.name}</div>
+                                      ${match.goalScorers.filter(g => (g.teamId === match.teamA && g.type !== 'own_goal') || (g.teamId === match.teamB && g.type === 'own_goal')).map(g => html`
+                                        <div class="detailed-scorer-row">
+                                          <span class="d-min">${g.minute}'</span>
+                                          <span class="d-name">${g.playerName}</span>
+                                          ${g.type === 'penalty' ? html`<span class="d-tag pen">PEN</span>` : ''}
+                                          ${g.type === 'own_goal' ? html`<span class="d-tag og">P.P.</span>` : ''}
+                                        </div>
+                                      `)}
+                                    </div>
+                                    <div class="scorers-col away">
+                                      <div class="scorers-col-header">${teamB?.name}</div>
+                                      ${match.goalScorers.filter(g => (g.teamId === match.teamB && g.type !== 'own_goal') || (g.teamId === match.teamA && g.type === 'own_goal')).map(g => html`
+                                        <div class="detailed-scorer-row">
+                                          <span class="d-min">${g.minute}'</span>
+                                          <span class="d-name">${g.playerName}</span>
+                                          ${g.type === 'penalty' ? html`<span class="d-tag pen">PEN</span>` : ''}
+                                          ${g.type === 'own_goal' ? html`<span class="d-tag og">P.P.</span>` : ''}
+                                        </div>
+                                      `)}
+                                    </div>
+                                  </div>
+                                ` : html`
+                                  <div class="no-scorers-note">
+                                    ${match.scoreA === 0 && match.scoreB === 0 ? 'Empate sin goles (0-0)' : 'Sin detalle de goleadores'}
+                                  </div>
+                                `}
+                              </div>
+                            ` : ''}
+
+                            <!-- Probabilidades / Cuotas -->
                             ${odds ? html`
                               <div>
                                 <div class="match-section-label">
-                                  <span class="match-section-num orange">01</span>
+                                  <span class="match-section-num orange">${match.isPlayed ? '02' : '01'}</span>
                                   <span class="match-section-title">${t('squads.matchDetail.oddsLabel')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
@@ -2180,25 +2876,13 @@ export class SquadsView extends LitElement {
                                   <span>${t('squads.matchDetail.oddsAway', { team: (opponent?.name ?? '').toUpperCase() })}</span>
                                 </div>
                               </div>
-                            ` : html`
-                              <div>
-                                <div class="match-section-label">
-                                  <span class="match-section-num orange">01</span>
-                                  <span class="match-section-title">${t('squads.matchDetail.oddsLabel')}</span>
-                                  <span class="match-section-dash"></span>
-                                </div>
-                                <div style="display:flex;flex-direction:column;gap:6px;padding:8px 0">
-                                  <div class="skeleton skeleton-line" style="width:100%"></div>
-                                  <div class="skeleton skeleton-line" style="width:60%"></div>
-                                </div>
-                              </div>
-                            `}
+                            ` : ''}
 
                             <!-- Alineaciones / cancha -->
                             ${(lineup || opponentLineup) ? html`
                               <div>
                                 <div class="match-section-label">
-                                  <span class="match-section-num green">02</span>
+                                  <span class="match-section-num ${match.isPlayed ? 'blue' : 'green'}">${match.isPlayed ? (odds ? '03' : '02') : (odds ? '02' : '01')}</span>
                                   <span class="match-section-title">${t('squads.matchDetail.lineups')}</span>
                                   <span class="match-section-dash"></span>
                                 </div>
@@ -2227,6 +2911,15 @@ export class SquadsView extends LitElement {
                               </div>
                             ` : ''}
 
+                            <!-- Botón CTA para ver acta oficial completa -->
+                            <div class="full-modal-cta-wrap">
+                              <button
+                                class="btn-view-full-modal"
+                                @click=${() => this._openOfficialMatchModal(match)}
+                              >
+                                ${t('squads.matches.viewMatch')}
+                              </button>
+                            </div>
                           </div>
                         ` : ''}
                       </article>
