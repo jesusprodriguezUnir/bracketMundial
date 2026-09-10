@@ -11,15 +11,13 @@ import { refreshOfficialResults, subscribeOfficialResults, startOfficialResultsP
 import { hasMatchDatePassed } from './lib/league-fixture';
 import { COMPETITION } from './data/competition';
 import './components/ad-block';
+// Static: a lazy `import()` of this chunk 404s in production when the
+// browser sends Origin (dynamic import / modulepreload). Keep it in the
+// main graph so the mobile shell does not depend on a second JS file.
+import './components/mobile/mobile-app';
 
 /** Media query para conmutación desktop ↔ móvil */
 const MQ_MOBILE = window.matchMedia('(max-width: 768px)');
-let _mobileImportDone = false;
-async function ensureMobileApp() {
-  if (_mobileImportDone) return;
-  _mobileImportDone = true;
-  await import('./components/mobile/mobile-app');
-}
 
 type PhaseTab = 'hero' | 'groups' | 'matchday' | 'knockout' | 'squads' | 'players' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
 
@@ -50,7 +48,6 @@ export class AppRoot extends LitElement {
   @state() private _isMobile = MQ_MOBILE.matches;
   private _mqListener = (e: MediaQueryListEvent) => {
     this._isMobile = e.matches;
-    if (e.matches) void ensureMobileApp();
   };
 
   @state() private _isOffline = !navigator.onLine;
@@ -587,7 +584,6 @@ export class AppRoot extends LitElement {
     super.connectedCallback();
     // Registrar media query para shell móvil
     MQ_MOBILE.addEventListener('change', this._mqListener);
-    if (MQ_MOBILE.matches) void ensureMobileApp();
 
     window.addEventListener('online', this._onOnline);
     window.addEventListener('offline', this._onOffline);

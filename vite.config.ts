@@ -2,6 +2,17 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    // Production CDN 404s extra JS chunks when the browser sends Origin
+    // (dynamic import / modulepreload). One entry file keeps mobile boot
+    // on the same request as the main module.
+    chunkSizeWarningLimit: 4000,
+    rolldownOptions: {
+      output: {
+        codeSplitting: false,
+      },
+    },
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
@@ -18,7 +29,7 @@ export default defineConfig({
           '**/mundial-2026/**',
           'en/**',
         ],
-        maximumFileSizeToCacheInBytes: 4194304, // 4 MiB para acomodar el bundle de datos bilingües
+        maximumFileSizeToCacheInBytes: 8388608, // 8 MiB: entry is a single chunk (no code-splitting)
         skipWaiting: true,
         clientsClaim: true,
       },
