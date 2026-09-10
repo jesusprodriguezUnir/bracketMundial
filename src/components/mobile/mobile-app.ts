@@ -2,10 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { t, toggleLocale, useLocaleStore } from '../../i18n';
 import { onToast, type ToastEventDetail } from '../../lib/interaction';
-import { useTournamentStore, type ViewMode } from '../../store/tournament-store';
-import { subscribeSlice } from '../../store/store-utils';
 import { useAuthStore } from '../../store/auth-store';
-import { subscribeUnpublished, getUnpublished, publishNow } from '../../lib/prediction-sync';
 import { COMPETITION } from '../../data/competition';
 
 // Vistas de bottom-nav (siempre disponibles)
@@ -15,7 +12,7 @@ import '../matchday-view';
 
 type MobileView =
   | 'home' | 'groups' | 'matchday' | 'bracket' | 'squads' | 'players'
-  | 'awards' | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
+  | 'calendar' | 'tv' | 'stadiums' | 'coaches' | 'guide';
 
 /** El shell movil llama 'bracket' a la vista que el resto de la app llama 'knockout'. */
 const VIEW_ALIASES: Partial<Record<MobileView, string>> = { bracket: 'knockout' };
@@ -27,7 +24,7 @@ function isHiddenView(v: MobileView): boolean {
 
 const MAIN_VIEWS: MobileView[] = (['home', 'groups', 'matchday'] as MobileView[])
   .filter(v => !isHiddenView(v));
-const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'players', 'coaches', 'awards'] as MobileView[])
+const SHEET_VIEWS: MobileView[] = (['calendar', 'tv', 'squads', 'players', 'coaches'] as MobileView[])
   .filter(v => !isHiddenView(v));
 const ALL_VIEWS: MobileView[] = ([...MAIN_VIEWS, ...SHEET_VIEWS, 'bracket'] as MobileView[])
   .filter(v => !isHiddenView(v));
@@ -39,7 +36,6 @@ const LAZY_VIEWS: Record<string, () => Promise<unknown>> = {
   players:  () => import('../players-view'),
   coaches:  () => import('../coaches-view'),
   bracket:  () => import('../bracket-knockout'),
-  awards:   () => import('./mobile-awards'),
 };
 
 function validView(v: string): v is MobileView {
@@ -58,15 +54,11 @@ export class MobileApp extends LitElement {
   @state() private _toastMsg = '';
   @state() private _loadedViews = new Set<MobileView>(MAIN_VIEWS as MobileView[]);
   @state() private _authEmail: string | null = null;
-  @state() private _hasUnpublished = false;
-  @state() private _viewMode: ViewMode = 'predictions';
 
   private _toastTimer?: ReturnType<typeof setTimeout>;
   private _unsubToast?: () => void;
   private _unsubLocale?: () => void;
   private _unsubAuth?: () => void;
-  private _unsubUnpublished?: () => void;
-  private _unsubViewMode?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
@@ -87,17 +79,6 @@ export class MobileApp extends LitElement {
       this.requestUpdate();
     });
 
-    // Unpublished indicator
-    this._hasUnpublished = getUnpublished();
-    this._unsubUnpublished = subscribeUnpublished(d => { this._hasUnpublished = d; });
-
-    this._viewMode = useTournamentStore.getState().viewMode;
-    this._unsubViewMode = subscribeSlice(
-      useTournamentStore,
-      s => s.viewMode,
-      mode => { this._viewMode = mode; },
-    );
-
     // Evento de navegación de vistas hijas
     this.addEventListener('mobile-navigate', this._onNavigate as EventListener);
     this.addEventListener('navigate', this._onStandardNavigate as EventListener);
@@ -108,8 +89,6 @@ export class MobileApp extends LitElement {
     this._unsubToast?.();
     this._unsubLocale?.();
     this._unsubAuth?.();
-    this._unsubUnpublished?.();
-    this._unsubViewMode?.();
     this.removeEventListener('mobile-navigate', this._onNavigate as EventListener);
     this.removeEventListener('navigate', this._onStandardNavigate as EventListener);
     super.disconnectedCallback();
@@ -179,12 +158,6 @@ export class MobileApp extends LitElement {
     }, e.detail.duration ?? 2000);
   }
 
-  private async _handleShare() {
-    const { openShareModal } = await import('../../components/share-modal');
-    openShareModal();
-    this._sheetOpen = false;
-  }
-
   private _toggleTheme() {
     const isDark = document.documentElement.dataset.theme === 'dark';
     const next = isDark ? 'light' : 'dark';
@@ -200,11 +173,6 @@ export class MobileApp extends LitElement {
     this._sheetOpen = false;
     const { openAuthModal } = await import('../../components/auth-modal');
     openAuthModal();
-  }
-
-  private async _handlePublish() {
-    this._sheetOpen = false;
-    await publishNow();
   }
 
   private get _isDark() { return document.documentElement.dataset.theme === 'dark'; }
@@ -262,7 +230,6 @@ export class MobileApp extends LitElement {
         </div>
         <bracket-knockout></bracket-knockout>
       </div>`;
-    if (v === 'awards') return html`<mobile-awards class="view-slot active"></mobile-awards>`;
 
     return html``;
   }
@@ -587,12 +554,6 @@ export class MobileApp extends LitElement {
             <span class="logo-sub">★ CHAMPIONS · 26/27 ★</span>
           </div>
         </a>
-        <button class="header-btn" aria-label="${t('header.share')}" @click="${this._handleShare}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/>
-            <line x1="8.3" y1="10.7" x2="15.7" y2="6.3"/><line x1="8.3" y1="13.3" x2="15.7" y2="17.7"/>
-          </svg>
-        </button>
         <button class="header-btn" aria-label="${t('tabs.more')}" @click="${() => { this._sheetOpen = !sheetOpen; }}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
             <line x1="4" y1="7" x2="20" y2="7"/>
@@ -604,20 +565,6 @@ export class MobileApp extends LitElement {
 
       <!-- Main -->
       <main class="app-main" role="main">
-        ${this._view === 'groups' || this._view === 'matchday' ? html`
-          <div class="mode-bar">
-            <button
-              class="mode-btn ${this._viewMode === 'predictions' ? 'active' : ''}"
-              @click=${() => useTournamentStore.getState().setViewMode('predictions')}>
-              ${t('viewMode.predictions')}
-            </button>
-            <button
-              class="mode-btn real ${this._viewMode === 'real' ? 'active' : ''}"
-              @click=${() => useTournamentStore.getState().setViewMode('real')}>
-              ${t('viewMode.real')}
-            </button>
-          </div>
-        ` : ''}
         ${this._renderView()}
       </main>
 
@@ -643,13 +590,6 @@ export class MobileApp extends LitElement {
             </svg>
           </div>
           <span class="nav-label">${t('tabs.matchday')}</span>
-        </button>
-        <button class="nav-item" @click="${this._handleShare}" aria-label="${t('header.share')}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          <span class="nav-label">${t('header.share')}</span>
         </button>
         <button class="nav-item ${this._navActive('more') ? 'active' : ''}" @click="${() => { this._sheetOpen = true; }}">
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -709,31 +649,6 @@ export class MobileApp extends LitElement {
               </span>
               <span class="si-arrow">›</span>
             </button>
-            <div class="sheet-section-label">${locale === 'es' ? 'Tu predicción' : 'Your prediction'}</div>
-            <button class="sheet-item" @click="${() => this._go('awards')}">
-              <span class="si-glyph">🏅</span>
-              <span class="si-text">
-                <span>${locale === 'es' ? 'Premios individuales' : 'Individual awards'}</span>
-                <span class="si-sub">${locale === 'es' ? 'Goleador y MVP del torneo' : 'Top scorer & tournament MVP'}</span>
-              </span>
-              <span class="si-arrow">›</span>
-            </button>
-            <button class="sheet-item" @click="${this._handleShare}">
-              <span class="si-glyph">↗</span>
-              <span class="si-text">
-                <span>${t('header.share')}</span>
-                <span class="si-sub">${locale === 'es' ? 'Genera un enlace' : 'Generate a link'}</span>
-              </span>
-            </button>
-            ${this._authEmail ? html`
-              <button class="sheet-item" @click="${this._handlePublish}">
-                <span class="si-glyph">☁</span>
-                <span class="si-text">
-                  <span>${locale === 'es' ? 'Publicar' : 'Publish'}${this._hasUnpublished ? ' ●' : ''}</span>
-                  <span class="si-sub">${this._authEmail}</span>
-                </span>
-              </button>
-            ` : ''}
 
             <div class="sheet-section-label">${locale === 'es' ? 'Ajustes' : 'Settings'}</div>
             <button class="sheet-item" @click="${() => { toggleLocale(); this._sheetOpen = false; }}">
@@ -762,7 +677,7 @@ export class MobileApp extends LitElement {
                   <span class="si-glyph">👤</span>
                   <span class="si-text">
                     <span>${t('account.signIn')}</span>
-                    <span class="si-sub">${locale === 'es' ? 'Sincroniza tu bracket' : 'Sync your bracket'}</span>
+                    <span class="si-sub">${locale === 'es' ? 'Accede a tu cuenta' : 'Your account'}</span>
                   </span>
                 </button>`}
 

@@ -42,15 +42,13 @@ function clearRuntimeCaches(): void {
 }
 
 // Soporte operativo: https://bracketmundial.com/?clearCache=1
-// permite limpiar cachés locales en una única navegación.
+// El script inline de index.html desregistra el SW y borra Cache Storage
+// antes de recargar; aquí solo se limpian cachés de datos de la app.
 if (typeof window !== 'undefined') {
   window.bracketMundialClearCache = clearRuntimeCaches;
   const params = new URLSearchParams(window.location.search);
   if (params.get('clearCache') === '1') {
     clearRuntimeCaches();
-    params.delete('clearCache');
-    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
-    window.location.replace(next);
   }
 }
 

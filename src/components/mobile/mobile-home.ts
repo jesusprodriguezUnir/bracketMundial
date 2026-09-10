@@ -4,7 +4,6 @@ import { useTournamentStore, type GroupMatchResult } from '../../store/tournamen
 import { subscribeSlice } from '../../store/store-utils';
 import { t, useLocaleStore } from '../../i18n';
 import { mobileShared } from './mobile-shared.css';
-import { showToast } from '../../lib/interaction';
 import { getCountdownValues, getTournamentPhase, type TournamentPhase } from '../../lib/tournament-phase';
 import { TEAMS_2026 } from '../../data/fifa-2026';
 import { COMPETITION } from '../../data/competition';
@@ -69,29 +68,6 @@ export class MobileHome extends LitElement {
 
   private _navigate(view: string) {
     this.dispatchEvent(new CustomEvent('mobile-navigate', { detail: view, bubbles: true, composed: true }));
-  }
-
-  private _simulateAll() {
-    const store = useTournamentStore.getState();
-    store.autoSimulateGroups();
-    store.autoSimulateKnockout();
-    this._matches = store.groupMatches;
-    this._played =
-      store.groupMatches.filter(m => m.scoreA !== null).length +
-      Object.values(store.knockoutMatches).filter(m => m.isPlayed).length;
-    const locale = useLocaleStore.getState().locale;
-    showToast(locale === 'es' ? 'Torneo completo simulado 🎲' : 'Full tournament simulated 🎲');
-  }
-
-  private _resetAll() {
-    const locale = useLocaleStore.getState().locale;
-    if (confirm(locale === 'es' ? '¿Reiniciar todo el torneo?' : 'Reset the whole tournament?')) {
-      const store = useTournamentStore.getState();
-      store.resetTournament();
-      this._matches = store.groupMatches;
-      this._played = 0;
-      showToast(locale === 'es' ? 'Torneo reiniciado 🔄' : 'Tournament reset 🔄');
-    }
   }
 
   static readonly styles = [
@@ -523,19 +499,19 @@ export class MobileHome extends LitElement {
       <section class="hero">
         <div class="hero-eyebrow">★ UEFA CHAMPIONS LEAGUE · 26/27 ★</div>
         <h1 class="hero-title">
-          ${locale === 'es' ? html`PREDICE<span class="accent">LA CHAMPIONS</span>` : html`PREDICT<span class="accent">CHAMPIONS LEAGUE</span>`}
+          ${locale === 'es' ? html`SIGUE<span class="accent">LA CHAMPIONS</span>` : html`FOLLOW<span class="accent">CHAMPIONS LEAGUE</span>`}
         </h1>
         <p class="hero-sub">
           ${locale === 'es'
-            ? 'Predice las 8 jornadas de la fase liga, sigue los marcadores en directo y publica tu porra.'
-            : 'Predict the 8 league-phase matchdays, follow live scores and publish your pool.'}
+            ? 'Sigue la fase liga: 36 clubes, 8 jornadas y marcadores en directo.'
+            : 'Follow the league phase: 36 clubs, 8 matchdays and live scores.'}
         </p>
         <div class="hero-crests">
           ${HERO_CLUBS.map(id => renderFlag(teamById(id), { size: 'md' }))}
         </div>
         <div class="hero-cta">
-          <button class="btn btn-primary btn-block" @click="${() => this._navigate('groups')}">
-            <span class="btn-icon">⚡</span> ${t('hero.ctaPrimary')}
+          <button class="btn btn-primary btn-block" @click="${() => this._navigate('matchday')}">
+            <span class="btn-icon">⚡</span> ${locale === 'es' ? 'VER JORNADA' : 'SEE MATCHDAY'}
           </button>
         </div>
       </section>
@@ -602,28 +578,6 @@ export class MobileHome extends LitElement {
           <div class="qc-title">${t('tabs.matchday').toUpperCase()}</div>
           <div class="qc-desc">${locale === 'es' ? '18 partidos · Jornada 1' : '18 matches · Matchday 1'}</div>
         </button>
-        <button class="quick-card" @click="${() => this._navigate('awards')}">
-          <div class="qc-glyph" style="background:var(--retro-yellow)">⭐</div>
-          <div class="qc-title">${locale === 'es' ? 'PREMIOS' : 'AWARDS'}</div>
-          <div class="qc-desc">${locale === 'es' ? 'Goleador y MVP' : 'Top scorer & MVP'}</div>
-        </button>
-      </div>
-
-      <div class="sim-card">
-        <div class="sim-title">⚡ ${locale === 'es' ? 'SIMULACIÓN DEL TORNEO' : 'TOURNAMENT SIMULATION'}</div>
-        <div class="sim-desc">
-          ${locale === 'es'
-            ? 'Rellena el resto de la porra al instante. No pisa los resultados oficiales.'
-            : 'Fill the rest of your pool instantly. Official results stay untouched.'}
-        </div>
-        <div class="sim-actions">
-          <button class="btn btn-primary" @click="${this._simulateAll}">
-            <span class="btn-icon">🎲</span> ${locale === 'es' ? 'SIMULAR TODO' : 'SIMULATE ALL'}
-          </button>
-          <button class="btn" style="color: var(--retro-red)" @click="${this._resetAll}">
-            ${t('groups.reset').toUpperCase()}
-          </button>
-        </div>
       </div>
 
       <!-- Footer móvil con autoría de WebDespega -->

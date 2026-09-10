@@ -182,6 +182,27 @@
     </script>
   </head>
   <body>
+    <script>
+      (function () {
+        if (!/[?&]clearCache=1(?:&|$)/.test(location.search)) return;
+        if (typeof window.stop === 'function') window.stop();
+        var next = new URL(location.href);
+        next.searchParams.delete('clearCache');
+        var go = function () { location.replace(next.pathname + next.search + next.hash); };
+        var tasks = [];
+        if ('serviceWorker' in navigator) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+            return Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        if ('caches' in window) {
+          tasks.push(caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+        Promise.all(tasks).then(go).catch(go);
+      })();
+    </script>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NL5BC7FG"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
