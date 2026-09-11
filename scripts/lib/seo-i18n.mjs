@@ -19,8 +19,23 @@ export const TEAM_NAME_EN = {
   ENG: 'England', CRO: 'Croatia', GHA: 'Ghana', PAN: 'Panama',
 };
 
-/** País del estadio normalizado a inglés. */
 export const STADIUM_COUNTRY_EN = {
+  'Alemania': 'Germany',
+  'España': 'Spain',
+  'Inglaterra': 'England',
+  'Italia': 'Italy',
+  'Francia': 'France',
+  'Portugal': 'Portugal',
+  'Turquía': 'Turkey',
+  'Países Bajos': 'Netherlands',
+  'Bélgica': 'Belgium',
+  'República Checa': 'Czechia',
+  'Ucrania': 'Ukraine',
+  'Grecia': 'Greece',
+  'Austria': 'Austria',
+  'Noruega': 'Norway',
+  'Eslovaquia': 'Slovakia',
+  'Azerbaiyán': 'Azerbaijan',
   'México': 'Mexico',
   'Canadá': 'Canada',
   'USA': 'United States',

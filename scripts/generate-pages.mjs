@@ -60,7 +60,21 @@ function ensureCanonicalSitemapEntries(entries) {
 }
 
 // Carpetas generadas (se limpian en cada build para evitar páginas huérfanas).
-const MANAGED_DIRS = ['grupos', 'calendario', 'estadios', 'plantillas', 'seleccion', 'en', 'porra-mundial-2026', 'plantilla-imprimir', 'simulador-eliminatorias', 'mundial-para-clase'];
+const MANAGED_DIRS = [
+  'grupos',
+  'calendario',
+  'estadios',
+  'plantillas',
+  'seleccion',
+  'en',
+  'porra-mundial-2026',
+  'porra-champions-league',
+  'plantilla-imprimir',
+  'simulador-eliminatorias',
+  'mundial-para-clase',
+  'jornada-1', 'jornada-2', 'jornada-3', 'jornada-4',
+  'jornada-5', 'jornada-6', 'jornada-7', 'jornada-8',
+];
 
 function cleanManaged() {
   for (const d of MANAGED_DIRS) {
@@ -98,13 +112,13 @@ function buildSitemap(pages) {
     } else if (/\/(grupos|groups|plantillas|squads)\/$/.test(p.path)) {
       priority = '0.9';
       changefreq = 'weekly';
-    } else if (/\/(calendario|schedule)\/$/.test(p.path)) {
+    } else if (/\/(calendario|schedule|jornada-|matchday-)/.test(p.path)) {
       priority = '0.9';
       changefreq = 'daily';
     } else if (/\/(estadios|stadiums)\/$/.test(p.path)) {
       priority = '0.8';
       changefreq = 'monthly';
-    } else if (/grupo-|group-|seleccion|team/.test(p.path)) {
+    } else if (/grupo-|group-|seleccion|team|porra/.test(p.path)) {
       priority = '0.8';
       changefreq = 'weekly';
     }
