@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "true",
+  "buildCommand": "true",
+  "git": {
+    "deploymentEnabled": {
+      "odds-data": false
+    }
+  }
+}
